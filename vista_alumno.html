@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Credencial V14 - Final Ajustada</title>
+    <title>Credencial V16 - Full Completa</title>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
     
@@ -22,7 +22,7 @@
             --card-width: 1011px;
             --card-height: 638px;
             
-            /* HOLOGRAFÍA FUERTE (Para que se vea al imprimir) */
+            /* HOLOGRAFÍA */
             --holo-pattern: 
                 repeating-linear-gradient(
                     45deg,
@@ -35,7 +35,7 @@
                     120deg,
                     transparent 30%,
                     rgba(255, 255, 255, 0.2) 45%,
-                    rgba(200, 255, 255, 0.4) 50%, /* Destello central fuerte */
+                    rgba(200, 255, 255, 0.4) 50%,
                     rgba(255, 255, 255, 0.2) 55%,
                     transparent 70%
                 );
@@ -47,74 +47,53 @@
         }
         @media (max-width: 600px) { .preview-wrapper { transform: scale(0.28); margin-bottom: -450px; } }
 
-        /* --- TARJETA --- */
+        /* --- TARJETA GENÉRICA --- */
         .card {
             width: var(--card-width);
             height: var(--card-height);
             background: white;
             display: flex; position: relative;
-            /* IMPORTANTE: Esto recorta todo lo que sobra (hace el triangulo) */
             border-radius: 40px; 
             overflow: hidden; 
-            
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
             margin-bottom: 50px;
         }
 
-        /* --- IZQUIERDA --- */
+        /* --- FRENTE: IZQUIERDA --- */
         .front-left {
             width: 380px; height: 100%; position: relative;
             background: #d4d4d4;
             z-index: 1;
-            /* El overflow hidden aquí es clave para la foto */
             overflow: hidden; 
         }
         .student-photo { width: 100%; height: 100%; object-fit: cover; }
 
-        /* --- TRIÁNGULO V14 (Rotación Gigante) --- */
-        /* Esta es la técnica más segura. Un cuadrado gigante girado. */
+        /* --- TRIÁNGULO (Tus coordenadas manuales preservadas) --- */
         .triangle-rotated {
             position: absolute; 
-            
-            /* COORDENADAS AJUSTADAS PARA FORMAR EL TRIÁNGULO */
             bottom: -330px; 
             left: -485px;   
-            
-            /* TAMAÑO GIGANTE (Asegura que no se vean los bordes rectos) */
             width: 650px; 
             height: 650px; 
-            
             transform: rotate(45deg);
             z-index: 2;
-            
-            /* BORDES BLANCOS (Forman la diagonal) */
             border-top: 12px solid white;
             border-right: 12px solid white;
-            
-            /* SOMBRA para dar profundidad sobre la foto */
             box-shadow: 5px -5px 15px rgba(0,0,0,0.5);
         }
 
         .triangle-content {
             width: 100%; height: 100%;
-            /* Contrarrotación para el gradiente */
             transform: rotate(-45deg) scale(1.5); 
         }
 
-        /* SIGLA CORREGIDA (Ya no se sale del cuadro) */
         .reg-sigla {
             position: absolute; 
-            /* La movemos "hacia adentro" */
-            bottom: 35px;  /* Más arriba */
-            left: 15px;    /* Más a la derecha */
-            
+            bottom: 35px; left: 15px; 
             width: 200px;
-            text-align: center; 
-            color: white; 
-            font-size: 24px; 
-            font-weight: 900;
+            text-align: center; color: white; 
+            font-size: 24px; font-weight: 900;
             z-index: 4; 
-            
             transform: rotate(-45deg); 
             transform-origin: left bottom;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8); 
@@ -131,7 +110,7 @@
         }
         .qr-on-photo img { width: 100%; height: 100%; }
 
-        /* --- DERECHA --- */
+        /* --- FRENTE: DERECHA --- */
         .front-right {
             flex: 1; position: relative; color: white;
             padding: 20px 35px;
@@ -145,7 +124,6 @@
             opacity: 1; mix-blend-mode: overlay; z-index: 0; pointer-events: none;
         }
         
-        /* Ruido granulado */
         .noise-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
@@ -202,40 +180,43 @@
         }
         .long-text { font-size: 28px; }
 
-        /* --- DORSO --- */
+        /* --- DORSO (REVERSO JPG) --- */
         .card-back {
-            background: white;
-            background-image: radial-gradient(#ccc 2px, transparent 2px); background-size: 30px 30px;
-            padding: 40px; flex-direction: column;
+            padding: 0; 
+            position: relative;
+            background: black;
         }
-        .legal-text { color: #0033cc; font-size: 28px; font-weight: 900; text-align: center; text-transform: uppercase; margin-bottom: 40px; }
-        .signatures-area { display: flex; justify-content: space-between; margin-bottom: 30px; }
-        .sig-block { text-align: center; width: 22%; }
-        .sig-line { width: 100%; height: 2px; background: #000; margin-bottom: 10px; margin-top: 50px; }
-        .sig-name { font-size: 14px; font-weight: bold; color: #000; }
-        .sig-role { font-size: 12px; color: #555; }
-        .logos-area { display: flex; align-items: center; justify-content: space-between; padding: 0 50px; margin-top: auto; height: 180px; }
-        .logo-circle { width: 160px; height: 160px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .logo-circle img { width: 100%; height: 100%; object-fit: contain; }
-        .footer-logos { display: flex; justify-content: space-between; margin-top: 20px; border-top: 2px solid #eee; padding-top: 10px; }
-        .footer-logo-img { height: 60px; }
+        .back-image { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+        /* Platinum Overlay */
+        .platinum-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.2) 45%, rgba(255,255,255,0.0) 50%, rgba(255,255,255,0.05) 100%);
+            mix-blend-mode: overlay; pointer-events: none;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.2);
+        }
 
         /* UI */
         .controls { background: #333; color: white; padding: 20px; border-radius: 10px; text-align: center; position: sticky; top: 20px; z-index: 100; width: 90%; max-width: 600px; border: 1px solid #555; }
         .btn-action { padding: 15px 30px; font-size: 16px; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
         .btn-upload { background: #555; color: white; border: 1px solid #777; }
         .btn-download { background: #00c853; color: white; }
+        /* Botón especial para descarga completa */
+        .btn-full { background: #0099ff; color: white; width: 100%; margin-top: 10px; }
+        .btn-full:hover { background: #007acc; }
+
     </style>
 </head>
 <body>
 
     <div class="controls">
-        <h2 style="margin-bottom:10px;">Panel del Alumno (V14 Final)</h2>
+        <h2 style="margin-bottom:10px;">Panel del Alumno (V16)</h2>
         <input type="file" id="input-foto" accept="image/*" style="display:none;" onchange="cargarFoto()">
         <button class="btn-action btn-upload" onclick="document.getElementById('input-foto').click()">📸 SUBIR FOTO</button>
         <br>
-        <button class="btn-action btn-download" onclick="descargarPNG('card-front', 'Credencial_Frente')">⬇️ FRENTE (PNG HD)</button>
-        <button class="btn-action btn-download" onclick="descargarPNG('card-back', 'Credencial_Dorso')">⬇️ DORSO (PNG HD)</button>
+        <button class="btn-action btn-download" onclick="descargarPNG('card-front', 'Credencial_Frente')">⬇️ SOLO FRENTE</button>
+        <button class="btn-action btn-download" onclick="descargarPNG('card-back', 'Credencial_Dorso')">⬇️ SOLO DORSO</button>
+        <button class="btn-action btn-full" onclick="descargarCompleto('Credencial_Final')">✨ DESCARGAR COMPLETA (1 IMG)</button>
     </div>
 
     <div class="preview-wrapper">
@@ -294,21 +275,9 @@
         </div>
 
         <div class="card card-back" id="card-back">
-            <div class="legal-text">EL PRESENTE CARNET ES UNA DECLARACIÓN JURADA</div>
-            <div class="signatures-area">
-                <div class="sig-block"><div class="sig-line"></div><div class="sig-name">Aldo M. Joseph</div><div class="sig-role">PRESIDENTE A.A.P.S</div></div>
-                <div class="sig-block"><div class="sig-line"></div><div class="sig-name">Pablo Verducchio</div><div class="sig-role">DIR. GRUPO COLBERT</div></div>
-                <div class="sig-block"><div class="sig-line"></div><div class="sig-name">Ivana Santacroce</div><div class="sig-role">SEC. ACADÉMICA</div></div>
-                <div class="sig-block"><div class="sig-line"></div><div class="sig-name">Miguel A. Ruff</div><div class="sig-role">DIRECTOR</div></div>
-            </div>
-            <div class="logos-area">
-                <div class="logo-circle"><img src="https://via.placeholder.com/150?text=LOGO+AAPS" alt="Sello AAPS"></div>
-                <div class="logo-circle"><img src="https://via.placeholder.com/150?text=LOGO+COLBERT" alt="Sello Colbert"></div>
-            </div>
-            <div class="footer-logos">
-                <img src="https://via.placeholder.com/300x80?text=LOGO+AAPS+HORIZONTAL" class="footer-logo-img">
-                <img src="https://via.placeholder.com/300x80?text=INSTITUTO+COLBERT" class="footer-logo-img">
-            </div>
+            <img src="reverso.jpg" alt="Reverso Credencial" class="back-image">
+            <div class="platinum-overlay"></div>
+            <div class="noise-layer" style="opacity:0.2;"></div>
         </div>
     </div>
 
@@ -359,7 +328,7 @@
                     // --- SISTEMA DE GRADIENTES METÁLICOS ---
                     const panel = document.getElementById('bg-panel');
                     const sigla = document.getElementById('txt-sigla');
-                    const triangle = document.getElementById('triangle-bg'); 
+                    const triangle = document.getElementById('triangle-bg').querySelector('.triangle-content'); 
                     
                     let gradient = 'linear-gradient(135deg, #001f7a, #0033cc, #005ce6, #001f7a)'; 
                     let textoSigla = 'R.E.M.A.E.P';
@@ -416,11 +385,75 @@
             }
         }
 
-        // DESCARGA PNG V14 (Configuración "AllowTaint" para filtros)
+        // --- DESCARGA INDIVIDUAL ---
         function descargarPNG(elementId, fileName) {
-            const originalElement = document.getElementById(elementId);
-            const clone = originalElement.cloneNode(true);
+            generarImagen(document.getElementById(elementId), fileName);
+        }
+
+        // --- DESCARGA COMPLETA (FRENTE Y DORSO UNIDOS) ---
+        function descargarCompleto(fileName) {
+            const front = document.getElementById('card-front');
+            const back = document.getElementById('card-back');
+
+            // 1. Crear Contenedor Temporal Vertical
+            const container = document.createElement('div');
+            container.style.display = 'flex';
+            container.style.flexDirection = 'column';
+            container.style.gap = '40px'; // Espacio entre tarjetas
+            container.style.width = '1011px'; // Ancho exacto de la tarjeta
+            container.style.position = 'fixed';
+            container.style.top = '-9999px';
+            container.style.left = '0';
             
+            // 2. Clonar Frente y Dorso
+            const cloneFront = front.cloneNode(true);
+            const cloneBack = back.cloneNode(true);
+
+            // Ajustes obligatorios para los clones
+            [cloneFront, cloneBack].forEach(clone => {
+                clone.style.transform = "none";
+                clone.style.margin = "0";
+                clone.style.boxShadow = "none";
+                clone.style.borderRadius = "40px"; // Mantener bordes redondos
+            });
+
+            // Recuperar Imágenes en Clones (Foto Alumno y Reverso)
+            const frontImg = front.querySelector('img.student-photo');
+            const cloneFrontImg = cloneFront.querySelector('img.student-photo');
+            if(frontImg.src) cloneFrontImg.src = frontImg.src;
+
+            const backImg = back.querySelector('img.back-image');
+            const cloneBackImg = cloneBack.querySelector('img.back-image');
+            if(backImg) cloneBackImg.src = backImg.src;
+
+            // 3. Unir
+            container.appendChild(cloneFront);
+            container.appendChild(cloneBack);
+            document.body.appendChild(container);
+
+            // 4. Generar
+            html2canvas(container, {
+                scale: 1,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: null, 
+                width: 1011,
+                height: 1316 // (638 * 2) + 40 gap
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `${fileName}.png`;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+                document.body.removeChild(container);
+            }).catch(err => {
+                console.error(err);
+                document.body.removeChild(container);
+            });
+        }
+
+        // Función Helper para descargas individuales
+        function generarImagen(element, fileName) {
+            const clone = element.cloneNode(true);
             clone.style.transform = "none";
             clone.style.position = "fixed";
             clone.style.top = "-9999px";
@@ -429,34 +462,24 @@
             clone.style.height = "638px";
             clone.style.margin = "0";
             clone.style.boxShadow = "none";
-            // Borde redondeado explícito para el clon
             clone.style.borderRadius = "40px";
-            clone.style.overflow = "hidden"; // Asegura recorte en clon
 
-            const originalImg = originalElement.querySelector('img.student-photo');
-            const cloneImg = clone.querySelector('img.student-photo');
-            if(originalImg.src && originalImg.style.display !== 'none') {
-                cloneImg.src = originalImg.src;
-                cloneImg.style.display = 'block';
-            }
+            // Recuperar imágenes
+            const img1 = element.querySelector('img.student-photo');
+            if(img1 && img1.src) clone.querySelector('img.student-photo').src = img1.src;
+            const img2 = element.querySelector('img.back-image');
+            if(img2 && img2.src) clone.querySelector('img.back-image').src = img2.src;
 
             document.body.appendChild(clone);
 
             html2canvas(clone, {
-                scale: 1,
-                useCORS: true,
-                allowTaint: true,
-                backgroundColor: null, 
-                width: 1011,
-                height: 638
+                scale: 1, useCORS: true, allowTaint: true, backgroundColor: null, 
+                width: 1011, height: 638
             }).then(canvas => {
                 const link = document.createElement('a');
                 link.download = `${fileName}.png`;
                 link.href = canvas.toDataURL("image/png");
                 link.click();
-                document.body.removeChild(clone);
-            }).catch(err => {
-                console.error("Error:", err);
                 document.body.removeChild(clone);
             });
         }
