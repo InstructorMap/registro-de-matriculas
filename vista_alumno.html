@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Credencial V20 - Final Método Costura</title>
+    <title>Credencial V21 - SVG Indestructible</title>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
     
@@ -47,16 +47,15 @@
         }
         @media (max-width: 600px) { .preview-wrapper { transform: scale(0.28); margin-bottom: -450px; } }
 
-        /* --- TARJETA GENÉRICA --- */
+        /* --- TARJETA --- */
         .card {
             width: var(--card-width);
             height: var(--card-height);
             background: white;
             display: flex; position: relative;
             border-radius: 40px; 
-            /* RECORTE PRINCIPAL */
             overflow: hidden; 
-            /* Máscara para forzar recorte en Webkit */
+            /* Máscara de seguridad para bordes redondos */
             mask-image: radial-gradient(white, black);
             -webkit-mask-image: -webkit-radial-gradient(white, black);
             
@@ -69,35 +68,23 @@
             width: 380px; height: 100%; position: relative;
             background: #d4d4d4;
             z-index: 1;
-            /* RECORTE CRÍTICO */
-            overflow: hidden; 
-            border-top-left-radius: 40px;
-            border-bottom-left-radius: 40px;
+            overflow: hidden; /* Asegura que la foto no se salga */
         }
         .student-photo { width: 100%; height: 100%; object-fit: cover; }
 
-        /* --- TRIÁNGULO (Coordenadas Preservadas) --- */
-        .triangle-rotated {
-            position: absolute; 
-            bottom: -330px; 
-            left: -485px;   
-            width: 650px; 
-            height: 650px; 
-            transform: rotate(45deg);
+        /* --- TRIÁNGULO SVG (LA SOLUCIÓN) --- */
+        /* Posicionamos el SVG encima de la foto */
+        .svg-triangle-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             z-index: 2;
-            border-top: 12px solid white;
-            border-right: 12px solid white;
-            box-shadow: 5px -5px 15px rgba(0,0,0,0.5);
-            /* Seguridad extra */
-            overflow: hidden; 
-            pointer-events: none;
+            pointer-events: none; /* Permite clicks a través si fuera necesario */
         }
 
-        .triangle-content {
-            width: 100%; height: 100%;
-            transform: rotate(-45deg) scale(1.5); 
-        }
-
+        /* SIGLA */
         .reg-sigla {
             position: absolute; 
             bottom: 35px; left: 15px; 
@@ -214,14 +201,27 @@
 </head>
 <body>
 
+    <svg width="0" height="0">
+        <defs>
+            <linearGradient id="metal-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#001f7a;stop-opacity:1" id="stop1" />
+                <stop offset="50%" style="stop-color:#0033cc;stop-opacity:1" id="stop2" />
+                <stop offset="100%" style="stop-color:#001f7a;stop-opacity:1" id="stop3" />
+            </linearGradient>
+            <filter id="shadow">
+                <feDropShadow dx="2" dy="-2" stdDeviation="3" flood-color="black" flood-opacity="0.5"/>
+            </filter>
+        </defs>
+    </svg>
+
     <div class="controls">
-        <h2 style="margin-bottom:10px;">Panel del Alumno (V20)</h2>
+        <h2 style="margin-bottom:10px;">Panel del Alumno (V21 SVG)</h2>
         <input type="file" id="input-foto" accept="image/*" style="display:none;" onchange="cargarFoto()">
         <button class="btn-action btn-upload" onclick="document.getElementById('input-foto').click()">📸 SUBIR FOTO</button>
         <br>
         <button class="btn-action btn-download" onclick="descargarIndividual('card-front', 'Credencial_Frente')">⬇️ SOLO FRENTE</button>
         <button class="btn-action btn-download" onclick="descargarIndividual('card-back', 'Credencial_Dorso')">⬇️ SOLO DORSO</button>
-        <button class="btn-action btn-full" onclick="descargarCompletoCosido('Credencial_Final')">✨ DESCARGAR COMPLETA (FIX)</button>
+        <button class="btn-action btn-full" onclick="descargarCompletoCosido('Credencial_Final')">✨ DESCARGAR COMPLETA (SVG FIX)</button>
     </div>
 
     <div class="preview-wrapper">
@@ -234,8 +234,15 @@
                     <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Validado" alt="QR">
                 </div>
 
-                <div class="triangle-rotated" id="triangle-bg">
-                    <div class="triangle-content"></div>
+                <div class="svg-triangle-container">
+                    <svg viewBox="0 0 380 638" width="100%" height="100%" preserveAspectRatio="none">
+                        <path d="M -10 650 L 320 650 L -10 250 Z" 
+                              fill="url(#metal-gradient)" 
+                              stroke="white" 
+                              stroke-width="12"
+                              style="filter: url(#shadow);"
+                        />
+                    </svg>
                 </div>
                 
                 <div class="reg-sigla" id="txt-sigla">REGISTRO</div>
@@ -329,42 +336,61 @@
                         document.getElementById('txt-vence').innerText = `${parts[2]}/${parts[1]}/${parts[0]}`;
                     }
 
+                    // --- SISTEMA DE GRADIENTES (AHORA ACTUALIZA EL SVG) ---
                     const panel = document.getElementById('bg-panel');
                     const sigla = document.getElementById('txt-sigla');
-                    const triangle = document.getElementById('triangle-bg').querySelector('.triangle-content'); 
                     
-                    let gradient = 'linear-gradient(135deg, #001f7a, #0033cc, #005ce6, #001f7a)'; 
+                    // Colores para el SVG Gradient (Stops)
+                    const stop1 = document.getElementById('stop1');
+                    const stop2 = document.getElementById('stop2');
+                    const stop3 = document.getElementById('stop3');
+                    
+                    let gradCSS = 'linear-gradient(135deg, #001f7a, #0033cc, #005ce6, #001f7a)'; 
+                    
+                    // Función helper para actualizar SVG
+                    function updateSvgGradient(c1, c2, c3) {
+                        stop1.style.stopColor = c1;
+                        stop2.style.stopColor = c2;
+                        stop3.style.stopColor = c3;
+                    }
+
                     let textoSigla = 'R.E.M.A.E.P';
                     let textColor = 'white';
+                    updateSvgGradient('#001f7a', '#0033cc', '#001f7a'); // Default
 
                     if(datos.reg.includes('remaep')) { 
-                        gradient = 'linear-gradient(135deg, #002266, #0033cc, #3366ff, #002266)';
+                        gradCSS = 'linear-gradient(135deg, #002266, #0033cc, #3366ff, #002266)';
+                        updateSvgGradient('#002266', '#3366ff', '#002266');
                         textoSigla = 'R.E.M.A.E.P'; 
                     }
                     if(datos.reg.includes('rniue')) { 
-                        gradient = 'linear-gradient(135deg, #8a6e2f, #b8860b, #ffd700, #8a6e2f)';
+                        gradCSS = 'linear-gradient(135deg, #8a6e2f, #b8860b, #ffd700, #8a6e2f)';
+                        updateSvgGradient('#8a6e2f', '#ffd700', '#8a6e2f');
                         textoSigla = 'R.N.I.U.E'; 
                     }
                     if(datos.reg.includes('rubra')) { 
-                        gradient = 'linear-gradient(135deg, #800000, #cc0000, #ff3333, #800000)';
+                        gradCSS = 'linear-gradient(135deg, #800000, #cc0000, #ff3333, #800000)';
+                        updateSvgGradient('#800000', '#ff3333', '#800000');
                         textoSigla = 'R.U.B.R.A'; 
                     }
                     if(datos.reg.includes('rmts')) { 
-                        gradient = 'linear-gradient(135deg, #1a2f1a, #2f4f4f, #4d704d, #1a2f1a)';
+                        gradCSS = 'linear-gradient(135deg, #1a2f1a, #2f4f4f, #4d704d, #1a2f1a)';
+                        updateSvgGradient('#1a2f1a', '#4d704d', '#1a2f1a');
                         textoSigla = 'R.M.T.S'; 
                     }
                     if(datos.reg.includes('rce')) { 
-                        gradient = 'linear-gradient(135deg, #cc9900, #ffcc00, #ffe066, #cc9900)';
+                        gradCSS = 'linear-gradient(135deg, #cc9900, #ffcc00, #ffe066, #cc9900)';
+                        updateSvgGradient('#cc9900', '#ffe066', '#cc9900');
                         textoSigla = 'R.C.E'; 
                         textColor = 'black'; 
                     }
                     if(datos.reg.includes('rpde')) { 
-                        gradient = 'linear-gradient(135deg, #005c99, #0099ff, #66c2ff, #005c99)';
+                        gradCSS = 'linear-gradient(135deg, #005c99, #0099ff, #66c2ff, #005c99)';
+                        updateSvgGradient('#005c99', '#66c2ff', '#005c99');
                         textoSigla = 'R.P.D.E'; 
                     }
 
-                    panel.style.background = gradient;
-                    triangle.style.background = gradient;
+                    panel.style.background = gradCSS;
                     panel.style.color = textColor;
 
                     sigla.innerText = textoSigla;
@@ -388,11 +414,71 @@
             }
         }
 
-        // DESCARGA INDIVIDUAL (Simple clonado)
+        // --- DESCARGAS ---
         function descargarIndividual(elementId, fileName) {
-            const element = document.getElementById(elementId);
-            const clone = element.cloneNode(true);
+            generarImagen(document.getElementById(elementId), fileName);
+        }
+
+        async function descargarCompletoCosido(fileName) {
+            const front = document.getElementById('card-front');
+            const back = document.getElementById('card-back');
+
+            // 1. Clonar para asegurar limpieza de transformaciones y estilos SVG
+            const cloneFront = front.cloneNode(true);
+            const cloneBack = back.cloneNode(true);
             
+            // Contenedor temporal invisible
+            const tempContainer = document.createElement('div');
+            tempContainer.style.position = 'absolute';
+            tempContainer.style.top = '-9999px';
+            tempContainer.style.left = '0';
+            tempContainer.appendChild(cloneFront);
+            tempContainer.appendChild(cloneBack);
+            document.body.appendChild(tempContainer);
+
+            // Ajustes vitales a los clones
+            [cloneFront, cloneBack].forEach(clone => {
+                clone.style.transform = "none";
+                clone.style.margin = "0";
+                clone.style.boxShadow = "none";
+                clone.style.borderRadius = "40px";
+                clone.style.overflow = "hidden";
+            });
+
+            // Recuperar imágenes
+            const frontImg = front.querySelector('img.student-photo');
+            if(frontImg && frontImg.src) cloneFront.querySelector('img.student-photo').src = frontImg.src;
+            const backImg = back.querySelector('img.back-image');
+            if(backImg && backImg.src) cloneBack.querySelector('img.back-image').src = backImg.src;
+
+            // Esperar un momento a que el DOM virtual se asiente (importante para SVG)
+            await new Promise(r => setTimeout(r, 100));
+
+            // Renderizar
+            const canvasFront = await html2canvas(cloneFront, { scale: 1, useCORS: true, backgroundColor: null, width: 1011, height: 638 });
+            const canvasBack = await html2canvas(cloneBack, { scale: 1, useCORS: true, backgroundColor: null, width: 1011, height: 638 });
+
+            // Unir
+            const finalCanvas = document.createElement('canvas');
+            const gap = 40;
+            finalCanvas.width = 1011;
+            finalCanvas.height = (638 * 2) + gap;
+            const ctx = finalCanvas.getContext('2d');
+            
+            ctx.drawImage(canvasFront, 0, 0);
+            ctx.drawImage(canvasBack, 0, 638 + gap);
+
+            // Descargar
+            const link = document.createElement('a');
+            link.download = `${fileName}.png`;
+            link.href = finalCanvas.toDataURL("image/png");
+            link.click();
+            
+            document.body.removeChild(tempContainer);
+        }
+
+        function generarImagen(element, fileName) {
+            const clone = element.cloneNode(true);
             clone.style.transform = "none";
             clone.style.position = "fixed";
             clone.style.top = "-9999px";
@@ -400,14 +486,14 @@
             clone.style.width = "1011px";
             clone.style.height = "638px";
             clone.style.margin = "0";
+            clone.style.boxShadow = "none";
             clone.style.borderRadius = "40px";
-            clone.style.overflow = "hidden"; // Aseguramos recorte
+            clone.style.overflow = "hidden";
 
-            const originalImg = element.querySelector('img.student-photo');
-            if(originalImg && originalImg.src) clone.querySelector('img.student-photo').src = originalImg.src;
-
-            const originalBack = element.querySelector('img.back-image');
-            if(originalBack && originalBack.src) clone.querySelector('img.back-image').src = originalBack.src;
+            const img1 = element.querySelector('img.student-photo');
+            if(img1 && img1.src) clone.querySelector('img.student-photo').src = img1.src;
+            const img2 = element.querySelector('img.back-image');
+            if(img2) clone.querySelector('img.back-image').src = img2.src;
 
             document.body.appendChild(clone);
 
@@ -423,50 +509,6 @@
                     document.body.removeChild(clone);
                 });
             }, 200);
-        }
-
-        // --- MÉTODO "COSTURA" PARA DESCARGA COMPLETA ---
-        // ESTA ES LA SOLUCIÓN DEFINITIVA AL PROBLEMA DEL TRIÁNGULO ROTO
-        async function descargarCompletoCosido(fileName) {
-            const front = document.getElementById('card-front');
-            const back = document.getElementById('card-back');
-
-            // 1. Renderizar FRENTE tal cual está en pantalla (sin clonar lógica compleja)
-            const canvasFront = await html2canvas(front, {
-                scale: 1,
-                useCORS: true,
-                allowTaint: true,
-                backgroundColor: null,
-                width: 1011,
-                height: 638
-            });
-
-            // 2. Renderizar DORSO
-            const canvasBack = await html2canvas(back, {
-                scale: 1,
-                useCORS: true,
-                allowTaint: true,
-                backgroundColor: null,
-                width: 1011,
-                height: 638
-            });
-
-            // 3. Crear lienzo final (Frente + Espacio + Dorso)
-            const finalCanvas = document.createElement('canvas');
-            const gap = 40;
-            finalCanvas.width = 1011;
-            finalCanvas.height = (638 * 2) + gap;
-            const ctx = finalCanvas.getContext('2d');
-
-            // 4. Pegar las "fotos" tomadas
-            ctx.drawImage(canvasFront, 0, 0);
-            ctx.drawImage(canvasBack, 0, 638 + gap);
-
-            // 5. Descargar
-            const link = document.createElement('a');
-            link.download = `${fileName}.png`;
-            link.href = finalCanvas.toDataURL("image/png");
-            link.click();
         }
     </script>
 </body>
