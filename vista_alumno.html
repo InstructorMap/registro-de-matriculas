@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Credencial V18 - Final Completa (Fix Reverso)</title>
+    <title>Credencial V19 - Final Fix Full</title>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
     
@@ -54,11 +54,9 @@
             background: white;
             display: flex; position: relative;
             border-radius: 40px; 
-            /* IMPORTANTE: Forzar recorte en todos los navegadores */
             overflow: hidden; 
             mask-image: radial-gradient(white, black);
             -webkit-mask-image: -webkit-radial-gradient(white, black);
-            
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
             margin-bottom: 50px;
         }
@@ -68,26 +66,31 @@
             width: 380px; height: 100%; position: relative;
             background: #d4d4d4;
             z-index: 1;
-            /* RECORTE ESTRICTO DEL CONTENEDOR IZQUIERDO */
+            /* RECORTE ESTRICTO */
             overflow: hidden; 
             border-top-left-radius: 40px;
             border-bottom-left-radius: 40px;
         }
         .student-photo { width: 100%; height: 100%; object-fit: cover; }
 
-        /* --- TRIÁNGULO (Coordenadas V15 que funcionaron) --- */
+        /* --- TRIÁNGULO (COORDENADAS V14 QUE FUNCIONAN) --- */
         .triangle-rotated {
             position: absolute; 
+            /* Coordenadas exactas que te gustaron */
             bottom: -330px; 
             left: -485px;   
+            
             width: 650px; 
             height: 650px; 
+            
             transform: rotate(45deg);
             z-index: 2;
+            
             border-top: 12px solid white;
             border-right: 12px solid white;
             box-shadow: 5px -5px 15px rgba(0,0,0,0.5);
-            /* Aseguramos que el div en sí no desborde si el padre falla */
+            
+            /* Doble seguridad */
             overflow: hidden; 
         }
 
@@ -189,17 +192,9 @@
         }
         .long-text { font-size: 28px; }
 
-        /* --- DORSO (REVERSO) --- */
-        .card-back {
-            padding: 0; 
-            position: relative;
-            background: #fff;
-        }
-        .back-image { 
-            width: 100%; height: 100%; 
-            object-fit: fill; 
-            display: block; 
-        }
+        /* --- DORSO --- */
+        .card-back { padding: 0; position: relative; background: #fff; }
+        .back-image { width: 100%; height: 100%; object-fit: fill; display: block; }
 
         .platinum-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -221,7 +216,7 @@
 <body>
 
     <div class="controls">
-        <h2 style="margin-bottom:10px;">Panel del Alumno (V18)</h2>
+        <h2 style="margin-bottom:10px;">Panel del Alumno (V19)</h2>
         <input type="file" id="input-foto" accept="image/*" style="display:none;" onchange="cargarFoto()">
         <button class="btn-action btn-upload" onclick="document.getElementById('input-foto').click()">📸 SUBIR FOTO</button>
         <br>
@@ -300,7 +295,6 @@
             if (token) {
                 try {
                     const datos = JSON.parse(atob(token));
-                    
                     const fullTitle = datos.tit || "CURSO PROFESIONAL";
                     const words = fullTitle.split(' ');
                     const mainElem = document.getElementById('txt-titulo-main');
@@ -336,7 +330,6 @@
                         document.getElementById('txt-vence').innerText = `${parts[2]}/${parts[1]}/${parts[0]}`;
                     }
 
-                    // --- SISTEMA DE GRADIENTES METÁLICOS ---
                     const panel = document.getElementById('bg-panel');
                     const sigla = document.getElementById('txt-sigla');
                     const triangle = document.getElementById('triangle-bg').querySelector('.triangle-content'); 
@@ -396,17 +389,16 @@
             }
         }
 
-        // --- DESCARGA INDIVIDUAL ---
+        // DESCARGA INDIVIDUAL
         function descargarPNG(elementId, fileName) {
             generarImagen(document.getElementById(elementId), fileName);
         }
 
-        // --- DESCARGA COMPLETA (FRENTE Y DORSO UNIDOS) ---
+        // --- DESCARGA COMPLETA (FIX CRÍTICO AQUÍ) ---
         function descargarCompleto(fileName) {
             const front = document.getElementById('card-front');
             const back = document.getElementById('card-back');
 
-            // 1. Crear Contenedor Vertical
             const container = document.createElement('div');
             container.style.display = 'flex';
             container.style.flexDirection = 'column';
@@ -416,46 +408,42 @@
             container.style.top = '-9999px';
             container.style.left = '0';
             
-            // 2. Clonar
             const cloneFront = front.cloneNode(true);
             const cloneBack = back.cloneNode(true);
 
-            // Ajustes OBLIGATORIOS para los clones
+            // 1. Limpiar transformación y asegurar bordes en el clon general
             [cloneFront, cloneBack].forEach(clone => {
                 clone.style.transform = "none";
                 clone.style.margin = "0";
                 clone.style.boxShadow = "none";
                 clone.style.borderRadius = "40px"; 
-                clone.style.overflow = "hidden";
-                clone.style.maskImage = "radial-gradient(white, black)";
+                clone.style.overflow = "hidden"; // Importante
             });
 
-            // Asegurar recorte en el clon del frente izquierdo
+            // 2. FORZAR ESTILOS EN EL CONTENEDOR IZQUIERDO DEL CLON
+            // Esto es lo que arregla el triángulo roto
             const frontLeftClone = cloneFront.querySelector('.front-left');
             if(frontLeftClone) {
-                frontLeftClone.style.overflow = "hidden";
-                frontLeftClone.style.borderTopLeftRadius = "40px";
+                frontLeftClone.style.overflow = "hidden"; // Forzamos el recorte
+                frontLeftClone.style.borderTopLeftRadius = "40px"; // Recuperamos la curva
                 frontLeftClone.style.borderBottomLeftRadius = "40px";
+                frontLeftClone.style.position = "relative"; // Aseguramos contexto
             }
 
-            // Recuperar Imágenes
+            // 3. Recuperar Imágenes
             const frontImg = front.querySelector('img.student-photo');
             const cloneFrontImg = cloneFront.querySelector('img.student-photo');
             if(frontImg && frontImg.src) cloneFrontImg.src = frontImg.src;
 
             const backImg = back.querySelector('img.back-image');
             const cloneBackImg = cloneBack.querySelector('img.back-image');
-            if(backImg && backImg.src) {
-                cloneBackImg.src = backImg.src;
-                cloneBackImg.style.display = "block";
-            }
+            if(backImg && backImg.src) cloneBackImg.src = backImg.src;
 
-            // 3. Unir y adjuntar al DOM
             container.appendChild(cloneFront);
             container.appendChild(cloneBack);
             document.body.appendChild(container);
 
-            // 4. PAUSA DE RENDERIZADO (La clave para que aparezca el reverso)
+            // 4. Pausa de renderizado (Fix reverso)
             setTimeout(() => {
                 html2canvas(container, {
                     scale: 1,
@@ -474,10 +462,9 @@
                     console.error(err);
                     document.body.removeChild(container);
                 });
-            }, 500); // Espera 500ms para asegurar que las imágenes se pinten
+            }, 500); 
         }
 
-        // Función Helper para descargas individuales
         function generarImagen(element, fileName) {
             const clone = element.cloneNode(true);
             clone.style.transform = "none";
@@ -498,7 +485,6 @@
 
             document.body.appendChild(clone);
 
-            // También aplicamos una pequeña pausa aquí por seguridad
             setTimeout(() => {
                 html2canvas(clone, {
                     scale: 1, useCORS: true, allowTaint: true, backgroundColor: null, 
