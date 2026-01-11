@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Credencial Oficial V6.1</title>
+    <title>Credencial Oficial V7 - Final</title>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
     
@@ -26,12 +26,13 @@
             --card-width: 1011px;
             --card-height: 638px;
             --blue-colbert: #0033cc;
+            /* Textura Holográfica MÁS FUERTE para que salga en JPG */
             --security-pattern: repeating-linear-gradient(
                 45deg,
-                rgba(255, 255, 255, 0.08) 0px,
-                rgba(255, 255, 255, 0.08) 2px,
+                rgba(255, 255, 255, 0.15) 0px,
+                rgba(255, 255, 255, 0.15) 2px,
                 transparent 2px,
-                transparent 8px
+                transparent 10px
             );
         }
 
@@ -94,15 +95,7 @@
             border-color: transparent transparent transparent var(--blue-colbert);
             z-index: 2;
         }
-        /* Textura Triangulo */
-        .triangle-texture {
-            position: absolute;
-            bottom: -5px; left: -250px; width: 250px; height: 250px;
-            background: var(--security-pattern);
-            clip-path: polygon(0 0, 0% 100%, 100% 100%);
-            z-index: 3; pointer-events: none;
-        }
-
+        
         /* Sigla */
         .reg-sigla {
             position: absolute;
@@ -124,34 +117,52 @@
         .front-right {
             flex: 1;
             background-color: var(--blue-colbert);
-            background-image: var(--security-pattern);
+            /* Importante: Position relative para contener la capa holográfica */
+            position: relative; 
             color: white;
-            padding: 25px 40px;
+            padding: 20px 35px; /* Menos padding para aprovechar espacio */
             display: flex;
             flex-direction: column;
             justify-content: space-between;
         }
 
-        /* Header Centrado */
+        /* CAPA HOLOGRÁFICA (Fix para impresión) */
+        .holographic-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--security-pattern);
+            z-index: 0; /* Detrás del texto */
+            pointer-events: none;
+        }
+
+        /* Todo el contenido debe estar por encima de la holografía */
+        .front-content-wrapper {
+            position: relative;
+            z-index: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Header Masivo */
         .header {
             display: flex;
-            justify-content: center;
+            justify-content: space-between; /* A los extremos */
             align-items: center;
-            border-bottom: 4px solid white;
-            padding-bottom: 8px;
-            margin-bottom: 15px;
-            gap: 20px;
+            border-bottom: 6px solid white; /* Línea más gruesa */
+            padding-bottom: 2px;
+            margin-bottom: 10px;
         }
         
         .header-text {
-            font-size: 60px;
+            font-size: 85px; /* GIGANTE */
             font-weight: 900;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            line-height: 1;
+            line-height: 0.9;
         }
 
-        /* Título Curso */
+        /* Título Curso Masivo */
         .course-container {
             flex-grow: 1;
             display: flex;
@@ -159,74 +170,78 @@
             justify-content: center;
             align-items: center;
             text-align: center;
+            margin: 5px 0;
         }
 
         .course-title-main {
-            font-size: 60px;
+            font-size: 72px; /* GIGANTE */
             font-weight: 900;
             text-transform: uppercase;
-            line-height: 1;
+            line-height: 0.9;
             width: 100%;
         }
         
         .course-title-sub {
-            font-size: 48px;
-            font-weight: 800;
+            font-size: 72px; /* IGUAL DE GIGANTE */
+            font-weight: 900;
             text-transform: uppercase;
             width: 100%;
+            line-height: 0.9;
             margin-top: 5px;
         }
 
         /* Nombre Alumno */
         .student-name {
-            font-size: 32px;
+            font-size: 34px;
             font-weight: 700;
             text-transform: uppercase;
-            background: rgba(0, 0, 0, 0.25);
-            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px;
             text-align: center;
             letter-spacing: 1px;
             white-space: nowrap; 
             margin-bottom: 15px;
             border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.2);
         }
 
         /* GRID DE DATOS */
         .data-grid {
             display: grid;
-            grid-template-columns: 60px 1fr;
-            row-gap: 12px;
+            grid-template-columns: 65px 1fr;
+            row-gap: 10px;
             align-items: center;
         }
 
         .icon-box {
-            font-size: 50px;
+            font-size: 55px;
             text-align: center;
             text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
         /* Caja de Datos Sombreada */
         .data-box {
-            background: rgba(0, 0, 0, 0.2); 
-            padding: 8px 15px;
+            background: rgba(0, 0, 0, 0.25); 
+            padding: 6px 15px;
             border-radius: 6px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.15);
+            height: 55px; /* Altura fija para uniformidad */
         }
 
-        .label-text { font-size: 36px; font-weight: 600; opacity: 0.9; }
+        .label-text { font-size: 34px; font-weight: 700; opacity: 1; }
         
         .value-text { 
-            font-size: 36px; 
+            font-size: 38px; /* Números grandes */
             font-weight: 900; 
             letter-spacing: 1px; 
             text-align: right;
             white-space: nowrap; 
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 320px;
+            max-width: 330px;
         }
         
         .long-text { font-size: 28px; }
@@ -299,43 +314,49 @@
                 </div>
 
                 <div class="triangle-overlay">
-                     <div class="triangle-texture"></div>
+                     <div style="position:absolute; width:100%; height:100%; background:var(--security-pattern);"></div>
                 </div>
                 
                 <div class="reg-sigla" id="txt-sigla">REGISTRO</div>
             </div>
             
             <div class="front-right" id="bg-panel">
-                <div class="header">
-                    <span class="header-text">CARNET</span>
-                    <span class="header-text" id="txt-anio">2026</span>
-                </div>
+                <div class="holographic-layer"></div>
 
-                <div class="course-container">
-                    <div class="course-title-main" id="txt-titulo-main">PARAMÉDICO</div>
-                    <div class="course-title-sub" id="txt-titulo-sub">PROFESIONAL</div>
-                </div>
-
-                <div class="student-name" id="txt-nombre">NOMBRE DEL ALUMNO</div>
-
-                <div class="data-grid">
-                    <div class="icon-box">✱</div> 
-                    <div class="data-box">
-                        <span class="label-text">CI/DNI:</span>
-                        <span class="value-text" id="txt-dni">---</span>
+                <div class="front-content-wrapper">
+                    
+                    <div class="header">
+                        <span class="header-text">CARNET</span>
+                        <span class="header-text" id="txt-anio">2026</span>
                     </div>
 
-                    <div class="icon-box">#</div>
-                    <div class="data-box">
-                        <span class="label-text">MATRÍCULA:</span>
-                        <span class="value-text" id="txt-matricula">---</span>
+                    <div class="course-container">
+                        <div class="course-title-main" id="txt-titulo-main">PARAMÉDICO</div>
+                        <div class="course-title-sub" id="txt-titulo-sub">PROFESIONAL</div>
                     </div>
 
-                    <div class="icon-box">🚨</div>
-                    <div class="data-box">
-                        <span class="label-text">VENCE:</span>
-                        <span class="value-text" id="txt-vence">---</span>
+                    <div class="student-name" id="txt-nombre">NOMBRE DEL ALUMNO</div>
+
+                    <div class="data-grid">
+                        <div class="icon-box">✱</div> 
+                        <div class="data-box">
+                            <span class="label-text">CI/DNI:</span>
+                            <span class="value-text" id="txt-dni">---</span>
+                        </div>
+
+                        <div class="icon-box">#</div>
+                        <div class="data-box">
+                            <span class="label-text">MATRÍCULA:</span>
+                            <span class="value-text" id="txt-matricula">---</span>
+                        </div>
+
+                        <div class="icon-box">🚨</div>
+                        <div class="data-box">
+                            <span class="label-text">VENCE:</span>
+                            <span class="value-text" id="txt-vence">---</span>
+                        </div>
                     </div>
+
                 </div>
             </div>
         </div>
