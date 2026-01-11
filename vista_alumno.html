@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Credencial V12 - Final Ajustado</title>
+    <title>Credencial V13 - Final ClipPath</title>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
     
@@ -21,8 +21,6 @@
         :root {
             --card-width: 1011px;
             --card-height: 638px;
-            
-            /* HOLOGRAFÍA DE ALTO CONTRASTE */
             --holo-pattern: 
                 repeating-linear-gradient(
                     45deg,
@@ -37,7 +35,7 @@
                     rgba(255, 255, 255, 0.15) 45%,
                     rgba(200, 255, 255, 0.25) 50%,
                     rgba(255, 255, 255, 0.15) 55%,
-                    transparent 90%
+                    transparent 70%
                 );
         }
 
@@ -59,50 +57,45 @@
             margin-bottom: 50px;
         }
 
-        /* --- IZQUIERDA (FOTO) --- */
+        /* --- IZQUIERDA --- */
         .front-left {
             width: 380px; height: 100%; position: relative;
             background: #d4d4d4;
             z-index: 1;
-            overflow: hidden; /* DOBLE SEGURIDAD DE RECORTE */
         }
         .student-photo { width: 100%; height: 100%; object-fit: cover; }
 
-        /* --- TRIÁNGULO CORREGIDO (GEOMETRÍA SEGURA) --- */
-        .triangle-container {
+        /* --- TRIÁNGULO V13 (Método Clip-Path + Filtro) --- */
+        .triangle-shape {
             position: absolute; 
-            /* Coordenadas calculadas para que NO pueda tapar la cara */
-            bottom: -280px; 
-            left: -280px;   
-            width: 480px; 
-            height: 480px; 
-            
-            transform: rotate(45deg);
+            bottom: 0; 
+            left: 0;   
+            width: 300px; 
+            height: 300px;
             z-index: 2;
-            overflow: hidden;
             
-            /* Borde Blanco */
-            border-right: 10px solid white; 
-            border-top: 10px solid white;
-            box-shadow: 4px -4px 10px rgba(0,0,0,0.4);
+            /* 1. Recorte diagonal exacto (sin rotación) */
+            clip-path: polygon(0 100%, 100% 100%, 0 0);
+            
+            /* 2. El fondo metálico se aplica aquí */
+            background: blue; /* Se sobrescribe por JS */
+
+            /* 3. El Borde Blanco Falso (Truco de Sombra Sólida) */
+            /* Esto crea una copia blanca desplazada que actúa como borde */
+            filter: drop-shadow(4px -4px 0px white);
         }
 
-        .triangle-bg {
-            width: 100%; height: 100%;
-            /* El gradiente se aplica aquí vía JS */
-            transform: rotate(-45deg) scale(1.4); /* Contrarrotar para que el gradiente se vea recto */
-        }
-
-        /* SIGLA */
         .reg-sigla {
             position: absolute; 
-            bottom: 20px; left: 5px; width: 180px;
-            text-align: center; color: white; font-size: 26px; font-weight: 900;
-            z-index: 4; transform: rotate(-45deg); transform-origin: left bottom;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.6); letter-spacing: 2px;
+            bottom: 15px; left: 5px; width: 150px;
+            text-align: center; color: white; font-size: 22px; font-weight: 900;
+            z-index: 4; 
+            transform: rotate(-45deg); /* Solo rotamos el texto */
+            transform-origin: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.6); 
+            letter-spacing: 2px;
         }
 
-        /* QR */
         .qr-on-photo {
             position: absolute; bottom: 15px; right: 15px;
             width: 100px; height: 100px; 
@@ -113,7 +106,7 @@
         }
         .qr-on-photo img { width: 100%; height: 100%; }
 
-        /* --- DERECHA (DATOS) --- */
+        /* --- DERECHA --- */
         .front-right {
             flex: 1; position: relative; color: white;
             padding: 20px 35px;
@@ -121,7 +114,6 @@
             z-index: 0;
         }
 
-        /* CAPAS HOLOGRÁFICAS */
         .holo-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--holo-pattern);
@@ -212,7 +204,7 @@
 <body>
 
     <div class="controls">
-        <h2 style="margin-bottom:10px;">Panel del Alumno (V12 Final)</h2>
+        <h2 style="margin-bottom:10px;">Panel del Alumno (V13 Final)</h2>
         <input type="file" id="input-foto" accept="image/*" style="display:none;" onchange="cargarFoto()">
         <button class="btn-action btn-upload" onclick="document.getElementById('input-foto').click()">📸 SUBIR FOTO</button>
         <br>
@@ -230,9 +222,7 @@
                     <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Validado" alt="QR">
                 </div>
 
-                <div class="triangle-container" id="triangle-container">
-                    <div class="triangle-bg" id="triangle-bg"></div>
-                </div>
+                <div class="triangle-shape" id="triangle-bg"></div>
                 
                 <div class="reg-sigla" id="txt-sigla">REGISTRO</div>
             </div>
@@ -341,7 +331,7 @@
                     // --- SISTEMA DE GRADIENTES METÁLICOS ---
                     const panel = document.getElementById('bg-panel');
                     const sigla = document.getElementById('txt-sigla');
-                    const trianguloBg = document.getElementById('triangle-bg'); 
+                    const triangle = document.getElementById('triangle-bg'); 
                     
                     let gradient = 'linear-gradient(135deg, #001f7a, #0033cc, #005ce6, #001f7a)'; 
                     let textoSigla = 'R.E.M.A.E.P';
@@ -374,7 +364,7 @@
                     }
 
                     panel.style.background = gradient;
-                    trianguloBg.style.background = gradient;
+                    triangle.style.background = gradient;
                     panel.style.color = textColor;
 
                     sigla.innerText = textoSigla;
@@ -398,7 +388,7 @@
             }
         }
 
-        // DESCARGA PNG (Forzada a contener transparencias)
+        // DESCARGA PNG V13 (Configuración "AllowTaint" para filtros)
         function descargarPNG(elementId, fileName) {
             const originalElement = document.getElementById(elementId);
             const clone = originalElement.cloneNode(true);
@@ -425,6 +415,7 @@
             html2canvas(clone, {
                 scale: 1,
                 useCORS: true,
+                allowTaint: true, // Importante para filtros CSS como drop-shadow
                 backgroundColor: null, 
                 width: 1011,
                 height: 638
