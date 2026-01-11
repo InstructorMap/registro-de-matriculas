@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Descarga de Credencial Oficial</title>
+    <title>Descarga de Credencial Oficial V5</title>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
     
@@ -12,49 +12,60 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'Roboto', sans-serif;
-            background: #f0f2f5;
+            background: #222; /* Fondo oscuro para resaltar el diseño */
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 30px;
             gap: 20px;
+            color: white;
         }
 
-        /* --- CONTENEDOR DE LA TARJETA (ISO ID-1 Standard) --- */
+        /* --- VARIABLES GLOBALES --- */
         :root {
-            --card-width: 1011px;  /* Ancho real alta calidad */
-            --card-height: 638px;  /* Alto real alta calidad */
+            --card-width: 1011px;  /* Ancho real (Alta Resolución) */
+            --card-height: 638px;  /* Alto real (Alta Resolución) */
             --blue-colbert: #0033cc;
+            /* Patrón Holográfico de Seguridad */
+            --security-pattern: repeating-linear-gradient(
+                45deg,
+                rgba(255, 255, 255, 0.08) 0px,
+                rgba(255, 255, 255, 0.08) 2px,
+                transparent 2px,
+                transparent 8px
+            );
         }
 
-        /* Wrapper para visualizar en pantalla (escala reducida) */
+        /* Wrapper para vista previa (Scale) */
         .preview-wrapper {
             transform: scale(0.4); 
             transform-origin: top center;
             margin-bottom: -350px; 
+            border: 1px solid #444;
         }
         
         @media (max-width: 600px) {
             .preview-wrapper { transform: scale(0.28); margin-bottom: -450px; }
         }
 
+        /* --- ESTRUCTURA TARJETA --- */
         .card {
             width: var(--card-width);
             height: var(--card-height);
             background: white;
             display: flex;
             position: relative;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
             overflow: hidden;
             margin-bottom: 50px;
         }
 
-        /* --- FRENTE --- */
+        /* --- FRENTE: IZQUIERDA (FOTO + TRIANGULO + QR) --- */
         .front-left {
-            width: 360px;
+            width: 380px; /* Un poco más ancho para la foto */
             height: 100%;
             position: relative;
-            background: #e0e0e0;
+            background: #d4d4d4;
         }
         
         .student-photo {
@@ -63,7 +74,7 @@
             object-fit: cover;
         }
 
-        /* Triángulo en esquina */
+        /* Triángulo Azul + Textura */
         .triangle-overlay {
             position: absolute;
             bottom: 0;
@@ -71,91 +82,149 @@
             width: 0;
             height: 0;
             border-style: solid;
-            border-width: 200px 0 0 200px;
+            border-width: 250px 0 0 250px; /* Más grande */
             border-color: transparent transparent transparent var(--blue-colbert);
             z-index: 2;
         }
-
-        /* Texto Sigla en el Triángulo */
-        .reg-sigla {
+        /* Capa de textura sobre el triangulo (pseudo-elemento no funciona bien en html2canvas a veces, usamos div hijo) */
+        .triangle-texture {
             position: absolute;
-            bottom: 15px;
-            left: 5px;
-            width: 180px; /* Ancho para centrar texto */
-            text-align: center;
-            color: white;
-            font-size: 24px; /* Ajustado para que entre R.E.M.A.E.P */
-            font-weight: 900;
+            bottom: -5px; /* Ajuste fino */
+            left: -250px;
+            width: 250px;
+            height: 250px;
+            background: var(--security-pattern);
+            clip-path: polygon(0 0, 0% 100%, 100% 100%); /* Recortar forma triangulo */
             z-index: 3;
-            transform: rotate(-45deg); /* Rotación para seguir la diagonal */
-            transform-origin: bottom left;
-            margin-bottom: 35px; /* Ajuste fino de posición */
+            pointer-events: none;
         }
 
+        /* Texto Sigla (Dentro del Triángulo) */
+        .reg-sigla {
+            position: absolute;
+            bottom: 25px;
+            left: 10px;
+            width: 200px;
+            text-align: center; /* Centrado respecto a su eje */
+            color: white;
+            font-size: 28px;
+            font-weight: 900;
+            z-index: 4;
+            transform: rotate(-45deg);
+            transform-origin: left bottom;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            letter-spacing: 1px;
+        }
+
+        /* QR en la Foto (Esquina Superior Izquierda) */
+        .qr-on-photo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 110px;
+            height: 110px;
+            background: white;
+            padding: 5px;
+            border-radius: 6px;
+            z-index: 5;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .qr-on-photo img { width: 100%; height: 100%; }
+
+
+        /* --- FRENTE: DERECHA (DATOS) --- */
         .front-right {
             flex: 1;
-            background: var(--blue-colbert);
+            background-color: var(--blue-colbert);
+            /* TEXTURA HOLOGRÁFICA DE FONDO */
+            background-image: var(--security-pattern);
+            
             color: white;
-            padding: 25px 40px;
+            padding: 30px 45px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
         }
 
+        /* Encabezado */
         .header {
-            border-bottom: 4px solid white;
-            padding-bottom: 10px;
+            border-bottom: 5px solid white;
+            padding-bottom: 5px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 10px;
         }
         
         .header-text {
-            font-size: 55px;
+            font-size: 65px; /* Aumentado */
             font-weight: 900;
             text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .course-title {
-            font-size: 52px;
-            font-weight: 900;
+            letter-spacing: 1px;
             line-height: 1;
-            text-transform: uppercase;
-            margin: 20px 0;
-            white-space: nowrap; 
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
 
-        .student-name {
-            font-size: 32px;
+        /* Título Curso (2 Líneas) */
+        .course-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        .course-title-main {
+            font-size: 62px;
+            font-weight: 900;
+            text-transform: uppercase;
+            line-height: 1;
+            margin-bottom: 5px;
+            width: 100%;
+        }
+        
+        .course-title-sub {
+            font-size: 45px;
             font-weight: 700;
             text-transform: uppercase;
-            background: rgba(0,0,0,0.2);
-            padding: 10px;
+            opacity: 0.9;
+            width: 100%;
+        }
+
+        /* Nombre Alumno */
+        .student-name {
+            font-size: 34px;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: rgba(0, 0, 0, 0.25); /* Fondo semitransparente más oscuro */
+            padding: 12px;
             text-align: center;
             letter-spacing: 1px;
             white-space: nowrap; 
+            margin-bottom: 20px;
+            border-radius: 4px;
         }
 
-        .data-grid { margin-top: 20px; }
+        /* Grilla de Datos */
+        .data-grid { margin-top: auto; }
 
         .data-row {
             display: flex;
             align-items: center;
-            border-top: 2px solid rgba(255,255,255,0.5);
-            padding-top: 10px;
-            margin-top: 10px;
-            font-size: 40px;
+            border-top: 3px solid rgba(255,255,255,0.6);
+            padding-top: 12px;
+            margin-top: 12px;
+            font-size: 42px;
             font-weight: 700;
         }
 
         .icon-box {
-            font-size: 50px;
+            font-size: 55px;
             width: 70px;
             text-align: center;
-            margin-right: 20px;
+            margin-right: 25px;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
         .data-content {
@@ -164,29 +233,13 @@
             width: 100%;
         }
         
-        /* QR en el FRENTE (Nuevo) */
-        .qr-front {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            width: 120px;
-            height: 120px;
-            background: white;
-            padding: 5px;
-            border-radius: 5px;
-        }
-        .qr-front img { width: 100%; height: 100%; }
+        .label-text { font-weight: 500; opacity: 0.9; }
+        .value-text { font-weight: 900; letter-spacing: 1px; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); }
 
-        /* Ajuste para que la fecha no choque con el QR */
-        .vence-row .data-content {
-            width: 75%; /* Dejar espacio al QR */
-        }
 
-        /* --- DORSO --- */
+        /* --- DORSO (REVERSO) --- */
         .card-back {
             background: white;
-            /* Aquí puedes poner tu imagen de fondo real si la tienes: 
-               background-image: url('fondo_marcadeagua.jpg'); */
             background-image: radial-gradient(#ccc 2px, transparent 2px); 
             background-size: 30px 30px;
             padding: 40px;
@@ -210,35 +263,24 @@
 
         .sig-block { text-align: center; width: 22%; position: relative; }
         
-        /* Espacio para imagen de firma */
-        .sig-img-placeholder {
-            height: 60px;
-            margin-bottom: -10px;
-            display: block;
-            margin: 0 auto;
-        }
-
         .sig-line {
-            width: 100%; height: 2px; background: #000; margin-bottom: 10px; margin-top: 5px;
+            width: 100%; height: 2px; background: #000; margin-bottom: 10px; margin-top: 50px;
         }
         .sig-name { font-size: 14px; font-weight: bold; color: #000; }
         .sig-role { font-size: 12px; color: #555; }
 
-        /* Área de Logos Inferior (Sin QR) */
         .logos-area {
             display: flex;
             align-items: center;
-            justify-content: space-between; /* Separar logos a los extremos */
+            justify-content: space-between;
             padding: 0 50px;
             margin-top: auto;
             height: 180px;
         }
         
-        /* Círculos para Logos/Sellos */
         .logo-circle {
             width: 160px; height: 160px;
             border-radius: 50%;
-            /* border: 2px solid #ccc;  Quitar borde si usas imagen real */
             display: flex; align-items: center; justify-content: center;
             overflow: hidden;
         }
@@ -255,16 +297,18 @@
 
         /* --- UI CONTROLS --- */
         .controls {
-            background: white;
+            background: #333;
+            color: white;
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
             text-align: center;
             position: sticky;
             top: 20px;
             z-index: 100;
             width: 90%;
             max-width: 600px;
+            border: 1px solid #555;
         }
         .btn-action {
             padding: 15px 30px;
@@ -276,7 +320,7 @@
             margin: 5px;
             transition: transform 0.1s;
         }
-        .btn-upload { background: #e0e0e0; color: #333; }
+        .btn-upload { background: #555; color: white; border: 1px solid #777; }
         .btn-download { background: #00c853; color: white; }
         .btn-download:hover { background: #00b34a; transform: scale(1.05); }
 
@@ -286,13 +330,13 @@
 
     <div class="controls">
         <h2 style="margin-bottom:10px;">Panel del Alumno</h2>
-        <p style="font-size:14px; color:#666; margin-bottom:15px;">1. Sube tu foto. 2. Descarga ambas imágenes.</p>
+        <p style="font-size:14px; color:#aaa; margin-bottom:15px;">1. Sube tu foto (Tipo Carnet).<br>2. Descarga ambas imágenes en Alta Calidad.</p>
         
         <input type="file" id="input-foto" accept="image/*" style="display:none;" onchange="cargarFoto()">
         <button class="btn-action btn-upload" onclick="document.getElementById('input-foto').click()">📸 SUBIR FOTO</button>
         <br>
-        <button class="btn-action btn-download" onclick="descargarJPG('card-front', 'Credencial_Frente')">⬇️ DESCARGAR FRENTE</button>
-        <button class="btn-action btn-download" onclick="descargarJPG('card-back', 'Credencial_Dorso')">⬇️ DESCARGAR DORSO</button>
+        <button class="btn-action btn-download" onclick="descargarJPG('card-front', 'Credencial_Frente')">⬇️ FRENTE (JPG)</button>
+        <button class="btn-action btn-download" onclick="descargarJPG('card-back', 'Credencial_Dorso')">⬇️ DORSO (JPG)</button>
     </div>
 
     <div class="preview-wrapper">
@@ -301,7 +345,14 @@
                 <img id="img-foto" class="student-photo" src="" style="display:none;">
                 <div style="position:absolute; top:40%; width:100%; text-align:center; color:#777; font-weight:bold;" id="placeholder-foto">SIN FOTO</div>
                 
-                <div class="triangle-overlay"></div>
+                <div class="qr-on-photo">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Validado" alt="QR">
+                </div>
+
+                <div class="triangle-overlay">
+                     <div style="width:100%; height:100%; background: repeating-linear-gradient(45deg, rgba(255,255,255,0.1) 0px, rgba(255,255,255,0.1) 2px, transparent 2px, transparent 8px);"></div>
+                </div>
+                
                 <div class="reg-sigla" id="txt-sigla">REGISTRO</div>
             </div>
             
@@ -311,35 +362,35 @@
                     <span class="header-text" id="txt-anio">2026</span>
                 </div>
 
-                <div class="course-title" id="txt-titulo">PARAMÉDICO PROFESIONAL</div>
+                <div class="course-container" id="title-container">
+                    <div class="course-title-main" id="txt-titulo-main">PARAMÉDICO</div>
+                    <div class="course-title-sub" id="txt-titulo-sub">PROFESIONAL</div>
+                </div>
+
                 <div class="student-name" id="txt-nombre">NOMBRE DEL ALUMNO</div>
 
                 <div class="data-grid">
                     <div class="data-row">
                         <div class="icon-box">✱</div> 
                         <div class="data-content">
-                            <span>CI:</span>
-                            <span id="txt-dni">---</span>
+                            <span class="label-text">CI:</span>
+                            <span class="value-text" id="txt-dni">---</span>
                         </div>
                     </div>
                     <div class="data-row" style="border:none; margin-top:0;">
                         <div class="icon-box"></div>
                         <div class="data-content">
-                            <span>MATRÍCULA:</span>
-                            <span id="txt-matricula">---</span>
+                            <span class="label-text">MATRÍCULA:</span>
+                            <span class="value-text" id="txt-matricula">---</span>
                         </div>
                     </div>
                     <div class="data-row vence-row">
                         <div class="icon-box">🚨</div>
                         <div class="data-content">
-                            <span>VENCE:</span>
-                            <span id="txt-vence">---</span>
+                            <span class="label-text">VENCE:</span>
+                            <span class="value-text" id="txt-vence">---</span>
                         </div>
                     </div>
-                </div>
-
-                <div class="qr-front">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Validado" alt="QR">
                 </div>
             </div>
         </div>
@@ -349,24 +400,21 @@
 
             <div class="signatures-area">
                 <div class="sig-block">
-                    <div style="height:50px;"></div> <div class="sig-line"></div>
+                    <div class="sig-line"></div>
                     <div class="sig-name">Aldo M. Joseph</div>
                     <div class="sig-role">PRESIDENTE A.A.P.S</div>
                 </div>
                  <div class="sig-block">
-                    <div style="height:50px;"></div>
                     <div class="sig-line"></div>
                     <div class="sig-name">Pablo Verducchio</div>
                     <div class="sig-role">DIR. GRUPO COLBERT</div>
                 </div>
                  <div class="sig-block">
-                    <div style="height:50px;"></div>
                     <div class="sig-line"></div>
                     <div class="sig-name">Ivana Santacroce</div>
                     <div class="sig-role">SEC. ACADÉMICA</div>
                 </div>
                  <div class="sig-block">
-                    <div style="height:50px;"></div>
                     <div class="sig-line"></div>
                     <div class="sig-name">Miguel A. Ruff</div>
                     <div class="sig-role">DIRECTOR</div>
@@ -400,7 +448,21 @@
                 try {
                     const datos = JSON.parse(atob(token));
                     
-                    document.getElementById('txt-titulo').innerText = datos.tit;
+                    // Lógica para separar título en dos líneas
+                    const fullTitle = datos.tit || "CURSO PROFESIONAL";
+                    const words = fullTitle.split(' ');
+                    
+                    if(words.length >= 2) {
+                        // Si hay más de una palabra, tomamos la primera para la linea 1
+                        // y el resto para la linea 2
+                        document.getElementById('txt-titulo-main').innerText = words[0];
+                        document.getElementById('txt-titulo-sub').innerText = words.slice(1).join(' ');
+                    } else {
+                        // Si es una sola palabra larga
+                        document.getElementById('txt-titulo-main').innerText = fullTitle;
+                        document.getElementById('txt-titulo-sub').innerText = "";
+                    }
+
                     document.getElementById('txt-nombre').innerText = datos.nom;
                     document.getElementById('txt-dni').innerText = datos.dni;
                     document.getElementById('txt-matricula').innerText = datos.mat;
@@ -416,9 +478,8 @@
                     const sigla = document.getElementById('txt-sigla');
                     const triangulo = document.querySelector('.triangle-overlay');
                     let color = '#0033cc'; 
-                    let textoSigla = 'R.E.M.A.E.P'; // Default
+                    let textoSigla = 'R.E.M.A.E.P';
 
-                    // Mapeo de siglas completas según selección
                     if(datos.reg.includes('remaep')) { color = '#0033cc'; textoSigla = 'R.E.M.A.E.P'; }
                     if(datos.reg.includes('rniue'))  { color = '#b8860b'; textoSigla = 'R.N.I.U.E'; }
                     if(datos.reg.includes('rubra'))  { color = '#cc0000'; textoSigla = 'R.U.B.R.A'; }
@@ -429,12 +490,11 @@
                     panel.style.backgroundColor = color;
                     triangulo.style.borderBottomColor = color; 
                     
-                    // Ajuste dinámico de tamaño de fuente si la sigla es muy larga
                     sigla.innerText = textoSigla;
+                    // Ajuste para siglas largas
                     if(textoSigla.length > 8) {
                         sigla.style.fontSize = "22px"; 
-                    } else {
-                        sigla.style.fontSize = "36px";
+                        sigla.style.bottom = "20px";
                     }
 
                 } catch (e) {
@@ -458,14 +518,12 @@
             }
         }
 
-        // 3. DESCARGAR JPG (MÉTODO CLONADO PARA EVITAR ERRORES DE ESCALA)
+        // 3. DESCARGAR JPG (MÉTODO GHOST NODE)
         function descargarJPG(elementId, fileName) {
             const originalElement = document.getElementById(elementId);
-            
-            // Clonar nodo para manipularlo fuera de pantalla
             const clone = originalElement.cloneNode(true);
             
-            // Forzar estilos al clon para que sea perfecto
+            // Estilos forzados al clon
             clone.style.transform = "none";
             clone.style.position = "fixed";
             clone.style.top = "-9999px";
@@ -474,8 +532,9 @@
             clone.style.height = "638px";
             clone.style.margin = "0";
             clone.style.borderRadius = "0";
+            clone.style.boxShadow = "none";
             
-            // Recuperar imagen en el clon
+            // Asegurar imagen en clon
             const originalImg = originalElement.querySelector('img.student-photo');
             const cloneImg = clone.querySelector('img.student-photo');
             if(originalImg.src && originalImg.style.display !== 'none') {
@@ -486,13 +545,11 @@
             document.body.appendChild(clone);
 
             html2canvas(clone, {
-                scale: 2, // Alta calidad
+                scale: 1, // 1 es suficiente porque las dimensiones ya son HD (1011px)
                 useCORS: true,
+                backgroundColor: "#ffffff",
                 width: 1011,
-                height: 638,
-                windowWidth: 1011,
-                windowHeight: 638,
-                backgroundColor: "#ffffff"
+                height: 638
             }).then(canvas => {
                 const link = document.createElement('a');
                 link.download = `${fileName}.jpg`;
@@ -501,6 +558,7 @@
                 document.body.removeChild(clone);
             }).catch(err => {
                 console.error("Error:", err);
+                alert("Error al generar imagen");
                 document.body.removeChild(clone);
             });
         }
