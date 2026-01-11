@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Credencial V16 - Full Completa</title>
+    <title>Credencial V17 - Final Blindada</title>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
     
@@ -54,7 +54,11 @@
             background: white;
             display: flex; position: relative;
             border-radius: 40px; 
+            /* IMPORTANTE: Forzar recorte en todos los navegadores */
             overflow: hidden; 
+            mask-image: radial-gradient(white, black);
+            -webkit-mask-image: -webkit-radial-gradient(white, black);
+            
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
             margin-bottom: 50px;
         }
@@ -64,11 +68,14 @@
             width: 380px; height: 100%; position: relative;
             background: #d4d4d4;
             z-index: 1;
+            /* RECORTE ESTRICTO DEL CONTENEDOR IZQUIERDO */
             overflow: hidden; 
+            border-top-left-radius: 40px;
+            border-bottom-left-radius: 40px;
         }
         .student-photo { width: 100%; height: 100%; object-fit: cover; }
 
-        /* --- TRIÁNGULO (Tus coordenadas manuales preservadas) --- */
+        /* --- TRIÁNGULO (Coordenadas V15 que funcionaron) --- */
         .triangle-rotated {
             position: absolute; 
             bottom: -330px; 
@@ -80,6 +87,8 @@
             border-top: 12px solid white;
             border-right: 12px solid white;
             box-shadow: 5px -5px 15px rgba(0,0,0,0.5);
+            /* Aseguramos que el div en sí no desborde si el padre falla */
+            overflow: hidden; 
         }
 
         .triangle-content {
@@ -180,15 +189,18 @@
         }
         .long-text { font-size: 28px; }
 
-        /* --- DORSO (REVERSO JPG) --- */
+        /* --- DORSO (REVERSO) --- */
         .card-back {
             padding: 0; 
             position: relative;
-            background: black;
+            background: #fff; /* Fondo blanco por si la imagen tiene transparencias */
         }
-        .back-image { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .back-image { 
+            width: 100%; height: 100%; 
+            object-fit: fill; /* Forzar llenado */
+            display: block; 
+        }
 
-        /* Platinum Overlay */
         .platinum-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.2) 45%, rgba(255,255,255,0.0) 50%, rgba(255,255,255,0.05) 100%);
@@ -201,7 +213,6 @@
         .btn-action { padding: 15px 30px; font-size: 16px; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
         .btn-upload { background: #555; color: white; border: 1px solid #777; }
         .btn-download { background: #00c853; color: white; }
-        /* Botón especial para descarga completa */
         .btn-full { background: #0099ff; color: white; width: 100%; margin-top: 10px; }
         .btn-full:hover { background: #007acc; }
 
@@ -210,13 +221,13 @@
 <body>
 
     <div class="controls">
-        <h2 style="margin-bottom:10px;">Panel del Alumno (V16)</h2>
+        <h2 style="margin-bottom:10px;">Panel del Alumno (V17)</h2>
         <input type="file" id="input-foto" accept="image/*" style="display:none;" onchange="cargarFoto()">
         <button class="btn-action btn-upload" onclick="document.getElementById('input-foto').click()">📸 SUBIR FOTO</button>
         <br>
         <button class="btn-action btn-download" onclick="descargarPNG('card-front', 'Credencial_Frente')">⬇️ SOLO FRENTE</button>
         <button class="btn-action btn-download" onclick="descargarPNG('card-back', 'Credencial_Dorso')">⬇️ SOLO DORSO</button>
-        <button class="btn-action btn-full" onclick="descargarCompleto('Credencial_Final')">✨ DESCARGAR COMPLETA (1 IMG)</button>
+        <button class="btn-action btn-full" onclick="descargarCompleto('Credencial_Full')">✨ DESCARGAR COMPLETA (1 IMG)</button>
     </div>
 
     <div class="preview-wrapper">
@@ -275,7 +286,7 @@
         </div>
 
         <div class="card card-back" id="card-back">
-            <img src="reverso.jpg" alt="Reverso Credencial" class="back-image">
+            <img src="reverso.jpg" alt="Reverso" class="back-image" crossorigin="anonymous">
             <div class="platinum-overlay"></div>
             <div class="noise-layer" style="opacity:0.2;"></div>
         </div>
@@ -399,8 +410,8 @@
             const container = document.createElement('div');
             container.style.display = 'flex';
             container.style.flexDirection = 'column';
-            container.style.gap = '40px'; // Espacio entre tarjetas
-            container.style.width = '1011px'; // Ancho exacto de la tarjeta
+            container.style.gap = '40px'; 
+            container.style.width = '1011px'; 
             container.style.position = 'fixed';
             container.style.top = '-9999px';
             container.style.left = '0';
@@ -409,22 +420,37 @@
             const cloneFront = front.cloneNode(true);
             const cloneBack = back.cloneNode(true);
 
-            // Ajustes obligatorios para los clones
+            // Ajustes OBLIGATORIOS para los clones (Corrige el "cuadrado roto")
             [cloneFront, cloneBack].forEach(clone => {
                 clone.style.transform = "none";
                 clone.style.margin = "0";
                 clone.style.boxShadow = "none";
-                clone.style.borderRadius = "40px"; // Mantener bordes redondos
+                clone.style.borderRadius = "40px"; 
+                // AQUÍ ESTÁ LA MAGIA: Forzar overflow hidden en el clon
+                clone.style.overflow = "hidden";
+                clone.style.maskImage = "radial-gradient(white, black)"; // Webkit mask para recorte estricto
             });
 
-            // Recuperar Imágenes en Clones (Foto Alumno y Reverso)
+            // Ajuste especial para el clon del FRENTE (Recorte del contenedor izquierdo)
+            const frontLeftClone = cloneFront.querySelector('.front-left');
+            if(frontLeftClone) {
+                frontLeftClone.style.overflow = "hidden";
+                frontLeftClone.style.borderTopLeftRadius = "40px";
+                frontLeftClone.style.borderBottomLeftRadius = "40px";
+            }
+
+            // Recuperar Imágenes
             const frontImg = front.querySelector('img.student-photo');
             const cloneFrontImg = cloneFront.querySelector('img.student-photo');
             if(frontImg.src) cloneFrontImg.src = frontImg.src;
 
             const backImg = back.querySelector('img.back-image');
             const cloneBackImg = cloneBack.querySelector('img.back-image');
-            if(backImg) cloneBackImg.src = backImg.src;
+            // Asegurar carga de imagen reverso
+            if(backImg) {
+                cloneBackImg.src = backImg.src;
+                cloneBackImg.style.display = "block";
+            }
 
             // 3. Unir
             container.appendChild(cloneFront);
@@ -438,7 +464,7 @@
                 allowTaint: true,
                 backgroundColor: null, 
                 width: 1011,
-                height: 1316 // (638 * 2) + 40 gap
+                height: 1316 
             }).then(canvas => {
                 const link = document.createElement('a');
                 link.download = `${fileName}.png`;
@@ -463,12 +489,12 @@
             clone.style.margin = "0";
             clone.style.boxShadow = "none";
             clone.style.borderRadius = "40px";
+            clone.style.overflow = "hidden"; // Recorte estricto individual
 
-            // Recuperar imágenes
             const img1 = element.querySelector('img.student-photo');
             if(img1 && img1.src) clone.querySelector('img.student-photo').src = img1.src;
             const img2 = element.querySelector('img.back-image');
-            if(img2 && img2.src) clone.querySelector('img.back-image').src = img2.src;
+            if(img2) clone.querySelector('img.back-image').src = img2.src;
 
             document.body.appendChild(clone);
 
