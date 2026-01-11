@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Credencial V11 - Holograma Prismático</title>
+    <title>Credencial V12 - Final Ajustado</title>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
     
@@ -22,23 +22,21 @@
             --card-width: 1011px;
             --card-height: 638px;
             
-            /* NUEVA HOLOGRAFÍA PRISMÁTICA (Efecto Billete) */
+            /* HOLOGRAFÍA DE ALTO CONTRASTE */
             --holo-pattern: 
-                /* Capa 1: Líneas finas de seguridad */
                 repeating-linear-gradient(
                     45deg,
-                    rgba(255, 255, 255, 0.05) 0px,
-                    rgba(255, 255, 255, 0.05) 1px,
+                    rgba(255, 255, 255, 0.08) 0px,
+                    rgba(255, 255, 255, 0.08) 1px,
                     transparent 1px,
-                    transparent 6px
+                    transparent 5px
                 ),
-                /* Capa 2: Brillo "Rainbow" transversal (Efecto Metal) */
                 linear-gradient(
                     120deg,
                     transparent 30%,
-                    rgba(255, 255, 255, 0.1) 40%,
-                    rgba(200, 255, 255, 0.2) 50%, /* Tono Cyan holografico */
-                    rgba(255, 255, 255, 0.1) 60%,
+                    rgba(255, 255, 255, 0.15) 45%,
+                    rgba(200, 255, 255, 0.25) 50%,
+                    rgba(255, 255, 255, 0.15) 55%,
                     transparent 70%
                 );
         }
@@ -55,7 +53,6 @@
             height: var(--card-height);
             background: white;
             display: flex; position: relative;
-            /* BORDES REDONDEADOS REALES */
             border-radius: 40px; 
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
             overflow: hidden; 
@@ -67,44 +64,49 @@
             width: 380px; height: 100%; position: relative;
             background: #d4d4d4;
             z-index: 1;
+            overflow: hidden; /* DOBLE SEGURIDAD DE RECORTE */
         }
         .student-photo { width: 100%; height: 100%; object-fit: cover; }
 
-        /* --- TRIÁNGULO CORREGIDO (Menos Invasivo) --- */
+        /* --- TRIÁNGULO CORREGIDO (GEOMETRÍA SEGURA) --- */
         .triangle-container {
             position: absolute; 
-            bottom: -280px; /* Más abajo para que solo asome la punta */
-            left: -180px;   /* Más a la izquierda */
-            width: 550px; height: 550px; /* Más grande pero desplazado */
+            /* Coordenadas calculadas para que NO pueda tapar la cara */
+            bottom: -210px; 
+            left: -210px;   
+            width: 480px; 
+            height: 480px; 
+            
             transform: rotate(45deg);
             z-index: 2;
             overflow: hidden;
             
-            /* Borde Blanco de Seguridad */
-            border-right: 12px solid white; 
-            border-top: 12px solid white;
-            box-shadow: 4px -4px 15px rgba(0,0,0,0.3);
+            /* Borde Blanco */
+            border-right: 10px solid white; 
+            border-top: 10px solid white;
+            box-shadow: 4px -4px 10px rgba(0,0,0,0.4);
         }
 
         .triangle-bg {
             width: 100%; height: 100%;
-            transform: rotate(-45deg) scale(1.5); /* Corrección de gradiente */
+            /* El gradiente se aplica aquí vía JS */
+            transform: rotate(-45deg) scale(1.4); /* Contrarrotar para que el gradiente se vea recto */
         }
 
-        /* SIGLA (Ajustada a la nueva posición) */
+        /* SIGLA */
         .reg-sigla {
             position: absolute; 
-            bottom: 25px; left: 8px; width: 180px;
+            bottom: 20px; left: 5px; width: 180px;
             text-align: center; color: white; font-size: 26px; font-weight: 900;
             z-index: 4; transform: rotate(-45deg); transform-origin: left bottom;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5); letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.6); letter-spacing: 2px;
         }
 
-        /* QR (Integrado mejor) */
+        /* QR */
         .qr-on-photo {
             position: absolute; bottom: 15px; right: 15px;
             width: 100px; height: 100px; 
-            background: rgba(255,255,255,0.9); /* Leve transparencia para fusionar */
+            background: rgba(255,255,255,0.85);
             padding: 5px; border-radius: 12px; z-index: 5;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             backdrop-filter: blur(4px);
@@ -119,31 +121,24 @@
             z-index: 0;
         }
 
-        /* --- CAPAS HOLOGRÁFICAS --- */
-        
-        /* 1. La textura de líneas y brillo */
+        /* CAPAS HOLOGRÁFICAS */
         .holo-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--holo-pattern);
-            opacity: 1;
-            mix-blend-mode: overlay; /* Esto hace que brille sobre el azul */
-            z-index: 0; pointer-events: none;
+            opacity: 1; mix-blend-mode: overlay; z-index: 0; pointer-events: none;
         }
         
-        /* 2. Ruido/Granulado (Efecto impresión de seguridad) */
         .noise-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
-            opacity: 0.3;
-            mix-blend-mode: soft-light;
-            z-index: 0; pointer-events: none;
+            opacity: 0.4; mix-blend-mode: soft-light; z-index: 0; pointer-events: none;
         }
 
         .front-content { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
 
         .header {
             display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 6px solid rgba(255,255,255,0.8);
+            border-bottom: 6px solid rgba(255,255,255,0.9);
             padding-bottom: 2px; margin-bottom: 10px;
         }
         .header-text {
@@ -155,7 +150,7 @@
             flex-grow: 1; display: flex; flex-direction: column;
             justify-content: center; align-items: center; text-align: center;
             margin: 5px 0; width: 100%;
-            background: linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.3)); /* Degradado sutil */
+            background: linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.3));
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 12px; padding: 10px;
             box-shadow: inset 0 0 15px rgba(0,0,0,0.2);
@@ -217,7 +212,7 @@
 <body>
 
     <div class="controls">
-        <h2 style="margin-bottom:10px;">Panel del Alumno (V11 Final)</h2>
+        <h2 style="margin-bottom:10px;">Panel del Alumno (V12 Final)</h2>
         <input type="file" id="input-foto" accept="image/*" style="display:none;" onchange="cargarFoto()">
         <button class="btn-action btn-upload" onclick="document.getElementById('input-foto').click()">📸 SUBIR FOTO</button>
         <br>
@@ -235,8 +230,8 @@
                     <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Validado" alt="QR">
                 </div>
 
-                <div class="triangle-container" id="triangle-bg">
-                    <div class="triangle-bg"></div>
+                <div class="triangle-container" id="triangle-container">
+                    <div class="triangle-bg" id="triangle-bg"></div>
                 </div>
                 
                 <div class="reg-sigla" id="txt-sigla">REGISTRO</div>
@@ -346,7 +341,7 @@
                     // --- SISTEMA DE GRADIENTES METÁLICOS ---
                     const panel = document.getElementById('bg-panel');
                     const sigla = document.getElementById('txt-sigla');
-                    const trianguloContainer = document.getElementById('triangle-bg');
+                    const trianguloBg = document.getElementById('triangle-bg'); 
                     
                     let gradient = 'linear-gradient(135deg, #001f7a, #0033cc, #005ce6, #001f7a)'; 
                     let textoSigla = 'R.E.M.A.E.P';
@@ -379,11 +374,11 @@
                     }
 
                     panel.style.background = gradient;
-                    trianguloContainer.style.background = gradient;
+                    trianguloBg.style.background = gradient;
                     panel.style.color = textColor;
 
                     sigla.innerText = textoSigla;
-                    if(textoSigla.length > 8) { sigla.style.fontSize = "20px"; sigla.style.bottom = "12px"; }
+                    if(textoSigla.length > 8) { sigla.style.fontSize = "22px"; sigla.style.bottom = "12px"; }
 
                 } catch (e) { console.log(e); }
             }
@@ -403,7 +398,7 @@
             }
         }
 
-        // DESCARGA PNG (Soporta Transparencia y Bordes Redondos)
+        // DESCARGA PNG (Forzada a contener transparencias)
         function descargarPNG(elementId, fileName) {
             const originalElement = document.getElementById(elementId);
             const clone = originalElement.cloneNode(true);
@@ -416,7 +411,7 @@
             clone.style.height = "638px";
             clone.style.margin = "0";
             clone.style.boxShadow = "none";
-            clone.style.borderRadius = "40px"; // IMPORTANTE: Mismo radio que el CSS
+            clone.style.borderRadius = "40px";
 
             const originalImg = originalElement.querySelector('img.student-photo');
             const cloneImg = clone.querySelector('img.student-photo');
@@ -430,12 +425,12 @@
             html2canvas(clone, {
                 scale: 1,
                 useCORS: true,
-                backgroundColor: null, // Fondo transparente
+                backgroundColor: null, 
                 width: 1011,
                 height: 638
             }).then(canvas => {
                 const link = document.createElement('a');
-                link.download = `${fileName}.png`; // PNG obligatorio
+                link.download = `${fileName}.png`;
                 link.href = canvas.toDataURL("image/png");
                 link.click();
                 document.body.removeChild(clone);
