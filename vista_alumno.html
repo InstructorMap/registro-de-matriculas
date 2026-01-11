@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Credencial V13 - Final ClipPath</title>
+    <title>Credencial V14 - Final Ajustada</title>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
     
@@ -21,20 +21,22 @@
         :root {
             --card-width: 1011px;
             --card-height: 638px;
+            
+            /* HOLOGRAFÍA FUERTE (Para que se vea al imprimir) */
             --holo-pattern: 
                 repeating-linear-gradient(
                     45deg,
                     rgba(255, 255, 255, 0.08) 0px,
                     rgba(255, 255, 255, 0.08) 1px,
                     transparent 1px,
-                    transparent 5px
+                    transparent 4px
                 ),
                 linear-gradient(
                     120deg,
                     transparent 30%,
-                    rgba(255, 255, 255, 0.15) 45%,
-                    rgba(200, 255, 255, 0.25) 50%,
-                    rgba(255, 255, 255, 0.15) 55%,
+                    rgba(255, 255, 255, 0.2) 45%,
+                    rgba(200, 255, 255, 0.4) 50%, /* Destello central fuerte */
+                    rgba(255, 255, 255, 0.2) 55%,
                     transparent 70%
                 );
         }
@@ -51,9 +53,11 @@
             height: var(--card-height);
             background: white;
             display: flex; position: relative;
+            /* IMPORTANTE: Esto recorta todo lo que sobra (hace el triangulo) */
             border-radius: 40px; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
             overflow: hidden; 
+            
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
             margin-bottom: 50px;
         }
 
@@ -62,44 +66,65 @@
             width: 380px; height: 100%; position: relative;
             background: #d4d4d4;
             z-index: 1;
+            /* El overflow hidden aquí es clave para la foto */
+            overflow: hidden; 
         }
         .student-photo { width: 100%; height: 100%; object-fit: cover; }
 
-        /* --- TRIÁNGULO V13 (Método Clip-Path + Filtro) --- */
-        .triangle-shape {
+        /* --- TRIÁNGULO V14 (Rotación Gigante) --- */
+        /* Esta es la técnica más segura. Un cuadrado gigante girado. */
+        .triangle-rotated {
             position: absolute; 
-            bottom: 0; 
-            left: 0;   
-            width: 300px; 
-            height: 300px;
+            
+            /* COORDENADAS AJUSTADAS PARA FORMAR EL TRIÁNGULO */
+            bottom: -340px; 
+            left: -340px;   
+            
+            /* TAMAÑO GIGANTE (Asegura que no se vean los bordes rectos) */
+            width: 650px; 
+            height: 650px; 
+            
+            transform: rotate(45deg);
             z-index: 2;
             
-            /* 1. Recorte diagonal exacto (sin rotación) */
-            clip-path: polygon(0 100%, 100% 100%, 0 0);
+            /* BORDES BLANCOS (Forman la diagonal) */
+            border-top: 12px solid white;
+            border-right: 12px solid white;
             
-            /* 2. El fondo metálico se aplica aquí */
-            background: blue; /* Se sobrescribe por JS */
-
-            /* 3. El Borde Blanco Falso (Truco de Sombra Sólida) */
-            /* Esto crea una copia blanca desplazada que actúa como borde */
-            filter: drop-shadow(4px -4px 0px white);
+            /* SOMBRA para dar profundidad sobre la foto */
+            box-shadow: 5px -5px 15px rgba(0,0,0,0.5);
         }
 
+        .triangle-content {
+            width: 100%; height: 100%;
+            /* Contrarrotación para el gradiente */
+            transform: rotate(-45deg) scale(1.5); 
+        }
+
+        /* SIGLA CORREGIDA (Ya no se sale del cuadro) */
         .reg-sigla {
             position: absolute; 
-            bottom: 15px; left: 5px; width: 150px;
-            text-align: center; color: white; font-size: 22px; font-weight: 900;
+            /* La movemos "hacia adentro" */
+            bottom: 35px;  /* Más arriba */
+            left: 15px;    /* Más a la derecha */
+            
+            width: 200px;
+            text-align: center; 
+            color: white; 
+            font-size: 24px; 
+            font-weight: 900;
             z-index: 4; 
-            transform: rotate(-45deg); /* Solo rotamos el texto */
-            transform-origin: center;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.6); 
+            
+            transform: rotate(-45deg); 
+            transform-origin: left bottom;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8); 
             letter-spacing: 2px;
         }
 
         .qr-on-photo {
             position: absolute; bottom: 15px; right: 15px;
             width: 100px; height: 100px; 
-            background: rgba(255,255,255,0.85);
+            background: rgba(255,255,255,0.9);
             padding: 5px; border-radius: 12px; z-index: 5;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             backdrop-filter: blur(4px);
@@ -120,10 +145,11 @@
             opacity: 1; mix-blend-mode: overlay; z-index: 0; pointer-events: none;
         }
         
+        /* Ruido granulado */
         .noise-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
-            opacity: 0.4; mix-blend-mode: soft-light; z-index: 0; pointer-events: none;
+            opacity: 0.3; mix-blend-mode: soft-light; z-index: 0; pointer-events: none;
         }
 
         .front-content { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
@@ -204,7 +230,7 @@
 <body>
 
     <div class="controls">
-        <h2 style="margin-bottom:10px;">Panel del Alumno (V13 Final)</h2>
+        <h2 style="margin-bottom:10px;">Panel del Alumno (V14 Final)</h2>
         <input type="file" id="input-foto" accept="image/*" style="display:none;" onchange="cargarFoto()">
         <button class="btn-action btn-upload" onclick="document.getElementById('input-foto').click()">📸 SUBIR FOTO</button>
         <br>
@@ -222,7 +248,9 @@
                     <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Validado" alt="QR">
                 </div>
 
-                <div class="triangle-shape" id="triangle-bg"></div>
+                <div class="triangle-rotated" id="triangle-bg">
+                    <div class="triangle-content"></div>
+                </div>
                 
                 <div class="reg-sigla" id="txt-sigla">REGISTRO</div>
             </div>
@@ -388,7 +416,7 @@
             }
         }
 
-        // DESCARGA PNG V13 (Configuración "AllowTaint" para filtros)
+        // DESCARGA PNG V14 (Configuración "AllowTaint" para filtros)
         function descargarPNG(elementId, fileName) {
             const originalElement = document.getElementById(elementId);
             const clone = originalElement.cloneNode(true);
@@ -401,7 +429,9 @@
             clone.style.height = "638px";
             clone.style.margin = "0";
             clone.style.boxShadow = "none";
+            // Borde redondeado explícito para el clon
             clone.style.borderRadius = "40px";
+            clone.style.overflow = "hidden"; // Asegura recorte en clon
 
             const originalImg = originalElement.querySelector('img.student-photo');
             const cloneImg = clone.querySelector('img.student-photo');
@@ -415,7 +445,7 @@
             html2canvas(clone, {
                 scale: 1,
                 useCORS: true,
-                allowTaint: true, // Importante para filtros CSS como drop-shadow
+                allowTaint: true,
                 backgroundColor: null, 
                 width: 1011,
                 height: 638
