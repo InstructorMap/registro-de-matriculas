@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credencial Digital V2 - ASARI</title>
+    
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- ESTILOS BASE (Mismos que V1) --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Roboto', sans-serif; background: #1a1a1a; display: flex; flex-direction: column; align-items: center; padding: 30px; gap: 20px; color: white; }
+        :root { --card-width: 1011px; --card-height: 638px; --holo-pattern: repeating-linear-gradient(45deg, rgba(255,255,255,0.08) 0px, rgba(255,255,255,0.08) 1px, transparent 1px, transparent 4px), linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.2) 45%, rgba(200,255,255,0.4) 50%, rgba(255,255,255,0.2) 55%, transparent 70%); }
+
+        /* Controles */
+        .controls { background: #222; padding: 25px; border-radius: 10px; position: sticky; top: 10px; z-index: 999; width: 95%; max-width: 600px; border: 1px solid #444; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .input-group { display: flex; gap: 10px; margin-bottom: 5px; }
+        .input-dni { flex: 1; padding: 12px; font-size: 18px; border-radius: 5px; border: none; text-align: center; font-weight: bold; letter-spacing: 1px;}
+        .btn-generate { padding: 12px 25px; font-size: 16px; background: linear-gradient(135deg, #005c99, #007acc); border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: 900; text-transform: uppercase; }
+        .action-buttons { display: none; gap: 10px; flex-wrap: wrap; justify-content: center; border-top: 1px solid #444; padding-top: 20px; margin-top: 15px;}
+        .btn-action { padding: 12px 15px; font-size: 15px; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; flex: 1; min-width: 140px; }
+        .btn-upload { background: #444; color: white; border: 1px solid #666; }
+        .btn-download { background: #00c853; color: white; }
+        #msg-error { color: #ff5555; text-align: center; margin-top: 15px; display: none; font-weight: bold; }
+
+        /* Tarjeta */
+        .preview-wrapper { transform: scale(0.4); transform-origin: top center; margin-bottom: -350px; border-radius: 20px; transition: transform 0.3s ease; opacity: 0.5; filter: grayscale(1); }
+        .preview-wrapper.active { opacity: 1; filter: grayscale(0); }
+        @media (max-width: 600px) { .preview-wrapper { transform: scale(0.28); margin-bottom: -450px; } }
+        
+        .card { width: var(--card-width); height: var(--card-height); background: white; display: flex; position: relative; border: 5px solid #0033cc; border-radius: 40px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); margin-bottom: 50px; }
+        
+        /* Frente Izquierda */
+        .front-left { width: 380px; height: 100%; position: relative; background: #d4d4d4; z-index: 1; border-top-left-radius: 35px; border-bottom-left-radius: 35px; overflow: hidden; }
+        .student-photo { width: 100%; height: 100%; object-fit: cover; }
+        .svg-triangle-container { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
+        .reg-sigla { position: absolute; bottom: 15px; left: 0; width: 100%; text-align: center; color: white; font-size: 22px; font-weight: 900; z-index: 6; text-shadow: 2px 2px 4px rgba(0,0,0,0.9); letter-spacing: 2px; }
+        
+        .qr-on-photo { position: absolute; bottom: 55px; left: 50%; transform: translateX(-50%); width: 110px; height: 110px; background: white; padding: 5px; border-radius: 10px; z-index: 5; box-shadow: 0 4px 15px rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; }
+
+        /* Frente Derecha */
+        .front-right { flex: 1; position: relative; color: white; padding: 20px 35px; display: flex; flex-direction: column; justify-content: space-between; background-color: #0033cc; }
+        .holo-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--holo-pattern); opacity: 1; mix-blend-mode: overlay; pointer-events: none; }
+        .front-content { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 6px solid rgba(255,255,255,0.9); padding-bottom: 2px; }
+        .header-text { font-size: 85px; font-weight: 900; text-transform: uppercase; line-height: 0.9; text-shadow: 3px 3px 0px rgba(0,0,0,0.2); }
+        .course-container { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 10px 0; background: linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.3)); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; }
+        .course-title-main { font-size: 60px; font-weight: 900; text-transform: uppercase; line-height: 0.9; text-align: center; text-shadow: 0 4px 8px rgba(0,0,0,0.4); }
+        .course-title-sub { font-size: 30px; font-weight: 700; text-transform: uppercase; margin-top: 5px; text-align: center; }
+        .student-name { font-size: 34px; font-weight: 700; text-transform: uppercase; background: rgba(0,0,0,0.3); padding: 10px; text-align: center; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); margin-bottom: 15px;}
+        
+        .data-grid { display: grid; grid-template-columns: 65px 1fr; row-gap: 10px; align-items: center; }
+        .icon-box { font-size: 55px; text-align: center; }
+        .data-box { background: linear-gradient(90deg, rgba(0,0,0,0.2), rgba(0,0,0,0.3)); padding: 6px 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.15); height: 55px; }
+        .label-text { font-size: 32px; font-weight: 700; opacity: 0.9; }
+        .value-text { font-size: 36px; font-weight: 900; text-align: right; }
+
+        /* Dorso */
+        .card-back { padding: 0; background: #ccc; }
+        .back-image { width: 100%; height: 100%; object-fit: fill; display: block; }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <h2 style="text-align:center; color:#fff; margin-bottom: 15px;">🎓 Credencial V2</h2>
+        
+        <div class="input-group">
+            <input type="text" id="input-dni-search" class="input-dni" placeholder="Ingrese DNI del Alumno" onkeypress="if(event.key==='Enter') generarCarnet()">
+            <button class="btn-generate" onclick="generarCarnet()">⚙️ GENERAR</button>
+        </div>
+
+        <div id="selector-cursos" style="display:none; margin-top:20px; text-align:center; border-top:1px solid #444; padding-top:15px;">
+            <p style="color:#ccc; font-size:14px; margin-bottom:10px;">📋 Se encontraron varios cursos:</p>
+            <div id="lista-botones" style="display:flex; flex-direction:column; gap:10px;"></div>
+        </div>
+
+        <div id="msg-error"></div>
+
+        <div class="action-buttons" id="panel-acciones">
+            <input type="file" id="input-foto" accept="image/*" style="display:none;" onchange="cargarImagen(this, 'img-foto')">
+            <button class="btn-action btn-upload" onclick="document.getElementById('input-foto').click()">📸 SUBIR FOTO</button>
+            <button class="btn-action btn-download" onclick="descargarCarnet()">⬇️ DESCARGAR CARNET</button>
+        </div>
+    </div>
+
+    <div class="preview-wrapper" id="vista-previa">
+        <div class="card" id="card-front">
+            <div class="front-left">
+                <img id="img-foto" class="student-photo" src="" style="display:none;">
+                <div style="position:absolute; top:40%; width:100%; text-align:center; color:#555; font-weight:bold;" id="placeholder-foto">FOTO</div>
+                
+                <div class="qr-on-photo" id="qr-container"></div>
+                
+                <div class="svg-triangle-container">
+                    <svg viewBox="0 0 380 638" width="100%" height="100%" preserveAspectRatio="none">
+                        <defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#001f7a" id="c1"/><stop offset="50%" style="stop-color:#0033cc" id="c2"/><stop offset="100%" style="stop-color:#001f7a" id="c3"/></linearGradient></defs>
+                        <path d="M -50 680 L 350 680 L -50 280 Z" fill="url(#grad)" style="filter: drop-shadow(0 -4px 0 rgba(255,255,255,0.5));" />
+                    </svg>
+                </div>
+                <div class="reg-sigla" id="txt-sigla">REGISTRO</div>
+            </div>
+
+            <div class="front-right" id="bg-panel">
+                <div class="holo-layer"></div>
+                <div class="front-content">
+                    <div class="header"><span class="header-text">CARNET</span><span class="header-text" id="txt-anio">2026</span></div>
+                    <div class="course-container">
+                        <div class="course-title-main" id="txt-titulo-main">CURSO</div>
+                        <div class="course-title-sub" id="txt-titulo-sub">PROFESIONAL</div>
+                    </div>
+                    <div class="student-name" id="txt-nombre">---</div>
+                    <div class="data-grid">
+                        <div class="icon-box">✱</div><div class="data-box"><span class="label-text">DNI:</span><span class="value-text" id="txt-dni">---</span></div>
+                        <div class="icon-box">#</div><div class="data-box"><span class="label-text">MATRÍCULA:</span><span class="value-text" id="txt-matricula">---</span></div>
+                        <div class="icon-box">🚨</div><div class="data-box"><span class="label-text">VENCE:</span><span class="value-text" id="txt-vence">---</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-back" id="card-back">
+            <img src="reverso.jpg" class="back-image" id="img-reverso" onerror="this.src='https://via.placeholder.com/1011x638/CCCCCC/666666?text=FALTA+reverso.jpg'">
+        </div>
+    </div>
+
+    <script>
+        // --- 1. CONFIGURACIÓN SUPABASE ---
+        const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
+        const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
+        const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
+
+        // --- 2. BÚSQUEDA ---
+        async function generarCarnet() {
+            const dniRaw = document.getElementById('input-dni-search').value;
+            const dniInput = dniRaw.trim();
+            
+            const msg = document.getElementById('msg-error');
+            const panel = document.getElementById('panel-acciones');
+            const vista = document.getElementById('vista-previa');
+            const selector = document.getElementById('selector-cursos');
+
+            msg.style.display = 'none'; panel.style.display = 'none'; selector.style.display = 'none'; vista.classList.remove('active');
+
+            if(!dniInput) { alert("Ingrese un DNI."); return; }
+            msg.innerText = "⏳ Buscando..."; msg.style.display = 'block'; msg.style.color = '#fff';
+
+            // Traemos TODOS los campos, incluyendo 'registro_id'
+            const { data, error } = await db.from('matriculas').select('*').eq('dni_alumno', dniInput);
+
+            if (error) { console.error(error); msg.innerText = "Error conexión."; return; }
+
+            if (!data || data.length === 0) {
+                msg.innerText = "❌ No encontrado: " + dniInput; msg.style.color = '#ff5555';
+            } else if (data.length === 1) {
+                msg.style.display = 'none'; procesarDatos(data[0]);
+            } else {
+                msg.style.display = 'none'; mostrarOpciones(data);
+            }
+        }
+
+        function mostrarOpciones(cursos) {
+            const container = document.getElementById('selector-cursos');
+            const lista = document.getElementById('lista-botones');
+            lista.innerHTML = '';
+            cursos.forEach(curso => {
+                const btn = document.createElement('button');
+                const anio = curso.fecha_inicio ? curso.fecha_inicio.substring(0,4) : '';
+                btn.innerText = `👉 ${curso.curso} (${anio})`;
+                btn.style.padding = "10px"; btn.style.background = "#333"; btn.style.color = "white"; btn.style.border = "1px solid #555"; btn.style.borderRadius = "5px"; btn.style.cursor = "pointer"; btn.style.textAlign = "left"; btn.style.marginBottom = "5px";
+                btn.onclick = () => { container.style.display = 'none'; procesarDatos(curso); };
+                lista.appendChild(btn);
+            });
+            container.style.display = 'block';
+        }
+
+        // --- 3. PROCESAMIENTO (LA MAGIA V2) ---
+        function procesarDatos(alumno) {
+            document.getElementById('panel-acciones').style.display = 'flex';
+            document.getElementById('vista-previa').classList.add('active');
+
+            // Textos
+            document.getElementById('txt-nombre').innerText = `${alumno.nombre} ${alumno.apellido}`;
+            document.getElementById('txt-dni').innerText = alumno.dni_alumno;
+            
+            // Hash Matrícula
+            const matHash = String(Math.abs(alumno.dni_alumno.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a|0},0))).substring(0,6).padStart(6,'9');
+            document.getElementById('txt-matricula').innerText = matHash;
+
+            // Fechas
+            const fecha = new Date(alumno.fecha_inicio);
+            document.getElementById('txt-anio').innerText = fecha.getFullYear() || 2026;
+            const vence = new Date(fecha); vence.setFullYear(vence.getFullYear() + 1);
+            document.getElementById('txt-vence').innerText = vence.toLocaleDateString('es-AR');
+
+            // Título
+            const cursoTexto = alumno.curso || "CURSO";
+            separarTitulo(cursoTexto);
+            
+            // ---> AQUÍ ESTÁ EL CAMBIO CLAVE <---
+            // Ya no le pasamos el nombre del curso. Le pasamos el ID del registro (ej: 'rubra')
+            // Si el alumno es viejo y no tiene ID, le pasamos 'remaep' por defecto.
+            aplicarLogicaRegistro(alumno.registro_id || 'remaep');
+
+            // QR
+            setTimeout(() => {
+                const container = document.getElementById('qr-container'); container.innerHTML = "";
+                const sigla = document.getElementById('txt-sigla').innerText;
+                const qrData = `VALIDADO|${alumno.dni_alumno}|${matHash}|${sigla}`;
+                new QRCode(container, { text: qrData, width: 100, height: 100, colorDark : "#000", colorLight : "#fff", correctLevel : QRCode.CorrectLevel.L });
+            }, 100);
+        }
+
+        // --- LÓGICA DE REGISTROS V2 (DIRECTA) ---
+        function aplicarLogicaRegistro(registroId) {
+            // Diccionario Maestro de Colores
+            const configs = {
+                'remaep': { c1:'#001f7a', c2:'#0033cc', c3:'#005ce6', sigla:'R.E.M.A.E.P', txt:'white' },
+                'rniue':  { c1:'#8a6e2f', c2='#b8860b', c3='#ffd700', sigla:'R.N.I.U.E',   txt:'white' },
+                'rubra':  { c1:'#800000', c2='#cc0000', c3='#ff3333', sigla:'R.U.B.R.A',   txt:'white' },
+                'rmts':   { c1:'#1a2f1a', c2='#2f4f4f', c3='#4d704d', sigla:'R.M.T.S',     txt:'white' },
+                'rce':    { c1:'#cc9900', c2='#ffcc00', c3='#ffe066', sigla:'R.C.E',       txt:'black' },
+                'rpde':   { c1:'#005c99', c2='#0099ff', c3='#66c2ff', sigla:'R.P.D.E',     txt:'white' },
+                'asarin': { c1:'#800000', c2='#cc0000', c3='#ff3333', sigla:'ASARIN',      txt:'white' }
+            };
+
+            // Normalizar
+            const id = (registroId || 'remaep').toLowerCase();
+            const cfg = configs[id] || configs['remaep']; // Si no existe, usa REMAEP
+
+            // Aplicar Estilos
+            const panel = document.getElementById('bg-panel');
+            panel.style.background = cfg.c2; 
+            panel.style.color = cfg.txt;
+            document.getElementById('card-front').style.borderColor = cfg.c2;
+            document.getElementById('txt-sigla').innerText = cfg.sigla;
+
+            // Degradado SVG
+            document.getElementById('c1').style.stopColor = cfg.c1;
+            document.getElementById('c2').style.stopColor = cfg.c2;
+            document.getElementById('c3').style.stopColor = cfg.c3;
+        }
+
+        function separarTitulo(t) {
+            const p = t.split(' ');
+            if(p.length > 1) { document.getElementById('txt-titulo-main').innerText = p[0]; document.getElementById('txt-titulo-sub').innerText = p.slice(1).join(' '); }
+            else { document.getElementById('txt-titulo-main').innerText = t; document.getElementById('txt-titulo-sub').innerText = ""; }
+        }
+
+        function cargarImagen(input, id) {
+            if (input.files && input.files[0]) {
+                const r = new FileReader();
+                r.onload = (e) => { const img = document.getElementById(id); img.src = e.target.result; img.style.display = 'block'; if(id === 'img-foto') document.getElementById('placeholder-foto').style.display = 'none'; }
+                r.readAsDataURL(input.files[0]);
+            }
+        }
+
+        async function descargarCarnet() {
+            const f = document.getElementById('card-front'), b = document.getElementById('card-back');
+            const box = document.createElement('div'); box.style.position='fixed'; box.style.top='-9999px'; document.body.appendChild(box);
+            const cf = f.cloneNode(true), cb = b.cloneNode(true);
+            [cf, cb].forEach(c => { c.style.margin='0'; c.style.boxShadow='none'; c.style.transform='none'; });
+            
+            const sf = document.getElementById('img-foto').src;
+            if(sf && document.getElementById('img-foto').style.display!=='none') cf.querySelector('#img-foto').src = sf;
+            cf.querySelector('#qr-container').innerHTML = document.getElementById('qr-container').innerHTML;
+
+            box.appendChild(cf); box.appendChild(cb);
+            const cv1 = await html2canvas(cf, {scale:1, width:1011, height:638, backgroundColor:null});
+            const cv2 = await html2canvas(cb, {scale:1, width:1011, height:638, backgroundColor:null});
+            
+            const fin = document.createElement('canvas'); fin.width = 1011; fin.height = 1316; 
+            const ctx = fin.getContext('2d'); ctx.drawImage(cv1, 0, 0); ctx.drawImage(cv2, 0, 678);
+
+            const link = document.createElement('a'); link.download = `Carnet_${document.getElementById('txt-dni').innerText}.png`;
+            link.href = fin.toDataURL("image/png"); link.click();
+            document.body.removeChild(box);
+        }
+    </script>
+</body>
+</html>
