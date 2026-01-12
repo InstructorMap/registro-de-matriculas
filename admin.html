@@ -68,18 +68,22 @@
 </div>
 
 <script>
-    // 1. CONFIGURACIÓN DE SUPABASE
-    // Tienes que reemplazar esto con TUS claves (Te explico abajo dónde buscarlas)
-    const SUPABASE_URL = 'vxggatcfrywyodovjwxj'; 
+    // 1. TUS CREDENCIALES (Ya configuradas)
+    const SUPABASE_URL = 'https://vxggatcfrywyodovjwxj.supabase.co'; 
     const SUPABASE_KEY = 'sb_publishable_Zkc12UR5e4tz7cjZhoczyQ_cUxX_x5r';
 
     const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     // 2. LÓGICA DE GUARDADO
     document.getElementById('formAlta').addEventListener('submit', async (e) => {
-        e.preventDefault(); // Evita que se recargue la página
+        e.preventDefault(); 
+        
+        // Botón en modo carga
+        const btn = document.querySelector('button[type="submit"]');
+        const textoOriginal = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Guardando...';
 
-        // Capturamos los datos del formulario
         const alumno = {
             dni_alumno: document.getElementById('dni').value,
             nombre: document.getElementById('nombre').value,
@@ -90,7 +94,6 @@
             fecha_inicio: document.getElementById('fecha').value || new Date().toISOString().split('T')[0]
         };
 
-        // Enviamos a Supabase
         const { data, error } = await supabase
             .from('matriculas')
             .insert([alumno]);
@@ -100,8 +103,12 @@
             console.error(error);
         } else {
             alert('✅ ¡Alumno cargado correctamente!');
-            document.getElementById('formAlta').reset(); // Limpia el formulario
+            document.getElementById('formAlta').reset();
         }
+
+        // Restaurar botón
+        btn.disabled = false;
+        btn.innerHTML = textoOriginal;
     });
 </script>
 
