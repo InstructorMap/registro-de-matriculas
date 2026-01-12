@@ -71,15 +71,14 @@
 
 <script>
     // ---------------------------------------------------------
-    // TUS DATOS CONFIGURADOS CORRECTAMENTE
+    // TUS DATOS (URL y Clave 'Legacy' eyJ...)
     // ---------------------------------------------------------
     const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
-    
-    // Aquí está la clave que me acabas de pasar:
     const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
     // ---------------------------------------------------------
 
-    const supabase = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
+    // CORRECCIÓN: Usamos 'db' en lugar de 'supabase' para evitar conflictos
+    const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
     document.getElementById('formAlta').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -97,7 +96,7 @@
             fecha_inicio: document.getElementById('fecha').value || new Date().toISOString().split('T')[0]
         };
 
-        const { data, error } = await supabase
+        const { data, error } = await db
             .from('matriculas')
             .insert([datos])
             .select();
@@ -107,7 +106,7 @@
             msgDiv.innerHTML = `<div class="alert alert-danger">❌ Error: ${error.message}</div>`;
         } else {
             console.log('Guardado:', data);
-            msgDiv.innerHTML = `<div class="alert alert-success">✅ ¡ÉXITO! Alumno guardado correctamente.</div>`;
+            msgDiv.innerHTML = `<div class="alert alert-success">✅ ¡ÉXITO! Alumno guardado.</div>`;
             document.getElementById('formAlta').reset();
         }
     });
