@@ -89,32 +89,46 @@
         }
 
         /* --- SIGLA REMAEP (AJUSTADA) --- */
-        .reg-sigla {
-            position: absolute; 
-            
-            /* COORDENADAS FINALES (Ya no serán pisadas por JS) */
-            bottom: 100px; /* Sube bastante */
-            left: -15px;    /* Se mueve a la derecha */
-            
-            width: 200px;
-            text-align: center; color: white; 
-            font-size: 22px; font-weight: 900;
-            z-index: 4; 
-            transform: rotate(-45deg); 
-            transform-origin: center;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.9); 
-            letter-spacing: 2px;
-        }
-
-        .qr-on-photo {
-            position: absolute; bottom: 15px; right: 15px;
-            width: 100px; height: 100px; 
-            background: rgba(255,255,255,0.9);
-            padding: 5px; border-radius: 12px; z-index: 5;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            backdrop-filter: blur(4px);
-        }
-        .qr-on-photo img { width: 100%; height: 100%; }
+/* Busca y REEMPLAZA esto: */
+.reg-sigla {
+    position: absolute; 
+    
+    /* NUEVA POSICIÓN: Abajo del todo */
+    bottom: 10px; 
+    left: 20px;   
+    
+    width: 120px; /* Ancho controlado para centrar con el QR */
+    text-align: center; 
+    color: white; 
+    font-size: 18px; /* Un poco más chico para que entre bien */
+    font-weight: 900;
+    z-index: 4; 
+    
+    /* QUITAMOS LA ROTACIÓN */
+    transform: none; 
+    
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.9); 
+    letter-spacing: 1px;
+}
+ /* Busca y REEMPLAZA esto: */
+.qr-on-photo {
+    position: absolute; 
+    
+    /* NUEVA POSICIÓN: Encima del texto */
+    bottom: 45px;  /* Dejamos espacio abajo para el texto */
+    left: 30px;    /* Alineado a la izquierda (sobre el triángulo) */
+    right: auto;   /* IMPORTANTE: Anulamos la posición derecha anterior */
+    
+    width: 100px; 
+    height: 100px; 
+    
+    background: rgba(255,255,255,0.9);
+    padding: 5px; 
+    border-radius: 12px; 
+    z-index: 5;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    backdrop-filter: blur(4px);
+}        .qr-on-photo img { width: 100%; height: 100%; }
 
         /* --- FRENTE: DERECHA --- */
         .front-right {
