@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Credencial V24 - Fix Triángulo y Marco</title>
+    <title>Credencial V25 - Final Ajuste REMAEP</title>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
     
@@ -55,12 +55,11 @@
             background: white;
             display: flex; position: relative;
             
-            /* 1. CORRECCIÓN: MARCO AZUL AGREGADO */
+            /* MARCO AZUL */
             border: 5px solid var(--blue-colbert); 
             border-radius: 40px; 
             
             overflow: hidden; 
-            /* Máscara para recortar esquinas internas */
             mask-image: radial-gradient(white, black);
             -webkit-mask-image: -webkit-radial-gradient(white, black);
             
@@ -74,13 +73,13 @@
             background: #d4d4d4;
             z-index: 1;
             overflow: hidden;
-            /* Ajuste para que el borde azul no tape la foto en las esquinas */
+            /* Ajuste de bordes */
             border-top-left-radius: 35px;
             border-bottom-left-radius: 35px;
         }
         .student-photo { width: 100%; height: 100%; object-fit: cover; }
 
-        /* --- TRIÁNGULO SVG (CORREGIDO) --- */
+        /* --- TRIÁNGULO SVG --- */
         .svg-triangle-container {
             position: absolute;
             bottom: 0; left: 0;
@@ -89,23 +88,24 @@
             pointer-events: none;
         }
 
-        /* SIGLA REMAEP */
-.reg-sigla {
-    position: absolute;  
-    bottom: 105px;  /* Aumenta este número para SUBIRLO */
-    left: 35px;    /* Aumenta este número para llevarlo ADELANTE (derecha) */
-    
-    /* ---------------------------------- */
+        /* --- SIGLA REMAEP (AJUSTADA) --- */
+        .reg-sigla {
+            position: absolute; 
+            
+            /* COORDENADAS FINALES (Ya no serán pisadas por JS) */
+            bottom: 110px; /* Sube bastante */
+            left: 45px;    /* Se mueve a la derecha */
+            
+            width: 200px;
+            text-align: center; color: white; 
+            font-size: 24px; font-weight: 900;
+            z-index: 4; 
+            transform: rotate(-45deg); 
+            transform-origin: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.9); 
+            letter-spacing: 2px;
+        }
 
-    width: 200px;
-    text-align: center; color: white; 
-    font-size: 24px; font-weight: 900;
-    z-index: 4; 
-    transform: rotate(-45deg); 
-    transform-origin: center;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.9); 
-    letter-spacing: 2px;
-}
         .qr-on-photo {
             position: absolute; bottom: 15px; right: 15px;
             width: 100px; height: 100px; 
@@ -122,7 +122,7 @@
             padding: 20px 35px;
             display: flex; flex-direction: column; justify-content: space-between;
             z-index: 0;
-            background-color: var(--blue-colbert); /* Fondo de seguridad por si falla gradiente */
+            background-color: var(--blue-colbert); 
         }
 
         .holo-layer {
@@ -211,7 +211,7 @@
 <body>
 
     <div class="controls">
-        <h2 style="margin-bottom:10px;">Panel del Alumno (V24)</h2>
+        <h2 style="margin-bottom:10px;">Panel del Alumno (V25)</h2>
         <input type="file" id="input-foto" accept="image/*" style="display:none;" onchange="cargarFoto()">
         <button class="btn-action btn-upload" onclick="document.getElementById('input-foto').click()">📸 SUBIR FOTO</button>
         <br>
@@ -345,7 +345,6 @@
                     const sigla = document.getElementById('txt-sigla');
                     const card = document.getElementById('card-front');
                     
-                    // Elementos del gradiente SVG
                     const t1 = document.getElementById('tri-stop1');
                     const t2 = document.getElementById('tri-stop2');
                     const t3 = document.getElementById('tri-stop3');
@@ -353,23 +352,17 @@
                     let gradCSS = 'linear-gradient(135deg, #001f7a, #0033cc, #005ce6, #001f7a)'; 
                     
                     function updateAllColors(c1, c2, c3, borderColor) {
-                        // 1. Panel derecho
                         gradCSS = `linear-gradient(135deg, ${c1}, ${c2}, ${c3}, ${c1})`;
                         panel.style.background = gradCSS;
-                        
-                        // 2. Triángulo SVG (Actualizamos los stops)
                         if(t1) t1.style.stopColor = c1;
                         if(t2) t2.style.stopColor = c2;
                         if(t3) t3.style.stopColor = c3;
-
-                        // 3. Borde de la Tarjeta
                         card.style.borderColor = borderColor;
                     }
 
                     let textoSigla = 'R.E.M.A.E.P';
                     let textColor = 'white';
                     
-                    // Default
                     updateAllColors('#001f7a', '#0033cc', '#001f7a', '#0033cc');
 
                     if(datos.reg.includes('remaep')) { 
@@ -400,7 +393,9 @@
 
                     panel.style.color = textColor;
                     sigla.innerText = textoSigla;
-                    if(textoSigla.length > 8) { sigla.style.fontSize = "22px"; sigla.style.bottom = "12px"; }
+                    
+                    // --- AQUÍ ESTABA EL ERROR: BORRADO PARA SIEMPRE ---
+                    // if(textoSigla.length > 8) { ... } -> ELIMINADO
 
                 } catch (e) { console.log(e); }
             }
@@ -439,23 +434,21 @@
             tempContainer.appendChild(cloneBack);
             document.body.appendChild(tempContainer);
 
-            // Ajustes para asegurar renderizado correcto
             [cloneFront, cloneBack].forEach(clone => {
                 clone.style.transform = "none";
                 clone.style.margin = "0";
                 clone.style.boxShadow = "none";
                 clone.style.borderRadius = "40px";
                 clone.style.overflow = "hidden";
-                clone.style.border = front.style.border; // Mantener borde dinámico
+                clone.style.border = front.style.border;
             });
 
-            // Recuperar Imágenes
             const frontImg = front.querySelector('img.student-photo');
             if(frontImg && frontImg.src) cloneFront.querySelector('img.student-photo').src = frontImg.src;
             const backImg = back.querySelector('img.back-image');
             if(backImg && backImg.src) cloneBack.querySelector('img.back-image').src = backImg.src;
 
-            await new Promise(r => setTimeout(r, 800)); // Espera segura
+            await new Promise(r => setTimeout(r, 800));
 
             const canvasFront = await html2canvas(cloneFront, { scale: 1, useCORS: true, backgroundColor: null, width: 1011, height: 638 });
             const canvasBack = await html2canvas(cloneBack, { scale: 1, useCORS: true, backgroundColor: null, width: 1011, height: 638 });
