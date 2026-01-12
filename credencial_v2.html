@@ -130,15 +130,15 @@
         </div>
     </div>
 
-    <script>
-        // 1. CONFIGURACIÓN
+<script>
+        // 1. CONFIGURACIÓN (Verifica que tu URL y Key sean las correctas)
         const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
         console.log("Sistema V2 Cargado Correctamente");
 
-        // 2. FUNCIÓN PRINCIPAL
+        // 2. FUNCIÓN PRINCIPAL DE BÚSQUEDA
         async function generarCarnet() {
             console.log("🟢 Iniciando búsqueda...");
             const dniRaw = document.getElementById('input-dni-search').value;
@@ -149,45 +149,70 @@
             const vista = document.getElementById('vista-previa');
             const selector = document.getElementById('selector-cursos');
 
-            msg.style.display = 'none'; panel.style.display = 'none'; selector.style.display = 'none'; vista.classList.remove('active');
+            // Resetear interfaz
+            msg.style.display = 'none'; 
+            panel.style.display = 'none'; 
+            selector.style.display = 'none'; 
+            vista.classList.remove('active');
 
             if(!dniInput) { alert("Ingrese un DNI."); return; }
-            msg.innerText = "⏳ Conectando..."; msg.style.display = 'block'; msg.style.color = '#fff';
+            
+            msg.innerText = "⏳ Conectando..."; 
+            msg.style.display = 'block'; 
+            msg.style.color = '#fff';
 
+            // Consulta a Base de Datos
             const { data, error } = await db.from('matriculas').select('*').eq('dni_alumno', dniInput);
 
-            if (error) { console.error(error); msg.innerText = "Error: " + error.message; return; }
+            if (error) { 
+                console.error(error); 
+                msg.innerText = "Error: " + error.message; 
+                return; 
+            }
 
             if (!data || data.length === 0) {
-                msg.innerText = "❌ No encontrado: " + dniInput; msg.style.color = '#ff5555';
+                msg.innerText = "❌ No encontrado: " + dniInput; 
+                msg.style.color = '#ff5555';
             } else if (data.length === 1) {
-                msg.style.display = 'none'; procesarDatos(data[0]);
+                msg.style.display = 'none'; 
+                procesarDatos(data[0]);
             } else {
-                msg.style.display = 'none'; mostrarOpciones(data);
+                msg.style.display = 'none'; 
+                mostrarOpciones(data);
             }
         }
 
-        // 3. SELECTOR
+        // 3. SELECTOR DE CURSOS (Si hay varios)
         function mostrarOpciones(cursos) {
             const container = document.getElementById('selector-cursos');
             const lista = document.getElementById('lista-botones');
             lista.innerHTML = '';
+            
             cursos.forEach(curso => {
                 const btn = document.createElement('button');
                 const anio = curso.fecha_inicio ? String(curso.fecha_inicio).substring(0,4) : '2026';
+                
                 btn.innerText = `👉 ${curso.curso} (${anio})`;
-                btn.onclick = () => { container.style.display = 'none'; procesarDatos(curso); };
+                
+                // Acción del botón
+                btn.onclick = () => { 
+                    container.style.display = 'none'; 
+                    procesarDatos(curso); 
+                };
+                
                 lista.appendChild(btn);
             });
             container.style.display = 'block';
         }
 
-        // 4. PROCESAMIENTO
+        // 4. PROCESAMIENTO VISUAL
         function procesarDatos(alumno) {
-            console.log("Procesando:", alumno);
+            console.log("Procesando datos del alumno:", alumno);
+            
             document.getElementById('panel-acciones').style.display = 'flex';
             document.getElementById('vista-previa').classList.add('active');
 
+            // Llenar Textos
             document.getElementById('txt-nombre').innerText = `${alumno.nombre} ${alumno.apellido}`;
             document.getElementById('txt-dni').innerText = alumno.dni_alumno;
             
@@ -202,25 +227,40 @@
             const cursoTexto = alumno.curso || "CURSO";
             separarTitulo(cursoTexto);
             
-            // LÓGICA V2: Leer ID o usar defecto
+            // Lógica de Colores (Aquí estaba el posible error, asegúrate de copiar bien esto)
+            // Si registro_id viene vacío, usa 'remaep'
             aplicarLogicaRegistro(alumno.registro_id || 'remaep');
 
+            // Generar QR
             setTimeout(() => {
-                const container = document.getElementById('qr-container'); container.innerHTML = "";
+                const container = document.getElementById('qr-container'); 
+                container.innerHTML = "";
                 const sigla = document.getElementById('txt-sigla').innerText;
                 const qrData = `VALIDADO|${alumno.dni_alumno}|${matHash}|${sigla}`;
-                new QRCode(container, { text: qrData, width: 100, height: 100, colorDark : "#000", colorLight : "#fff", correctLevel : QRCode.CorrectLevel.L });
+                
+                new QRCode(container, { 
+                    text: qrData, 
+                    width: 100, 
+                    height: 100, 
+                    colorDark : "#000", 
+                    colorLight : "#fff", 
+                    correctLevel : QRCode.CorrectLevel.L 
+                });
             }, 100);
         }
 
-        // 5. UTILIDADES
+        // 5. UTILIDADES (HASH Y COLORES)
         function generarHashMatricula(dni) {
             let hash = 0;
-            for (let i = 0; i < dni.length; i++) { hash = ((hash << 5) - hash) + dni.charCodeAt(i); hash |= 0; }
+            for (let i = 0; i < dni.length; i++) { 
+                hash = ((hash << 5) - hash) + dni.charCodeAt(i); 
+                hash |= 0; 
+            }
             return String(Math.abs(hash)).substring(0, 6).padStart(6, '9'); 
         }
 
         function aplicarLogicaRegistro(registroId) {
+            // NOTA: Aquí dentro se usan DOS PUNTOS (:), nunca uses IGUAL (=)
             const configs = {
                 'remaep': { c1:'#001f7a', c2:'#0033cc', c3:'#005ce6', sigla:'R.E.M.A.E.P', txt:'white' },
                 'rniue':  { c1:'#8a6e2f', c2='#b8860b', c3='#ffd700', sigla:'R.N.I.U.E',   txt:'white' },
@@ -230,6 +270,7 @@
                 'rpde':   { c1:'#005c99', c2='#0099ff', c3='#66c2ff', sigla:'R.P.D.E',     txt:'white' },
                 'asarin': { c1:'#800000', c2='#cc0000', c3='#ff3333', sigla:'ASARIN',      txt:'white' }
             };
+
             const id = String(registroId).toLowerCase();
             const cfg = configs[id] || configs['remaep'];
 
@@ -245,14 +286,24 @@
 
         function separarTitulo(t) {
             const p = String(t).split(' ');
-            if(p.length > 1) { document.getElementById('txt-titulo-main').innerText = p[0]; document.getElementById('txt-titulo-sub').innerText = p.slice(1).join(' '); }
-            else { document.getElementById('txt-titulo-main').innerText = t; document.getElementById('txt-titulo-sub').innerText = ""; }
+            if(p.length > 1) { 
+                document.getElementById('txt-titulo-main').innerText = p[0]; 
+                document.getElementById('txt-titulo-sub').innerText = p.slice(1).join(' '); 
+            } else { 
+                document.getElementById('txt-titulo-main').innerText = t; 
+                document.getElementById('txt-titulo-sub').innerText = ""; 
+            }
         }
 
         function cargarImagen(input, id) {
             if (input.files && input.files[0]) {
                 const r = new FileReader();
-                r.onload = (e) => { const img = document.getElementById(id); img.src = e.target.result; img.style.display = 'block'; if(id === 'img-foto') document.getElementById('placeholder-foto').style.display = 'none'; }
+                r.onload = (e) => { 
+                    const img = document.getElementById(id); 
+                    img.src = e.target.result; 
+                    img.style.display = 'block'; 
+                    if(id === 'img-foto') document.getElementById('placeholder-foto').style.display = 'none'; 
+                }
                 r.readAsDataURL(input.files[0]);
             }
         }
@@ -260,6 +311,7 @@
         async function descargarCarnet() {
             const f = document.getElementById('card-front'), b = document.getElementById('card-back');
             const box = document.createElement('div'); box.style.position='fixed'; box.style.top='-9999px'; document.body.appendChild(box);
+            
             const cf = f.cloneNode(true), cb = b.cloneNode(true);
             [cf, cb].forEach(c => { c.style.margin='0'; c.style.boxShadow='none'; c.style.transform='none'; });
             
@@ -268,6 +320,7 @@
             cf.querySelector('#qr-container').innerHTML = document.getElementById('qr-container').innerHTML;
 
             box.appendChild(cf); box.appendChild(cb);
+            
             const cv1 = await html2canvas(cf, {scale:1, width:1011, height:638, backgroundColor:null});
             const cv2 = await html2canvas(cb, {scale:1, width:1011, height:638, backgroundColor:null});
             
