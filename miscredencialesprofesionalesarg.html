@@ -3,12 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Credencial V25 - Final Ajuste REMAEP</title>
+    <title>Credencial Digital ASARI - Conectada</title>
+    
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
     
     <style>
-        /* --- RESET --- */
+        /* --- RESET Y BASE --- */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'Roboto', sans-serif;
@@ -45,6 +49,7 @@
         .preview-wrapper {
             transform: scale(0.4); transform-origin: top center;
             margin-bottom: -350px; border: 1px solid #444; border-radius: 20px;
+            transition: transform 0.3s ease;
         }
         @media (max-width: 600px) { .preview-wrapper { transform: scale(0.28); margin-bottom: -450px; } }
 
@@ -55,7 +60,7 @@
             background: white;
             display: flex; position: relative;
             
-            /* MARCO AZUL */
+            /* MARCO AZUL DINÁMICO */
             border: 5px solid var(--blue-colbert); 
             border-radius: 40px; 
             
@@ -73,7 +78,6 @@
             background: #d4d4d4;
             z-index: 1;
             overflow: hidden;
-            /* Ajuste de bordes */
             border-top-left-radius: 35px;
             border-bottom-left-radius: 35px;
         }
@@ -81,52 +85,40 @@
 
         /* --- TRIÁNGULO SVG --- */
         .svg-triangle-container {
-            position: absolute;
-            bottom: 0; left: 0;
+            position: absolute; bottom: 0; left: 0;
             width: 100%; height: 100%;
-            z-index: 2;
-            pointer-events: none;
+            z-index: 2; pointer-events: none;
         }
 
-        /* --- SIGLA REMAEP (AJUSTADA) --- */
-.reg-sigla {
-    position: absolute; 
-    
-    /* NUEVA POSICIÓN: Abajo del todo */
-    bottom: 10px; 
-    left: 20px;   
-    
-    width: 120px; /* Ancho controlado para centrar con el QR */
-    text-align: center; 
-    color: white; 
-    font-size: 18px; /* Un poco más chico para que entre bien */
-    font-weight: 900;
-    z-index: 4; 
-    
-    /* QUITAMOS LA ROTACIÓN */
-    transform: none; 
-    
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.9); 
-    letter-spacing: 1px;
-}
-.qr-on-photo {
-    position: absolute; 
-    
-    /* NUEVA POSICIÓN: Encima del texto */
-    bottom: 45px;  /* Dejamos espacio abajo para el texto */
-    left: 30px;    /* Alineado a la izquierda (sobre el triángulo) */
-    right: auto;   /* IMPORTANTE: Anulamos la posición derecha anterior */
-    
-    width: 100px; 
-    height: 100px; 
-    
-    background: rgba(255,255,255,0.9);
-    padding: 5px; 
-    border-radius: 12px; 
-    z-index: 5;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    backdrop-filter: blur(4px);
-}        .qr-on-photo img { width: 100%; height: 100%; }
+        /* --- SIGLA REMAEP --- */
+        .reg-sigla {
+            position: absolute; 
+            bottom: 10px; left: 20px;    
+            width: 120px; 
+            text-align: center; 
+            color: white; 
+            font-size: 18px; 
+            font-weight: 900;
+            z-index: 4; 
+            transform: none; 
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.9); 
+            letter-spacing: 1px;
+        }
+
+        /* --- QR CODE --- */
+        .qr-on-photo {
+            position: absolute; 
+            bottom: 45px; left: 30px; right: auto;
+            width: 100px; height: 100px; 
+            background: rgba(255,255,255,0.95);
+            padding: 5px; 
+            border-radius: 12px; 
+            z-index: 5;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            display: flex; justify-content: center; align-items: center;
+        }
+        /* Ajuste para el QR generado por JS */
+        .qr-on-photo img { width: 100%; height: 100%; }
 
         /* --- FRENTE: DERECHA --- */
         .front-right {
@@ -135,6 +127,7 @@
             display: flex; flex-direction: column; justify-content: space-between;
             z-index: 0;
             background-color: var(--blue-colbert); 
+            transition: background 0.5s ease;
         }
 
         .holo-layer {
@@ -210,26 +203,37 @@
             box-shadow: inset 0 0 50px rgba(0,0,0,0.2);
         }
 
-        /* UI */
-        .controls { background: #333; color: white; padding: 20px; border-radius: 10px; text-align: center; position: sticky; top: 20px; z-index: 100; width: 90%; max-width: 600px; border: 1px solid #555; }
-        .btn-action { padding: 15px 30px; font-size: 16px; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
-        .btn-upload { background: #555; color: white; border: 1px solid #777; }
+        /* UI PANEL DE CONTROL */
+        .controls { background: #222; color: white; padding: 20px; border-radius: 10px; position: sticky; top: 10px; z-index: 100; width: 95%; max-width: 600px; border: 1px solid #444; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .input-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        .input-dni { flex: 1; padding: 12px; font-size: 18px; border-radius: 5px; border: none; outline: none; text-align: center;}
+        .btn-search { padding: 12px 20px; font-size: 18px; background: #007acc; border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: bold; }
+        .btn-search:hover { background: #005fa3; }
+        
+        .action-buttons { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; border-top: 1px solid #444; padding-top: 15px;}
+        .btn-action { padding: 10px 15px; font-size: 14px; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; flex: 1; min-width: 120px; }
+        .btn-upload { background: #444; color: white; border: 1px solid #666; }
         .btn-download { background: #00c853; color: white; }
-        .btn-full { background: #0099ff; color: white; width: 100%; margin-top: 10px; }
-        .btn-full:hover { background: #007acc; }
 
+        #msg-error { color: #ff5555; text-align: center; margin-top: 10px; font-weight: bold; display: none; }
     </style>
 </head>
 <body>
 
     <div class="controls">
-        <h2 style="margin-bottom:10px;">Panel del Alumno (V25)</h2>
-        <input type="file" id="input-foto" accept="image/*" style="display:none;" onchange="cargarFoto()">
-        <button class="btn-action btn-upload" onclick="document.getElementById('input-foto').click()">📸 SUBIR FOTO</button>
-        <br>
-        <button class="btn-action btn-download" onclick="descargarIndividual('card-front', 'Credencial_Frente')">⬇️ SOLO FRENTE</button>
-        <button class="btn-action btn-download" onclick="descargarIndividual('card-back', 'Credencial_Dorso')">⬇️ SOLO DORSO</button>
-        <button class="btn-action btn-full" onclick="descargarCompletoCosido('Credencial_Full')">✨ DESCARGAR COMPLETA</button>
+        <h2 style="margin-bottom:15px; text-align:center;">🎓 Acceso Alumnos</h2>
+        
+        <div class="input-group">
+            <input type="text" id="input-dni-search" class="input-dni" placeholder="Ingrese su DNI..." onkeypress="handleEnter(event)">
+            <button class="btn-search" onclick="buscarAlumno()">BUSCAR</button>
+        </div>
+        <div id="msg-error"></div>
+
+        <div class="action-buttons" id="panel-acciones" style="opacity: 0.5; pointer-events: none;">
+            <input type="file" id="input-foto" accept="image/*" style="display:none;" onchange="cargarFotoLocal()">
+            <button class="btn-action btn-upload" onclick="document.getElementById('input-foto').click()">📸 SUBIR FOTO</button>
+            <button class="btn-action btn-download" onclick="descargarCompletoCosido('Credencial_Digital')">⬇️ DESCARGAR</button>
+        </div>
     </div>
 
     <div class="preview-wrapper">
@@ -238,9 +242,7 @@
                 <img id="img-foto" class="student-photo" src="" style="display:none;">
                 <div style="position:absolute; top:40%; width:100%; text-align:center; color:#777; font-weight:bold;" id="placeholder-foto">SIN FOTO</div>
                 
-                <div class="qr-on-photo">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Validado" alt="QR">
-                </div>
+                <div class="qr-on-photo" id="qr-container"></div>
 
                 <div class="svg-triangle-container">
                     <svg viewBox="0 0 380 638" width="100%" height="100%" preserveAspectRatio="none">
@@ -254,14 +256,11 @@
                                 <feDropShadow dx="0" dy="-4" stdDeviation="0" flood-color="white" flood-opacity="1" />
                             </filter>
                         </defs>
-                        <path d="M -50 680 L 350 680 L -50 280 Z" 
-                              fill="url(#grad-triangle)" 
-                              style="filter: url(#shadow);" 
-                        />
+                        <path d="M -50 680 L 350 680 L -50 280 Z" fill="url(#grad-triangle)" style="filter: url(#shadow);" />
                     </svg>
                 </div>
                 
-                <div class="reg-sigla" id="txt-sigla">REGISTRO</div>
+                <div class="reg-sigla" id="txt-sigla">ASARI</div>
             </div>
             
             <div class="front-right" id="bg-panel">
@@ -275,16 +274,16 @@
                     </div>
 
                     <div class="course-container">
-                        <div class="course-title-main" id="txt-titulo-main">PARAMÉDICO</div>
+                        <div class="course-title-main" id="txt-titulo-main">CURSO</div>
                         <div class="course-title-sub" id="txt-titulo-sub">PROFESIONAL</div>
                     </div>
 
-                    <div class="student-name" id="txt-nombre">NOMBRE DEL ALUMNO</div>
+                    <div class="student-name" id="txt-nombre">---</div>
 
                     <div class="data-grid">
                         <div class="icon-box">✱</div> 
                         <div class="data-box">
-                            <span class="label-text">CI/DNI:</span>
+                            <span class="label-text">DNI:</span>
                             <span class="value-text" id="txt-dni">---</span>
                         </div>
                         <div class="icon-box">#</div>
@@ -303,117 +302,161 @@
         </div>
 
         <div class="card card-back" id="card-back">
-            <img src="reverso.jpg" alt="Reverso" class="back-image">
+            <img src="https://via.placeholder.com/1011x638/CCCCCC/666666?text=REVERSO+INSTITUCIONAL" alt="Reverso" class="back-image" id="img-reverso">
             <div class="platinum-overlay"></div>
             <div class="noise-layer" style="opacity:0.2;"></div>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const params = new URLSearchParams(window.location.search);
-            const token = params.get('token');
+        // --- 1. CONFIGURACIÓN SUPABASE (Tus Credenciales Reales) ---
+        const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
+        const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
+        
+        const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
-            if (token) {
-                try {
-                    const datos = JSON.parse(atob(token));
-                    const fullTitle = datos.tit || "CURSO PROFESIONAL";
-                    const words = fullTitle.split(' ');
-                    const mainElem = document.getElementById('txt-titulo-main');
-                    const subElem = document.getElementById('txt-titulo-sub');
+        // --- 2. LÓGICA DE BÚSQUEDA ---
+        async function buscarAlumno() {
+            const dniInput = document.getElementById('input-dni-search').value.trim();
+            const msgError = document.getElementById('msg-error');
+            const panelAcciones = document.getElementById('panel-acciones');
 
-                    if(words.length >= 2) {
-                        mainElem.innerText = words[0];
-                        subElem.innerText = words.slice(1).join(' ');
-                    } else {
-                        mainElem.innerText = fullTitle;
-                        subElem.innerText = "";
-                    }
-
-                    function ajustarFuente(elemento, texto) {
-                        const len = texto.length;
-                        if(len > 20) elemento.style.fontSize = "40px";
-                        else if (len > 14) elemento.style.fontSize = "55px";
-                        else if (len > 10) elemento.style.fontSize = "65px";
-                        else elemento.style.fontSize = "72px";
-                    }
-                    ajustarFuente(mainElem, mainElem.innerText);
-                    ajustarFuente(subElem, subElem.innerText);
-
-                    document.getElementById('txt-nombre').innerText = datos.nom;
-                    document.getElementById('txt-dni').innerText = datos.dni;
-                    const matElement = document.getElementById('txt-matricula');
-                    matElement.innerText = datos.mat;
-                    if(datos.mat.length > 10) matElement.classList.add('long-text');
-                    document.getElementById('txt-anio').innerText = datos.anio;
-                    
-                    if(datos.ven) {
-                        const parts = datos.ven.split('-');
-                        document.getElementById('txt-vence').innerText = `${parts[2]}/${parts[1]}/${parts[0]}`;
-                    }
-
-                    // --- SISTEMA DE COLORES ---
-                    const panel = document.getElementById('bg-panel');
-                    const sigla = document.getElementById('txt-sigla');
-                    const card = document.getElementById('card-front');
-                    
-                    const t1 = document.getElementById('tri-stop1');
-                    const t2 = document.getElementById('tri-stop2');
-                    const t3 = document.getElementById('tri-stop3');
-                    
-                    let gradCSS = 'linear-gradient(135deg, #001f7a, #0033cc, #005ce6, #001f7a)'; 
-                    
-                    function updateAllColors(c1, c2, c3, borderColor) {
-                        gradCSS = `linear-gradient(135deg, ${c1}, ${c2}, ${c3}, ${c1})`;
-                        panel.style.background = gradCSS;
-                        if(t1) t1.style.stopColor = c1;
-                        if(t2) t2.style.stopColor = c2;
-                        if(t3) t3.style.stopColor = c3;
-                        card.style.borderColor = borderColor;
-                    }
-
-                    let textoSigla = 'R.E.M.A.E.P';
-                    let textColor = 'white';
-                    
-                    updateAllColors('#001f7a', '#0033cc', '#001f7a', '#0033cc');
-
-                    if(datos.reg.includes('remaep')) { 
-                        updateAllColors('#002266', '#0033cc', '#3366ff', '#0033cc');
-                        textoSigla = 'R.E.M.A.E.P'; 
-                    }
-                    if(datos.reg.includes('rniue')) { 
-                        updateAllColors('#8a6e2f', '#b8860b', '#ffd700', '#b8860b');
-                        textoSigla = 'R.N.I.U.E'; 
-                    }
-                    if(datos.reg.includes('rubra')) { 
-                        updateAllColors('#800000', '#cc0000', '#ff3333', '#cc0000');
-                        textoSigla = 'R.U.B.R.A'; 
-                    }
-                    if(datos.reg.includes('rmts')) { 
-                        updateAllColors('#1a2f1a', '#2f4f4f', '#4d704d', '#2f4f4f');
-                        textoSigla = 'R.M.T.S'; 
-                    }
-                    if(datos.reg.includes('rce')) { 
-                        updateAllColors('#cc9900', '#ffcc00', '#ffe066', '#cc9900');
-                        textoSigla = 'R.C.E'; 
-                        textColor = 'black'; 
-                    }
-                    if(datos.reg.includes('rpde')) { 
-                        updateAllColors('#005c99', '#0099ff', '#66c2ff', '#0099ff');
-                        textoSigla = 'R.P.D.E'; 
-                    }
-
-                    panel.style.color = textColor;
-                    sigla.innerText = textoSigla;
-                    
-                    // --- AQUÍ ESTABA EL ERROR: BORRADO PARA SIEMPRE ---
-                    // if(textoSigla.length > 8) { ... } -> ELIMINADO
-
-                } catch (e) { console.log(e); }
+            if (!dniInput) {
+                msgError.style.display = 'block';
+                msgError.innerText = "Por favor ingrese un DNI.";
+                return;
             }
-        });
 
-        function cargarFoto() {
+            msgError.style.display = 'none';
+            msgError.innerText = "Buscando...";
+            msgError.style.color = "#aaa";
+            msgError.style.display = 'block';
+
+            // CONSULTA A LA BASE DE DATOS
+            const { data, error } = await db
+                .from('matriculas')
+                .select('*')
+                .eq('dni_alumno', dniInput)
+                .single();
+
+            if (error || !data) {
+                msgError.innerText = "❌ No se encontró alumno con ese DNI.";
+                msgError.style.color = "#ff5555";
+                panelAcciones.style.opacity = "0.5";
+                panelAcciones.style.pointerEvents = "none";
+            } else {
+                msgError.style.display = 'none';
+                panelAcciones.style.opacity = "1";
+                panelAcciones.style.pointerEvents = "all";
+                cargarDatosEnCarnet(data);
+            }
+        }
+
+        // Permite buscar presionando ENTER
+        function handleEnter(e) {
+            if(e.key === 'Enter') buscarAlumno();
+        }
+
+        // --- 3. RELLENAR DATOS EN HTML ---
+        function cargarDatosEnCarnet(alumno) {
+            // Nombre Completo
+            document.getElementById('txt-nombre').innerText = `${alumno.nombre} ${alumno.apellido}`;
+            document.getElementById('txt-dni').innerText = alumno.dni_alumno;
+            
+            // Matrícula (Usamos el ID y lo rellenamos con ceros, ej: 000123)
+            const matString = String(alumno.id).padStart(6, '0'); 
+            document.getElementById('txt-matricula').innerText = matString;
+
+            // Fechas
+            const fechaInicio = new Date(alumno.fecha_inicio);
+            const anio = fechaInicio.getFullYear() || 2026;
+            document.getElementById('txt-anio').innerText = anio;
+
+            // Calculamos vencimiento (Ej: 1 año después) o tomamos si existe
+            // Si quieres lógica fija: fecha + 1 año
+            const vence = new Date(fechaInicio);
+            vence.setFullYear(vence.getFullYear() + 1);
+            document.getElementById('txt-vence').innerText = vence.toLocaleDateString('es-AR');
+
+            // Curso (Separar título si es largo)
+            const cursoTexto = alumno.curso || "CURSO";
+            const palabras = cursoTexto.split(' ');
+            const mainT = document.getElementById('txt-titulo-main');
+            const subT = document.getElementById('txt-titulo-sub');
+
+            if(palabras.length > 1) {
+                mainT.innerText = palabras[0];
+                subT.innerText = palabras.slice(1).join(' ');
+            } else {
+                mainT.innerText = cursoTexto;
+                subT.innerText = "";
+            }
+            
+            // Ajustar tamaño de fuente dinámico
+            ajustarFuente(mainT, mainT.innerText);
+
+            // Colores (Lógica básica según curso)
+            aplicarColores(cursoTexto.toLowerCase());
+
+            // Generar QR
+            generarQR(alumno);
+        }
+
+        function generarQR(alumno) {
+            const container = document.getElementById('qr-container');
+            container.innerHTML = ""; // Limpiar anterior
+
+            // Datos que leerá el celular al escanear
+            const infoQR = `VALIDADO|${alumno.dni_alumno}|${alumno.curso}|Mat:${alumno.id}|Estado:${alumno.estado}`;
+
+            new QRCode(container, {
+                text: infoQR,
+                width: 90, // Ajustado al tamaño del contenedor CSS
+                height: 90,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.M
+            });
+        }
+
+        // --- 4. LÓGICA DE ESTILOS Y COLORES ---
+        function ajustarFuente(elemento, texto) {
+            const len = texto.length;
+            if(len > 15) elemento.style.fontSize = "55px";
+            else if (len > 10) elemento.style.fontSize = "65px";
+            else elemento.style.fontSize = "85px";
+        }
+
+        function aplicarColores(curso) {
+            // Variables de elementos
+            const panel = document.getElementById('bg-panel');
+            const card = document.getElementById('card-front');
+            const sigla = document.getElementById('txt-sigla');
+            const stops = [document.getElementById('tri-stop1'), document.getElementById('tri-stop2'), document.getElementById('tri-stop3')];
+
+            let c1, c2, c3, borde, txtSigla;
+
+            // Lógica de colores (Puedes agregar más)
+            if (curso.includes('instructor')) {
+                // ROJO (Instructor)
+                c1='#800000'; c2='#cc0000'; c3='#ff3333'; borde='#cc0000'; txtSigla='INSTRUCTOR';
+            } else if (curso.includes('socorrismo') || curso.includes('rniue')) {
+                // DORADO
+                c1='#8a6e2f'; c2='#b8860b'; c3='#ffd700'; borde='#b8860b'; txtSigla='ASARI';
+            } else {
+                // AZUL (Defecto / Paramédico)
+                c1='#001f7a'; c2='#0033cc'; c3='#005ce6'; borde='#0033cc'; txtSigla='ASARI';
+            }
+
+            // Aplicar
+            panel.style.background = `linear-gradient(135deg, ${c1}, ${c2}, ${c3}, ${c1})`;
+            card.style.borderColor = borde;
+            sigla.innerText = txtSigla;
+            stops.forEach(s => s.style.stopColor = (s.id.includes('2') ? c2 : c1));
+        }
+
+        // --- 5. CARGA DE FOTO LOCAL (Mantenemos tu función) ---
+        function cargarFotoLocal() {
             const input = document.getElementById('input-foto');
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -427,44 +470,39 @@
             }
         }
 
-        function descargarIndividual(elementId, fileName) {
-            generarImagen(document.getElementById(elementId), fileName);
-        }
-
+        // --- 6. DESCARGA (Tu función optimizada) ---
         async function descargarCompletoCosido(fileName) {
             const front = document.getElementById('card-front');
             const back = document.getElementById('card-back');
-
+            
+            // Clonamos para no afectar la vista
             const cloneFront = front.cloneNode(true);
             const cloneBack = back.cloneNode(true);
             
+            // Contenedor temporal invisible
             const tempContainer = document.createElement('div');
             tempContainer.style.position = 'absolute';
             tempContainer.style.top = '-9999px';
-            tempContainer.style.left = '0';
             tempContainer.appendChild(cloneFront);
             tempContainer.appendChild(cloneBack);
             document.body.appendChild(tempContainer);
 
+            // Ajustes para el clon (quitamos sombras y margenes)
             [cloneFront, cloneBack].forEach(clone => {
                 clone.style.transform = "none";
                 clone.style.margin = "0";
                 clone.style.boxShadow = "none";
-                clone.style.borderRadius = "40px";
-                clone.style.overflow = "hidden";
-                clone.style.border = front.style.border;
             });
 
-            const frontImg = front.querySelector('img.student-photo');
-            if(frontImg && frontImg.src) cloneFront.querySelector('img.student-photo').src = frontImg.src;
-            const backImg = back.querySelector('img.back-image');
-            if(backImg && backImg.src) cloneBack.querySelector('img.back-image').src = backImg.src;
+            // Re-pintar las imágenes en el clon
+            const originalPhoto = document.getElementById('img-foto');
+            if(originalPhoto.src) cloneFront.querySelector('#img-foto').src = originalPhoto.src;
+            
+            // Renderizado
+            const canvasFront = await html2canvas(cloneFront, { scale: 1, backgroundColor: null, width: 1011, height: 638 });
+            const canvasBack = await html2canvas(cloneBack, { scale: 1, backgroundColor: null, width: 1011, height: 638 });
 
-            await new Promise(r => setTimeout(r, 800));
-
-            const canvasFront = await html2canvas(cloneFront, { scale: 1, useCORS: true, backgroundColor: null, width: 1011, height: 638 });
-            const canvasBack = await html2canvas(cloneBack, { scale: 1, useCORS: true, backgroundColor: null, width: 1011, height: 638 });
-
+            // Unir en un canvas final
             const finalCanvas = document.createElement('canvas');
             const gap = 40;
             finalCanvas.width = 1011;
@@ -474,46 +512,13 @@
             ctx.drawImage(canvasFront, 0, 0);
             ctx.drawImage(canvasBack, 0, 638 + gap);
 
+            // Descargar
             const link = document.createElement('a');
-            link.download = `${fileName}.png`;
+            link.download = `${fileName}_${document.getElementById('txt-dni').innerText}.png`;
             link.href = finalCanvas.toDataURL("image/png");
             link.click();
             
             document.body.removeChild(tempContainer);
-        }
-
-        function generarImagen(element, fileName) {
-            const clone = element.cloneNode(true);
-            clone.style.transform = "none";
-            clone.style.position = "fixed";
-            clone.style.top = "-9999px";
-            clone.style.left = "0";
-            clone.style.width = "1011px";
-            clone.style.height = "638px";
-            clone.style.margin = "0";
-            clone.style.boxShadow = "none";
-            clone.style.borderRadius = "40px";
-            clone.style.overflow = "hidden";
-
-            const img1 = element.querySelector('img.student-photo');
-            if(img1 && img1.src) clone.querySelector('img.student-photo').src = img1.src;
-            const img2 = element.querySelector('img.back-image');
-            if(img2 && img2.src) clone.querySelector('img.back-image').src = img2.src;
-
-            document.body.appendChild(clone);
-
-            setTimeout(() => {
-                html2canvas(clone, {
-                    scale: 1, useCORS: true, allowTaint: true, backgroundColor: null, 
-                    width: 1011, height: 638
-                }).then(canvas => {
-                    const link = document.createElement('a');
-                    link.download = `${fileName}.png`;
-                    link.href = canvas.toDataURL("image/png");
-                    link.click();
-                    document.body.removeChild(clone);
-                });
-            }, 200);
         }
     </script>
 </body>
