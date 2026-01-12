@@ -173,32 +173,58 @@
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
         // --- 2. FUNCIÓN PRINCIPAL ---
+// --- 2. FUNCIÓN PRINCIPAL MEJORADA (DIAGNÓSTICO) ---
         async function generarCarnet() {
-            const dniInput = document.getElementById('input-dni-search').value.trim();
+            // 1. Limpiamos el DNI de espacios accidentales (.trim)
+            const dniRaw = document.getElementById('input-dni-search').value;
+            const dniInput = dniRaw.trim(); 
+            
             const msg = document.getElementById('msg-error');
             const panel = document.getElementById('panel-acciones');
             const vista = document.getElementById('vista-previa');
 
-            if(!dniInput) return;
+            console.log("--- INICIANDO BÚSQUEDA ---");
+            console.log("DNI buscado:", dniInput);
+
+            if(!dniInput) {
+                alert("Por favor escribe un DNI");
+                return;
+            }
             
-            msg.innerText = "⏳ Generando matrícula y validando..."; 
+            msg.innerText = "⏳ Buscando en la nube..."; 
             msg.style.display = 'block'; msg.style.color = '#fff';
             panel.style.display = 'none'; 
             vista.classList.remove('active'); 
 
-            // Consulta DB
-            const { data, error } = await db.from('matriculas').select('*').eq('dni_alumno', dniInput).single();
+            // CONSULTA A SUPABASE
+            const { data, error } = await db
+                .from('matriculas')
+                .select('*')
+                .eq('dni_alumno', dniInput)
+                .maybeSingle(); // Usamos maybeSingle para evitar errores falsos
 
-            if(error || !data) {
-                msg.innerText = "❌ Alumno no encontrado."; msg.style.color = '#ff5555';
+            // DIAGNÓSTICO EN CONSOLA (Presiona F12 para ver esto)
+            if (error) {
+                console.error("❌ ERROR DE SUPABASE:", error);
+                console.error("Código:", error.code);
+                console.error("Mensaje:", error.message);
+                msg.innerText = "Error técnico: " + error.message;
+                return;
+            }
+
+            if (!data) {
+                console.warn("⚠️ La consulta funcionó, pero no trajo datos. DNI no existe en tabla.");
+                msg.innerText = "❌ Alumno no encontrado. Verifique el DNI."; 
+                msg.style.color = '#ff5555';
             } else {
+                console.log("✅ ALUMNO ENCONTRADO:", data);
+                // ÉXITO
                 msg.style.display = 'none';
                 panel.style.display = 'flex'; 
                 vista.classList.add('active'); 
                 procesarDatos(data);
             }
         }
-
         function procesarDatos(alumno) {
             // Textos básicos
             document.getElementById('txt-nombre').innerText = `${alumno.nombre} ${alumno.apellido}`;
