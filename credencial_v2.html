@@ -11,28 +11,29 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
     
     <style>
-        /* --- ESTILOS --- */
+        /* --- ESTILOS VISUALES --- */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Roboto', sans-serif; background: #1a1a1a; display: flex; flex-direction: column; align-items: center; padding: 30px; gap: 20px; color: white; }
-        :root { --card-width: 1011px; --card-height: 638px; --holo-pattern: repeating-linear-gradient(45deg, rgba(255,255,255,0.08) 0px, rgba(255,255,255,0.08) 1px, transparent 1px, transparent 4px), linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.2) 45%, rgba(200,255,255,0.4) 50%, rgba(255,255,255,0.2) 55%, transparent 70%); }
-
+        
         /* Controles */
         .controls { background: #222; padding: 25px; border-radius: 10px; position: sticky; top: 10px; z-index: 999; width: 95%; max-width: 600px; border: 1px solid #444; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
         .input-group { display: flex; gap: 10px; margin-bottom: 5px; }
         .input-dni { flex: 1; padding: 12px; font-size: 18px; border-radius: 5px; border: none; text-align: center; font-weight: bold; letter-spacing: 1px;}
         .btn-generate { padding: 12px 25px; font-size: 16px; background: linear-gradient(135deg, #005c99, #007acc); border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: 900; text-transform: uppercase; }
+        
+        /* Selector y Botones */
+        #selector-cursos { display: none; margin-top: 20px; text-align: center; border-top: 1px solid #444; padding-top: 15px; }
+        #lista-botones button { width: 100%; padding: 12px; background: #333; color: white; border: 1px solid #555; border-radius: 5px; cursor: pointer; text-align: left; margin-bottom: 8px; font-weight: bold; }
+        #lista-botones button:hover { background: #444; }
+        
         .action-buttons { display: none; gap: 10px; flex-wrap: wrap; justify-content: center; border-top: 1px solid #444; padding-top: 20px; margin-top: 15px;}
         .btn-action { padding: 12px 15px; font-size: 15px; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; flex: 1; min-width: 140px; }
         .btn-upload { background: #444; color: white; border: 1px solid #666; }
         .btn-download { background: #00c853; color: white; }
         #msg-error { color: #ff5555; text-align: center; margin-top: 15px; display: none; font-weight: bold; }
 
-        /* Selector Cursos */
-        #selector-cursos { display: none; margin-top: 20px; text-align: center; border-top: 1px solid #444; padding-top: 15px; }
-        #lista-botones button { width: 100%; padding: 12px; background: #333; color: white; border: 1px solid #555; border-radius: 5px; cursor: pointer; text-align: left; margin-bottom: 8px; font-weight: bold; }
-        #lista-botones button:hover { background: #444; }
-
         /* Tarjeta */
+        :root { --card-width: 1011px; --card-height: 638px; --holo-pattern: repeating-linear-gradient(45deg, rgba(255,255,255,0.08) 0px, rgba(255,255,255,0.08) 1px, transparent 1px, transparent 4px), linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.2) 45%, rgba(200,255,255,0.4) 50%, rgba(255,255,255,0.2) 55%, transparent 70%); }
         .preview-wrapper { transform: scale(0.4); transform-origin: top center; margin-bottom: -350px; border-radius: 20px; transition: transform 0.3s ease; opacity: 0.5; filter: grayscale(1); }
         .preview-wrapper.active { opacity: 1; filter: grayscale(0); }
         @media (max-width: 600px) { .preview-wrapper { transform: scale(0.28); margin-bottom: -450px; } }
@@ -72,8 +73,8 @@
         <h2 style="text-align:center; color:#fff; margin-bottom: 15px;">🎓 Credencial V2</h2>
         
         <div class="input-group">
-            <input type="text" id="input-dni-search" class="input-dni" placeholder="Ingrese DNI del Alumno" onkeypress="if(event.key==='Enter') generarCarnet()">
-            <button class="btn-generate" onclick="generarCarnet()">⚙️ GENERAR</button>
+            <input type="text" id="input-dni-search" class="input-dni" placeholder="Ingrese DNI del Alumno">
+            <button class="btn-generate" onclick="window.generarCarnet()">⚙️ GENERAR</button>
         </div>
 
         <div id="selector-cursos">
@@ -84,9 +85,9 @@
         <div id="msg-error"></div>
 
         <div class="action-buttons" id="panel-acciones">
-            <input type="file" id="input-foto" accept="image/*" style="display:none;" onchange="cargarImagen(this, 'img-foto')">
+            <input type="file" id="input-foto" accept="image/*" style="display:none;" onchange="window.cargarImagen(this, 'img-foto')">
             <button class="btn-action btn-upload" onclick="document.getElementById('input-foto').click()">📸 SUBIR FOTO</button>
-            <button class="btn-action btn-download" onclick="descargarCarnet()">⬇️ DESCARGAR CARNET</button>
+            <button class="btn-action btn-download" onclick="window.descargarCarnet()">⬇️ DESCARGAR CARNET</button>
         </div>
     </div>
 
@@ -130,48 +131,58 @@
         </div>
     </div>
 
-<script>
-        // 1. CONFIGURACIÓN (Verifica que tu URL y Key sean las correctas)
+    <script>
+        // --- 1. CONFIGURACIÓN ---
         const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
-        const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
+        
+        let db; // Variable global para la base de datos
 
-        console.log("Sistema V2 Cargado Correctamente");
+        // --- 2. INICIALIZACIÓN (Prueba de Vida) ---
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("🚀 SISTEMA V2 INICIADO");
+            try {
+                db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
+            } catch (e) {
+                alert("Error crítico inicializando Supabase: " + e.message);
+            }
+            
+            // Asignar evento al input para el ENTER
+            document.getElementById('input-dni-search').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') window.generarCarnet();
+            });
+        });
 
-        // 2. FUNCIÓN PRINCIPAL DE BÚSQUEDA
-        async function generarCarnet() {
-            console.log("🟢 Iniciando búsqueda...");
+        // --- 3. FUNCIONES GLOBALES (Attached to window) ---
+        
+        window.generarCarnet = async function() {
             const dniRaw = document.getElementById('input-dni-search').value;
             const dniInput = String(dniRaw).trim();
-            
             const msg = document.getElementById('msg-error');
             const panel = document.getElementById('panel-acciones');
             const vista = document.getElementById('vista-previa');
             const selector = document.getElementById('selector-cursos');
 
-            // Resetear interfaz
+            // Reset
             msg.style.display = 'none'; 
             panel.style.display = 'none'; 
             selector.style.display = 'none'; 
             vista.classList.remove('active');
 
-            if(!dniInput) { alert("Ingrese un DNI."); return; }
-            
-            msg.innerText = "⏳ Conectando..."; 
-            msg.style.display = 'block'; 
-            msg.style.color = '#fff';
+            if(!dniInput) { alert("Por favor, ingrese un DNI."); return; }
+            msg.innerText = "⏳ Buscando datos..."; msg.style.display = 'block'; msg.style.color = '#fff';
 
-            // Consulta a Base de Datos
+            // Consulta
             const { data, error } = await db.from('matriculas').select('*').eq('dni_alumno', dniInput);
 
-            if (error) { 
-                console.error(error); 
-                msg.innerText = "Error: " + error.message; 
-                return; 
+            if (error) {
+                console.error("Error DB:", error);
+                msg.innerText = "Error técnico: " + error.message;
+                return;
             }
 
             if (!data || data.length === 0) {
-                msg.innerText = "❌ No encontrado: " + dniInput; 
+                msg.innerText = "❌ No se encontró el DNI: " + dniInput; 
                 msg.style.color = '#ff5555';
             } else if (data.length === 1) {
                 msg.style.display = 'none'; 
@@ -180,10 +191,9 @@
                 msg.style.display = 'none'; 
                 mostrarOpciones(data);
             }
-        }
+        };
 
-        // 3. SELECTOR DE CURSOS (Si hay varios)
-        function mostrarOpciones(cursos) {
+        window.mostrarOpciones = function(cursos) {
             const container = document.getElementById('selector-cursos');
             const lista = document.getElementById('lista-botones');
             lista.innerHTML = '';
@@ -191,87 +201,73 @@
             cursos.forEach(curso => {
                 const btn = document.createElement('button');
                 const anio = curso.fecha_inicio ? String(curso.fecha_inicio).substring(0,4) : '2026';
-                
                 btn.innerText = `👉 ${curso.curso} (${anio})`;
-                
-                // Acción del botón
                 btn.onclick = () => { 
                     container.style.display = 'none'; 
                     procesarDatos(curso); 
                 };
-                
                 lista.appendChild(btn);
             });
             container.style.display = 'block';
-        }
+        };
 
-        // 4. PROCESAMIENTO VISUAL
         function procesarDatos(alumno) {
-            console.log("Procesando datos del alumno:", alumno);
-            
+            console.log("Renderizando:", alumno);
             document.getElementById('panel-acciones').style.display = 'flex';
             document.getElementById('vista-previa').classList.add('active');
 
-            // Llenar Textos
+            // Textos
             document.getElementById('txt-nombre').innerText = `${alumno.nombre} ${alumno.apellido}`;
             document.getElementById('txt-dni').innerText = alumno.dni_alumno;
             
+            // Matrícula Hash
             const matHash = generarHashMatricula(String(alumno.dni_alumno));
             document.getElementById('txt-matricula').innerText = matHash;
 
+            // Fechas
             const fecha = new Date(alumno.fecha_inicio);
             document.getElementById('txt-anio').innerText = fecha.getFullYear() || 2026;
             const vence = new Date(fecha); vence.setFullYear(vence.getFullYear() + 1);
             document.getElementById('txt-vence').innerText = vence.toLocaleDateString('es-AR');
 
+            // Título
             const cursoTexto = alumno.curso || "CURSO";
             separarTitulo(cursoTexto);
-            
-            // Lógica de Colores (Aquí estaba el posible error, asegúrate de copiar bien esto)
-            // Si registro_id viene vacío, usa 'remaep'
-            aplicarLogicaRegistro(alumno.registro_id || 'remaep');
 
-            // Generar QR
+            // Registro (Lógica V2)
+            aplicarLogicaRegistro(alumno.registro_id);
+
+            // QR
             setTimeout(() => {
                 const container = document.getElementById('qr-container'); 
                 container.innerHTML = "";
                 const sigla = document.getElementById('txt-sigla').innerText;
                 const qrData = `VALIDADO|${alumno.dni_alumno}|${matHash}|${sigla}`;
-                
-                new QRCode(container, { 
-                    text: qrData, 
-                    width: 100, 
-                    height: 100, 
-                    colorDark : "#000", 
-                    colorLight : "#fff", 
-                    correctLevel : QRCode.CorrectLevel.L 
-                });
+                new QRCode(container, { text: qrData, width: 100, height: 100, colorDark : "#000", colorLight : "#fff", correctLevel : QRCode.CorrectLevel.L });
             }, 100);
         }
 
-        // 5. UTILIDADES (HASH Y COLORES)
+        // --- UTILIDADES ---
+        
         function generarHashMatricula(dni) {
             let hash = 0;
-            for (let i = 0; i < dni.length; i++) { 
-                hash = ((hash << 5) - hash) + dni.charCodeAt(i); 
-                hash |= 0; 
-            }
+            for (let i = 0; i < dni.length; i++) { hash = ((hash << 5) - hash) + dni.charCodeAt(i); hash |= 0; }
             return String(Math.abs(hash)).substring(0, 6).padStart(6, '9'); 
         }
 
         function aplicarLogicaRegistro(registroId) {
-            // NOTA: Aquí dentro se usan DOS PUNTOS (:), nunca uses IGUAL (=)
+            // Diccionario LIMPIO (Sin errores de sintaxis)
             const configs = {
-                'remaep': { c1:'#001f7a', c2:'#0033cc', c3:'#005ce6', sigla:'R.E.M.A.E.P', txt:'white' },
-                'rniue':  { c1:'#8a6e2f', c2='#b8860b', c3='#ffd700', sigla:'R.N.I.U.E',   txt:'white' },
-                'rubra':  { c1:'#800000', c2='#cc0000', c3='#ff3333', sigla:'R.U.B.R.A',   txt:'white' },
-                'rmts':   { c1:'#1a2f1a', c2='#2f4f4f', c3='#4d704d', sigla:'R.M.T.S',     txt:'white' },
-                'rce':    { c1:'#cc9900', c2='#ffcc00', c3='#ffe066', sigla:'R.C.E',       txt:'black' },
-                'rpde':   { c1:'#005c99', c2='#0099ff', c3='#66c2ff', sigla:'R.P.D.E',     txt:'white' },
-                'asarin': { c1:'#800000', c2='#cc0000', c3='#ff3333', sigla:'ASARIN',      txt:'white' }
+                'remaep': { c1: '#001f7a', c2: '#0033cc', c3: '#005ce6', sigla: 'R.E.M.A.E.P', txt: 'white' },
+                'rniue':  { c1: '#8a6e2f', c2: '#b8860b', c3: '#ffd700', sigla: 'R.N.I.U.E',   txt: 'white' },
+                'rubra':  { c1: '#800000', c2: '#cc0000', c3: '#ff3333', sigla: 'R.U.B.R.A',   txt: 'white' },
+                'rmts':   { c1: '#1a2f1a', c2: '#2f4f4f', c3: '#4d704d', sigla: 'R.M.T.S',     txt: 'white' },
+                'rce':    { c1: '#cc9900', c2: '#ffcc00', c3: '#ffe066', sigla: 'R.C.E',       txt: 'black' },
+                'rpde':   { c1: '#005c99', c2: '#0099ff', c3: '#66c2ff', sigla: 'R.P.D.E',     txt: 'white' },
+                'asarin': { c1: '#800000', c2: '#cc0000', c3: '#ff3333', sigla: 'ASARIN',      txt: 'white' }
             };
 
-            const id = String(registroId).toLowerCase();
+            const id = String(registroId || 'remaep').toLowerCase();
             const cfg = configs[id] || configs['remaep'];
 
             const panel = document.getElementById('bg-panel');
@@ -279,6 +275,7 @@
             panel.style.color = cfg.txt;
             document.getElementById('card-front').style.borderColor = cfg.c2;
             document.getElementById('txt-sigla').innerText = cfg.sigla;
+
             document.getElementById('c1').style.stopColor = cfg.c1;
             document.getElementById('c2').style.stopColor = cfg.c2;
             document.getElementById('c3').style.stopColor = cfg.c3;
@@ -295,7 +292,7 @@
             }
         }
 
-        function cargarImagen(input, id) {
+        window.cargarImagen = function(input, id) {
             if (input.files && input.files[0]) {
                 const r = new FileReader();
                 r.onload = (e) => { 
@@ -306,13 +303,15 @@
                 }
                 r.readAsDataURL(input.files[0]);
             }
-        }
+        };
 
-        async function descargarCarnet() {
-            const f = document.getElementById('card-front'), b = document.getElementById('card-back');
+        window.descargarCarnet = async function() {
+            const f = document.getElementById('card-front');
+            const b = document.getElementById('card-back');
             const box = document.createElement('div'); box.style.position='fixed'; box.style.top='-9999px'; document.body.appendChild(box);
             
-            const cf = f.cloneNode(true), cb = b.cloneNode(true);
+            const cf = f.cloneNode(true);
+            const cb = b.cloneNode(true);
             [cf, cb].forEach(c => { c.style.margin='0'; c.style.boxShadow='none'; c.style.transform='none'; });
             
             const sf = document.getElementById('img-foto').src;
@@ -330,7 +329,7 @@
             const link = document.createElement('a'); link.download = `Carnet_${document.getElementById('txt-dni').innerText}.png`;
             link.href = fin.toDataURL("image/png"); link.click();
             document.body.removeChild(box);
-        }
+        };
     </script>
 </body>
 </html>
