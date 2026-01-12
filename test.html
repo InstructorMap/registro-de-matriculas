@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Diagnóstico de Conexión ASARI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="p-5">
+
+    <div class="card shadow">
+        <div class="card-header">
+            <h3>🚑 Auditoría de Conexión</h3>
+        </div>
+        <div class="card-body">
+            <p>Estado de la prueba:</p>
+            
+            <div id="resultado" class="alert alert-secondary">
+                ⏳ Iniciando pruebas de sistema...
+            </div>
+
+            <hr>
+            <h5>Detalles técnicos (Logs):</h5>
+            <pre id="logs" class="bg-dark text-white p-3 rounded">Esperando inicio...</pre>
+        </div>
+    </div>
+
+<script>
+    // Función para escribir en el cuadro negro de logs
+    function log(texto) {
+        const logDiv = document.getElementById('logs');
+        logDiv.innerHTML += '\n' + texto;
+        console.log(texto);
+    }
+
+    // --- CREDENCIALES ---
+    const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
+    const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
+
+    async function ejecutarDiagnostico() {
+        const div = document.getElementById('resultado');
+        
+        // PRUEBA 1: ¿Se cargó la librería?
+        log("1. Verificando librería Supabase...");
+        if (typeof supabase === 'undefined') {
+            div.className = 'alert alert-warning';
+            div.innerHTML = '⚠️ ERROR CRÍTICO: La librería de Supabase no se cargó. Posible causa: AdBlocker, Firewall corporativo o falta de internet.';
+            log("FALLO: window.supabase is undefined");
+            return;
+        }
+        log("OK: Librería cargada.");
+
+        // PRUEBA 2: Crear Cliente
+        log("2. Creando cliente de conexión...");
+        let db;
+        try {
+            db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
+            log("OK: Cliente creado en memoria.");
+        } catch (err) {
+            div.className = 'alert alert-danger';
+            div.innerHTML = '❌ ERROR DE SINTAXIS: ' + err.message;
+            return;
+        }
+
+        // PRUEBA 3: Intentar Insertar un dato de prueba
+        log("3. Intentando escribir en la base de datos...");
+        const prueba = {
+            dni_alumno: "TEST_999",
+            nombre: "Auditoria",
+            apellido: "Sistema",
+            curso: "Test Conexión",
+            estado: "SUSPENDIDO"
+        };
+
+        const { data, error } = await db.from('matriculas').insert([prueba]).select();
+
+        if (error) {
+            div.className = 'alert alert-danger';
+            div.innerHTML = `❌ FALLO DE CONEXIÓN:<br> <strong>${error.message}</strong><br> Código: ${error.code}`;
+            log("ERROR SQL: " + JSON.stringify(error));
+            
+            if(error.message.includes("violates row-level security")) {
+                div.innerHTML += "<br><br>💡 PISTA: Es un problema de PERMISOS (Row Level Security).";
+            }
+        } else {
+            div.className = 'alert alert-success';
+            div.innerHTML = '✅ ¡ÉXITO TOTAL! El sistema funciona perfectamente. Se insertó el alumno TEST_999.';
+            log("ÉXITO: Datos recibidos: " + JSON.stringify(data));
+        }
+    }
+
+    // Ejecutar automáticamente al abrir
+    ejecutarDiagnostico();
+
+</script>
+</body>
+</html>
