@@ -27,12 +27,11 @@
             --holo-pattern: repeating-linear-gradient(45deg, rgba(255,255,255,0.08) 0px, rgba(255,255,255,0.08) 1px, transparent 1px, transparent 4px), linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.2) 45%, rgba(200,255,255,0.4) 50%, rgba(255,255,255,0.2) 55%, transparent 70%);
         }
 
-        /* --- CONTROLES (Panel Superior) --- */
+        /* --- CONTROLES --- */
         .controls { background: #222; padding: 25px; border-radius: 10px; position: sticky; top: 10px; z-index: 999; width: 95%; max-width: 600px; border: 1px solid #444; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
         .input-group { display: flex; gap: 10px; margin-bottom: 5px; }
         .input-dni { flex: 1; padding: 12px; font-size: 18px; border-radius: 5px; border: none; text-align: center; font-weight: bold; letter-spacing: 1px;}
         
-        /* BOTÓN GENERAR (El principal) */
         .btn-generate { 
             padding: 12px 25px; font-size: 16px; 
             background: linear-gradient(135deg, #005c99, #007acc); 
@@ -141,7 +140,7 @@
                         <path d="M -50 680 L 350 680 L -50 280 Z" fill="url(#grad)" style="filter: drop-shadow(0 -4px 0 rgba(255,255,255,0.5));" />
                     </svg>
                 </div>
-                <div class="reg-sigla" id="txt-sigla">REGISTRO</div>
+                <div class="reg-sigla" id="txt-sigla">R.E.M.A.E.P</div>
             </div>
 
             <div class="front-right" id="bg-panel">
@@ -168,12 +167,12 @@
     </div>
 
     <script>
-        // --- 1. CONFIGURACIÓN ---
+        // --- 1. CONFIGURACIÓN SUPABASE ---
         const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
-        // --- 2. FUNCIÓN PRINCIPAL "GENERAR" ---
+        // --- 2. FUNCIÓN PRINCIPAL ---
         async function generarCarnet() {
             const dniInput = document.getElementById('input-dni-search').value.trim();
             const msg = document.getElementById('msg-error');
@@ -182,23 +181,20 @@
 
             if(!dniInput) return;
             
-            // UI de carga
             msg.innerText = "⏳ Generando matrícula y validando..."; 
             msg.style.display = 'block'; msg.style.color = '#fff';
-            panel.style.display = 'none'; // Ocultar botones hasta terminar
-            vista.classList.remove('active'); // Oscurecer vista previa
+            panel.style.display = 'none'; 
+            vista.classList.remove('active'); 
 
             // Consulta DB
             const { data, error } = await db.from('matriculas').select('*').eq('dni_alumno', dniInput).single();
 
             if(error || !data) {
-                msg.innerText = "❌ Alumno no encontrado. Verifique DNI."; msg.style.color = '#ff5555';
+                msg.innerText = "❌ Alumno no encontrado."; msg.style.color = '#ff5555';
             } else {
-                // ÉXITO
                 msg.style.display = 'none';
-                panel.style.display = 'flex'; // Mostrar botón descargar
-                vista.classList.add('active'); // Iluminar carnet
-                
+                panel.style.display = 'flex'; 
+                vista.classList.add('active'); 
                 procesarDatos(data);
             }
         }
@@ -208,7 +204,7 @@
             document.getElementById('txt-nombre').innerText = `${alumno.nombre} ${alumno.apellido}`;
             document.getElementById('txt-dni').innerText = alumno.dni_alumno;
             
-            // 1. GENERAR MATRÍCULA ÚNICA (HASH)
+            // 1. GENERAR MATRÍCULA HASH
             const matriculaHash = generarHashMatricula(alumno.dni_alumno);
             document.getElementById('txt-matricula').innerText = matriculaHash;
 
@@ -218,27 +214,26 @@
             const vence = new Date(fecha); vence.setFullYear(vence.getFullYear() + 1);
             document.getElementById('txt-vence').innerText = vence.toLocaleDateString('es-AR');
 
-            // 2. LÓGICA DE REGISTROS (Colores y Siglas)
-            const curso = (alumno.curso || "CURSO").toLowerCase();
-            separarTitulo(alumno.curso || "CURSO");
+            // 2. LÓGICA DE REGISTROS (6 VARIANTES)
+            const curso = (alumno.curso || "CURSO");
+            separarTitulo(curso);
             aplicarLogicaRegistro(curso);
 
-            // 3. GENERAR QR DE VALIDACIÓN
+            // 3. GENERAR QR
             setTimeout(() => {
                 const container = document.getElementById('qr-container');
                 container.innerHTML = "";
+                // El QR ahora incluye la sigla del registro seleccionado
                 const qrData = `VALIDADO|${alumno.dni_alumno}|${matriculaHash}|${document.getElementById('txt-sigla').innerText}`;
                 new QRCode(container, {
                     text: qrData, width: 100, height: 100,
                     colorDark : "#000", colorLight : "#fff", correctLevel : QRCode.CorrectLevel.L
                 });
-            }, 200);
+            }, 300);
         }
 
-        // --- LÓGICA DE NEGOCIO ---
-
-        // A. Matrícula "Hash": Genera un número de 6 dígitos único para el DNI
-        // (Siempre da el mismo número para el mismo DNI, parece aleatorio pero es matemático)
+        // --- LÓGICA DE NEGOCIO Y ESTILOS ---
+        
         function generarHashMatricula(dni) {
             let hash = 0;
             for (let i = 0; i < dni.length; i++) {
@@ -248,32 +243,52 @@
             return String(Math.abs(hash)).substring(0, 6).padStart(6, '9'); 
         }
 
-        // B. Lógica de Registros (Colores y Siglas)
-        function aplicarLogicaRegistro(curso) {
-            let c1='#001f7a', c2='#0033cc', sigla='ASARI'; // Por defecto (Azul)
+        function aplicarLogicaRegistro(cursoOriginal) {
+            // Valores por defecto (Azul REMAEP)
+            let c1='#001f7a', c2='#0033cc', c3='#005ce6', sigla='R.E.M.A.E.P', textoColor='white';
 
-            if(curso.includes('instructor')) { 
-                // Instructor -> Rojo -> ASARIN
-                c1='#800000'; c2='#cc0000'; sigla='ASARIN'; 
-            } 
-            else if(curso.includes('socorrismo') || curso.includes('rniue')) { 
-                // Socorrismo -> Dorado -> REMAEP (o lo que definas)
-                c1='#8a6e2f'; c2='#b8860b'; sigla='REMAEP'; 
+            const texto = cursoOriginal.toLowerCase();
+
+            // 1. R.E.M.A.E.P (Azul)
+            if(texto.includes('paramedico') || texto.includes('remaep')) {
+                c1='#002266'; c2='#0033cc'; c3='#3366ff'; sigla='R.E.M.A.E.P';
             }
-            else if(curso.includes('paramedico')) { 
-                // Paramédico -> Azul -> REMAEP
-                c1='#001f7a'; c2='#0033cc'; sigla='REMAEP'; 
+            // 2. R.N.I.U.E (Dorado)
+            else if(texto.includes('enfermeria') || texto.includes('rniue') || texto.includes('socorrismo')) {
+                c1='#8a6e2f'; c2='#b8860b'; c3='#ffd700'; sigla='R.N.I.U.E';
+            }
+            // 3. R.U.B.R.A (Rojo)
+            else if(texto.includes('rescate') || texto.includes('rubra') || texto.includes('busqueda')) {
+                c1='#800000'; c2='#cc0000'; c3='#ff3333'; sigla='R.U.B.R.A';
+            }
+            // 4. R.M.T.S (Verde)
+            else if(texto.includes('tactico') || texto.includes('rmts') || texto.includes('sanidad')) {
+                c1='#1a2f1a'; c2='#2f4f4f'; c3='#4d704d'; sigla='R.M.T.S';
+            }
+            // 5. R.C.E (Amarillo)
+            else if(texto.includes('emergencias') || texto.includes('rce')) {
+                c1='#cc9900'; c2='#ffcc00'; c3='#ffe066'; sigla='R.C.E';
+                textoColor = 'black'; 
+            }
+            // 6. R.P.D.E (Celeste)
+            else if(texto.includes('deportivo') || texto.includes('rpde') || texto.includes('pediatria')) {
+                c1='#005c99'; c2='#0099ff'; c3='#66c2ff'; sigla='R.P.D.E';
             }
 
-            // Aplicar cambios visuales
-            document.getElementById('bg-panel').style.background = c2;
-            document.getElementById('card-front').style.borderColor = c2;
-            document.getElementById('txt-sigla').innerText = sigla;
+            // APLICAR CAMBIOS
+            const panel = document.getElementById('bg-panel');
+            const card = document.getElementById('card-front');
+            const txtSigla = document.getElementById('txt-sigla');
             
+            panel.style.background = c2; 
+            card.style.borderColor = c2;
+            txtSigla.innerText = sigla;
+            panel.style.color = textoColor;
+
             // Degradado del triángulo
             document.getElementById('c1').style.stopColor = c1;
             document.getElementById('c2').style.stopColor = c2;
-            document.getElementById('c3').style.stopColor = c1;
+            document.getElementById('c3').style.stopColor = c3 || c1;
         }
 
         // --- UTILIDADES ---
@@ -305,7 +320,6 @@
             const front = document.getElementById('card-front');
             const back = document.getElementById('card-back');
             
-            // Clonar para renderizar limpio
             const box = document.createElement('div');
             box.style.position='fixed'; box.style.top='-9999px';
             document.body.appendChild(box);
@@ -314,27 +328,22 @@
             const cBack = back.cloneNode(true);
             [cFront, cBack].forEach(c => { c.style.margin='0'; c.style.boxShadow='none'; c.style.transform='none'; });
             
-            // Transferir imágenes
             const srcFoto = document.getElementById('img-foto').src;
             if(srcFoto && document.getElementById('img-foto').style.display !== 'none') cFront.querySelector('#img-foto').src = srcFoto;
             
-            // Asegurar QR
             cFront.querySelector('#qr-container').innerHTML = document.getElementById('qr-container').innerHTML;
 
             box.appendChild(cFront); box.appendChild(cBack);
 
-            // Renderizado
             const canvas1 = await html2canvas(cFront, {scale:1, width:1011, height:638, backgroundColor:null});
             const canvas2 = await html2canvas(cBack, {scale:1, width:1011, height:638, backgroundColor:null});
 
-            // Unir
             const final = document.createElement('canvas');
             final.width = 1011; final.height = (638 * 2) + 40;
             const ctx = final.getContext('2d');
             ctx.drawImage(canvas1, 0, 0);
             ctx.drawImage(canvas2, 0, 638 + 40);
 
-            // Descargar
             const link = document.createElement('a');
             link.download = `Carnet_${document.getElementById('txt-dni').innerText}.png`;
             link.href = final.toDataURL("image/png");
