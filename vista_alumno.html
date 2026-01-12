@@ -90,19 +90,26 @@
         }
 
         /* SIGLA REMAEP */
-        .reg-sigla {
-            position: absolute; 
-            bottom: 75px; left: 45px; /* Ajustado ligeramente */
-            width: 200px;
-            text-align: center; color: white; 
-            font-size: 24px; font-weight: 900;
-            z-index: 4; 
-            transform: rotate(-45deg); 
-            transform-origin: center;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.9); /* Sombra fuerte para legibilidad */
-            letter-spacing: 2px;
-        }
+.reg-sigla {
+    position: absolute; 
+    
+    /* --- MODIFICA ESTOS DOS VALORES --- */
+    /* ANTES: bottom: 25px; left: 8px; */
+    
+    bottom: 55px;  /* Aumenta este número para SUBIRLO */
+    left: 35px;    /* Aumenta este número para llevarlo ADELANTE (derecha) */
+    
+    /* ---------------------------------- */
 
+    width: 200px;
+    text-align: center; color: white; 
+    font-size: 24px; font-weight: 900;
+    z-index: 4; 
+    transform: rotate(-45deg); 
+    transform-origin: center;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.9); 
+    letter-spacing: 2px;
+}
         .qr-on-photo {
             position: absolute; bottom: 15px; right: 15px;
             width: 100px; height: 100px; 
