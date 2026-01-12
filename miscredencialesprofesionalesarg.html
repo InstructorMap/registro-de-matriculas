@@ -103,7 +103,6 @@
 
         /* DORSO */
         .card-back { padding: 0; background: #ccc; }
-        /* Apunta al archivo local reverso.jpg */
         .back-image { width: 100%; height: 100%; object-fit: fill; display: block; }
     </style>
 </head>
@@ -116,6 +115,13 @@
             <input type="text" id="input-dni-search" class="input-dni" placeholder="Ingrese DNI del Alumno" onkeypress="if(event.key==='Enter') generarCarnet()">
             <button class="btn-generate" onclick="generarCarnet()">⚙️ GENERAR</button>
         </div>
+
+        <div id="selector-cursos" style="display:none; margin-top:20px; text-align:center; border-top:1px solid #444; padding-top:15px;">
+            <p style="color:#ccc; font-size:14px; margin-bottom:10px;">📋 Se encontraron varios cursos. Selecciona uno:</p>
+            <div id="lista-botones" style="display:flex; flex-direction:column; gap:10px;">
+                </div>
+        </div>
+
         <div id="msg-error"></div>
 
         <div class="action-buttons" id="panel-acciones">
@@ -172,203 +178,210 @@
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
-        // --- 2. FUNCIÓN PRINCIPAL ---
-// --- 2. FUNCIÓN PRINCIPAL MEJORADA (DIAGNÓSTICO) ---
+        // --- 2. FUNCIÓN DE BÚSQUEDA INTELIGENTE ---
         async function generarCarnet() {
-            // 1. Limpiamos el DNI de espacios accidentales (.trim)
             const dniRaw = document.getElementById('input-dni-search').value;
-            const dniInput = dniRaw.trim(); 
+            const dniInput = dniRaw.trim();
             
+            // Elementos de la interfaz
             const msg = document.getElementById('msg-error');
             const panel = document.getElementById('panel-acciones');
             const vista = document.getElementById('vista-previa');
+            const selector = document.getElementById('selector-cursos');
 
-            console.log("--- INICIANDO BÚSQUEDA ---");
-            console.log("DNI buscado:", dniInput);
+            // Resetear interfaz
+            msg.style.display = 'none';
+            panel.style.display = 'none';
+            selector.style.display = 'none';
+            vista.classList.remove('active');
 
-            if(!dniInput) {
-                alert("Por favor escribe un DNI");
-                return;
-            }
+            if(!dniInput) { alert("Por favor ingrese un DNI."); return; }
             
-            msg.innerText = "⏳ Buscando en la nube..."; 
-            msg.style.display = 'block'; msg.style.color = '#fff';
-            panel.style.display = 'none'; 
-            vista.classList.remove('active'); 
+            msg.innerText = "⏳ Buscando cursos..."; msg.style.display = 'block'; msg.style.color = '#fff';
 
-            // CONSULTA A SUPABASE
+            // CONSULTA (Trae TODOS los registros de ese DNI)
+            // Quitamos .maybeSingle() para permitir listas (arrays)
             const { data, error } = await db
                 .from('matriculas')
                 .select('*')
-                .eq('dni_alumno', dniInput)
-                .maybeSingle(); // Usamos maybeSingle para evitar errores falsos
+                .eq('dni_alumno', dniInput);
 
-            // DIAGNÓSTICO EN CONSOLA (Presiona F12 para ver esto)
             if (error) {
-                console.error("❌ ERROR DE SUPABASE:", error);
-                console.error("Código:", error.code);
-                console.error("Mensaje:", error.message);
-                msg.innerText = "Error técnico: " + error.message;
+                console.error(error);
+                msg.innerText = "Error técnico al conectar.";
                 return;
             }
 
-            if (!data) {
-                console.warn("⚠️ La consulta funcionó, pero no trajo datos. DNI no existe en tabla.");
-                msg.innerText = "❌ Alumno no encontrado. Verifique el DNI."; 
+            if (!data || data.length === 0) {
+                msg.innerText = "❌ No se encontraron cursos para el DNI: " + dniInput;
                 msg.style.color = '#ff5555';
-            } else {
-                console.log("✅ ALUMNO ENCONTRADO:", data);
-                // ÉXITO
+            } else if (data.length === 1) {
+                // CASO A: Solo tiene 1 curso -> Generar directo
                 msg.style.display = 'none';
-                panel.style.display = 'flex'; 
-                vista.classList.add('active'); 
-                procesarDatos(data);
+                procesarDatos(data[0]);
+            } else {
+                // CASO B: Tiene VARIOS cursos -> Mostrar Selector
+                msg.style.display = 'none';
+                mostrarOpciones(data);
             }
         }
+
+        // Función nueva para crear botones si hay muchos cursos
+        function mostrarOpciones(cursos) {
+            const container = document.getElementById('selector-cursos');
+            const lista = document.getElementById('lista-botones');
+            lista.innerHTML = ''; // Limpiar botones viejos
+
+            cursos.forEach(curso => {
+                const btn = document.createElement('button');
+                // Texto del botón: Nombre del Curso + Año (si hay fecha)
+                const anio = curso.fecha_inicio ? curso.fecha_inicio.substring(0,4) : '';
+                btn.innerText = `👉 ${curso.curso} (${anio})`;
+                
+                // Estilos del botón
+                btn.style.padding = "10px";
+                btn.style.background = "#333";
+                btn.style.color = "white";
+                btn.style.border = "1px solid #555";
+                btn.style.borderRadius = "5px";
+                btn.style.cursor = "pointer";
+                btn.style.textAlign = "left";
+                btn.style.fontSize = "14px";
+                
+                // Efecto Hover simple
+                btn.onmouseover = () => btn.style.background = "#444";
+                btn.onmouseout = () => btn.style.background = "#333";
+
+                // Acción al hacer clic
+                btn.onclick = () => {
+                    container.style.display = 'none'; // Ocultar selector
+                    procesarDatos(curso); // Generar carnet elegido
+                };
+
+                lista.appendChild(btn);
+            });
+
+            container.style.display = 'block'; // Mostrar la lista
+        }
+
+        // --- 3. PROCESAMIENTO VISUAL ---
         function procesarDatos(alumno) {
-            // Textos básicos
+            // Mostrar paneles
+            document.getElementById('panel-acciones').style.display = 'flex';
+            document.getElementById('vista-previa').classList.add('active');
+
+            // Textos
             document.getElementById('txt-nombre').innerText = `${alumno.nombre} ${alumno.apellido}`;
             document.getElementById('txt-dni').innerText = alumno.dni_alumno;
             
-            // 1. GENERAR MATRÍCULA HASH
             const matriculaHash = generarHashMatricula(alumno.dni_alumno);
             document.getElementById('txt-matricula').innerText = matriculaHash;
 
-            // Fechas
             const fecha = new Date(alumno.fecha_inicio);
             document.getElementById('txt-anio').innerText = fecha.getFullYear() || 2026;
             const vence = new Date(fecha); vence.setFullYear(vence.getFullYear() + 1);
             document.getElementById('txt-vence').innerText = vence.toLocaleDateString('es-AR');
 
-            // 2. LÓGICA DE REGISTROS (6 VARIANTES)
-            const curso = (alumno.curso || "CURSO");
-            separarTitulo(curso);
-            aplicarLogicaRegistro(curso);
+            // Colores y Siglas
+            const cursoTexto = alumno.curso || "CURSO";
+            separarTitulo(cursoTexto);
+            aplicarLogicaRegistro(cursoTexto);
 
-            // 3. GENERAR QR
+            // QR
             setTimeout(() => {
                 const container = document.getElementById('qr-container');
                 container.innerHTML = "";
-                // El QR ahora incluye la sigla del registro seleccionado
-                const qrData = `VALIDADO|${alumno.dni_alumno}|${matriculaHash}|${document.getElementById('txt-sigla').innerText}`;
+                const sigla = document.getElementById('txt-sigla').innerText;
+                const qrData = `VALIDADO|${alumno.dni_alumno}|${matriculaHash}|${sigla}|${cursoTexto}`;
+                
                 new QRCode(container, {
                     text: qrData, width: 100, height: 100,
                     colorDark : "#000", colorLight : "#fff", correctLevel : QRCode.CorrectLevel.L
                 });
-            }, 300);
+            }, 100);
         }
 
-        // --- LÓGICA DE NEGOCIO Y ESTILOS ---
-        
+        // --- UTILIDADES ---
         function generarHashMatricula(dni) {
             let hash = 0;
-            for (let i = 0; i < dni.length; i++) {
-                hash = ((hash << 5) - hash) + dni.charCodeAt(i);
-                hash |= 0; 
-            }
+            for (let i = 0; i < dni.length; i++) { hash = ((hash << 5) - hash) + dni.charCodeAt(i); hash |= 0; }
             return String(Math.abs(hash)).substring(0, 6).padStart(6, '9'); 
         }
 
         function aplicarLogicaRegistro(cursoOriginal) {
-            // Valores por defecto (Azul REMAEP)
-            let c1='#001f7a', c2='#0033cc', c3='#005ce6', sigla='R.E.M.A.E.P', textoColor='white';
-
+            let c1='#001f7a', c2='#0033cc', c3='#005ce6', sigla='R.E.M.A.E.P', tColor='white';
             const texto = cursoOriginal.toLowerCase();
 
-            // 1. R.E.M.A.E.P (Azul)
             if(texto.includes('paramedico') || texto.includes('remaep')) {
                 c1='#002266'; c2='#0033cc'; c3='#3366ff'; sigla='R.E.M.A.E.P';
-            }
-            // 2. R.N.I.U.E (Dorado)
-            else if(texto.includes('enfermeria') || texto.includes('rniue') || texto.includes('socorrismo')) {
+            } else if(texto.includes('enfermeria') || texto.includes('rniue') || texto.includes('socorrismo')) {
                 c1='#8a6e2f'; c2='#b8860b'; c3='#ffd700'; sigla='R.N.I.U.E';
-            }
-            // 3. R.U.B.R.A (Rojo)
-            else if(texto.includes('rescate') || texto.includes('rubra') || texto.includes('busqueda')) {
+            } else if(texto.includes('rescate') || texto.includes('rubra') || texto.includes('busqueda')) {
                 c1='#800000'; c2='#cc0000'; c3='#ff3333'; sigla='R.U.B.R.A';
-            }
-            // 4. R.M.T.S (Verde)
-            else if(texto.includes('tactico') || texto.includes('rmts') || texto.includes('sanidad')) {
+            } else if(texto.includes('tactico') || texto.includes('rmts') || texto.includes('sanidad')) {
                 c1='#1a2f1a'; c2='#2f4f4f'; c3='#4d704d'; sigla='R.M.T.S';
-            }
-            // 5. R.C.E (Amarillo)
-            else if(texto.includes('emergencias') || texto.includes('rce')) {
-                c1='#cc9900'; c2='#ffcc00'; c3='#ffe066'; sigla='R.C.E';
-                textoColor = 'black'; 
-            }
-            // 6. R.P.D.E (Celeste)
-            else if(texto.includes('deportivo') || texto.includes('rpde') || texto.includes('pediatria')) {
+            } else if(texto.includes('emergencias') || texto.includes('rce')) {
+                c1='#cc9900'; c2='#ffcc00'; c3='#ffe066'; sigla='R.C.E'; tColor='black';
+            } else if(texto.includes('deportivo') || texto.includes('rpde') || texto.includes('pediatria')) {
                 c1='#005c99'; c2='#0099ff'; c3='#66c2ff'; sigla='R.P.D.E';
+            } else if(texto.includes('instructor')) {
+                c1='#800000'; c2='#cc0000'; c3='#ff3333'; sigla='ASARIN';
             }
 
-            // APLICAR CAMBIOS
-            const panel = document.getElementById('bg-panel');
-            const card = document.getElementById('card-front');
-            const txtSigla = document.getElementById('txt-sigla');
-            
-            panel.style.background = c2; 
-            card.style.borderColor = c2;
-            txtSigla.innerText = sigla;
-            panel.style.color = textoColor;
-
-            // Degradado del triángulo
+            const p = document.getElementById('bg-panel');
+            p.style.background = c2; p.style.color = tColor;
+            document.getElementById('card-front').style.borderColor = c2;
+            document.getElementById('txt-sigla').innerText = sigla;
             document.getElementById('c1').style.stopColor = c1;
             document.getElementById('c2').style.stopColor = c2;
             document.getElementById('c3').style.stopColor = c3 || c1;
         }
 
-        // --- UTILIDADES ---
-        function separarTitulo(texto) {
-            const palabras = texto.split(' ');
-            if(palabras.length > 1) {
-                document.getElementById('txt-titulo-main').innerText = palabras[0];
-                document.getElementById('txt-titulo-sub').innerText = palabras.slice(1).join(' ');
+        function separarTitulo(t) {
+            const p = t.split(' ');
+            if(p.length > 1) {
+                document.getElementById('txt-titulo-main').innerText = p[0];
+                document.getElementById('txt-titulo-sub').innerText = p.slice(1).join(' ');
             } else {
-                document.getElementById('txt-titulo-main').innerText = texto;
+                document.getElementById('txt-titulo-main').innerText = t;
                 document.getElementById('txt-titulo-sub').innerText = "";
             }
         }
 
-        function cargarImagen(input, imgId) {
+        function cargarImagen(input, id) {
             if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const img = document.getElementById(imgId);
-                    img.src = e.target.result;
-                    img.style.display = 'block';
-                    if(imgId === 'img-foto') document.getElementById('placeholder-foto').style.display = 'none';
+                const r = new FileReader();
+                r.onload = (e) => {
+                    const img = document.getElementById(id);
+                    img.src = e.target.result; img.style.display = 'block';
+                    if(id === 'img-foto') document.getElementById('placeholder-foto').style.display = 'none';
                 }
-                reader.readAsDataURL(input.files[0]);
+                r.readAsDataURL(input.files[0]);
             }
         }
 
         async function descargarCarnet() {
             const front = document.getElementById('card-front');
             const back = document.getElementById('card-back');
-            
             const box = document.createElement('div');
-            box.style.position='fixed'; box.style.top='-9999px';
-            document.body.appendChild(box);
+            box.style.position='fixed'; box.style.top='-9999px'; document.body.appendChild(box);
             
-            const cFront = front.cloneNode(true);
-            const cBack = back.cloneNode(true);
+            const cFront = front.cloneNode(true); const cBack = back.cloneNode(true);
             [cFront, cBack].forEach(c => { c.style.margin='0'; c.style.boxShadow='none'; c.style.transform='none'; });
             
             const srcFoto = document.getElementById('img-foto').src;
-            if(srcFoto && document.getElementById('img-foto').style.display !== 'none') cFront.querySelector('#img-foto').src = srcFoto;
-            
+            if(srcFoto && document.getElementById('img-foto').style.display!=='none') cFront.querySelector('#img-foto').src = srcFoto;
             cFront.querySelector('#qr-container').innerHTML = document.getElementById('qr-container').innerHTML;
 
             box.appendChild(cFront); box.appendChild(cBack);
 
-            const canvas1 = await html2canvas(cFront, {scale:1, width:1011, height:638, backgroundColor:null});
-            const canvas2 = await html2canvas(cBack, {scale:1, width:1011, height:638, backgroundColor:null});
-
-            const final = document.createElement('canvas');
-            final.width = 1011; final.height = (638 * 2) + 40;
-            const ctx = final.getContext('2d');
-            ctx.drawImage(canvas1, 0, 0);
-            ctx.drawImage(canvas2, 0, 638 + 40);
+            const cv1 = await html2canvas(cFront, {scale:1, width:1011, height:638, backgroundColor:null});
+            const cv2 = await html2canvas(cBack, {scale:1, width:1011, height:638, backgroundColor:null});
+            
+            const fin = document.createElement('canvas');
+            fin.width = 1011; fin.height = 1316; 
+            const ctx = fin.getContext('2d');
+            ctx.drawImage(cv1, 0, 0); ctx.drawImage(cv2, 0, 678);
 
             const link = document.createElement('a');
             link.download = `Carnet_${document.getElementById('txt-dni').innerText}.png`;
