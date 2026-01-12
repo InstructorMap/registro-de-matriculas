@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Admin - Alta de Alumnos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h3>🎓 Alta de Alumno (Nuevo Carnet)</h3>
+        </div>
+        <div class="card-body">
+            <form id="formAlta">
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">DNI (Sin puntos)</label>
+                        <input type="text" id="dni" class="form-control" placeholder="Ej: 33656107" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="email" class="form-control" placeholder="alumno@email.com">
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" id="nombre" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Apellido</label>
+                        <input type="text" id="apellido" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Curso / Certificación</label>
+                        <select id="curso" class="form-select">
+                            <option value="Paramédico Profesional 2025">Paramédico Profesional 2025</option>
+                            <option value="Instructor de RCP">Instructor de RCP</option>
+                            <option value="Socorrismo Urbano">Socorrismo Urbano</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Estado Inicial</label>
+                        <select id="estado" class="form-select">
+                            <option value="ACTIVO">ACTIVO (Al día)</option>
+                            <option value="DEUDOR">DEUDOR (Bloqueado)</option>
+                        </select>
+                    </div>
+                     <div class="col-md-3">
+                        <label class="form-label">Fecha Inicio</label>
+                        <input type="date" id="fecha" class="form-control">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-success w-100">💾 Guardar Matrícula</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. CONFIGURACIÓN DE SUPABASE
+    // Tienes que reemplazar esto con TUS claves (Te explico abajo dónde buscarlas)
+    const SUPABASE_URL = 'vxggatcfrywyodovjwxj'; 
+    const SUPABASE_KEY = 'sb_publishable_Zkc12UR5e4tz7cjZhoczyQ_cUxX_x5r';
+
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // 2. LÓGICA DE GUARDADO
+    document.getElementById('formAlta').addEventListener('submit', async (e) => {
+        e.preventDefault(); // Evita que se recargue la página
+
+        // Capturamos los datos del formulario
+        const alumno = {
+            dni_alumno: document.getElementById('dni').value,
+            nombre: document.getElementById('nombre').value,
+            apellido: document.getElementById('apellido').value,
+            email: document.getElementById('email').value,
+            curso: document.getElementById('curso').value,
+            estado: document.getElementById('estado').value,
+            fecha_inicio: document.getElementById('fecha').value || new Date().toISOString().split('T')[0]
+        };
+
+        // Enviamos a Supabase
+        const { data, error } = await supabase
+            .from('matriculas')
+            .insert([alumno]);
+
+        if (error) {
+            alert('❌ Error: ' + error.message);
+            console.error(error);
+        } else {
+            alert('✅ ¡Alumno cargado correctamente!');
+            document.getElementById('formAlta').reset(); // Limpia el formulario
+        }
+    });
+</script>
+
+</body>
+</html>
