@@ -129,96 +129,174 @@
         </div>
     </div>
 
-    <script>
-        // --- 1. CONFIGURACIÓN SUPABASE ---
+<script>
+        // --- 1. CONFIGURACIÓN ---
         const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
         // --- 2. BÚSQUEDA ---
         async function generarCarnet() {
+            console.log("🟢 Iniciando proceso de generación...");
+            
             const dniRaw = document.getElementById('input-dni-search').value;
-            const dniInput = dniRaw.trim();
+            const dniInput = String(dniRaw).trim(); // Forzamos texto
             
             const msg = document.getElementById('msg-error');
             const panel = document.getElementById('panel-acciones');
             const vista = document.getElementById('vista-previa');
             const selector = document.getElementById('selector-cursos');
 
-            msg.style.display = 'none'; panel.style.display = 'none'; selector.style.display = 'none'; vista.classList.remove('active');
+            // Reset UI
+            msg.style.display = 'none'; 
+            panel.style.display = 'none'; 
+            selector.style.display = 'none'; 
+            vista.classList.remove('active');
 
-            if(!dniInput) { alert("Ingrese un DNI."); return; }
-            msg.innerText = "⏳ Buscando..."; msg.style.display = 'block'; msg.style.color = '#fff';
+            if(!dniInput) { 
+                alert("Por favor ingrese un DNI."); 
+                return; 
+            }
 
-            // Traemos TODOS los campos, incluyendo 'registro_id'
-            const { data, error } = await db.from('matriculas').select('*').eq('dni_alumno', dniInput);
+            msg.innerText = "⏳ Conectando con la base de datos..."; 
+            msg.style.display = 'block'; 
+            msg.style.color = '#fff';
 
-            if (error) { console.error(error); msg.innerText = "Error conexión."; return; }
+            // Consulta DB
+            const { data, error } = await db
+                .from('matriculas')
+                .select('*')
+                .eq('dni_alumno', dniInput);
+
+            if (error) { 
+                console.error("🔴 Error Supabase:", error); 
+                msg.innerText = "Error técnico: " + error.message; 
+                return; 
+            }
+
+            console.log("Datos recibidos:", data);
 
             if (!data || data.length === 0) {
-                msg.innerText = "❌ No encontrado: " + dniInput; msg.style.color = '#ff5555';
+                msg.innerText = "❌ No se encontró el DNI: " + dniInput; 
+                msg.style.color = '#ff5555';
             } else if (data.length === 1) {
-                msg.style.display = 'none'; procesarDatos(data[0]);
+                // Un solo curso encontrado
+                msg.style.display = 'none'; 
+                procesarDatos(data[0]);
             } else {
-                msg.style.display = 'none'; mostrarOpciones(data);
+                // Múltiples cursos encontrados
+                msg.style.display = 'none'; 
+                mostrarOpciones(data);
             }
         }
 
+        // --- SELECTOR DE MÚLTIPLES CURSOS ---
         function mostrarOpciones(cursos) {
             const container = document.getElementById('selector-cursos');
             const lista = document.getElementById('lista-botones');
-            lista.innerHTML = '';
+            lista.innerHTML = ''; // Limpiar
+
             cursos.forEach(curso => {
                 const btn = document.createElement('button');
-                const anio = curso.fecha_inicio ? curso.fecha_inicio.substring(0,4) : '';
+                // Manejo seguro de fecha
+                const anio = curso.fecha_inicio ? String(curso.fecha_inicio).substring(0,4) : '2026';
+                
                 btn.innerText = `👉 ${curso.curso} (${anio})`;
-                btn.style.padding = "10px"; btn.style.background = "#333"; btn.style.color = "white"; btn.style.border = "1px solid #555"; btn.style.borderRadius = "5px"; btn.style.cursor = "pointer"; btn.style.textAlign = "left"; btn.style.marginBottom = "5px";
-                btn.onclick = () => { container.style.display = 'none'; procesarDatos(curso); };
+                
+                // Estilos
+                btn.style.width = "100%";
+                btn.style.padding = "12px"; 
+                btn.style.background = "#333"; 
+                btn.style.color = "white"; 
+                btn.style.border = "1px solid #555"; 
+                btn.style.borderRadius = "5px"; 
+                btn.style.cursor = "pointer"; 
+                btn.style.textAlign = "left"; 
+                btn.style.marginBottom = "8px";
+                btn.style.fontWeight = "bold";
+
+                btn.onmouseover = () => btn.style.background = "#444";
+                btn.onmouseout = () => btn.style.background = "#333";
+                
+                btn.onclick = () => { 
+                    container.style.display = 'none'; 
+                    procesarDatos(curso); 
+                };
                 lista.appendChild(btn);
             });
             container.style.display = 'block';
         }
 
-        // --- 3. PROCESAMIENTO (LA MAGIA V2) ---
+        // --- 3. PROCESAMIENTO VISUAL ---
         function procesarDatos(alumno) {
-            document.getElementById('panel-acciones').style.display = 'flex';
-            document.getElementById('vista-previa').classList.add('active');
+            console.log("🎨 Procesando alumno:", alumno);
 
-            // Textos
-            document.getElementById('txt-nombre').innerText = `${alumno.nombre} ${alumno.apellido}`;
-            document.getElementById('txt-dni').innerText = alumno.dni_alumno;
-            
-            // Hash Matrícula
-            const matHash = String(Math.abs(alumno.dni_alumno.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a|0},0))).substring(0,6).padStart(6,'9');
-            document.getElementById('txt-matricula').innerText = matHash;
+            try {
+                // Mostrar paneles
+                document.getElementById('panel-acciones').style.display = 'flex';
+                document.getElementById('vista-previa').classList.add('active');
 
-            // Fechas
-            const fecha = new Date(alumno.fecha_inicio);
-            document.getElementById('txt-anio').innerText = fecha.getFullYear() || 2026;
-            const vence = new Date(fecha); vence.setFullYear(vence.getFullYear() + 1);
-            document.getElementById('txt-vence').innerText = vence.toLocaleDateString('es-AR');
+                // Textos
+                document.getElementById('txt-nombre').innerText = `${alumno.nombre} ${alumno.apellido}`;
+                document.getElementById('txt-dni').innerText = alumno.dni_alumno;
+                
+                // Generar Matrícula (Usando función segura)
+                const matriculaHash = generarHashMatricula(String(alumno.dni_alumno));
+                document.getElementById('txt-matricula').innerText = matriculaHash;
 
-            // Título
-            const cursoTexto = alumno.curso || "CURSO";
-            separarTitulo(cursoTexto);
-            
-            // ---> AQUÍ ESTÁ EL CAMBIO CLAVE <---
-            // Ya no le pasamos el nombre del curso. Le pasamos el ID del registro (ej: 'rubra')
-            // Si el alumno es viejo y no tiene ID, le pasamos 'remaep' por defecto.
-            aplicarLogicaRegistro(alumno.registro_id || 'remaep');
+                // Fechas
+                const fecha = new Date(alumno.fecha_inicio);
+                document.getElementById('txt-anio').innerText = fecha.getFullYear() || 2026;
+                const vence = new Date(fecha); vence.setFullYear(vence.getFullYear() + 1);
+                document.getElementById('txt-vence').innerText = vence.toLocaleDateString('es-AR');
 
-            // QR
-            setTimeout(() => {
-                const container = document.getElementById('qr-container'); container.innerHTML = "";
-                const sigla = document.getElementById('txt-sigla').innerText;
-                const qrData = `VALIDADO|${alumno.dni_alumno}|${matHash}|${sigla}`;
-                new QRCode(container, { text: qrData, width: 100, height: 100, colorDark : "#000", colorLight : "#fff", correctLevel : QRCode.CorrectLevel.L });
-            }, 100);
+                // Título
+                const cursoTexto = alumno.curso || "CURSO";
+                separarTitulo(cursoTexto);
+                
+                // Lógica de Color (Lee el ID o usa remaep por defecto)
+                const registroId = alumno.registro_id || 'remaep';
+                console.log("Aplicando estilo:", registroId);
+                aplicarLogicaRegistro(registroId);
+
+                // QR
+                setTimeout(() => {
+                    const container = document.getElementById('qr-container'); 
+                    container.innerHTML = "";
+                    const sigla = document.getElementById('txt-sigla').innerText;
+                    
+                    // Datos del QR
+                    const qrData = `VALIDADO|${alumno.dni_alumno}|${matriculaHash}|${sigla}`;
+                    
+                    new QRCode(container, { 
+                        text: qrData, 
+                        width: 100, 
+                        height: 100, 
+                        colorDark : "#000", 
+                        colorLight : "#fff", 
+                        correctLevel : QRCode.CorrectLevel.L 
+                    });
+                }, 100);
+
+            } catch (e) {
+                console.error("Error al renderizar:", e);
+                alert("Error visualizando el carnet: " + e.message);
+            }
         }
 
-        // --- LÓGICA DE REGISTROS V2 (DIRECTA) ---
+        // --- UTILIDADES Y LÓGICA ---
+
+        // Función Hash Segura (La que usábamos antes)
+        function generarHashMatricula(dni) {
+            let hash = 0;
+            for (let i = 0; i < dni.length; i++) {
+                hash = ((hash << 5) - hash) + dni.charCodeAt(i);
+                hash |= 0; 
+            }
+            return String(Math.abs(hash)).substring(0, 6).padStart(6, '9'); 
+        }
+
         function aplicarLogicaRegistro(registroId) {
-            // Diccionario Maestro de Colores
             const configs = {
                 'remaep': { c1:'#001f7a', c2:'#0033cc', c3:'#005ce6', sigla:'R.E.M.A.E.P', txt:'white' },
                 'rniue':  { c1:'#8a6e2f', c2='#b8860b', c3='#ffd700', sigla:'R.N.I.U.E',   txt:'white' },
@@ -229,48 +307,64 @@
                 'asarin': { c1:'#800000', c2='#cc0000', c3='#ff3333', sigla:'ASARIN',      txt:'white' }
             };
 
-            // Normalizar
-            const id = (registroId || 'remaep').toLowerCase();
-            const cfg = configs[id] || configs['remaep']; // Si no existe, usa REMAEP
+            const id = String(registroId).toLowerCase(); // Asegurar texto
+            const cfg = configs[id] || configs['remaep'];
 
-            // Aplicar Estilos
             const panel = document.getElementById('bg-panel');
             panel.style.background = cfg.c2; 
             panel.style.color = cfg.txt;
             document.getElementById('card-front').style.borderColor = cfg.c2;
             document.getElementById('txt-sigla').innerText = cfg.sigla;
 
-            // Degradado SVG
             document.getElementById('c1').style.stopColor = cfg.c1;
             document.getElementById('c2').style.stopColor = cfg.c2;
             document.getElementById('c3').style.stopColor = cfg.c3;
         }
 
         function separarTitulo(t) {
-            const p = t.split(' ');
-            if(p.length > 1) { document.getElementById('txt-titulo-main').innerText = p[0]; document.getElementById('txt-titulo-sub').innerText = p.slice(1).join(' '); }
-            else { document.getElementById('txt-titulo-main').innerText = t; document.getElementById('txt-titulo-sub').innerText = ""; }
+            const p = String(t).split(' ');
+            if(p.length > 1) { 
+                document.getElementById('txt-titulo-main').innerText = p[0]; 
+                document.getElementById('txt-titulo-sub').innerText = p.slice(1).join(' '); 
+            } else { 
+                document.getElementById('txt-titulo-main').innerText = t; 
+                document.getElementById('txt-titulo-sub').innerText = ""; 
+            }
         }
 
         function cargarImagen(input, id) {
             if (input.files && input.files[0]) {
                 const r = new FileReader();
-                r.onload = (e) => { const img = document.getElementById(id); img.src = e.target.result; img.style.display = 'block'; if(id === 'img-foto') document.getElementById('placeholder-foto').style.display = 'none'; }
+                r.onload = (e) => { 
+                    const img = document.getElementById(id); 
+                    img.src = e.target.result; 
+                    img.style.display = 'block'; 
+                    if(id === 'img-foto') document.getElementById('placeholder-foto').style.display = 'none'; 
+                }
                 r.readAsDataURL(input.files[0]);
             }
         }
 
         async function descargarCarnet() {
             const f = document.getElementById('card-front'), b = document.getElementById('card-back');
-            const box = document.createElement('div'); box.style.position='fixed'; box.style.top='-9999px'; document.body.appendChild(box);
+            
+            // Contenedor temporal fuera de pantalla
+            const box = document.createElement('div'); 
+            box.style.position='fixed'; box.style.top='-9999px'; 
+            document.body.appendChild(box);
+            
             const cf = f.cloneNode(true), cb = b.cloneNode(true);
             [cf, cb].forEach(c => { c.style.margin='0'; c.style.boxShadow='none'; c.style.transform='none'; });
             
+            // Transferir foto
             const sf = document.getElementById('img-foto').src;
             if(sf && document.getElementById('img-foto').style.display!=='none') cf.querySelector('#img-foto').src = sf;
+            
+            // Transferir QR generado
             cf.querySelector('#qr-container').innerHTML = document.getElementById('qr-container').innerHTML;
 
             box.appendChild(cf); box.appendChild(cb);
+            
             const cv1 = await html2canvas(cf, {scale:1, width:1011, height:638, backgroundColor:null});
             const cv2 = await html2canvas(cb, {scale:1, width:1011, height:638, backgroundColor:null});
             
