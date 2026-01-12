@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Credencial Digital ASARI - Conectada</title>
+    <title>Generador de Credenciales - ASARI</title>
     
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
     
     <style>
-        /* --- RESET Y BASE --- */
+        /* --- ESTILOS BASE --- */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'Roboto', sans-serif;
@@ -21,504 +20,326 @@
             padding: 30px; gap: 20px; color: white;
         }
 
-        /* --- VARIABLES --- */
         :root {
             --card-width: 1011px;
             --card-height: 638px;
             --blue-colbert: #0033cc;
-            
-            /* HOLOGRAFÍA */
-            --holo-pattern: 
-                repeating-linear-gradient(
-                    45deg,
-                    rgba(255, 255, 255, 0.08) 0px,
-                    rgba(255, 255, 255, 0.08) 1px,
-                    transparent 1px,
-                    transparent 4px
-                ),
-                linear-gradient(
-                    120deg,
-                    transparent 30%,
-                    rgba(255, 255, 255, 0.2) 45%,
-                    rgba(200, 255, 255, 0.4) 50%,
-                    rgba(255, 255, 255, 0.2) 55%,
-                    transparent 70%
-                );
+            --holo-pattern: repeating-linear-gradient(45deg, rgba(255,255,255,0.08) 0px, rgba(255,255,255,0.08) 1px, transparent 1px, transparent 4px), linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.2) 45%, rgba(200,255,255,0.4) 50%, rgba(255,255,255,0.2) 55%, transparent 70%);
         }
 
-        .preview-wrapper {
-            transform: scale(0.4); transform-origin: top center;
-            margin-bottom: -350px; border: 1px solid #444; border-radius: 20px;
-            transition: transform 0.3s ease;
+        /* --- CONTROLES (Panel Superior) --- */
+        .controls { background: #222; padding: 25px; border-radius: 10px; position: sticky; top: 10px; z-index: 999; width: 95%; max-width: 600px; border: 1px solid #444; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .input-group { display: flex; gap: 10px; margin-bottom: 5px; }
+        .input-dni { flex: 1; padding: 12px; font-size: 18px; border-radius: 5px; border: none; text-align: center; font-weight: bold; letter-spacing: 1px;}
+        
+        /* BOTÓN GENERAR (El principal) */
+        .btn-generate { 
+            padding: 12px 25px; font-size: 16px; 
+            background: linear-gradient(135deg, #005c99, #007acc); 
+            border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px;
+            transition: transform 0.1s;
         }
-        @media (max-width: 600px) { .preview-wrapper { transform: scale(0.28); margin-bottom: -450px; } }
+        .btn-generate:active { transform: scale(0.98); }
+
+        .action-buttons { display: none; gap: 10px; flex-wrap: wrap; justify-content: center; border-top: 1px solid #444; padding-top: 20px; margin-top: 15px;}
+        .btn-action { padding: 12px 15px; font-size: 15px; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; flex: 1; min-width: 140px; }
+        .btn-upload { background: #444; color: white; border: 1px solid #666; }
+        .btn-download { background: #00c853; color: white; box-shadow: 0 4px 0 #009624; }
+        .btn-download:active { transform: translateY(4px); box-shadow: none; }
+
+        #msg-error { color: #ff5555; text-align: center; margin-top: 15px; display: none; font-weight: bold; }
 
         /* --- TARJETA --- */
+        .preview-wrapper { transform: scale(0.4); transform-origin: top center; margin-bottom: -350px; border-radius: 20px; transition: transform 0.3s ease; opacity: 0.5; filter: grayscale(1); }
+        .preview-wrapper.active { opacity: 1; filter: grayscale(0); }
+        
+        @media (max-width: 600px) { .preview-wrapper { transform: scale(0.28); margin-bottom: -450px; } }
+
         .card {
-            width: var(--card-width);
-            height: var(--card-height);
-            background: white;
-            display: flex; position: relative;
-            
-            /* MARCO AZUL DINÁMICO */
-            border: 5px solid var(--blue-colbert); 
-            border-radius: 40px; 
-            
-            overflow: hidden; 
-            mask-image: radial-gradient(white, black);
-            -webkit-mask-image: -webkit-radial-gradient(white, black);
-            
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            margin-bottom: 50px;
+            width: var(--card-width); height: var(--card-height);
+            background: white; display: flex; position: relative;
+            border: 5px solid var(--blue-colbert); border-radius: 40px; overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5); margin-bottom: 50px;
         }
 
-        /* --- FRENTE: IZQUIERDA --- */
-        .front-left {
-            width: 380px; height: 100%; position: relative;
-            background: #d4d4d4;
-            z-index: 1;
-            overflow: hidden;
-            border-top-left-radius: 35px;
-            border-bottom-left-radius: 35px;
-        }
+        /* FRENTE IZQUIERDA */
+        .front-left { width: 380px; height: 100%; position: relative; background: #d4d4d4; z-index: 1; border-top-left-radius: 35px; border-bottom-left-radius: 35px; overflow: hidden; }
         .student-photo { width: 100%; height: 100%; object-fit: cover; }
-
-        /* --- TRIÁNGULO SVG --- */
-        .svg-triangle-container {
-            position: absolute; bottom: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: 2; pointer-events: none;
-        }
-
-        /* --- SIGLA REMAEP --- */
+        .svg-triangle-container { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
+        
         .reg-sigla {
-            position: absolute; 
-            bottom: 10px; left: 20px;    
-            width: 120px; 
-            text-align: center; 
-            color: white; 
-            font-size: 18px; 
-            font-weight: 900;
-            z-index: 4; 
-            transform: none; 
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.9); 
-            letter-spacing: 1px;
+            position: absolute; bottom: 15px; left: 0; width: 100%;
+            text-align: center; color: white; font-size: 22px; font-weight: 900;
+            z-index: 6; text-shadow: 2px 2px 4px rgba(0,0,0,0.9); letter-spacing: 2px;
         }
 
-        /* --- QR CODE --- */
         .qr-on-photo {
-            position: absolute; 
-            bottom: 45px; left: 30px; right: auto;
-            width: 100px; height: 100px; 
-            background: rgba(255,255,255,0.95);
-            padding: 5px; 
-            border-radius: 12px; 
-            z-index: 5;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            position: absolute; bottom: 55px; left: 50%; transform: translateX(-50%);
+            width: 110px; height: 110px;
+            background: white; padding: 5px; border-radius: 10px; z-index: 5;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             display: flex; justify-content: center; align-items: center;
         }
-        /* Ajuste para el QR generado por JS */
         .qr-on-photo img { width: 100%; height: 100%; }
 
-        /* --- FRENTE: DERECHA --- */
-        .front-right {
-            flex: 1; position: relative; color: white;
-            padding: 20px 35px;
-            display: flex; flex-direction: column; justify-content: space-between;
-            z-index: 0;
-            background-color: var(--blue-colbert); 
-            transition: background 0.5s ease;
-        }
-
-        .holo-layer {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--holo-pattern);
-            opacity: 1; mix-blend-mode: overlay; z-index: 0; pointer-events: none;
-        }
-        
-        .noise-layer {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
-            opacity: 0.3; mix-blend-mode: soft-light; z-index: 0; pointer-events: none;
-        }
-
+        /* FRENTE DERECHA */
+        .front-right { flex: 1; position: relative; color: white; padding: 20px 35px; display: flex; flex-direction: column; justify-content: space-between; background-color: var(--blue-colbert); }
+        .holo-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--holo-pattern); opacity: 1; mix-blend-mode: overlay; pointer-events: none; }
         .front-content { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 6px solid rgba(255,255,255,0.9); padding-bottom: 2px; }
+        .header-text { font-size: 85px; font-weight: 900; text-transform: uppercase; line-height: 0.9; text-shadow: 3px 3px 0px rgba(0,0,0,0.2); }
+        
+        .course-container { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 10px 0; background: linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.3)); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; }
+        .course-title-main { font-size: 60px; font-weight: 900; text-transform: uppercase; line-height: 0.9; text-align: center; text-shadow: 0 4px 8px rgba(0,0,0,0.4); }
+        .course-title-sub { font-size: 30px; font-weight: 700; text-transform: uppercase; margin-top: 5px; text-align: center; }
 
-        .header {
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 6px solid rgba(255,255,255,0.9);
-            padding-bottom: 2px; margin-bottom: 10px;
-        }
-        .header-text {
-            font-size: 85px; font-weight: 900; text-transform: uppercase;
-            line-height: 0.9; text-shadow: 3px 3px 0px rgba(0,0,0,0.2);
-        }
-
-        .course-container {
-            flex-grow: 1; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; text-align: center;
-            margin: 5px 0; width: 100%;
-            background: linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.3));
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px; padding: 10px;
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.2);
-        }
-        .course-title-main, .course-title-sub {
-            width: 100%; font-weight: 900; text-transform: uppercase;
-            line-height: 0.9; text-shadow: 0 4px 8px rgba(0,0,0,0.4);
-        }
-        .course-title-sub { margin-top: 5px; opacity: 0.95; }
-
-        .student-name {
-            font-size: 34px; font-weight: 700; text-transform: uppercase;
-            background: rgba(0,0,0,0.3);
-            padding: 10px; text-align: center; letter-spacing: 1px; white-space: nowrap;
-            margin-bottom: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15);
-        }
+        .student-name { font-size: 34px; font-weight: 700; text-transform: uppercase; background: rgba(0,0,0,0.3); padding: 10px; text-align: center; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); margin-bottom: 15px;}
 
         .data-grid { display: grid; grid-template-columns: 65px 1fr; row-gap: 10px; align-items: center; }
-        .icon-box { font-size: 55px; text-align: center; text-shadow: 0 4px 4px rgba(0,0,0,0.4); }
+        .icon-box { font-size: 55px; text-align: center; }
+        .data-box { background: linear-gradient(90deg, rgba(0,0,0,0.2), rgba(0,0,0,0.3)); padding: 6px 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.15); height: 55px; }
+        .label-text { font-size: 32px; font-weight: 700; opacity: 0.9; }
+        .value-text { font-size: 36px; font-weight: 900; text-align: right; }
 
-        .data-box {
-            background: linear-gradient(90deg, rgba(0,0,0,0.2), rgba(0,0,0,0.3));
-            padding: 6px 15px; border-radius: 8px; display: flex; justify-content: space-between;
-            align-items: center; border: 1px solid rgba(255,255,255,0.15); height: 55px;
-        }
-        .label-text { font-size: 34px; font-weight: 700; opacity: 0.95; }
-        .value-text { 
-            font-size: 38px; font-weight: 900; letter-spacing: 1px; text-align: right;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 330px;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-        }
-        .long-text { font-size: 28px; }
-
-        /* --- DORSO --- */
-        .card-back { padding: 0; position: relative; background: #fff; }
+        /* DORSO */
+        .card-back { padding: 0; background: #ccc; }
+        /* Apunta al archivo local reverso.jpg */
         .back-image { width: 100%; height: 100%; object-fit: fill; display: block; }
-
-        .platinum-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.2) 45%, rgba(255,255,255,0.0) 50%, rgba(255,255,255,0.05) 100%);
-            mix-blend-mode: overlay; pointer-events: none;
-            box-shadow: inset 0 0 50px rgba(0,0,0,0.2);
-        }
-
-        /* UI PANEL DE CONTROL */
-        .controls { background: #222; color: white; padding: 20px; border-radius: 10px; position: sticky; top: 10px; z-index: 100; width: 95%; max-width: 600px; border: 1px solid #444; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .input-group { display: flex; gap: 10px; margin-bottom: 15px; }
-        .input-dni { flex: 1; padding: 12px; font-size: 18px; border-radius: 5px; border: none; outline: none; text-align: center;}
-        .btn-search { padding: 12px 20px; font-size: 18px; background: #007acc; border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: bold; }
-        .btn-search:hover { background: #005fa3; }
-        
-        .action-buttons { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; border-top: 1px solid #444; padding-top: 15px;}
-        .btn-action { padding: 10px 15px; font-size: 14px; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; flex: 1; min-width: 120px; }
-        .btn-upload { background: #444; color: white; border: 1px solid #666; }
-        .btn-download { background: #00c853; color: white; }
-
-        #msg-error { color: #ff5555; text-align: center; margin-top: 10px; font-weight: bold; display: none; }
     </style>
 </head>
 <body>
 
     <div class="controls">
-        <h2 style="margin-bottom:15px; text-align:center;">🎓 Acceso Alumnos</h2>
+        <h2 style="text-align:center; color:#fff; margin-bottom: 15px;">🎓 Generador de Carnet</h2>
         
         <div class="input-group">
-            <input type="text" id="input-dni-search" class="input-dni" placeholder="Ingrese su DNI..." onkeypress="handleEnter(event)">
-            <button class="btn-search" onclick="buscarAlumno()">BUSCAR</button>
+            <input type="text" id="input-dni-search" class="input-dni" placeholder="Ingrese DNI del Alumno" onkeypress="if(event.key==='Enter') generarCarnet()">
+            <button class="btn-generate" onclick="generarCarnet()">⚙️ GENERAR</button>
         </div>
         <div id="msg-error"></div>
 
-        <div class="action-buttons" id="panel-acciones" style="opacity: 0.5; pointer-events: none;">
-            <input type="file" id="input-foto" accept="image/*" style="display:none;" onchange="cargarFotoLocal()">
+        <div class="action-buttons" id="panel-acciones">
+            <input type="file" id="input-foto" accept="image/*" style="display:none;" onchange="cargarImagen(this, 'img-foto')">
+            
             <button class="btn-action btn-upload" onclick="document.getElementById('input-foto').click()">📸 SUBIR FOTO</button>
-            <button class="btn-action btn-download" onclick="descargarCompletoCosido('Credencial_Digital')">⬇️ DESCARGAR</button>
+            <button class="btn-action btn-download" onclick="descargarCarnet()">⬇️ DESCARGAR CARNET</button>
         </div>
     </div>
 
-    <div class="preview-wrapper">
+    <div class="preview-wrapper" id="vista-previa">
         <div class="card" id="card-front">
             <div class="front-left">
                 <img id="img-foto" class="student-photo" src="" style="display:none;">
-                <div style="position:absolute; top:40%; width:100%; text-align:center; color:#777; font-weight:bold;" id="placeholder-foto">SIN FOTO</div>
+                <div style="position:absolute; top:40%; width:100%; text-align:center; color:#555; font-weight:bold;" id="placeholder-foto">FOTO</div>
                 
                 <div class="qr-on-photo" id="qr-container"></div>
-
+                
                 <div class="svg-triangle-container">
                     <svg viewBox="0 0 380 638" width="100%" height="100%" preserveAspectRatio="none">
-                        <defs>
-                            <linearGradient id="grad-triangle" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" style="stop-color:#001f7a;stop-opacity:1" id="tri-stop1" />
-                                <stop offset="50%" style="stop-color:#0033cc;stop-opacity:1" id="tri-stop2" />
-                                <stop offset="100%" style="stop-color:#001f7a;stop-opacity:1" id="tri-stop3" />
-                            </linearGradient>
-                            <filter id="shadow">
-                                <feDropShadow dx="0" dy="-4" stdDeviation="0" flood-color="white" flood-opacity="1" />
-                            </filter>
-                        </defs>
-                        <path d="M -50 680 L 350 680 L -50 280 Z" fill="url(#grad-triangle)" style="filter: url(#shadow);" />
+                        <defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#001f7a" id="c1"/><stop offset="50%" style="stop-color:#0033cc" id="c2"/><stop offset="100%" style="stop-color:#001f7a" id="c3"/></linearGradient></defs>
+                        <path d="M -50 680 L 350 680 L -50 280 Z" fill="url(#grad)" style="filter: drop-shadow(0 -4px 0 rgba(255,255,255,0.5));" />
                     </svg>
                 </div>
-                
-                <div class="reg-sigla" id="txt-sigla">ASARI</div>
+                <div class="reg-sigla" id="txt-sigla">REGISTRO</div>
             </div>
-            
+
             <div class="front-right" id="bg-panel">
                 <div class="holo-layer"></div>
-                <div class="noise-layer"></div>
-
                 <div class="front-content">
-                    <div class="header">
-                        <span class="header-text">CARNET</span>
-                        <span class="header-text" id="txt-anio">2026</span>
-                    </div>
-
+                    <div class="header"><span class="header-text">CARNET</span><span class="header-text" id="txt-anio">2026</span></div>
                     <div class="course-container">
                         <div class="course-title-main" id="txt-titulo-main">CURSO</div>
                         <div class="course-title-sub" id="txt-titulo-sub">PROFESIONAL</div>
                     </div>
-
                     <div class="student-name" id="txt-nombre">---</div>
-
                     <div class="data-grid">
-                        <div class="icon-box">✱</div> 
-                        <div class="data-box">
-                            <span class="label-text">DNI:</span>
-                            <span class="value-text" id="txt-dni">---</span>
-                        </div>
-                        <div class="icon-box">#</div>
-                        <div class="data-box">
-                            <span class="label-text">MATRÍCULA:</span>
-                            <span class="value-text" id="txt-matricula">---</span>
-                        </div>
-                        <div class="icon-box">🚨</div>
-                        <div class="data-box">
-                            <span class="label-text">VENCE:</span>
-                            <span class="value-text" id="txt-vence">---</span>
-                        </div>
+                        <div class="icon-box">✱</div><div class="data-box"><span class="label-text">DNI:</span><span class="value-text" id="txt-dni">---</span></div>
+                        <div class="icon-box">#</div><div class="data-box"><span class="label-text">MATRÍCULA:</span><span class="value-text" id="txt-matricula">---</span></div>
+                        <div class="icon-box">🚨</div><div class="data-box"><span class="label-text">VENCE:</span><span class="value-text" id="txt-vence">---</span></div>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="card card-back" id="card-back">
-            <img src="https://via.placeholder.com/1011x638/CCCCCC/666666?text=REVERSO+INSTITUCIONAL" alt="Reverso" class="back-image" id="img-reverso">
-            <div class="platinum-overlay"></div>
-            <div class="noise-layer" style="opacity:0.2;"></div>
+            <img src="reverso.jpg" class="back-image" id="img-reverso" onerror="this.src='https://via.placeholder.com/1011x638/CCCCCC/666666?text=FALTA+reverso.jpg'">
         </div>
     </div>
 
     <script>
-        // --- 1. CONFIGURACIÓN SUPABASE (Tus Credenciales Reales) ---
+        // --- 1. CONFIGURACIÓN ---
         const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
-        
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
-        // --- 2. LÓGICA DE BÚSQUEDA ---
-        async function buscarAlumno() {
+        // --- 2. FUNCIÓN PRINCIPAL "GENERAR" ---
+        async function generarCarnet() {
             const dniInput = document.getElementById('input-dni-search').value.trim();
-            const msgError = document.getElementById('msg-error');
-            const panelAcciones = document.getElementById('panel-acciones');
+            const msg = document.getElementById('msg-error');
+            const panel = document.getElementById('panel-acciones');
+            const vista = document.getElementById('vista-previa');
 
-            if (!dniInput) {
-                msgError.style.display = 'block';
-                msgError.innerText = "Por favor ingrese un DNI.";
-                return;
-            }
+            if(!dniInput) return;
+            
+            // UI de carga
+            msg.innerText = "⏳ Generando matrícula y validando..."; 
+            msg.style.display = 'block'; msg.style.color = '#fff';
+            panel.style.display = 'none'; // Ocultar botones hasta terminar
+            vista.classList.remove('active'); // Oscurecer vista previa
 
-            msgError.style.display = 'none';
-            msgError.innerText = "Buscando...";
-            msgError.style.color = "#aaa";
-            msgError.style.display = 'block';
+            // Consulta DB
+            const { data, error } = await db.from('matriculas').select('*').eq('dni_alumno', dniInput).single();
 
-            // CONSULTA A LA BASE DE DATOS
-            const { data, error } = await db
-                .from('matriculas')
-                .select('*')
-                .eq('dni_alumno', dniInput)
-                .single();
-
-            if (error || !data) {
-                msgError.innerText = "❌ No se encontró alumno con ese DNI.";
-                msgError.style.color = "#ff5555";
-                panelAcciones.style.opacity = "0.5";
-                panelAcciones.style.pointerEvents = "none";
+            if(error || !data) {
+                msg.innerText = "❌ Alumno no encontrado. Verifique DNI."; msg.style.color = '#ff5555';
             } else {
-                msgError.style.display = 'none';
-                panelAcciones.style.opacity = "1";
-                panelAcciones.style.pointerEvents = "all";
-                cargarDatosEnCarnet(data);
+                // ÉXITO
+                msg.style.display = 'none';
+                panel.style.display = 'flex'; // Mostrar botón descargar
+                vista.classList.add('active'); // Iluminar carnet
+                
+                procesarDatos(data);
             }
         }
 
-        // Permite buscar presionando ENTER
-        function handleEnter(e) {
-            if(e.key === 'Enter') buscarAlumno();
-        }
-
-        // --- 3. RELLENAR DATOS EN HTML ---
-        function cargarDatosEnCarnet(alumno) {
-            // Nombre Completo
+        function procesarDatos(alumno) {
+            // Textos básicos
             document.getElementById('txt-nombre').innerText = `${alumno.nombre} ${alumno.apellido}`;
             document.getElementById('txt-dni').innerText = alumno.dni_alumno;
             
-            // Matrícula (Usamos el ID y lo rellenamos con ceros, ej: 000123)
-            const matString = String(alumno.id).padStart(6, '0'); 
-            document.getElementById('txt-matricula').innerText = matString;
+            // 1. GENERAR MATRÍCULA ÚNICA (HASH)
+            const matriculaHash = generarHashMatricula(alumno.dni_alumno);
+            document.getElementById('txt-matricula').innerText = matriculaHash;
 
             // Fechas
-            const fechaInicio = new Date(alumno.fecha_inicio);
-            const anio = fechaInicio.getFullYear() || 2026;
-            document.getElementById('txt-anio').innerText = anio;
-
-            // Calculamos vencimiento (Ej: 1 año después) o tomamos si existe
-            // Si quieres lógica fija: fecha + 1 año
-            const vence = new Date(fechaInicio);
-            vence.setFullYear(vence.getFullYear() + 1);
+            const fecha = new Date(alumno.fecha_inicio);
+            document.getElementById('txt-anio').innerText = fecha.getFullYear() || 2026;
+            const vence = new Date(fecha); vence.setFullYear(vence.getFullYear() + 1);
             document.getElementById('txt-vence').innerText = vence.toLocaleDateString('es-AR');
 
-            // Curso (Separar título si es largo)
-            const cursoTexto = alumno.curso || "CURSO";
-            const palabras = cursoTexto.split(' ');
-            const mainT = document.getElementById('txt-titulo-main');
-            const subT = document.getElementById('txt-titulo-sub');
+            // 2. LÓGICA DE REGISTROS (Colores y Siglas)
+            const curso = (alumno.curso || "CURSO").toLowerCase();
+            separarTitulo(alumno.curso || "CURSO");
+            aplicarLogicaRegistro(curso);
 
-            if(palabras.length > 1) {
-                mainT.innerText = palabras[0];
-                subT.innerText = palabras.slice(1).join(' ');
-            } else {
-                mainT.innerText = cursoTexto;
-                subT.innerText = "";
+            // 3. GENERAR QR DE VALIDACIÓN
+            setTimeout(() => {
+                const container = document.getElementById('qr-container');
+                container.innerHTML = "";
+                const qrData = `VALIDADO|${alumno.dni_alumno}|${matriculaHash}|${document.getElementById('txt-sigla').innerText}`;
+                new QRCode(container, {
+                    text: qrData, width: 100, height: 100,
+                    colorDark : "#000", colorLight : "#fff", correctLevel : QRCode.CorrectLevel.L
+                });
+            }, 200);
+        }
+
+        // --- LÓGICA DE NEGOCIO ---
+
+        // A. Matrícula "Hash": Genera un número de 6 dígitos único para el DNI
+        // (Siempre da el mismo número para el mismo DNI, parece aleatorio pero es matemático)
+        function generarHashMatricula(dni) {
+            let hash = 0;
+            for (let i = 0; i < dni.length; i++) {
+                hash = ((hash << 5) - hash) + dni.charCodeAt(i);
+                hash |= 0; 
             }
+            return String(Math.abs(hash)).substring(0, 6).padStart(6, '9'); 
+        }
+
+        // B. Lógica de Registros (Colores y Siglas)
+        function aplicarLogicaRegistro(curso) {
+            let c1='#001f7a', c2='#0033cc', sigla='ASARI'; // Por defecto (Azul)
+
+            if(curso.includes('instructor')) { 
+                // Instructor -> Rojo -> ASARIN
+                c1='#800000'; c2='#cc0000'; sigla='ASARIN'; 
+            } 
+            else if(curso.includes('socorrismo') || curso.includes('rniue')) { 
+                // Socorrismo -> Dorado -> REMAEP (o lo que definas)
+                c1='#8a6e2f'; c2='#b8860b'; sigla='REMAEP'; 
+            }
+            else if(curso.includes('paramedico')) { 
+                // Paramédico -> Azul -> REMAEP
+                c1='#001f7a'; c2='#0033cc'; sigla='REMAEP'; 
+            }
+
+            // Aplicar cambios visuales
+            document.getElementById('bg-panel').style.background = c2;
+            document.getElementById('card-front').style.borderColor = c2;
+            document.getElementById('txt-sigla').innerText = sigla;
             
-            // Ajustar tamaño de fuente dinámico
-            ajustarFuente(mainT, mainT.innerText);
-
-            // Colores (Lógica básica según curso)
-            aplicarColores(cursoTexto.toLowerCase());
-
-            // Generar QR
-            generarQR(alumno);
+            // Degradado del triángulo
+            document.getElementById('c1').style.stopColor = c1;
+            document.getElementById('c2').style.stopColor = c2;
+            document.getElementById('c3').style.stopColor = c1;
         }
 
-        function generarQR(alumno) {
-            const container = document.getElementById('qr-container');
-            container.innerHTML = ""; // Limpiar anterior
-
-            // Datos que leerá el celular al escanear
-            const infoQR = `VALIDADO|${alumno.dni_alumno}|${alumno.curso}|Mat:${alumno.id}|Estado:${alumno.estado}`;
-
-            new QRCode(container, {
-                text: infoQR,
-                width: 90, // Ajustado al tamaño del contenedor CSS
-                height: 90,
-                colorDark : "#000000",
-                colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.M
-            });
-        }
-
-        // --- 4. LÓGICA DE ESTILOS Y COLORES ---
-        function ajustarFuente(elemento, texto) {
-            const len = texto.length;
-            if(len > 15) elemento.style.fontSize = "55px";
-            else if (len > 10) elemento.style.fontSize = "65px";
-            else elemento.style.fontSize = "85px";
-        }
-
-        function aplicarColores(curso) {
-            // Variables de elementos
-            const panel = document.getElementById('bg-panel');
-            const card = document.getElementById('card-front');
-            const sigla = document.getElementById('txt-sigla');
-            const stops = [document.getElementById('tri-stop1'), document.getElementById('tri-stop2'), document.getElementById('tri-stop3')];
-
-            let c1, c2, c3, borde, txtSigla;
-
-            // Lógica de colores (Puedes agregar más)
-            if (curso.includes('instructor')) {
-                // ROJO (Instructor)
-                c1='#800000'; c2='#cc0000'; c3='#ff3333'; borde='#cc0000'; txtSigla='INSTRUCTOR';
-            } else if (curso.includes('socorrismo') || curso.includes('rniue')) {
-                // DORADO
-                c1='#8a6e2f'; c2='#b8860b'; c3='#ffd700'; borde='#b8860b'; txtSigla='ASARI';
+        // --- UTILIDADES ---
+        function separarTitulo(texto) {
+            const palabras = texto.split(' ');
+            if(palabras.length > 1) {
+                document.getElementById('txt-titulo-main').innerText = palabras[0];
+                document.getElementById('txt-titulo-sub').innerText = palabras.slice(1).join(' ');
             } else {
-                // AZUL (Defecto / Paramédico)
-                c1='#001f7a'; c2='#0033cc'; c3='#005ce6'; borde='#0033cc'; txtSigla='ASARI';
+                document.getElementById('txt-titulo-main').innerText = texto;
+                document.getElementById('txt-titulo-sub').innerText = "";
             }
-
-            // Aplicar
-            panel.style.background = `linear-gradient(135deg, ${c1}, ${c2}, ${c3}, ${c1})`;
-            card.style.borderColor = borde;
-            sigla.innerText = txtSigla;
-            stops.forEach(s => s.style.stopColor = (s.id.includes('2') ? c2 : c1));
         }
 
-        // --- 5. CARGA DE FOTO LOCAL (Mantenemos tu función) ---
-        function cargarFotoLocal() {
-            const input = document.getElementById('input-foto');
+        function cargarImagen(input, imgId) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = document.getElementById('img-foto');
+                reader.onload = (e) => {
+                    const img = document.getElementById(imgId);
                     img.src = e.target.result;
                     img.style.display = 'block';
-                    document.getElementById('placeholder-foto').style.display = 'none';
+                    if(imgId === 'img-foto') document.getElementById('placeholder-foto').style.display = 'none';
                 }
                 reader.readAsDataURL(input.files[0]);
             }
         }
 
-        // --- 6. DESCARGA (Tu función optimizada) ---
-        async function descargarCompletoCosido(fileName) {
+        async function descargarCarnet() {
             const front = document.getElementById('card-front');
             const back = document.getElementById('card-back');
             
-            // Clonamos para no afectar la vista
-            const cloneFront = front.cloneNode(true);
-            const cloneBack = back.cloneNode(true);
+            // Clonar para renderizar limpio
+            const box = document.createElement('div');
+            box.style.position='fixed'; box.style.top='-9999px';
+            document.body.appendChild(box);
             
-            // Contenedor temporal invisible
-            const tempContainer = document.createElement('div');
-            tempContainer.style.position = 'absolute';
-            tempContainer.style.top = '-9999px';
-            tempContainer.appendChild(cloneFront);
-            tempContainer.appendChild(cloneBack);
-            document.body.appendChild(tempContainer);
-
-            // Ajustes para el clon (quitamos sombras y margenes)
-            [cloneFront, cloneBack].forEach(clone => {
-                clone.style.transform = "none";
-                clone.style.margin = "0";
-                clone.style.boxShadow = "none";
-            });
-
-            // Re-pintar las imágenes en el clon
-            const originalPhoto = document.getElementById('img-foto');
-            if(originalPhoto.src) cloneFront.querySelector('#img-foto').src = originalPhoto.src;
+            const cFront = front.cloneNode(true);
+            const cBack = back.cloneNode(true);
+            [cFront, cBack].forEach(c => { c.style.margin='0'; c.style.boxShadow='none'; c.style.transform='none'; });
             
+            // Transferir imágenes
+            const srcFoto = document.getElementById('img-foto').src;
+            if(srcFoto && document.getElementById('img-foto').style.display !== 'none') cFront.querySelector('#img-foto').src = srcFoto;
+            
+            // Asegurar QR
+            cFront.querySelector('#qr-container').innerHTML = document.getElementById('qr-container').innerHTML;
+
+            box.appendChild(cFront); box.appendChild(cBack);
+
             // Renderizado
-            const canvasFront = await html2canvas(cloneFront, { scale: 1, backgroundColor: null, width: 1011, height: 638 });
-            const canvasBack = await html2canvas(cloneBack, { scale: 1, backgroundColor: null, width: 1011, height: 638 });
+            const canvas1 = await html2canvas(cFront, {scale:1, width:1011, height:638, backgroundColor:null});
+            const canvas2 = await html2canvas(cBack, {scale:1, width:1011, height:638, backgroundColor:null});
 
-            // Unir en un canvas final
-            const finalCanvas = document.createElement('canvas');
-            const gap = 40;
-            finalCanvas.width = 1011;
-            finalCanvas.height = (638 * 2) + gap;
-            const ctx = finalCanvas.getContext('2d');
-            
-            ctx.drawImage(canvasFront, 0, 0);
-            ctx.drawImage(canvasBack, 0, 638 + gap);
+            // Unir
+            const final = document.createElement('canvas');
+            final.width = 1011; final.height = (638 * 2) + 40;
+            const ctx = final.getContext('2d');
+            ctx.drawImage(canvas1, 0, 0);
+            ctx.drawImage(canvas2, 0, 638 + 40);
 
             // Descargar
             const link = document.createElement('a');
-            link.download = `${fileName}_${document.getElementById('txt-dni').innerText}.png`;
-            link.href = finalCanvas.toDataURL("image/png");
+            link.download = `Carnet_${document.getElementById('txt-dni').innerText}.png`;
+            link.href = final.toDataURL("image/png");
             link.click();
-            
-            document.body.removeChild(tempContainer);
+            document.body.removeChild(box);
         }
     </script>
 </body>
