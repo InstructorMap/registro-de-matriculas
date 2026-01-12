@@ -15,12 +15,12 @@
             <h3>🎓 Alta de Alumno (ASARI)</h3>
         </div>
         <div class="card-body">
-            <form id="formAlta">
+            <div id="formulario">
                 
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label class="form-label">DNI (Usuario)</label>
-                        <input type="text" id="dni" class="form-control" placeholder="Ej: 33656107" required>
+                        <input type="text" id="dni" class="form-control" placeholder="Ej: 33656107">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Email</label>
@@ -31,11 +31,11 @@
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label class="form-label">Nombre</label>
-                        <input type="text" id="nombre" class="form-control" required>
+                        <input type="text" id="nombre" class="form-control">
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Apellido</label>
-                        <input type="text" id="apellido" class="form-control" required>
+                        <input type="text" id="apellido" class="form-control">
                     </div>
                 </div>
 
@@ -61,8 +61,8 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-success w-100 p-3">💾 GUARDAR ALUMNO</button>
-            </form>
+                <button onclick="guardarAlumno()" id="btnGuardar" class="btn btn-success w-100 p-3">💾 GUARDAR ALUMNO</button>
+            </div>
 
             <div id="mensaje" class="mt-3"></div>
         </div>
@@ -71,45 +71,72 @@
 
 <script>
     // ---------------------------------------------------------
-    // TUS DATOS (URL y Clave 'Legacy' eyJ...)
+    // TUS DATOS (Confirmados por la prueba exitosa)
     // ---------------------------------------------------------
     const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
     const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
     // ---------------------------------------------------------
 
-    // CORRECCIÓN: Usamos 'db' en lugar de 'supabase' para evitar conflictos
+    // Inicializamos el cliente
     const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
-    document.getElementById('formAlta').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
+    async function guardarAlumno() {
+        // 1. Bloquear botón para evitar doble click
+        const btn = document.getElementById('btnGuardar');
         const msgDiv = document.getElementById('mensaje');
-        msgDiv.innerHTML = '<div class="alert alert-info">⏳ Conectando...</div>';
+        
+        btn.disabled = true;
+        btn.innerText = "⏳ Guardando...";
+        msgDiv.innerHTML = '';
+
+        // 2. Recolectar datos
+        const dniVal = document.getElementById('dni').value;
+        const nombreVal = document.getElementById('nombre').value;
+        const apellidoVal = document.getElementById('apellido').value;
+
+        // Validación básica
+        if(!dniVal || !nombreVal || !apellidoVal) {
+            msgDiv.innerHTML = '<div class="alert alert-warning">⚠️ Por favor completa DNI, Nombre y Apellido.</div>';
+            btn.disabled = false;
+            btn.innerText = "💾 GUARDAR ALUMNO";
+            return;
+        }
 
         const datos = {
-            dni_alumno: document.getElementById('dni').value,
-            nombre: document.getElementById('nombre').value,
-            apellido: document.getElementById('apellido').value,
+            dni_alumno: dniVal,
+            nombre: nombreVal,
+            apellido: apellidoVal,
             email: document.getElementById('email').value,
             curso: document.getElementById('curso').value,
             estado: document.getElementById('estado').value,
             fecha_inicio: document.getElementById('fecha').value || new Date().toISOString().split('T')[0]
         };
 
+        // 3. Enviar a Supabase (Igual que en el test)
         const { data, error } = await db
             .from('matriculas')
             .insert([datos])
             .select();
 
+        // 4. Mostrar resultado
         if (error) {
             console.error('Error:', error);
             msgDiv.innerHTML = `<div class="alert alert-danger">❌ Error: ${error.message}</div>`;
         } else {
             console.log('Guardado:', data);
-            msgDiv.innerHTML = `<div class="alert alert-success">✅ ¡ÉXITO! Alumno guardado.</div>`;
-            document.getElementById('formAlta').reset();
+            msgDiv.innerHTML = `<div class="alert alert-success">✅ ¡ÉXITO! Alumno <b>${datos.apellido}</b> guardado correctamente.</div>`;
+            
+            // Limpiar campos
+            document.getElementById('dni').value = '';
+            document.getElementById('nombre').value = '';
+            document.getElementById('apellido').value = '';
+            document.getElementById('email').value = '';
         }
-    });
+
+        // Restaurar botón
+        btn.disabled = false;
+        btn.innerText = "💾 GUARDAR ALUMNO";
+    }
 </script>
 
 </body>
