@@ -11,70 +11,37 @@
     
     <style>
         body { font-family: 'Roboto', sans-serif; background-color: #f3f4f6; }
-        
-        /* VARIABLES CSS DINÁMICAS (Para el cambio de color) */
-        :root {
-            --primary-color: #1e3a8a; /* Azul por defecto */
-            --text-on-primary: white;
-        }
+        :root { --primary-color: #1e3a8a; --text-on-primary: white; }
 
-        /* TARJETA PRINCIPAL */
         .verification-card {
-            background: white;
-            max-width: 500px;
-            margin: 60px auto 40px; /* Margen superior amplio para la foto */
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-            overflow: visible; /* Importante para que la foto sobresalga */
-            border-top: 8px solid var(--primary-color);
-            position: relative;
+            background: white; max-width: 500px; margin: 60px auto 40px;
+            border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            border-top: 8px solid var(--primary-color); position: relative; overflow: visible;
             animation: fadeIn 0.8s ease-out;
         }
 
-        /* ENCABEZADO */
         .header-dynamic {
-            background: var(--primary-color);
-            color: var(--text-on-primary);
-            padding: 20px 20px 80px 20px; /* Padding inferior grande para dejar espacio a la foto */
-            text-align: center;
-            border-radius: 12px 12px 0 0;
-            transition: background 0.5s ease;
+            background: var(--primary-color); color: var(--text-on-primary);
+            padding: 20px 20px 80px 20px; text-align: center;
+            border-radius: 12px 12px 0 0; transition: background 0.5s ease;
         }
 
-        /* FOTO DEL ALUMNO */
         .student-photo-container {
-            width: 140px; height: 140px;
-            margin: -70px auto 15px; /* Sube la foto sobre el header */
-            border-radius: 50%;
-            border: 5px solid white;
-            background: #e5e7eb;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            overflow: hidden;
-            position: relative;
-            z-index: 10;
+            width: 140px; height: 140px; margin: -70px auto 15px;
+            border-radius: 50%; border: 5px solid white; background: #e5e7eb;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); overflow: hidden; position: relative; z-index: 10;
         }
         .student-photo { width: 100%; height: 100%; object-fit: cover; }
 
-        /* BADGE DE ESTADO */
         .status-badge {
-            display: inline-block;
-            padding: 6px 20px;
-            background: rgba(255,255,255,0.9);
-            color: var(--primary-color);
-            border-radius: 50px;
-            font-weight: 900;
-            text-transform: uppercase;
-            font-size: 11px;
-            letter-spacing: 1px;
-            margin-top: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: inline-block; padding: 6px 20px; background: rgba(255,255,255,0.9);
+            color: var(--primary-color); border-radius: 50px; font-weight: 900;
+            text-transform: uppercase; font-size: 11px; letter-spacing: 1px; margin-top: 8px;
         }
 
-        /* TEXTOS */
-        .data-label { font-size: 10px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+        .data-label { font-size: 10px; font-weight: 700; color: #9ca3af; text-transform: uppercase; margin-bottom: 2px; }
         .data-value { font-size: 16px; font-weight: 900; color: #1f2937; line-height: 1.2; }
         
-        /* LOADING */
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary-color); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 50px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -83,7 +50,6 @@
 <body class="min-h-screen flex flex-col items-center justify-center p-4">
 
     <div class="verification-card w-full">
-        
         <div class="header-dynamic" id="dynamic-header">
             <div class="text-4xl mb-1">🛡️</div>
             <h1 class="text-lg font-black italic uppercase tracking-tighter" id="titulo-sistema">SISTEMA DE VALIDACIÓN</h1>
@@ -93,12 +59,8 @@
         <div id="loading" class="loader"></div>
 
         <div id="content" class="hidden pb-8 px-8">
-            
             <div class="student-photo-container">
-                <img id="student-photo-img" 
-                     src="https://via.placeholder.com/150/CCCCCC/666666?text=..." 
-                     class="student-photo" 
-                     alt="Foto Alumno">
+                <img id="student-photo-img" src="" class="student-photo" alt="Foto Alumno">
             </div>
 
             <div class="text-center">
@@ -108,37 +70,15 @@
                 </div>
 
                 <div class="space-y-5 text-left">
-                    
-                    <div>
-                        <p class="data-label">Certificación / Curso</p>
-                        <p id="student-curso" class="data-value text-blue-900"></p>
-                    </div>
-
+                    <div><p class="data-label">Certificación</p><p id="student-curso" class="data-value text-blue-900"></p></div>
                     <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <p class="data-label">Matrícula (Hash)</p>
-                            <p id="student-matricula" class="data-value font-mono text-gray-600"></p>
-                        </div>
-                        <div>
-                            <p class="data-label">Registro</p>
-                            <p id="student-registro" class="data-value"></p>
-                        </div>
+                        <div><p class="data-label">Matrícula</p><p id="student-matricula" class="data-value font-mono text-gray-600"></p></div>
+                        <div><p class="data-label">Registro</p><p id="student-registro" class="data-value"></p></div>
                     </div>
-
                     <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <p class="data-label">Estado</p>
-                            <div class="flex items-center gap-1.5 mt-1">
-                                <span class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></span>
-                                <span class="text-green-600 font-bold text-sm">VIGENTE</span>
-                            </div>
-                        </div>
-                        <div>
-                            <p class="data-label">Vencimiento</p>
-                            <p id="student-vence" class="data-value text-red-500"></p>
-                        </div>
+                        <div><p class="data-label">Estado</p><div class="flex items-center gap-1.5 mt-1"><span class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></span><span class="text-green-600 font-bold text-sm">VIGENTE</span></div></div>
+                        <div><p class="data-label">Vencimiento</p><p id="student-vence" class="data-value text-red-500"></p></div>
                     </div>
-
                 </div>
 
                 <div class="mt-8 pt-4 border-t border-gray-100 text-center">
@@ -146,147 +86,92 @@
                     <p class="text-[10px] text-gray-300" id="scan-date"></p>
                 </div>
             </div>
-            
             <div style="height: 6px; width: 100%; background: var(--primary-color); position:absolute; bottom:0; left:0; border-radius: 0 0 20px 20px;"></div>
         </div>
 
         <div id="error-screen" class="hidden p-10 text-center pb-12">
             <div class="text-6xl mb-4">🚫</div>
-            <h2 class="text-xl font-black text-red-600 uppercase mb-2">Matrícula No Encontrada</h2>
-            <p class="text-sm text-gray-500 leading-relaxed">
-                El código escaneado no coincide con ningún alumno activo en nuestra base de datos oficial.
-            </p>
+            <h2 class="text-xl font-black text-red-600 uppercase mb-2">Enlace No Válido</h2>
+            <p class="text-sm text-gray-500">Escanee el código QR de una credencial oficial.</p>
         </div>
-
     </div>
 
     <p class="text-[10px] text-gray-400 font-bold uppercase">ASARI Digital Technology © 2026</p>
 
     <script>
-        // --- 1. CONFIGURACIÓN ---
         const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
-        // --- 2. LÓGICA DE INICIO ---
         document.addEventListener('DOMContentLoaded', async () => {
-            // Fecha de consulta actual
             document.getElementById('scan-date').textContent = new Date().toLocaleString();
-
-            // Leer DNI de la URL (?dni=123)
+            
+            // LEER DNI DE LA URL
             const params = new URLSearchParams(window.location.search);
             const dniBuscado = params.get('dni');
 
             if (!dniBuscado) {
-                showError();
+                // Si no hay DNI en la URL, mostramos error (NO REDIRECCIONA A NINGÚN LADO)
+                showError(); 
                 return;
             }
 
             try {
-                // Consulta a Supabase
-                const { data, error } = await db
-                    .from('matriculas')
-                    .select('*')
-                    .eq('dni_alumno', dniBuscado)
-                    .maybeSingle(); // Traer solo uno (o null si no hay)
-
-                if (error) throw error;
-                
-                if (!data) {
-                    showError(); // No existe el DNI
-                } else {
-                    renderData(data); // Existe -> Mostrar
-                }
-
-            } catch (err) {
-                console.error("Error técnico:", err);
-                showError();
-            }
+                const { data, error } = await db.from('matriculas').select('*').eq('dni_alumno', dniBuscado).maybeSingle();
+                if (error || !data) { showError(); return; }
+                renderData(data);
+            } catch (err) { showError(); }
         });
 
-        // --- 3. RENDERIZADO (LLENAR DATOS) ---
         function renderData(alumno) {
-            // Cálculos
-            const registroId = alumno.registro_id || 'remaep';
-            const matHash = generarHashMatricula(String(alumno.dni_alumno));
-            const fechaInicio = new Date(alumno.fecha_inicio);
-            const vence = new Date(fechaInicio); vence.setFullYear(vence.getFullYear() + 1);
+            const rid = alumno.registro_id || 'remaep';
+            const hash = String(Math.abs(alumno.dni_alumno.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a|0},0))).substring(0,6).padStart(6,'9');
+            const vence = new Date(alumno.fecha_inicio); vence.setFullYear(vence.getFullYear() + 1);
 
-            // A. Aplicar Estética (Colores y Textos)
-            aplicarTema(registroId);
+            aplicarTema(rid);
 
-            // B. Inyectar Textos
             document.getElementById('student-name').textContent = `${alumno.nombre} ${alumno.apellido}`;
             document.getElementById('student-dni').textContent = `DNI: ${alumno.dni_alumno}`;
             document.getElementById('student-curso').textContent = alumno.curso || "Curso Profesional";
-            document.getElementById('student-matricula').textContent = matHash;
+            document.getElementById('student-matricula').textContent = hash;
             document.getElementById('student-vence').textContent = vence.toLocaleDateString('es-AR');
 
-            // C. Inyectar FOTO
             const imgEl = document.getElementById('student-photo-img');
-            if (alumno.foto_url) {
-                // Si hay foto en la nube, usarla
-                imgEl.src = alumno.foto_url;
-            } else {
-                // Si no, usar una silueta genérica
-                imgEl.src = "https://cdn-icons-png.flaticon.com/512/847/847969.png"; 
-            }
+            imgEl.src = alumno.foto_url || "https://cdn-icons-png.flaticon.com/512/847/847969.png"; 
 
-            // Mostrar la tarjeta
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('content').classList.remove('hidden');
         }
 
-        // --- 4. LÓGICA CAMALEÓNICA (COLORES) ---
-        function aplicarTema(registroId) {
-            const estilos = {
-                'remaep': { color: '#0033cc', sigla: 'R.E.M.A.E.P', titulo: 'SALUD & RESCATE' },
-                'rniue':  { color: '#b8860b', sigla: 'R.N.I.U.E',   titulo: 'SOCORRISMO' },
-                'rubra':  { color: '#cc0000', sigla: 'R.U.B.R.A',   titulo: 'BÚSQUEDA Y RESCATE' },
-                'rmts':   { color: '#2f4f4f', sigla: 'R.M.T.S',     titulo: 'SANIDAD TÁCTICA' },
-                'rce':    { color: '#ffcc00', sigla: 'R.C.E',       titulo: 'EMERGENCIAS', texto: 'black' },
-                'rpde':   { color: '#0099ff', sigla: 'R.P.D.E',     titulo: 'DEPORTIVO' },
-                'asarin': { color: '#800000', sigla: 'ASARIN',      titulo: 'INSTRUCTOR MAYOR' }
+        function aplicarTema(rid) {
+            const s = {
+                'remaep': { c: '#0033cc', t: 'SALUD & RESCATE', sg: 'R.E.M.A.E.P' },
+                'rniue':  { c: '#b8860b', t: 'SOCORRISMO',      sg: 'R.N.I.U.E' },
+                'rubra':  { c: '#cc0000', t: 'BÚSQUEDA',        sg: 'R.U.B.R.A' },
+                'rmts':   { c: '#2f4f4f', t: 'SANIDAD TÁCTICA', sg: 'R.M.T.S' },
+                'rce':    { c: '#ffcc00', t: 'EMERGENCIAS',     sg: 'R.C.E', txt: 'black' },
+                'rpde':   { c: '#0099ff', t: 'DEPORTIVO',       sg: 'R.P.D.E' },
+                'asarin': { c: '#800000', t: 'INSTRUCTOR',      sg: 'ASARIN' }
             };
-
-            const config = estilos[String(registroId).toLowerCase()] || estilos['remaep'];
-
-            // Variables CSS
+            const cfg = s[String(rid).toLowerCase()] || s['remaep'];
+            
             const root = document.documentElement;
-            root.style.setProperty('--primary-color', config.color);
-            if(config.texto === 'black') {
-                root.style.setProperty('--text-on-primary', 'black');
-            } else {
-                root.style.setProperty('--text-on-primary', 'white');
-            }
+            root.style.setProperty('--primary-color', cfg.c);
+            root.style.setProperty('--text-on-primary', cfg.txt === 'black' ? 'black' : 'white');
 
-            // Textos específicos
-            document.getElementById('titulo-sistema').textContent = config.titulo;
-            document.getElementById('status-badge').textContent = `VALIDADO • ${config.sigla}`;
-            document.getElementById('status-badge').style.color = config.color;
-            document.getElementById('student-registro').textContent = config.sigla;
-            document.getElementById('student-registro').style.color = config.color;
+            document.getElementById('titulo-sistema').textContent = cfg.t;
+            document.getElementById('status-badge').textContent = `VALIDADO • ${cfg.sg}`;
+            document.getElementById('student-registro').textContent = cfg.sg;
+            document.getElementById('student-registro').style.color = cfg.c;
+            document.getElementById('status-badge').style.color = cfg.c;
         }
 
-        // --- 5. PANTALLA DE ERROR ---
         function showError() {
             document.getElementById('loading').classList.add('hidden');
-            // Cambiar a rojo
-            const root = document.documentElement;
-            root.style.setProperty('--primary-color', '#ef4444'); 
-            
+            document.documentElement.style.setProperty('--primary-color', '#ef4444');
             document.getElementById('titulo-sistema').textContent = "ERROR";
-            document.getElementById('status-badge').textContent = "NO VÁLIDO";
-            document.getElementById('status-badge').style.color = '#ef4444';
-            
+            document.getElementById('status-badge').textContent = "NO ENCONTRADO";
             document.getElementById('error-screen').classList.remove('hidden');
-        }
-
-        // --- 6. UTILIDAD (HASH) ---
-        function generarHashMatricula(dni) {
-            let hash = 0;
-            for (let i = 0; i < dni.length; i++) { hash = ((hash << 5) - hash) + dni.charCodeAt(i); hash |= 0; }
-            return String(Math.abs(hash)).substring(0, 6).padStart(6, '9'); 
         }
     </script>
 </body>
