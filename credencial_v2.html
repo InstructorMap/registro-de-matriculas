@@ -46,34 +46,24 @@
         .svg-triangle-container { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
         .reg-sigla { position: absolute; bottom: 15px; left: 0; width: 100%; text-align: center; color: white; font-size: 22px; font-weight: 900; z-index: 6; text-shadow: 2px 2px 4px rgba(0,0,0,0.9); letter-spacing: 2px; }
         
-        /* --- QR GIGANTE CORREGIDO --- */
+        /* QR CONTENEDOR (Estilo corregido) */
         .qr-on-photo { 
             position: absolute; 
             bottom: 45px; 
             left: 50%; 
             transform: translateX(-50%); 
-            
-            /* Tamaño del CONTENEDOR BLANCO */
             width: 160px;   
             height: 160px;  
-            
             background: white; 
-            padding: 8px; /* Margen blanco alrededor del código */
+            padding: 8px; 
             border-radius: 12px; 
             z-index: 5; 
             box-shadow: 0 6px 20px rgba(0,0,0,0.6); 
-            
-            /* Centrado Flex */
             display: flex; 
             justify-content: center; 
             align-items: center; 
         }
-        
-        /* ⚠️ CORRECCIÓN CLAVE: NO ESTIRAR LA IMAGEN */
-        .qr-on-photo img { 
-            /* Dejamos que el script defina el tamaño exacto para evitar borrosidad */
-            display: block; 
-        }
+        .qr-on-photo img { display: block; } /* Sin width 100% para evitar blur */
 
         /* Frente Derecha */
         .front-right { flex: 1; position: relative; color: white; padding: 20px 35px; display: flex; flex-direction: column; justify-content: space-between; background-color: #0033cc; }
@@ -122,9 +112,7 @@
             <div class="front-left">
                 <img id="img-foto" class="student-photo" src="" style="display:none;">
                 <div style="position:absolute; top:40%; width:100%; text-align:center; color:#555; font-weight:bold;" id="placeholder-foto">FOTO</div>
-                
                 <div class="qr-on-photo" id="qr-container"></div>
-                
                 <div class="svg-triangle-container">
                     <svg viewBox="0 0 380 638" width="100%" height="100%" preserveAspectRatio="none">
                         <defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#001f7a" id="c1"/><stop offset="50%" style="stop-color:#0033cc" id="c2"/><stop offset="100%" style="stop-color:#001f7a" id="c3"/></linearGradient></defs>
@@ -157,11 +145,10 @@
     </div>
 
     <script>
-        // --- CONFIGURACIÓN ---
         const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         
-        // TU URL REAL DE GITHUB
+        // ⚠️ ENLACE A TU VALIDADOR (Confirmado)
         const URL_WEB = 'https://instructormap.github.io/registro-de-matriculas';
         
         let db;
@@ -171,7 +158,6 @@
             document.getElementById('input-dni-search').addEventListener('keypress', function(e) { if (e.key === 'Enter') window.generarCarnet(); });
         });
 
-        // --- BÚSQUEDA ---
         window.generarCarnet = async function() {
             const dni = String(document.getElementById('input-dni-search').value).trim();
             const msg = document.getElementById('msg-error');
@@ -209,7 +195,7 @@
             document.getElementById('panel-acciones').style.display = 'flex';
             document.getElementById('vista-previa').classList.add('active');
 
-            // 1. Textos
+            // 1. Datos
             document.getElementById('txt-nombre').innerText = `${alumno.nombre} ${alumno.apellido}`;
             document.getElementById('txt-dni').innerText = alumno.dni_alumno;
             const matHash = generarHashMatricula(String(alumno.dni_alumno));
@@ -235,18 +221,15 @@
                 ph.style.display = 'block';
             }
 
-            // 3. GENERACIÓN QR (NÍTIDO Y OPTIMIZADO)
+            // 3. GENERACIÓN QR (CORREGIDA: USA ID EN LUGAR DE DNI)
             setTimeout(() => {
                 const c = document.getElementById('qr-container'); 
-                c.innerHTML = ""; // Limpiar
+                c.innerHTML = ""; 
                 
-                // Enlace final
+                // 🔥 AQUÍ ESTÁ LA CORRECCIÓN: usamos alumno.id
                 const linkValidacion = `${URL_WEB}/validador.html?id=${alumno.id}`;
-                console.log("QR Link:", linkValidacion);
+                console.log("QR generado para:", linkValidacion);
 
-                // Generamos QR. 
-                // width y height deben ser un poco menores que el contenedor (160px) para dejar margen
-                // Usamos 'CorrectLevel.L' para menos puntos = más fácil de leer
                 new QRCode(c, { 
                     text: linkValidacion, 
                     width: 144, 
@@ -258,7 +241,6 @@
             }, 300);
         }
 
-        // --- SUBIR FOTO ---
         window.subirFotoNube = async function(input) {
             if (!input.files || !input.files[0]) return;
             const file = input.files[0];
@@ -300,7 +282,6 @@
             }
         };
 
-        // --- UTILIDADES ---
         function generarHashMatricula(dni) {
             let hash = 0;
             for (let i = 0; i < dni.length; i++) { hash = ((hash << 5) - hash) + dni.charCodeAt(i); hash |= 0; }
