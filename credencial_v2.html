@@ -45,7 +45,11 @@
         .student-photo { width: 100%; height: 100%; object-fit: cover; }
         .svg-triangle-container { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
         .reg-sigla { position: absolute; bottom: 15px; left: 0; width: 100%; text-align: center; color: white; font-size: 22px; font-weight: 900; z-index: 6; text-shadow: 2px 2px 4px rgba(0,0,0,0.9); letter-spacing: 2px; }
+        
+        /* QR CONTENEDOR */
         .qr-on-photo { position: absolute; bottom: 55px; left: 50%; transform: translateX(-50%); width: 110px; height: 110px; background: white; padding: 5px; border-radius: 10px; z-index: 5; box-shadow: 0 4px 15px rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; }
+        /* Aseguramos que la imagen del QR llene el contenedor */
+        .qr-on-photo img { width: 100%; height: 100%; }
 
         /* Frente Derecha */
         .front-right { flex: 1; position: relative; color: white; padding: 20px 35px; display: flex; flex-direction: column; justify-content: space-between; background-color: #0033cc; }
@@ -130,18 +134,17 @@
     </div>
 
     <script>
-        // --- 1. CONFIGURACIÓN ---
+        // --- 1. CONFIGURACIÓN CRÍTICA ---
         const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         
-        // 🔥 TU URL DE GITHUB CONFIGURADA 🔥
+        // 👇👇 ¡TU ENLACE DE GITHUB AQUÍ! 👇👇
         const URL_WEB = 'https://instructormap.github.io/registro-de-matriculas';
         
         let db;
 
         document.addEventListener('DOMContentLoaded', () => {
             db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
-            // Evento Enter
             document.getElementById('input-dni-search').addEventListener('keypress', function(e) { if (e.key === 'Enter') window.generarCarnet(); });
         });
 
@@ -151,14 +154,17 @@
             const msg = document.getElementById('msg-error');
             
             // Reset UI
-            msg.style.display = 'none'; document.getElementById('panel-acciones').style.display = 'none'; document.getElementById('selector-cursos').style.display = 'none'; document.getElementById('vista-previa').classList.remove('active');
+            msg.style.display = 'none'; 
+            document.getElementById('panel-acciones').style.display = 'none'; 
+            document.getElementById('selector-cursos').style.display = 'none'; 
+            document.getElementById('vista-previa').classList.remove('active');
 
             if(!dni) { alert("Ingrese DNI."); return; }
             msg.innerText = "⏳ Buscando..."; msg.style.display = 'block'; msg.style.color = '#fff';
 
             const { data, error } = await db.from('matriculas').select('*').eq('dni_alumno', dni);
 
-            if (error) { console.error(error); msg.innerText = "Error: " + error.message; return; }
+            if (error) { console.error(error); msg.innerText = "Error conexión."; return; }
             if (!data || data.length === 0) { msg.innerText = "❌ No encontrado."; msg.style.color = '#ff5555'; return; }
             
             if (data.length === 1) { msg.style.display='none'; procesarDatos(data[0]); }
@@ -180,7 +186,7 @@
             document.getElementById('panel-acciones').style.display = 'flex';
             document.getElementById('vista-previa').classList.add('active');
 
-            // Textos
+            // 1. Textos
             document.getElementById('txt-nombre').innerText = `${alumno.nombre} ${alumno.apellido}`;
             document.getElementById('txt-dni').innerText = alumno.dni_alumno;
             const matHash = generarHashMatricula(String(alumno.dni_alumno));
@@ -194,7 +200,7 @@
             separarTitulo(alumno.curso || "CURSO");
             aplicarLogicaRegistro(alumno.registro_id || 'remaep');
 
-            // Foto
+            // 2. Foto
             const img = document.getElementById('img-foto');
             const ph = document.getElementById('placeholder-foto');
             if (alumno.foto_url) {
@@ -206,26 +212,34 @@
                 ph.style.display = 'block';
             }
 
-            // QR QUE LLEVA A GITHUB
+            // 3. GENERACIÓN SEGURA DEL QR
             setTimeout(() => {
                 const c = document.getElementById('qr-container'); 
-                c.innerHTML = "";
+                c.innerHTML = ""; // Limpiar
                 
-                // CONSTRUCCIÓN DEL LINK DE VALIDACIÓN
+                // Verificar que URL_WEB no esté vacía
+                if(URL_WEB === "PON_AQUI_TU_LINK") {
+                    console.error("FALTA CONFIGURAR URL_WEB");
+                    return;
+                }
+
+                // Construcción del enlace
                 const linkValidacion = `${URL_WEB}/validador.html?dni=${alumno.dni_alumno}`;
-                
+                console.log("Generando QR para:", linkValidacion);
+
+                // Generar QR con mejor corrección de errores
                 new QRCode(c, { 
                     text: linkValidacion, 
                     width: 100, 
                     height: 100,
-                    colorDark : "#000",
-                    colorLight : "#fff",
-                    correctLevel : QRCode.CorrectLevel.L
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.M // M = Medium (Mejor lectura)
                 });
-            }, 100);
+            }, 300); // 300ms de espera para asegurar que el contenedor existe
         }
 
-        // --- SUBIR FOTO ---
+        // --- SUBIDA FOTO ---
         window.subirFotoNube = async function(input) {
             if (!input.files || !input.files[0]) return;
             const file = input.files[0];
