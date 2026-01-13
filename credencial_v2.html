@@ -46,24 +46,34 @@
         .svg-triangle-container { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
         .reg-sigla { position: absolute; bottom: 15px; left: 0; width: 100%; text-align: center; color: white; font-size: 22px; font-weight: 900; z-index: 6; text-shadow: 2px 2px 4px rgba(0,0,0,0.9); letter-spacing: 2px; }
         
-        /* --- QR GIGANTE (Modificado) --- */
+        /* --- QR GIGANTE CORREGIDO --- */
         .qr-on-photo { 
             position: absolute; 
-            bottom: 45px; /* Ajustado para dar espacio */
+            bottom: 45px; 
             left: 50%; 
             transform: translateX(-50%); 
-            width: 160px;   /* ANTES: 110px */
-            height: 160px;  /* ANTES: 110px */
+            
+            /* Tamaño del CONTENEDOR BLANCO */
+            width: 160px;   
+            height: 160px;  
+            
             background: white; 
-            padding: 8px;   /* Un poco más de borde blanco */
+            padding: 8px; /* Margen blanco alrededor del código */
             border-radius: 12px; 
             z-index: 5; 
             box-shadow: 0 6px 20px rgba(0,0,0,0.6); 
+            
+            /* Centrado Flex */
             display: flex; 
             justify-content: center; 
             align-items: center; 
         }
-        .qr-on-photo img { width: 100%; height: 100%; display: block; }
+        
+        /* ⚠️ CORRECCIÓN CLAVE: NO ESTIRAR LA IMAGEN */
+        .qr-on-photo img { 
+            /* Dejamos que el script defina el tamaño exacto para evitar borrosidad */
+            display: block; 
+        }
 
         /* Frente Derecha */
         .front-right { flex: 1; position: relative; color: white; padding: 20px 35px; display: flex; flex-direction: column; justify-content: space-between; background-color: #0033cc; }
@@ -151,7 +161,7 @@
         const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         
-        // 🔥 URL REAL CONFIGURADA 🔥
+        // TU URL REAL DE GITHUB
         const URL_WEB = 'https://instructormap.github.io/registro-de-matriculas';
         
         let db;
@@ -225,22 +235,25 @@
                 ph.style.display = 'block';
             }
 
-            // 3. GENERACIÓN QR GIGANTE Y NÍTIDO
+            // 3. GENERACIÓN QR (NÍTIDO Y OPTIMIZADO)
             setTimeout(() => {
                 const c = document.getElementById('qr-container'); 
                 c.innerHTML = ""; // Limpiar
                 
+                // Enlace final
                 const linkValidacion = `${URL_WEB}/validador.html?dni=${alumno.dni_alumno}`;
                 console.log("QR Link:", linkValidacion);
 
-                // Generar con más calidad (150px) y corrección de errores MEDIA
+                // Generamos QR. 
+                // width y height deben ser un poco menores que el contenedor (160px) para dejar margen
+                // Usamos 'CorrectLevel.L' para menos puntos = más fácil de leer
                 new QRCode(c, { 
                     text: linkValidacion, 
-                    width: 150, 
-                    height: 150,
+                    width: 144, 
+                    height: 144,
                     colorDark : "#000000",
                     colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.M 
+                    correctLevel : QRCode.CorrectLevel.L 
                 });
             }, 300);
         }
