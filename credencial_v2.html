@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&family=Roboto+Slab:wght@700;900&display=swap" rel="stylesheet">
     
     <style>
-        /* --- ESTILOS GENERALES (Sin cambios) --- */
+        /* --- ESTILOS GENERALES (Panel de Control) --- */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Roboto', sans-serif; background: #1a1a1a; display: flex; flex-direction: column; align-items: center; padding: 30px; gap: 20px; color: white; }
         .controls { background: #222; padding: 25px; border-radius: 10px; position: sticky; top: 10px; z-index: 999; width: 95%; max-width: 600px; border: 1px solid #444; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
@@ -58,23 +58,21 @@
         .card-back { padding: 0; background: #ccc; }
         .back-image { width: 100%; height: 100%; object-fit: fill; display: block; }
 
-        /* --- ESTILOS DIPLOMA (REDISENADO) --- */
+        /* --- ESTILOS DIPLOMA (CONFIGURACIÓN DEL USUARIO) --- */
         #diploma-canvas-container { position: absolute; top: -9999px; left: -9999px; }
         .diploma-layout {
             width: 2000px; height: 1414px; 
             position: relative; overflow: hidden; color: #333;
-            /* Color azul institucional */
             --diploma-blue: #003399; 
         }
         .diploma-bg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
-        
-        /* Capa de contenido */
         .diploma-overlay { position: relative; z-index: 10; width: 100%; height: 100%; }
 
         /* 1. LÍNEA ÚNICA (NOMBRE + DNI) */
+        /* Configuración: TOP: 575px | FONT: 80px */
         .dip-linea-unica-container {
             position: absolute;
-            top: 450px; /* Ajuste vertical */
+            top: 575px; /* <--- VALOR USUARIO */
             left: 50%;
             transform: translateX(-50%);
             width: 90%;
@@ -82,73 +80,63 @@
             white-space: nowrap;
         }
         .dip-texto-formal {
-            font-family: 'Roboto Slab', serif; /* Tipografía formal para todo */
+            font-family: 'Roboto Slab', serif; 
             font-weight: 900;
             color: var(--diploma-blue);
             text-transform: uppercase;
-            font-size: 70px; /* Tamaño base */
+            font-size: 80px; /* <--- VALOR USUARIO */
             letter-spacing: 1px;
-            /* Efecto sutil de relieve */
-            text-shadow: 1px 1px 0px rgba(255,255,255,1), 2px 2px 0px rgba(0,0,0,0.1);
+            text-shadow: 2px 2px 0px rgba(255,255,255,1);
         }
 
-        /* 2. QR (Ajustado para tapar el original) */
+        /* 2. QR (Tapa el original) */
+        /* Configuración: TOP: 307px | RIGHT: 170px | SIZE: 194px */
         .dip-qr {
             position: absolute;
-            /* Bajado para tapar el QR de la plantilla */
-            top: 130px; 
-            right: 65px;
-            width: 155px;
-            height: 155px;
+            top: 307px;     /* <--- VALOR USUARIO */
+            right: 170px;   /* <--- VALOR USUARIO */
+            width: 194px;   /* <--- VALOR USUARIO */
+            height: 194px;  /* <--- VALOR USUARIO */
             background: white;
             padding: 5px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2); /* Sombra suave */
+            /* Sin borde, solo sombra sutil para despegarlo */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
         }
 
-        /* 3. FECHA + REGISTRO (Ubicación estratégica) */
+        /* 3. FECHA Y REGISTRO (Arriba) */
+        /* Configuración: BOTTOM: 1334px (Equivale a Top ~80px) */
         .dip-info-extra {
             position: absolute;
-            /* Ubicado debajo del texto "teoría y práctica" y antes de las firmas */
-            bottom: 300px; 
+            bottom: 1334px; /* <--- VALOR USUARIO */
             left: 50%;
             transform: translateX(-50%);
             text-align: center;
             font-family: 'Roboto', sans-serif;
             font-size: 24px;
             font-weight: 700;
-            color: #444;
-            background: rgba(255,255,255,0.9); /* Fondo blanco sutil por si pisa algo */
-            padding: 5px 20px;
+            color: #222;
+            background: rgba(255,255,255,0.85); /* Fondo blanco semitransparente */
+            padding: 8px 30px;
             border-radius: 50px;
-            border: 1px solid #eee;
+            border: 1px solid #ccc;
+            z-index: 20;
         }
 
-        /* 4. SELLO HOLOGRÁFICO (CSS Puro) */
+        /* 4. SELLO OFICIAL (SVG EN BASE64) */
+        /* Configuración: BOTTOM: 914px | LEFT: 1445px | SIZE: 180px */
         .dip-sello {
             position: absolute;
-            bottom: 60px;
-            left: 60px;
-            width: 180px;
-            height: 180px;
-            border-radius: 50%;
-            /* Gradiente metálico dorado */
-            background: radial-gradient(ellipse at center, rgba(245,201,99,0.3) 0%,rgba(180,136,17,0.5) 100%);
-            border: 4px double rgba(180,136,17,0.6);
-            box-shadow: 0 0 15px rgba(245,201,99,0.5), inset 0 0 20px rgba(255,255,255,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transform: rotate(-15deg);
+            bottom: 914px;  /* <--- VALOR USUARIO */
+            left: 1445px;   /* <--- VALOR USUARIO */
+            width: 180px;   /* <--- VALOR USUARIO */
+            height: 180px;  /* <--- VALOR USUARIO */
+            z-index: 15;
+            background-repeat: no-repeat;
+            background-size: contain;
+            /* SVG DE SELLO DORADO INSTITUCIONAL */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cdefs%3E%3Cstyle%3E.text%7Bfont-family:'Times New Roman',serif;font-weight:bold;font-size:18px;fill:%238B4513;%7D%3C/style%3E%3ClinearGradient id='gold' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23FDB931'/%3E%3Cstop offset='50%25' stop-color='%23FDF5E6'/%3E%3Cstop offset='100%25' stop-color='%23D4AF37'/%3E%3C/linearGradient%3E%3C/defs%3E%3C!-- Borde Dentado --%3E%3Cpath d='M100,10 L110,25 L125,20 L130,35 L145,35 L145,50 L160,55 L155,70 L170,80 L160,90 L170,100 L160,110 L170,120 L155,130 L160,145 L145,150 L145,165 L130,165 L125,180 L110,175 L100,190 L90,175 L75,180 L70,165 L55,165 L55,150 L40,145 L45,130 L30,120 L40,110 L30,100 L40,90 L30,80 L45,70 L40,55 L55,50 L55,35 L70,35 L75,20 L90,25 Z' fill='url(%23gold)' stroke='%23B8860B' stroke-width='2'/%3E%3C!-- Circulo Interno --%3E%3Ccircle cx='100' cy='100' r='65' fill='none' stroke='%238B4513' stroke-width='3' stroke-dasharray='5,3'/%3E%3Ccircle cx='100' cy='100' r='55' fill='none' stroke='%238B4513' stroke-width='1'/%3E%3C!-- Texto Circular Simulado --%3E%3Cpath id='curve' d='M 40,100 A 60,60 0 1,1 160,100' fill='none'/%3E%3Ctext width='200' class='text'%3E%3CtextPath href='%23curve' startOffset='50%25' text-anchor='middle'%3EVALIDACIÓN OFICIAL%3C/textPath%3E%3C/text%3E%3C!-- Estrella Central --%3E%3Cpath d='M100,75 L108,95 L130,95 L112,110 L118,130 L100,118 L82,130 L88,110 L70,95 L92,95 Z' fill='%23B8860B'/%3E%3C/svg%3E");
+            filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3));
         }
-        .dip-sello-inner {
-            width: 140px; height: 140px;
-            border: 2px dashed rgba(180,136,17,0.6);
-            border-radius: 50%;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: #8a6e2f; font-family: 'Roboto Slab', serif; font-weight: bold; font-size: 14px; text-align: center;
-            text-transform: uppercase;
-        }
-        .dip-sello-star { font-size: 30px; margin-bottom: 5px; text-shadow: 0 0 5px white; }
 
     </style>
 </head>
@@ -202,24 +190,13 @@
     <div id="diploma-canvas-container">
         <div class="diploma-layout" id="diploma-final">
             <img id="dip-bg-img" class="diploma-bg" src="">
-            
             <div class="diploma-overlay">
                 <div class="dip-linea-unica-container" id="dip-texto-container">
-                     <span class="dip-texto-formal" id="dip-texto-completo">Nombre Alumno - DNI 123456</span>
+                     <span class="dip-texto-formal" id="dip-texto-completo">NOMBRE ALUMNO - DNI</span>
                 </div>
-                
                 <div class="dip-qr" id="dip-qr-code"></div>
-
-                <div class="dip-info-extra" id="dip-fecha-registro">
-                    REGISTRO: REMAEP • Fecha de emisión: 01/01/2026
-                </div>
-
-                <div class="dip-sello">
-                    <div class="dip-sello-inner">
-                        <div class="dip-sello-star">★</div>
-                        CERTIFICACIÓN<br>OFICIAL<br>VALIDADA
-                    </div>
-                </div>
+                <div class="dip-info-extra" id="dip-fecha-registro">DATOS REGISTRO</div>
+                <div class="dip-sello"></div>
             </div>
         </div>
     </div>
@@ -235,7 +212,6 @@
             document.getElementById('input-dni-search').addEventListener('keypress', function(e) { if (e.key === 'Enter') window.generarCarnet(); });
         });
 
-        // --- LÓGICA DE BÚSQUEDA Y CARNET ---
         window.generarCarnet = async function() {
             const dni = String(document.getElementById('input-dni-search').value).trim();
             resetUI();
@@ -267,12 +243,10 @@
             verificarDiploma(alumno.curso);
         }
 
-        // --- LÓGICA DIPLOMA ---
         async function verificarDiploma(nombreCurso) {
             const btnDip = document.getElementById('btn-descargar-diploma');
             btnDip.style.display = 'none'; 
             document.getElementById('dip-bg-img').src = "";
-
             const { data } = await db.from('cursos_oficiales').select('diploma_bg_url').eq('nombre', nombreCurso).single();
             if (data && data.diploma_bg_url) {
                 btnDip.style.display = 'block';
@@ -287,7 +261,7 @@
             const container = document.getElementById(contenedorId);
             let size = tamañoInicial;
             el.style.fontSize = size + 'px';
-            while (el.scrollWidth > container.clientWidth && size > 30) {
+            while (el.scrollWidth > container.clientWidth && size > 40) {
                 size -= 2; el.style.fontSize = size + 'px';
             }
         }
@@ -298,27 +272,28 @@
             btn.innerText = "⏳ Preparando..."; btn.disabled = true;
 
             try {
-                // 1. TEXTO UNIFICADO (NOMBRE + DNI)
+                // 1. TEXTO UNIFICADO
                 const textoCompleto = `${alumnoActual.nombre} ${alumnoActual.apellido} • DNI ${alumnoActual.dni_alumno}`;
                 const elTexto = document.getElementById('dip-texto-completo');
                 elTexto.innerText = textoCompleto;
-                ajustarTexto('dip-texto-completo', 'dip-texto-container', 80); // Ajuste automático
+                // Autoajuste desde 80px hacia abajo
+                ajustarTexto('dip-texto-completo', 'dip-texto-container', 80);
 
-                // 2. FECHA Y REGISTRO (Abajo)
+                // 2. FECHA Y REGISTRO (ARRIBA)
                 const fechaObj = new Date(alumnoActual.fecha_inicio || new Date());
                 const fechaStr = fechaObj.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
                 const regStr = (alumnoActual.registro_id || 'OFICIAL').toUpperCase();
-                document.getElementById('dip-fecha-registro').innerHTML = `<b>REGISTRO: ${regStr}</b> — Fecha de emisión: ${fechaStr}`;
+                document.getElementById('dip-fecha-registro').innerHTML = `REGISTRO: <b>${regStr}</b> • Fecha de emisión: ${fechaStr}`;
 
-                // 3. QR DIPLOMA
+                // 3. QR
                 const qrDipDiv = document.getElementById('dip-qr-code');
                 qrDipDiv.innerHTML = "";
-                new QRCode(qrDipDiv, { text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, width: 145, height: 145 });
+                new QRCode(qrDipDiv, { text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, width: 184, height: 184 }); // Ajustado por padding
 
-                await new Promise(r => setTimeout(r, 600)); // Esperar renderizado
+                await new Promise(r => setTimeout(r, 600));
 
                 // 4. GENERAR IMAGEN
-                btn.innerText = "⏳ Generando imagen...";
+                btn.innerText = "⏳ Generando...";
                 const element = document.getElementById('diploma-final');
                 const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: null });
 
@@ -331,11 +306,10 @@
             finally { btn.innerText = originalText; btn.disabled = false; }
         };
 
-        // --- HELPERS (Igual que antes) ---
+        // --- HELPERS Y CARNET (Standard) ---
         function resetUI() { document.getElementById('msg-error').style.display = 'none'; document.getElementById('panel-acciones').style.display = 'none'; document.getElementById('selector-cursos').style.display = 'none'; document.getElementById('vista-previa').classList.remove('active'); document.getElementById('btn-descargar-diploma').style.display = 'none'; }
         
         function llenarDatosCarnet(alumno) {
-            // ... (Lógica de llenado de Carnet, sin cambios para ahorrar espacio visual, es idéntica al archivo anterior) ...
             document.getElementById('txt-nombre').innerText = `${alumno.nombre} ${alumno.apellido}`;
             document.getElementById('txt-dni').innerText = alumno.dni_alumno;
             document.getElementById('txt-matricula').innerText = generarHashMatricula(String(alumno.dni_alumno));
