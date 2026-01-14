@@ -8,7 +8,7 @@
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Great+Vibes&display=swap" rel="stylesheet">
     
     <style>
         /* ESTILOS BASE */
@@ -26,46 +26,29 @@
         #lista-botones button:hover { background: #444; }
         
         .action-buttons { display: none; gap: 10px; flex-wrap: wrap; justify-content: center; border-top: 1px solid #444; padding-top: 20px; margin-top: 15px;}
-        .btn-action { padding: 12px 15px; font-size: 15px; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; flex: 1; min-width: 140px; }
+        .btn-action { padding: 12px 15px; font-size: 14px; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; flex: 1; min-width: 140px; }
         .btn-upload { background: #444; color: white; border: 1px solid #666; }
         .btn-download { background: #00c853; color: white; }
+        
+        /* BOTÓN DIPLOMA */
+        .btn-diploma { background: linear-gradient(135deg, #d4af37, #f1c40f); color: #42200b; border: 1px solid #b7950b; display: none; /* Oculto por defecto */ }
+        .btn-diploma:hover { background: #f9e79f; }
+
         #msg-error { color: #ff5555; text-align: center; margin-top: 15px; display: none; font-weight: bold; }
         #upload-status { font-size: 12px; color: #aaa; text-align: center; margin-top: 5px; display:none; }
 
-        /* TARJETA */
+        /* TARJETA (Carnet) */
         :root { --card-width: 1011px; --card-height: 638px; }
         .preview-wrapper { transform: scale(0.4); transform-origin: top center; margin-bottom: -350px; border-radius: 20px; transition: transform 0.3s ease; opacity: 0.5; filter: grayscale(1); }
         .preview-wrapper.active { opacity: 1; filter: grayscale(0); }
         @media (max-width: 600px) { .preview-wrapper { transform: scale(0.28); margin-bottom: -450px; } }
         
         .card { width: var(--card-width); height: var(--card-height); background: white; display: flex; position: relative; border: 5px solid #0033cc; border-radius: 40px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); margin-bottom: 50px; }
-        
-        /* Frente Izquierda */
         .front-left { width: 380px; height: 100%; position: relative; background: #d4d4d4; z-index: 1; border-top-left-radius: 35px; border-bottom-left-radius: 35px; overflow: hidden; }
         .student-photo { width: 100%; height: 100%; object-fit: cover; }
         .svg-triangle-container { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
         .reg-sigla { position: absolute; bottom: 15px; left: 0; width: 100%; text-align: center; color: white; font-size: 22px; font-weight: 900; z-index: 6; text-shadow: 2px 2px 4px rgba(0,0,0,0.9); letter-spacing: 2px; }
-        
-        /* QR CONTENEDOR (Estilo corregido) */
-        .qr-on-photo { 
-            position: absolute; 
-            bottom: 45px; 
-            left: 50%; 
-            transform: translateX(-50%); 
-            width: 160px;   
-            height: 160px;  
-            background: white; 
-            padding: 8px; 
-            border-radius: 12px; 
-            z-index: 5; 
-            box-shadow: 0 6px 20px rgba(0,0,0,0.6); 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-        }
-        .qr-on-photo img { display: block; } /* Sin width 100% para evitar blur */
-
-        /* Frente Derecha */
+        .qr-on-photo { position: absolute; bottom: 45px; left: 50%; transform: translateX(-50%); width: 160px; height: 160px; background: white; padding: 8px; border-radius: 12px; z-index: 5; box-shadow: 0 6px 20px rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; }
         .front-right { flex: 1; position: relative; color: white; padding: 20px 35px; display: flex; flex-direction: column; justify-content: space-between; background-color: #0033cc; }
         .holo-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(45deg, rgba(255,255,255,0.08) 0px, rgba(255,255,255,0.08) 1px, transparent 1px, transparent 4px), linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.2) 45%, rgba(200,255,255,0.4) 50%, rgba(255,255,255,0.2) 55%, transparent 70%); opacity: 1; mix-blend-mode: overlay; pointer-events: none; }
         .front-content { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
@@ -81,7 +64,21 @@
         .label-text { font-size: 32px; font-weight: 700; opacity: 0.9; }
         .value-text { font-size: 36px; font-weight: 900; text-align: right; }
         
-        /* Dorso */
+        /* DIPLOMA (Oculto visualmente, se usa para generar) */
+        #diploma-canvas-container { position: absolute; top: -9999px; left: -9999px; }
+        .diploma-layout {
+            width: 2000px; height: 1414px; /* A4 Horizontal alta calidad */
+            position: relative; overflow: hidden; color: #333;
+        }
+        .diploma-bg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
+        .diploma-content { position: relative; z-index: 2; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; text-align: center; pt-40; }
+        
+        /* Estilos de Texto del Diploma (Ajustables) */
+        .dip-nombre { font-family: 'Great Vibes', cursive; font-size: 140px; color: #000; margin-top: 520px; text-shadow: 2px 2px 0px rgba(255,255,255,0.5); }
+        .dip-dni { font-family: 'Roboto', sans-serif; font-size: 40px; margin-top: 20px; font-weight: bold; color: #444; }
+        .dip-qr { position: absolute; bottom: 100px; right: 100px; width: 200px; height: 200px; background: white; padding: 10px; border: 2px solid #333; }
+        .dip-fecha { position: absolute; bottom: 120px; left: 150px; font-size: 35px; font-weight: bold; color: #555; }
+
         .card-back { padding: 0; background: #ccc; }
         .back-image { width: 100%; height: 100%; object-fit: fill; display: block; }
     </style>
@@ -103,7 +100,8 @@
         <div class="action-buttons" id="panel-acciones">
             <input type="file" id="input-foto" accept="image/*" style="display:none;" onchange="window.subirFotoNube(this)">
             <button class="btn-action btn-upload" onclick="document.getElementById('input-foto').click()">📸 CARGAR FOTO</button>
-            <button class="btn-action btn-download" onclick="window.descargarCarnet()">⬇️ DESCARGAR CARNET</button>
+            <button class="btn-action btn-download" onclick="window.descargarCarnet()">⬇️ CARNET</button>
+            <button class="btn-action btn-diploma" id="btn-descargar-diploma" onclick="window.descargarDiploma()">📜 DIPLOMA</button>
         </div>
     </div>
 
@@ -144,14 +142,25 @@
         </div>
     </div>
 
+    <div id="diploma-canvas-container">
+        <div class="diploma-layout" id="diploma-final">
+            <img id="dip-bg-img" class="diploma-bg" src="">
+            <div class="diploma-content">
+                <div class="dip-nombre" id="dip-nombre-txt">Nombre Alumno</div>
+                <div class="dip-dni" id="dip-dni-txt">DNI: 12.345.678</div>
+                <div class="dip-fecha" id="dip-fecha-txt">Fecha: 01/01/2026</div>
+                <div class="dip-qr" id="dip-qr-code"></div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
-        
-        // ⚠️ ENLACE A TU VALIDADOR (Confirmado)
         const URL_WEB = 'https://instructormap.github.io/registro-de-matriculas';
         
         let db;
+        let alumnoActual = null; // Guardamos los datos del alumno actual
 
         document.addEventListener('DOMContentLoaded', () => {
             db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
@@ -162,11 +171,12 @@
             const dni = String(document.getElementById('input-dni-search').value).trim();
             const msg = document.getElementById('msg-error');
             
-            // Reset
+            // Reset UI
             msg.style.display = 'none'; 
             document.getElementById('panel-acciones').style.display = 'none'; 
             document.getElementById('selector-cursos').style.display = 'none'; 
             document.getElementById('vista-previa').classList.remove('active');
+            document.getElementById('btn-descargar-diploma').style.display = 'none';
 
             if(!dni) { alert("Ingrese DNI."); return; }
             msg.innerText = "⏳ Buscando..."; msg.style.display = 'block'; msg.style.color = '#fff';
@@ -191,11 +201,12 @@
             document.getElementById('selector-cursos').style.display = 'block';
         };
 
-        function procesarDatos(alumno) {
+        async function procesarDatos(alumno) {
+            alumnoActual = alumno; // Guardar referencia global
             document.getElementById('panel-acciones').style.display = 'flex';
             document.getElementById('vista-previa').classList.add('active');
 
-            // 1. Datos
+            // 1. Datos Carnet
             document.getElementById('txt-nombre').innerText = `${alumno.nombre} ${alumno.apellido}`;
             document.getElementById('txt-dni').innerText = alumno.dni_alumno;
             const matHash = generarHashMatricula(String(alumno.dni_alumno));
@@ -221,26 +232,78 @@
                 ph.style.display = 'block';
             }
 
-            // 3. GENERACIÓN QR (CORREGIDA: USA ID EN LUGAR DE DNI)
-            setTimeout(() => {
-                const c = document.getElementById('qr-container'); 
-                c.innerHTML = ""; 
-                
-                // 🔥 AQUÍ ESTÁ LA CORRECCIÓN: usamos alumno.id
-                const linkValidacion = `${URL_WEB}/validador.html?id=${alumno.id}`;
-                console.log("QR generado para:", linkValidacion);
+            // 3. QR Carnet
+            const linkValidacion = `${URL_WEB}/validador.html?id=${alumno.id}`;
+            const c = document.getElementById('qr-container'); c.innerHTML = ""; 
+            new QRCode(c, { text: linkValidacion, width: 144, height: 144, correctLevel: QRCode.CorrectLevel.L });
 
-                new QRCode(c, { 
-                    text: linkValidacion, 
-                    width: 144, 
-                    height: 144,
-                    colorDark : "#000000",
-                    colorLight : "#ffffff",
-                    correctLevel : QRCode.CorrectLevel.L 
-                });
-            }, 300);
+            // 4. VERIFICAR SI HAY DIPLOMA
+            verificarDiploma(alumno.curso);
         }
 
+        async function verificarDiploma(nombreCurso) {
+            // Buscamos en la tabla de cursos si este curso tiene un diploma asociado
+            const { data, error } = await db.from('cursos_oficiales').select('diploma_bg_url').eq('nombre', nombreCurso).single();
+            
+            if (data && data.diploma_bg_url) {
+                // Si hay URL de diploma, mostramos el botón y preparamos el generador
+                const btnDip = document.getElementById('btn-descargar-diploma');
+                btnDip.style.display = 'block';
+                
+                // Precargamos la imagen en el canvas oculto
+                document.getElementById('dip-bg-img').src = data.diploma_bg_url;
+                // crossOrigin es vital para poder descargar imágenes de otro dominio
+                document.getElementById('dip-bg-img').crossOrigin = "anonymous"; 
+            }
+        }
+
+        window.descargarDiploma = async function() {
+            const btn = document.getElementById('btn-descargar-diploma');
+            const originalText = btn.innerText;
+            btn.innerText = "⏳ Generando..."; btn.disabled = true;
+
+            try {
+                // 1. Llenar datos en el diploma oculto
+                document.getElementById('dip-nombre-txt').innerText = `${alumnoActual.nombre} ${alumnoActual.apellido}`;
+                document.getElementById('dip-dni-txt').innerText = `DNI: ${alumnoActual.dni_alumno}`;
+                
+                const fecha = new Date(alumnoActual.fecha_inicio || new Date()).toLocaleDateString('es-AR');
+                document.getElementById('dip-fecha-txt').innerText = `Fecha de emisión: ${fecha}`;
+
+                // 2. Generar QR para el diploma
+                const qrDipDiv = document.getElementById('dip-qr-code');
+                qrDipDiv.innerHTML = "";
+                const linkValidacion = `${URL_WEB}/validador.html?id=${alumnoActual.id}`;
+                new QRCode(qrDipDiv, { text: linkValidacion, width: 180, height: 180 });
+
+                // Esperar un momento para que el QR se renderice
+                await new Promise(r => setTimeout(r, 500));
+
+                // 3. Convertir a Imagen
+                const element = document.getElementById('diploma-final');
+                
+                // Usamos html2canvas con configuración de alta calidad
+                const canvas = await html2canvas(element, {
+                    scale: 2, // Doble resolución para que se vea nítido
+                    useCORS: true, // Permitir imágenes externas
+                    backgroundColor: null
+                });
+
+                // 4. Descargar
+                const link = document.createElement('a');
+                link.download = `Diploma_${alumnoActual.apellido}_${alumnoActual.curso}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+
+            } catch (err) {
+                console.error(err);
+                alert("Error generando el diploma. Intenta de nuevo.");
+            } finally {
+                btn.innerText = originalText; btn.disabled = false;
+            }
+        };
+
+        // --- FUNCIONES AUXILIARES (Igual que antes) ---
         window.subirFotoNube = async function(input) {
             if (!input.files || !input.files[0]) return;
             const file = input.files[0];
@@ -249,37 +312,22 @@
             const imgLocal = document.getElementById('img-foto');
 
             if (dni === '---') { alert("Primero busca tu DNI."); return; }
-
-            status.style.display = 'block';
-            status.innerText = "☁️ Subiendo foto...";
+            status.style.display = 'block'; status.innerText = "☁️ Subiendo foto...";
             
             try {
                 const fileName = `${dni}.png`;
                 const { error: uploadError } = await db.storage.from('fotos-alumnos').upload(fileName, file, { upsert: true });
                 if (uploadError) throw uploadError;
-
                 const { data: urlData } = db.storage.from('fotos-alumnos').getPublicUrl(fileName);
                 const publicUrl = urlData.publicUrl;
-
                 const { error: dbError } = await db.from('matriculas').update({ foto_url: publicUrl }).eq('dni_alumno', dni);
                 if (dbError) throw dbError;
-
-                status.innerText = "✅ Foto guardada.";
-                status.style.color = "#4ade80";
+                status.innerText = "✅ Foto guardada."; status.style.color = "#4ade80";
                 
                 const reader = new FileReader();
-                reader.onload = (e) => {
-                    imgLocal.src = e.target.result;
-                    imgLocal.style.display = 'block';
-                    document.getElementById('placeholder-foto').style.display = 'none';
-                };
+                reader.onload = (e) => { imgLocal.src = e.target.result; imgLocal.style.display = 'block'; document.getElementById('placeholder-foto').style.display = 'none'; };
                 reader.readAsDataURL(file);
-
-            } catch (err) {
-                console.error(err);
-                status.innerText = "❌ Error: " + err.message;
-                status.style.color = "#ff5555";
-            }
+            } catch (err) { status.innerText = "❌ Error: " + err.message; status.style.color = "#ff5555"; }
         };
 
         function generarHashMatricula(dni) {
@@ -319,7 +367,6 @@
             const box = document.createElement('div'); box.style.position='fixed'; box.style.top='-9999px'; document.body.appendChild(box);
             const cf = f.cloneNode(true); const cb = b.cloneNode(true);
             [cf, cb].forEach(c => { c.style.margin='0'; c.style.boxShadow='none'; c.style.transform='none'; });
-            
             const sf = document.getElementById('img-foto').src;
             if(sf && document.getElementById('img-foto').style.display!=='none') cf.querySelector('#img-foto').src = sf;
             cf.querySelector('#qr-container').innerHTML = document.getElementById('qr-container').innerHTML;
