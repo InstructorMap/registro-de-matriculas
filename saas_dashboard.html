@@ -333,7 +333,7 @@
             document.getElementById('modal-alumno').classList.add('hidden');
         }
 
-        async function guardarAlumnoManual() {
+async function guardarAlumnoManual() {
             const dni = document.getElementById('m-dni').value;
             const nombre = document.getElementById('m-nombre').value;
             const apellido = document.getElementById('m-apellido').value;
@@ -341,6 +341,38 @@
 
             if(!dni || !nombre || !apellido || !cursoId) return alert("Por favor, complete todos los campos y elija un curso.");
 
+            // Buscamos los detalles del curso (para saber el color/registro)
+            const cursoInfo = cursosCache.find(c => c.id === cursoId);
+            if(!cursoInfo) return alert("Error: Curso no válido");
+
+            try {
+                const { error } = await db.from('matriculas').insert({
+                    dni_alumno: dni,
+                    nombre: nombre,
+                    apellido: apellido,
+                    
+                    // Datos del curso seleccionado
+                    curso: cursoInfo.nombre,
+                    registro_id: cursoInfo.registro_id, 
+                    
+                    // Datos de tu institución
+                    institution_id: currentProfile?.institucion_id,
+                    
+                    // 🔥 CORRECCIÓN CLAVE: Agregamos la fecha de hoy
+                    fecha_inicio: new Date().toISOString() 
+                });
+
+                if(error) throw error;
+
+                alert(`✅ Alumno cargado en ${cursoInfo.nombre} (${cursoInfo.registro_id.toUpperCase()})`);
+                cerrarModalAlumno();
+                cargarAlumnos();
+                contarAlumnos();
+
+            } catch(err) {
+                alert("Error al guardar: " + err.message);
+            }
+        }
             // BUSCAMOS EL CURSO EN MEMORIA PARA SABER SU REGISTRO (COLOR)
             const cursoInfo = cursosCache.find(c => c.id === cursoId);
             if(!cursoInfo) return alert("Error: Curso no válido");
