@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control - ASARI V2</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Inter', sans-serif; background: #f1f5f9; }</style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <aside class="w-64 bg-slate-900 text-white flex flex-col shadow-2xl z-20">
+        <div class="p-6 border-b border-slate-800">
+            <h1 class="text-2xl font-black tracking-tighter text-blue-400">ASARI <span class="text-white">SaaS</span></h1>
+            <p class="text-xs text-slate-500 mt-1">Panel de Administración</p>
+        </div>
+
+        <nav class="flex-1 p-4 space-y-2">
+            <button onclick="mostrarSeccion('panel-inicio')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-lg bg-blue-600 text-white shadow-lg transition-all">
+                <i data-lucide="layout-dashboard"></i> Inicio
+            </button>
+            <button onclick="mostrarSeccion('panel-carga')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
+                <i data-lucide="upload-cloud"></i> Carga Masiva (Excel)
+            </button>
+            <button onclick="mostrarSeccion('panel-alumnos')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
+                <i data-lucide="users"></i> Ver Alumnos
+            </button>
+        </nav>
+
+        <div class="p-4 border-t border-slate-800">
+            <button onclick="logout()" class="w-full flex items-center gap-2 px-4 py-3 text-sm font-bold text-red-400 hover:bg-red-900/20 rounded-lg transition-all">
+                <i data-lucide="log-out"></i> Cerrar Sesión
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto relative">
+        <header class="bg-white h-16 border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-10">
+            <h2 class="text-lg font-bold text-slate-700" id="titulo-seccion">Bienvenido</h2>
+            <div class="flex items-center gap-3">
+                <span class="text-xs font-bold bg-blue-100 text-blue-700 px-3 py-1 rounded-full" id="user-email">Cargando...</span>
+            </div>
+        </header>
+
+        <div class="p-8 max-w-6xl mx-auto space-y-8">
+
+            <div id="panel-inicio" class="seccion-activa animate-fade-in">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                        <div class="text-slate-400 text-xs font-bold uppercase">Total Alumnos</div>
+                        <div class="text-4xl font-black text-slate-800 mt-2" id="stat-total">---</div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                        <div class="text-slate-400 text-xs font-bold uppercase">Institución</div>
+                        <div class="text-xl font-bold text-blue-600 mt-2 truncate">ASARI Central</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="panel-carga" class="hidden">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-8 text-center border-b border-slate-100 bg-slate-50">
+                        <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i data-lucide="file-spreadsheet" size="32"></i>
+                        </div>
+                        <h3 class="text-xl font-black text-slate-800">Carga Masiva de Alumnos</h3>
+                        <p class="text-slate-500 text-sm mt-2 max-w-md mx-auto">Sube tu archivo Excel (.xlsx). Debe tener las columnas: <b>DNI, NOMBRE, APELLIDO, CURSO</b>.</p>
+                        
+                        <div class="mt-8 flex justify-center">
+                            <label class="cursor-pointer bg-slate-900 hover:bg-black text-white font-bold py-3 px-6 rounded-xl transition shadow-lg flex items-center gap-2">
+                                <i data-lucide="upload"></i> Seleccionar Excel
+                                <input type="file" id="input-excel" accept=".xlsx, .xls" class="hidden" onchange="procesarExcel()">
+                            </label>
+                        </div>
+                        <p id="excel-status" class="mt-4 text-sm font-bold text-slate-400"></p>
+                    </div>
+
+                    <div id="preview-area" class="hidden p-6 bg-slate-50">
+                        <div class="flex justify-between items-center mb-4">
+                            <h4 class="font-bold text-slate-700">Vista Previa (<span id="count-preview">0</span> registros)</h4>
+                            <button onclick="confirmarCarga()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold text-sm shadow-md flex items-center gap-2">
+                                <i data-lucide="check-circle"></i> CONFIRMAR Y GUARDAR EN NUBE
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto rounded-lg border border-slate-300">
+                            <table class="w-full text-sm text-left bg-white">
+                                <thead class="text-xs text-slate-500 uppercase bg-slate-100">
+                                    <tr><th class="px-4 py-3">DNI</th><th class="px-4 py-3">Nombre</th><th class="px-4 py-3">Curso</th></tr>
+                                </thead>
+                                <tbody id="tabla-preview" class="text-slate-600"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="panel-alumnos" class="hidden">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200">
+                    <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+                        <h3 class="font-bold text-slate-700">Base de Datos Activa</h3>
+                        <button onclick="cargarAlumnos()" class="text-blue-600 hover:text-blue-800 text-xs font-bold flex items-center gap-1">
+                            <i data-lucide="refresh-cw" size="14"></i> Actualizar
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="text-xs text-slate-400 uppercase bg-slate-50 border-b">
+                                <tr>
+                                    <th class="px-6 py-3">DNI</th>
+                                    <th class="px-6 py-3">Alumno</th>
+                                    <th class="px-6 py-3">Curso</th>
+                                    <th class="px-6 py-3 text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-alumnos" class="divide-y divide-slate-100">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // CONFIGURACIÓN SUPABASE
+        const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
+        const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
+        const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
+        
+        // Variables Globales
+        let datosExcelCargados = [];
+
+        // INICIALIZACIÓN
+        document.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            
+            // 1. BLINDAJE DE SEGURIDAD (Si no hay sesión, chau)
+            const { data: { session } } = await db.auth.getSession();
+            if (!session) {
+                window.location.href = 'saas_login.html';
+                return;
+            }
+            document.getElementById('user-email').innerText = session.user.email;
+            
+            // 2. Cargar datos iniciales
+            contarAlumnos();
+        });
+
+        // --- NAVEGACIÓN ---
+        function mostrarSeccion(id) {
+            ['panel-inicio', 'panel-carga', 'panel-alumnos'].forEach(p => document.getElementById(p).classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+            
+            // Lógica específica por sección
+            if(id === 'panel-alumnos') cargarAlumnos();
+        }
+
+        async function logout() {
+            await db.auth.signOut();
+            window.location.href = 'saas_login.html';
+        }
+
+        // --- LÓGICA EXCEL (CARGA MASIVA) ---
+        function procesarExcel() {
+            const input = document.getElementById('input-excel');
+            const status = document.getElementById('excel-status');
+            
+            if(!input.files.length) return;
+
+            const file = input.files[0];
+            status.innerText = "⏳ Leyendo archivo...";
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                
+                // Convertir Excel a JSON
+                const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                
+                if(jsonData.length === 0) {
+                    status.innerText = "❌ El archivo está vacío o no se pudo leer.";
+                    return;
+                }
+
+                // Normalizar datos (Pasar todo a minúsculas/mayúsculas correcto)
+                datosExcelCargados = jsonData.map(fila => ({
+                    dni_alumno: fila['DNI'] || fila['dni'], // Acepta mayus o minus
+                    nombre: fila['NOMBRE'] || fila['nombre'],
+                    apellido: fila['APELLIDO'] || fila['apellido'],
+                    curso: fila['CURSO'] || fila['curso'],
+                    registro_id: 'remaep' // Por defecto
+                })).filter(d => d.dni_alumno); // Eliminar filas vacías
+
+                status.innerText = `✅ Leídos ${datosExcelCargados.length} alumnos. Revisa abajo antes de guardar.`;
+                mostrarPreview(datosExcelCargados);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function mostrarPreview(datos) {
+            const tbody = document.getElementById('tabla-preview');
+            tbody.innerHTML = "";
+            document.getElementById('count-preview').innerText = datos.length;
+            document.getElementById('preview-area').classList.remove('hidden');
+
+            // Mostrar solo los primeros 5 para no colgar el navegador
+            datos.slice(0, 5).forEach(d => {
+                tbody.innerHTML += `
+                    <tr class="border-b">
+                        <td class="px-4 py-2 font-mono">${d.dni_alumno}</td>
+                        <td class="px-4 py-2">${d.nombre} ${d.apellido}</td>
+                        <td class="px-4 py-2 text-blue-600">${d.curso}</td>
+                    </tr>
+                `;
+            });
+            if(datos.length > 5) {
+                tbody.innerHTML += `<tr><td colspan="3" class="text-center py-2 text-slate-400 italic">... y ${datos.length - 5} más ...</td></tr>`;
+            }
+        }
+
+        async function confirmarCarga() {
+            if(datosExcelCargados.length === 0) return;
+            
+            const btn = document.querySelector('#preview-area button');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "⏳ Subiendo..."; btn.disabled = true;
+
+            try {
+                // INSERT MASIVO A SUPABASE
+                const { error } = await db.from('matriculas').insert(datosExcelCargados);
+
+                if (error) throw error;
+
+                alert("✅ ¡Carga Exitosa! " + datosExcelCargados.length + " alumnos guardados.");
+                document.getElementById('preview-area').classList.add('hidden');
+                document.getElementById('excel-status').innerText = "";
+                document.getElementById('input-excel').value = ""; // Reset
+                datosExcelCargados = [];
+
+            } catch (err) {
+                console.error(err);
+                alert("❌ Error al guardar: " + err.message);
+            } finally {
+                btn.innerHTML = originalText; btn.disabled = false;
+            }
+        }
+
+        // --- LÓGICA DE GESTIÓN ---
+        async function contarAlumnos() {
+            const { count } = await db.from('matriculas').select('*', { count: 'exact', head: true });
+            document.getElementById('stat-total').innerText = count || 0;
+        }
+
+        async function cargarAlumnos() {
+            const tbody = document.getElementById('tabla-alumnos');
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4">Cargando...</td></tr>';
+
+            const { data } = await db.from('matriculas').select('*').order('created_at', { ascending: false }).limit(50);
+            
+            tbody.innerHTML = "";
+            data.forEach(alumno => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="px-6 py-4 font-bold text-slate-600 font-mono">${alumno.dni_alumno}</td>
+                        <td class="px-6 py-4 font-bold text-slate-800">${alumno.apellido}, ${alumno.nombre}</td>
+                        <td class="px-6 py-4">
+                            <span class="bg-blue-100 text-blue-700 py-1 px-3 rounded-full text-xs font-bold">${alumno.curso}</span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <button onclick="borrarAlumno(${alumno.id})" class="text-red-400 hover:text-red-600 font-bold text-xs">ELIMINAR</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function borrarAlumno(id) {
+            if(!confirm("¿Seguro que deseas eliminar este alumno?")) return;
+            await db.from('matriculas').delete().eq('id', id);
+            cargarAlumnos(); // Refrescar tabla
+        }
+    </script>
+</body>
+</html>
