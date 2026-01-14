@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control - ASARI V3</title>
+    <title>Panel de Control - ASARI V3.1</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -11,169 +11,236 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
     <style>
-        body { font-family: 'Inter', sans-serif; background: #f1f5f9; }
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; }
         aside { transition: background-color 0.5s ease; }
-        .label-form { display: block; font-size: 10px; font-weight: 800; text-transform: uppercase; color: #94a3b8; margin-bottom: 4px; }
-        .input-form { width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; outline: none; transition: border-color 0.2s; }
-        .input-form:focus { border-color: #3b82f6; ring: 2px; }
         
-        /* Botones de Registros (Estilo Admin Viejo adaptado) */
-        .btn-reg { font-weight: 900; color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.3); transition: transform 0.1s; }
+        /* Estilos de Formulario */
+        .label-form { display: block; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #64748b; margin-bottom: 6px; letter-spacing: 0.5px; }
+        .input-form { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 14px; outline: none; transition: all 0.2s; background: #f8fafc; }
+        .input-form:focus { border-color: #3b82f6; background: white; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        
+        /* Botones de Registros (Estilo Premium) */
+        .btn-reg { font-weight: 800; color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.2); transition: all 0.2s; border: 2px solid rgba(255,255,255,0.2); }
+        .btn-reg:hover { transform: translateY(-2px); shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
         .btn-reg:active { transform: scale(0.95); }
+
+        /* Animaciones */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.4s ease-out; }
     </style>
 </head>
-<body class="flex h-screen overflow-hidden">
+<body class="flex h-screen overflow-hidden text-slate-800">
 
     <aside id="sidebar" class="w-64 bg-slate-900 text-white flex flex-col shadow-2xl z-20">
         <div class="p-6 border-b border-white/10 flex items-center justify-center h-24">
-            <img id="brand-logo" src="" class="h-12 object-contain hidden">
-            <h1 id="brand-text" class="text-2xl font-black tracking-tighter text-white">ASARI <span class="opacity-50">SaaS</span></h1>
+            <img id="brand-logo" src="" class="h-14 object-contain hidden transition-all duration-500">
+            <h1 id="brand-text" class="text-2xl font-black tracking-tighter text-white">ASARI <span class="opacity-40 font-normal">SaaS</span></h1>
         </div>
 
-        <nav class="flex-1 p-4 space-y-2">
-            <button onclick="mostrarSeccion('panel-inicio')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-lg bg-white/10 hover:bg-white/20 transition-all">
-                <i data-lucide="layout-dashboard"></i> Inicio
-            </button>
-            <button onclick="mostrarSeccion('panel-alumnos')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-all">
-                <i data-lucide="users"></i> Ver Alumnos
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+            <button onclick="mostrarSeccion('panel-inicio')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl bg-white/10 hover:bg-white/20 transition-all border border-transparent hover:border-white/10">
+                <i data-lucide="layout-dashboard" size="18"></i> Inicio
             </button>
             
-            <button onclick="mostrarSeccion('panel-cursos')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-all">
-                <i data-lucide="book-open"></i> Gestión Cursos
+            <p class="px-4 pt-4 pb-2 text-[10px] uppercase text-white/40 font-bold tracking-wider">Gestión</p>
+            
+            <button onclick="mostrarSeccion('panel-alumnos')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all">
+                <i data-lucide="users" size="18"></i> Alumnos
+            </button>
+            
+            <button onclick="mostrarSeccion('panel-cursos')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all">
+                <i data-lucide="book-open" size="18"></i> Cursos Oficiales
             </button>
 
-            <button onclick="mostrarSeccion('panel-carga')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-all">
-                <i data-lucide="upload-cloud"></i> Carga Masiva
+            <button onclick="mostrarSeccion('panel-carga')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all">
+                <i data-lucide="upload-cloud" size="18"></i> Carga Masiva
             </button>
             
-            <div id="menu-superadmin" class="hidden pt-4 mt-4 border-t border-white/10">
-                <p class="px-4 text-[10px] uppercase text-white/50 font-bold mb-2">Super Admin</p>
-                <button onclick="mostrarSeccion('panel-clientes')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-lg text-yellow-300 hover:bg-yellow-900/40 transition-all">
-                    <i data-lucide="crown"></i> Gestión Clientes
+            <div id="menu-superadmin" class="hidden pt-4 mt-2 border-t border-white/10">
+                <p class="px-4 text-[10px] uppercase text-yellow-500/80 font-bold mb-2 tracking-wider">Super Admin</p>
+                <button onclick="mostrarSeccion('panel-clientes')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-yellow-300 bg-yellow-900/20 hover:bg-yellow-900/40 border border-yellow-500/20 transition-all">
+                    <i data-lucide="crown" size="18"></i> Gestión Clientes
                 </button>
             </div>
         </nav>
 
-        <div class="p-4 border-t border-white/10">
-            <div class="px-4 py-2 mb-2">
-                <p class="text-xs text-white/50 font-bold uppercase">Tu Institución</p>
+        <div class="p-4 border-t border-white/10 bg-black/20">
+            <div class="px-2 py-2 mb-2">
+                <p class="text-[10px] text-white/40 font-bold uppercase">Institución Activa</p>
                 <p class="text-sm font-bold text-white truncate" id="sidebar-inst-name">Cargando...</p>
             </div>
             <button onclick="logout()" class="w-full flex items-center gap-2 px-4 py-3 text-sm font-bold text-red-300 hover:bg-red-900/30 rounded-lg transition-all">
-                <i data-lucide="log-out"></i> Salir
+                <i data-lucide="log-out" size="16"></i> Cerrar Sesión
             </button>
         </div>
     </aside>
 
-    <main class="flex-1 overflow-y-auto relative">
-        <header class="bg-white h-16 border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-10">
-            <h2 class="text-lg font-bold text-slate-700" id="titulo-seccion">Bienvenido</h2>
+    <main class="flex-1 overflow-y-auto relative bg-slate-50">
+        <header class="bg-white h-16 border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-30 shadow-sm">
+            <h2 class="text-lg font-bold text-slate-700" id="titulo-seccion">Tablero Principal</h2>
             <div class="flex items-center gap-3">
-                <span class="text-xs font-bold bg-slate-100 text-slate-700 px-3 py-1 rounded-full" id="user-email">...</span>
+                <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xs">U</div>
+                <span class="text-xs font-bold text-slate-500" id="user-email">...</span>
             </div>
         </header>
 
-        <div class="p-8 max-w-6xl mx-auto space-y-8">
+        <div class="p-8 max-w-7xl mx-auto space-y-8">
 
             <div id="panel-inicio" class="seccion-activa animate-fade-in">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                        <div class="text-slate-400 text-xs font-bold uppercase">Total Alumnos</div>
-                        <div class="text-4xl font-black text-slate-800 mt-2" id="stat-total">---</div>
+                    <div class="bg-white p-6 rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-slate-100">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Total Alumnos</p>
+                                <p class="text-4xl font-black text-slate-800 mt-2" id="stat-total">---</p>
+                            </div>
+                            <div class="bg-blue-50 p-3 rounded-lg text-blue-600"><i data-lucide="users"></i></div>
+                        </div>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
-                        <div id="dashboard-logo-container" class="w-16 h-16 rounded-lg bg-slate-100 flex items-center justify-center overflow-hidden">
-                            <span class="text-2xl">🏢</span>
+                    <div class="bg-white p-6 rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-slate-100 flex items-center gap-5">
+                        <div id="dashboard-logo-container" class="w-20 h-20 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden shrink-0">
+                            <i data-lucide="building-2" class="text-slate-300" size="32"></i>
                         </div>
                         <div>
-                            <div class="text-slate-400 text-xs font-bold uppercase">Institución Activa</div>
-                            <div class="text-xl font-bold text-slate-800 mt-1" id="dash-inst-name">---</div>
+                            <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Institución</p>
+                            <p class="text-xl font-bold text-slate-800 mt-1 leading-tight" id="dash-inst-name">---</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div id="panel-cursos" class="hidden">
+            <div id="panel-cursos" class="hidden animate-fade-in">
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
-                    <h3 class="text-xl font-black text-slate-800 mb-2">Configuración de Cursos Oficiales</h3>
-                    <p class="text-slate-500 text-sm mb-6">Selecciona un registro para agregar un curso. Esto define el color de la tarjeta.</p>
+                    <div class="mb-8">
+                        <h3 class="text-2xl font-black text-slate-800 mb-2">Cursos Oficiales</h3>
+                        <p class="text-slate-500">Crea cursos asignándolos a un Registro (Color). Esto automatiza el diseño de la credencial.</p>
+                    </div>
                     
-                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-8">
-                        <button onclick="crearCurso('remaep')" class="btn-reg py-3 rounded-lg bg-blue-700 hover:bg-blue-800">REMAEP</button>
-                        <button onclick="crearCurso('rniue')" class="btn-reg py-3 rounded-lg bg-yellow-600 hover:bg-yellow-700">RNIUE</button>
-                        <button onclick="crearCurso('rubra')" class="btn-reg py-3 rounded-lg bg-red-700 hover:bg-red-800">RUBRA</button>
-                        <button onclick="crearCurso('rmts')" class="btn-reg py-3 rounded-lg bg-slate-700 hover:bg-slate-800">RMTS</button>
-                        <button onclick="crearCurso('rce')" class="btn-reg py-3 rounded-lg bg-yellow-400 text-black hover:bg-yellow-500">RCE</button>
-                        <button onclick="crearCurso('rpde')" class="btn-reg py-3 rounded-lg bg-sky-500 hover:bg-sky-600">RPDE</button>
-                        <button onclick="crearCurso('asarin')" class="btn-reg py-3 rounded-lg bg-red-900 hover:bg-black">ASARIN</button>
+                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-10">
+                        <button onclick="crearCurso('remaep')" class="btn-reg py-4 rounded-xl bg-blue-700 hover:bg-blue-800 shadow-blue-900/20">REMAEP</button>
+                        <button onclick="crearCurso('rniue')" class="btn-reg py-4 rounded-xl bg-yellow-600 hover:bg-yellow-700 shadow-yellow-900/20">RNIUE</button>
+                        <button onclick="crearCurso('rubra')" class="btn-reg py-4 rounded-xl bg-red-700 hover:bg-red-800 shadow-red-900/20">RUBRA</button>
+                        <button onclick="crearCurso('rmts')" class="btn-reg py-4 rounded-xl bg-slate-700 hover:bg-slate-800 shadow-slate-900/20">RMTS</button>
+                        <button onclick="crearCurso('rce')" class="btn-reg py-4 rounded-xl bg-yellow-400 text-black hover:bg-yellow-500 shadow-yellow-500/30">RCE</button>
+                        <button onclick="crearCurso('rpde')" class="btn-reg py-4 rounded-xl bg-sky-500 hover:bg-sky-600 shadow-sky-500/30">RPDE</button>
+                        <button onclick="crearCurso('asarin')" class="btn-reg py-4 rounded-xl bg-red-900 hover:bg-black shadow-red-900/30">ASARIN</button>
                     </div>
 
-                    <h4 class="font-bold text-slate-700 mb-4 border-b pb-2">📋 Cursos Activos</h4>
+                    <div class="flex items-center gap-3 mb-4">
+                        <i data-lucide="list" class="text-slate-400"></i>
+                        <h4 class="font-bold text-slate-700">Listado de Cursos Activos</h4>
+                    </div>
+                    
                     <div id="lista-cursos-config" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <p class="text-slate-400 text-sm">Cargando cursos...</p>
+                        <p class="text-slate-400 text-sm italic col-span-3 py-4">Cargando catálogo...</p>
                     </div>
                 </div>
             </div>
 
-            <div id="panel-alumnos" class="hidden">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="font-bold text-slate-700">Alumnos Registrados</h3>
-                        <div class="flex gap-2">
-                            <button onclick="abrirModalAlumno()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 shadow-lg transition">
-                                <i data-lucide="user-plus" size="16"></i> Nuevo Alumno
+            <div id="panel-alumnos" class="hidden animate-fade-in">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 min-h-[500px] flex flex-col">
+                    
+                    <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                        <div class="relative w-full md:w-96">
+                            <i data-lucide="search" class="absolute left-3 top-3 text-slate-400" size="18"></i>
+                            <input type="text" id="input-busqueda" placeholder="Buscar por DNI o Apellido..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm font-bold text-slate-700" onkeyup="if(event.key === 'Enter') buscarAlumnos()">
+                        </div>
+
+                        <div class="flex gap-2 w-full md:w-auto">
+                            <button onclick="buscarAlumnos()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2.5 rounded-xl font-bold text-sm transition flex items-center gap-2">
+                                <i data-lucide="search" size="16"></i>
                             </button>
-                            <button onclick="cargarAlumnos()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-2 rounded-lg text-xs font-bold transition">
-                                <i data-lucide="refresh-cw" size="16"></i>
+                            <button onclick="abrirModalAlumno()" class="flex-1 md:flex-none bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 transition">
+                                <i data-lucide="user-plus" size="18"></i> Nuevo Alumno
                             </button>
                         </div>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left"><tbody id="tabla-alumnos" class="divide-y divide-slate-100"></tbody></table>
+
+                    <div class="overflow-x-auto flex-1">
+                        <table class="w-full text-sm text-left">
+                            <thead class="text-xs text-slate-400 uppercase bg-slate-50/50 border-b border-slate-100">
+                                <tr>
+                                    <th class="px-4 py-3 font-bold">DNI</th>
+                                    <th class="px-4 py-3 font-bold">Alumno</th>
+                                    <th class="px-4 py-3 font-bold">Curso / Registro</th>
+                                    <th class="px-4 py-3 font-bold">Fecha Alta</th>
+                                    <th class="px-4 py-3 text-right">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-alumnos" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                        
+                        <div id="empty-state" class="hidden flex flex-col items-center justify-center py-12">
+                            <div class="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                                <i data-lucide="users" class="text-slate-300" size="40"></i>
+                            </div>
+                            <h3 class="text-slate-800 font-bold text-lg">No hay alumnos aún</h3>
+                            <p class="text-slate-400 text-sm mt-1">Utiliza el botón "Nuevo Alumno" o la Carga Masiva.</p>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div id="panel-carga" class="hidden">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden p-8 text-center">
-                    <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i data-lucide="file-spreadsheet" size="32"></i>
+            <div id="panel-carga" class="hidden animate-fade-in">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden p-10 text-center max-w-2xl mx-auto">
+                    <div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-6 transform rotate-3">
+                        <i data-lucide="file-spreadsheet" size="40"></i>
                     </div>
-                    <h3 class="text-xl font-black text-slate-800">Carga Masiva</h3>
-                    <p class="text-slate-500 text-sm mt-2">Sube Excel con: <b>DNI, NOMBRE, APELLIDO, CURSO</b>.</p>
-                    <label class="mt-6 inline-flex cursor-pointer bg-slate-900 text-white font-bold py-3 px-6 rounded-xl items-center gap-2 hover:bg-slate-800 transition">
-                        <i data-lucide="upload"></i> Seleccionar Excel
+                    <h3 class="text-2xl font-black text-slate-800">Carga Masiva de Alumnos</h3>
+                    <p class="text-slate-500 mt-3 mb-8">Sube tu archivo Excel (.xlsx).<br>Columnas requeridas: <b class="text-slate-700">DNI, NOMBRE, APELLIDO, CURSO</b>.</p>
+                    
+                    <label class="group relative inline-flex cursor-pointer bg-slate-900 hover:bg-black text-white font-bold py-4 px-8 rounded-2xl items-center gap-3 transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1">
+                        <i data-lucide="upload-cloud"></i> 
+                        <span>Seleccionar Archivo Excel</span>
                         <input type="file" id="input-excel" accept=".xlsx, .xls" class="hidden" onchange="procesarExcel()">
                     </label>
-                    <p id="excel-status" class="mt-4 text-sm font-bold text-slate-400"></p>
-                    <div id="preview-area" class="hidden mt-6 p-4 bg-slate-50 rounded-lg text-left">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="font-bold text-slate-700">Registros: <span id="count-preview">0</span></span>
-                            <button onclick="confirmarCarga()" class="bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-green-700">CONFIRMAR CARGA</button>
+                    
+                    <p id="excel-status" class="mt-6 text-sm font-bold text-slate-400 animate-pulse"></p>
+                    
+                    <div id="preview-area" class="hidden mt-8 p-6 bg-slate-50 rounded-2xl text-left border border-slate-200">
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="font-bold text-slate-700 text-sm">Vista Previa (<span id="count-preview">0</span>)</span>
+                            <button onclick="confirmarCarga()" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg font-bold text-xs shadow-lg shadow-green-600/20 transition">CONFIRMAR CARGA</button>
                         </div>
-                        <div class="max-h-60 overflow-y-auto border border-slate-200 rounded">
-                            <table class="w-full text-sm bg-white"><tbody id="tabla-preview"></tbody></table>
+                        <div class="max-h-60 overflow-y-auto rounded-lg border border-slate-200 bg-white">
+                            <table class="w-full text-xs text-left"><tbody id="tabla-preview"></tbody></table>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div id="panel-clientes" class="hidden">
-                <div class="bg-white rounded-2xl shadow-sm border border-yellow-200 p-8 relative">
-                    <div class="absolute top-0 right-0 bg-yellow-400 text-yellow-900 text-[10px] font-black px-3 py-1 uppercase rounded-bl-lg">Super Admin</div>
-                    <h3 class="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">Nueva Institución</h3>
-                    <div class="space-y-4">
-                        <div><label class="label-form">Nombre</label><input type="text" id="new-inst-name" class="input-form"></div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div><label class="label-form">Sigla</label><input type="text" id="new-inst-sigla" class="input-form"></div>
-                            <div><label class="label-form">Color</label><input type="color" id="new-inst-color" class="w-full h-10 rounded cursor-pointer" value="#1e293b"></div>
+            <div id="panel-clientes" class="hidden animate-fade-in">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-white rounded-2xl shadow-sm border border-yellow-200 p-8 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-yellow-400 text-yellow-950 text-[10px] font-black px-4 py-1.5 uppercase rounded-bl-xl tracking-wider">Zona Super Admin</div>
+                        <h3 class="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
+                            <div class="p-2 bg-yellow-100 rounded-lg text-yellow-700"><i data-lucide="briefcase" size="20"></i></div>
+                            Nueva Institución
+                        </h3>
+                        
+                        <div class="space-y-5">
+                            <div><label class="label-form">Nombre Comercial</label><input type="text" id="new-inst-name" class="input-form" placeholder="Ej: Bomberos Voluntarios"></div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="label-form">Sigla (ID)</label><input type="text" id="new-inst-sigla" class="input-form" placeholder="BV"></div>
+                                <div><label class="label-form">Color Marca</label><input type="color" id="new-inst-color" class="w-full h-[46px] p-1 rounded-lg cursor-pointer bg-white border border-slate-200" value="#1e293b"></div>
+                            </div>
+                            <div>
+                                <label class="label-form">Logo Institucional</label>
+                                <input type="file" id="new-inst-logo" accept="image/*" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 transition">
+                            </div>
+                            <div class="h-px bg-slate-100 my-2"></div>
+                            <div><label class="label-form">Email Admin</label><input type="email" id="new-admin-email" class="input-form" placeholder="admin@bomberos.com"></div>
+                            <div><label class="label-form">Contraseña Inicial</label><input type="text" id="new-admin-pass" class="input-form" value="123456"></div>
+                            
+                            <button onclick="crearCliente()" class="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl hover:bg-black transition shadow-lg mt-2">CREAR CLIENTE</button>
                         </div>
-                        <div><label class="label-form">Logo</label><input type="file" id="new-inst-logo" accept="image/*" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:rounded-full file:border-0 file:bg-blue-50 file:text-blue-700"></div>
-                        <hr class="border-slate-100 my-2">
-                        <div><label class="label-form">Email Admin</label><input type="email" id="new-admin-email" class="input-form"></div>
-                        <div><label class="label-form">Contraseña</label><input type="text" id="new-admin-pass" class="input-form"></div>
-                        <button onclick="crearCliente()" class="w-full bg-slate-900 text-white font-bold py-3 rounded-lg hover:bg-black transition shadow-lg">CREAR CLIENTE</button>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col">
+                        <h3 class="font-bold text-slate-700 mb-4">Instituciones Activas</h3>
+                        <div id="lista-instituciones" class="space-y-3 overflow-y-auto pr-2 flex-1 max-h-[600px]"></div>
                     </div>
                 </div>
             </div>
@@ -181,28 +248,27 @@
         </div>
     </main>
 
-    <div id="modal-alumno" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 transform transition-all scale-100">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-black text-slate-800">Cargar Alumno</h3>
-                <button onclick="cerrarModalAlumno()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x"></i></button>
-            </div>
+    <div id="modal-alumno" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 transform transition-all scale-100 relative">
+            <button onclick="cerrarModalAlumno()" class="absolute top-4 right-4 text-slate-300 hover:text-slate-600 transition"><i data-lucide="x"></i></button>
+            
+            <h3 class="text-xl font-black text-slate-800 mb-6">Matricular Alumno</h3>
             
             <div class="space-y-4">
-                <div><label class="label-form">DNI (Sin puntos)</label><input type="text" id="m-dni" class="input-form" placeholder="Ej: 33123456"></div>
+                <div><label class="label-form">DNI (Sin puntos)</label><input type="text" id="m-dni" class="input-form font-mono" placeholder="Ej: 33123456"></div>
                 <div class="grid grid-cols-2 gap-4">
                     <div><label class="label-form">Nombre</label><input type="text" id="m-nombre" class="input-form" placeholder="Juan"></div>
                     <div><label class="label-form">Apellido</label><input type="text" id="m-apellido" class="input-form" placeholder="Pérez"></div>
                 </div>
                 
                 <div>
-                    <label class="label-form text-blue-600">Curso Oficial (Define el Color)</label>
-                    <select id="m-curso-select" class="input-form bg-blue-50 border-blue-200 text-blue-900 font-bold">
+                    <label class="label-form text-blue-600">Curso Oficial</label>
+                    <select id="m-curso-select" class="input-form bg-blue-50/50 border-blue-200 text-blue-900 font-bold focus:bg-white">
                         <option value="">Cargando cursos...</option>
                     </select>
                 </div>
                 
-                <button onclick="guardarAlumnoManual()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg transition mt-4">GUARDAR ALUMNO</button>
+                <button onclick="guardarAlumnoManual()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-600/20 transition mt-4">CONFIRMAR INSCRIPCIÓN</button>
             </div>
         </div>
     </div>
@@ -214,202 +280,287 @@
         
         let currentUser = null;
         let currentProfile = null;
-        let cursosCache = []; // Guardamos los cursos aquí para usarlos rápido
+        let cursosCache = [];
         let datosExcelCargados = [];
 
+        // --- INICIALIZACIÓN ---
         document.addEventListener('DOMContentLoaded', async () => {
-            lucide.createIcons();
             const { data: { session } } = await db.auth.getSession();
             if (!session) { window.location.href = 'saas_login.html'; return; }
             currentUser = session.user;
             document.getElementById('user-email').innerText = currentUser.email;
 
+            // Cargar Perfil
             const { data: perfil } = await db.from('perfiles').select('*, instituciones(*)').eq('id', currentUser.id).single();
             currentProfile = perfil;
 
             if(perfil && perfil.instituciones) {
                 const inst = perfil.instituciones;
-                if(inst.color_primario) document.getElementById('sidebar').style.backgroundColor = inst.color_primario;
-                if(inst.logo_url) {
-                    const logoImg = document.getElementById('brand-logo');
-                    logoImg.src = inst.logo_url; logoImg.classList.remove('hidden');
-                    document.getElementById('brand-text').classList.add('hidden');
-                    document.getElementById('dashboard-logo-container').innerHTML = `<img src="${inst.logo_url}" class="w-full h-full object-contain">`;
-                }
-                document.getElementById('sidebar-inst-name').innerText = inst.nombre;
-                document.getElementById('dash-inst-name').innerText = inst.nombre;
+                aplicarEstilosInstitucion(inst);
                 
                 if(perfil.rol === 'superadmin') {
                     document.getElementById('menu-superadmin').classList.remove('hidden');
+                    cargarInstituciones(); // Cargamos lista para Super Admin
                 }
             }
             
-            // Cargas Iniciales
-            cargarCursosDB(); // Cargar la lista de cursos oficiales
+            cargarCursosDB();
+            cargarAlumnos(); // Carga inicial de tabla
             contarAlumnos();
+            lucide.createIcons();
         });
+
+        function aplicarEstilosInstitucion(inst) {
+            if(inst.color_primario) document.getElementById('sidebar').style.backgroundColor = inst.color_primario;
+            if(inst.logo_url) {
+                const logoImg = document.getElementById('brand-logo');
+                logoImg.src = inst.logo_url; logoImg.classList.remove('hidden');
+                document.getElementById('brand-text').classList.add('hidden');
+                document.getElementById('dashboard-logo-container').innerHTML = `<img src="${inst.logo_url}" class="w-full h-full object-contain">`;
+            }
+            document.getElementById('sidebar-inst-name').innerText = inst.nombre;
+            document.getElementById('dash-inst-name').innerText = inst.nombre;
+        }
 
         function mostrarSeccion(id) {
             ['panel-inicio', 'panel-carga', 'panel-alumnos', 'panel-clientes', 'panel-cursos'].forEach(p => document.getElementById(p).classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
-            if(id === 'panel-alumnos') cargarAlumnos();
-            if(id === 'panel-cursos') renderizarPanelCursos(); // Renderizar visualmente
+            if(id === 'panel-cursos') renderizarPanelCursos();
         }
 
         async function logout() { await db.auth.signOut(); window.location.href = 'saas_login.html'; }
 
-        // --- GESTIÓN DE CURSOS (LÓGICA DEL ADMIN VIEJO MEJORADA) ---
+        // --- GESTIÓN ALUMNOS ---
+        async function buscarAlumnos() {
+            const busqueda = document.getElementById('input-busqueda').value.trim();
+            cargarAlumnos(busqueda);
+        }
+
+        async function cargarAlumnos(filtro = '') {
+            const tbody = document.getElementById('tabla-alumnos');
+            const emptyState = document.getElementById('empty-state');
+            
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-400">Cargando datos...</td></tr>';
+            emptyState.classList.add('hidden');
+
+            let query = db.from('matriculas').select('*').order('created_at', { ascending: false }).limit(100);
+            
+            // Filtro por institución (si no es superadmin)
+            if(currentProfile && currentProfile.rol !== 'superadmin') { 
+                query = query.eq('institution_id', currentProfile.institucion_id); 
+            }
+
+            // Filtro de búsqueda (Buscador Real)
+            if(filtro) {
+                // Buscamos si el DNI empieza con el numero O si el apellido contiene el texto
+                query = query.or(`dni_alumno.ilike.%${filtro}%,apellido.ilike.%${filtro}%`);
+            }
+
+            const { data, error } = await query;
+            
+            tbody.innerHTML = "";
+
+            if (!data || data.length === 0) {
+                emptyState.classList.remove('hidden'); // Mostrar dibujo si no hay datos
+                return;
+            }
+
+            data.forEach(a => {
+                const fecha = new Date(a.fecha_inicio || a.created_at).toLocaleDateString('es-AR');
+                const colorBadge = obtenerColorBadge(a.registro_id); // Helper para colores
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition border-b border-slate-50">
+                        <td class="px-4 py-3 font-mono text-xs text-slate-500 font-bold">${a.dni_alumno}</td>
+                        <td class="px-4 py-3 font-bold text-slate-700">${a.apellido}, ${a.nombre}</td>
+                        <td class="px-4 py-3 text-xs">
+                            <div class="flex items-center gap-2">
+                                <span class="${colorBadge} px-2 py-0.5 rounded text-[10px] font-black uppercase text-white tracking-wide">${a.registro_id?.substring(0,6) || 'N/A'}</span>
+                                <span class="font-semibold text-slate-600 truncate max-w-[150px]">${a.curso}</span>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 text-xs text-slate-400 font-medium">${fecha}</td>
+                        <td class="px-4 py-3 text-right">
+                            <button onclick="borrarAlumno(${a.id})" class="text-slate-300 hover:text-red-500 transition"><i data-lucide="trash-2" size="16"></i></button>
+                        </td>
+                    </tr>`;
+            });
+            lucide.createIcons();
+        }
+
+        function obtenerColorBadge(regId) {
+            const map = {
+                'remaep': 'bg-blue-600', 'rubra': 'bg-red-600', 'rniue': 'bg-yellow-600',
+                'rmts': 'bg-slate-600', 'rce': 'bg-yellow-400 text-black', 'rpde': 'bg-sky-500', 'asarin': 'bg-red-900'
+            };
+            return map[String(regId).toLowerCase()] || 'bg-slate-400';
+        }
+
+        async function guardarAlumnoManual() {
+            const dni = document.getElementById('m-dni').value;
+            const nombre = document.getElementById('m-nombre').value;
+            const apellido = document.getElementById('m-apellido').value;
+            const cursoId = document.getElementById('m-curso-select').value;
+
+            if(!dni || !nombre || !apellido || !cursoId) return alert("Complete todos los campos.");
+
+            const cursoInfo = cursosCache.find(c => c.id === cursoId);
+            if(!cursoInfo) return alert("Curso no válido");
+
+            try {
+                const { error } = await db.from('matriculas').insert({
+                    dni_alumno: dni, nombre, apellido,
+                    curso: cursoInfo.nombre,
+                    registro_id: cursoInfo.registro_id, 
+                    institution_id: currentProfile?.institucion_id,
+                    fecha_inicio: new Date().toISOString() // Fecha actual correcta
+                });
+
+                if(error) throw error;
+
+                alert("✅ Alumno matriculado exitosamente.");
+                cerrarModalAlumno();
+                cargarAlumnos();
+                contarAlumnos();
+            } catch(err) { alert("Error: " + err.message); }
+        }
+
+        async function borrarAlumno(id) {
+            if(!confirm("¿Está seguro de eliminar este registro?")) return;
+            await db.from('matriculas').delete().eq('id', id);
+            cargarAlumnos();
+        }
+
+        // --- GESTIÓN CURSOS ---
         async function cargarCursosDB() {
-            // Traemos todos los cursos oficiales
-            const { data, error } = await db.from('cursos_oficiales').select('*').order('created_at', { ascending: false });
-            if(!error) {
+            const { data } = await db.from('cursos_oficiales').select('*').order('created_at', { ascending: false });
+            if(data) {
                 cursosCache = data;
-                actualizarSelectModal(); // Llenar el dropdown del modal
+                actualizarSelectModal();
             }
         }
 
         function renderizarPanelCursos() {
             const lista = document.getElementById('lista-cursos-config');
             lista.innerHTML = "";
-            
-            if(cursosCache.length === 0) {
-                lista.innerHTML = `<p class="text-slate-400 col-span-3 text-center">No hay cursos creados. Usa los botones de colores.</p>`;
-                return;
-            }
-
             const colores = { 'remaep': 'bg-blue-600', 'rniue': 'bg-yellow-600', 'rubra': 'bg-red-600', 'rmts': 'bg-slate-700', 'rce': 'bg-yellow-400 text-black', 'rpde': 'bg-sky-500', 'asarin': 'bg-red-900' };
 
             cursosCache.forEach(c => {
                 const colorClass = colores[c.registro_id] || 'bg-slate-500';
                 lista.innerHTML += `
-                    <div class="flex items-center justify-between p-3 border border-slate-100 rounded-lg bg-slate-50">
+                    <div class="flex items-center justify-between p-4 border border-slate-100 rounded-xl bg-slate-50 hover:bg-white transition shadow-sm">
                         <div class="flex items-center gap-3">
-                            <span class="px-2 py-1 rounded text-[10px] font-bold text-white uppercase ${colorClass}">${c.registro_id}</span>
+                            <span class="w-16 text-center py-1 rounded text-[10px] font-black text-white uppercase ${colorClass}">${c.registro_id}</span>
                             <span class="font-bold text-slate-700 text-sm">${c.nombre}</span>
                         </div>
-                        <button onclick="borrarCurso('${c.id}')" class="text-red-400 hover:text-red-600"><i data-lucide="trash-2" size="16"></i></button>
-                    </div>
-                `;
+                        <button onclick="borrarCurso('${c.id}')" class="text-slate-300 hover:text-red-500"><i data-lucide="trash-2" size="16"></i></button>
+                    </div>`;
             });
             lucide.createIcons();
         }
 
         async function crearCurso(registroId) {
-            const nombre = prompt(`Nombre del nuevo curso para ${registroId.toUpperCase()}:`);
+            const nombre = prompt(`Nombre del curso para categoría ${registroId.toUpperCase()}:`);
             if(!nombre) return;
-            const { error } = await db.from('cursos_oficiales').insert([{ nombre: nombre.toUpperCase(), registro_id: registroId }]);
-            if(error) alert("Error: " + error.message);
-            else {
-                await cargarCursosDB();
-                renderizarPanelCursos();
-            }
+            await db.from('cursos_oficiales').insert([{ nombre: nombre.toUpperCase(), registro_id: registroId }]);
+            await cargarCursosDB(); renderizarPanelCursos();
         }
 
         async function borrarCurso(id) {
-            if(!confirm("¿Eliminar este curso?")) return;
-            await db.from('cursos_oficiales').delete().eq('id', id);
-            await cargarCursosDB();
-            renderizarPanelCursos();
+            if(confirm("¿Borrar curso?")) {
+                await db.from('cursos_oficiales').delete().eq('id', id);
+                await cargarCursosDB(); renderizarPanelCursos();
+            }
         }
 
         function actualizarSelectModal() {
             const select = document.getElementById('m-curso-select');
-            select.innerHTML = '<option value="">-- Seleccionar Curso Oficial --</option>';
+            select.innerHTML = '<option value="">-- Seleccionar --</option>';
             cursosCache.forEach(c => {
                 select.innerHTML += `<option value="${c.id}">${c.nombre} (${c.registro_id.toUpperCase()})</option>`;
             });
         }
 
-        // --- CARGA MANUAL ALUMNO (CON LÓGICA HÍBRIDA) ---
+        // --- CLIENTES & SUPER ADMIN ---
+        async function cargarInstituciones() {
+            const container = document.getElementById('lista-instituciones');
+            const { data } = await db.from('instituciones').select('*').order('created_at', {ascending:false});
+            container.innerHTML = "";
+            data.forEach(i => {
+                const logoHtml = i.logo_url 
+                    ? `<img src="${i.logo_url}" class="w-8 h-8 object-contain rounded bg-slate-100 border border-slate-200">`
+                    : `<div class="w-8 h-8 rounded flex items-center justify-center text-white text-[10px] font-bold" style="background:${i.color_primario}">${i.sigla?.substring(0,2)}</div>`;
+                
+                container.innerHTML += `
+                    <div class="flex items-center justify-between p-3 border border-slate-100 rounded-lg hover:bg-slate-50 transition">
+                        <div class="flex items-center gap-3">
+                            ${logoHtml}
+                            <div>
+                                <p class="text-sm font-bold text-slate-700">${i.nombre}</p>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-2 h-2 rounded-full" style="background:${i.color_primario}"></div>
+                                    <p class="text-[10px] text-slate-400">ID: ${i.sigla}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        async function crearCliente() {
+            const nombre = document.getElementById('new-inst-name').value;
+            const sigla = document.getElementById('new-inst-sigla').value;
+            const color = document.getElementById('new-inst-color').value;
+            const email = document.getElementById('new-admin-email').value;
+            const pass = document.getElementById('new-admin-pass').value;
+            const logoInput = document.getElementById('new-inst-logo');
+
+            if(!nombre || !email || !pass) return alert("Complete los datos.");
+            if(!confirm("⚠️ Se creará el cliente y se cerrará su sesión actual. ¿Continuar?")) return;
+
+            try {
+                let logoUrl = null;
+                if(logoInput.files.length > 0) {
+                    const file = logoInput.files[0];
+                    const fileName = `logo_${Date.now()}`;
+                    await db.storage.from('logos-instituciones').upload(fileName, file);
+                    const { data } = db.storage.from('logos-instituciones').getPublicUrl(fileName);
+                    logoUrl = data.publicUrl;
+                }
+
+                const { data: inst, error: e1 } = await db.from('instituciones').insert({ nombre, sigla, color_primario: color, logo_url: logoUrl }).select().single();
+                if(e1) throw e1;
+
+                const { data: auth, error: e2 } = await db.auth.signUp({ email, password: pass });
+                if(e2) throw e2;
+
+                if(auth.user) {
+                    await db.from('perfiles').insert({ id: auth.user.id, email, rol: 'admin', institucion_id: inst.id, nombre_completo: 'Admin ' + sigla });
+                    alert("✅ Cliente creado.");
+                    window.location.href = 'saas_login.html';
+                }
+            } catch(err) { alert(err.message); }
+        }
+
+        // --- UTILS ---
         function abrirModalAlumno() {
-            document.getElementById('m-dni').value = '';
-            document.getElementById('m-nombre').value = '';
-            document.getElementById('m-apellido').value = '';
-            document.getElementById('m-curso-select').value = ''; // Reset select
+            ['m-dni','m-nombre','m-apellido','m-curso-select'].forEach(id => document.getElementById(id).value = '');
             document.getElementById('modal-alumno').classList.remove('hidden');
         }
-
-        function cerrarModalAlumno() {
-            document.getElementById('modal-alumno').classList.add('hidden');
+        function cerrarModalAlumno() { document.getElementById('modal-alumno').classList.add('hidden'); }
+        async function contarAlumnos() {
+            let query = db.from('matriculas').select('*', { count: 'exact', head: true });
+            if(currentProfile && currentProfile.rol !== 'superadmin') { query = query.eq('institution_id', currentProfile.institucion_id); }
+            const { count } = await query;
+            document.getElementById('stat-total').innerText = count || 0;
         }
 
-async function guardarAlumnoManual() {
-            const dni = document.getElementById('m-dni').value;
-            const nombre = document.getElementById('m-nombre').value;
-            const apellido = document.getElementById('m-apellido').value;
-            const cursoId = document.getElementById('m-curso-select').value;
-
-            if(!dni || !nombre || !apellido || !cursoId) return alert("Por favor, complete todos los campos y elija un curso.");
-
-            // Buscamos los detalles del curso (para saber el color/registro)
-            const cursoInfo = cursosCache.find(c => c.id === cursoId);
-            if(!cursoInfo) return alert("Error: Curso no válido");
-
-            try {
-                const { error } = await db.from('matriculas').insert({
-                    dni_alumno: dni,
-                    nombre: nombre,
-                    apellido: apellido,
-                    
-                    // Datos del curso seleccionado
-                    curso: cursoInfo.nombre,
-                    registro_id: cursoInfo.registro_id, 
-                    
-                    // Datos de tu institución
-                    institution_id: currentProfile?.institucion_id,
-                    
-                    // 🔥 CORRECCIÓN CLAVE: Agregamos la fecha de hoy
-                    fecha_inicio: new Date().toISOString() 
-                });
-
-                if(error) throw error;
-
-                alert(`✅ Alumno cargado en ${cursoInfo.nombre} (${cursoInfo.registro_id.toUpperCase()})`);
-                cerrarModalAlumno();
-                cargarAlumnos();
-                contarAlumnos();
-
-            } catch(err) {
-                alert("Error al guardar: " + err.message);
-            }
-        }
-            // BUSCAMOS EL CURSO EN MEMORIA PARA SABER SU REGISTRO (COLOR)
-            const cursoInfo = cursosCache.find(c => c.id === cursoId);
-            if(!cursoInfo) return alert("Error: Curso no válido");
-
-            try {
-                const { error } = await db.from('matriculas').insert({
-                    dni_alumno: dni,
-                    nombre: nombre,
-                    apellido: apellido,
-                    
-                    // LÓGICA PODEROSA: Usamos el nombre y el registro DEL CURSO SELECCIONADO
-                    curso: cursoInfo.nombre,
-                    registro_id: cursoInfo.registro_id, 
-                    
-                    // Pero mantenemos la propiedad de la Institución (quién lo cargó)
-                    institution_id: currentProfile?.institucion_id
-                });
-
-                if(error) throw error;
-
-                alert(`✅ Alumno cargado en ${cursoInfo.nombre} (${cursoInfo.registro_id.toUpperCase()})`);
-                cerrarModalAlumno();
-                cargarAlumnos();
-                contarAlumnos();
-
-            } catch(err) {
-                alert("Error al guardar: " + err.message);
-            }
-        }
-
-        // --- EXCEL, ALUMNOS Y CLIENTES (Lógica Standard) ---
-        // (Se mantienen igual que antes, solo asegúrate de copiar todo el bloque de scripts de abajo)
+        // --- EXCEL ---
         function procesarExcel() {
             const input = document.getElementById('input-excel');
             const status = document.getElementById('excel-status');
             if(!input.files.length) return;
-            status.innerText = "⏳ Leyendo...";
+            status.innerText = "⏳ Analizando archivo...";
             const reader = new FileReader();
             reader.onload = function(e) {
                 const data = new Uint8Array(e.target.result);
@@ -420,91 +571,30 @@ async function guardarAlumnoManual() {
                     nombre: fila['NOMBRE'] || fila['nombre'],
                     apellido: fila['APELLIDO'] || fila['apellido'],
                     curso: fila['CURSO'] || fila['curso'],
-                    registro_id: (currentProfile?.instituciones?.sigla || 'remaep').toLowerCase(), // Excel usa defecto inst
-                    institution_id: currentProfile?.institucion_id
+                    registro_id: (currentProfile?.instituciones?.sigla || 'remaep').toLowerCase(),
+                    institution_id: currentProfile?.institucion_id,
+                    fecha_inicio: new Date().toISOString()
                 })).filter(d => d.dni_alumno);
-                mostrarPreview(datosExcelCargados);
+                
+                const tbody = document.getElementById('tabla-preview');
+                tbody.innerHTML = "";
+                document.getElementById('count-preview').innerText = datosExcelCargados.length;
+                document.getElementById('preview-area').classList.remove('hidden');
+                datosExcelCargados.slice(0, 5).forEach(d => { 
+                    tbody.innerHTML += `<tr class="border-b"><td class="px-2 py-1 font-mono text-xs">${d.dni_alumno}</td><td class="px-2 py-1 text-xs">${d.nombre}</td></tr>`; 
+                });
                 status.innerText = "";
             };
             reader.readAsArrayBuffer(file);
         }
-
-        function mostrarPreview(datos) {
-            const tbody = document.getElementById('tabla-preview');
-            tbody.innerHTML = "";
-            document.getElementById('count-preview').innerText = datos.length;
-            document.getElementById('preview-area').classList.remove('hidden');
-            datos.slice(0, 5).forEach(d => { tbody.innerHTML += `<tr class="border-b"><td class="px-2 py-1 font-mono text-xs">${d.dni_alumno}</td><td class="px-2 py-1 text-xs">${d.nombre}</td></tr>`; });
-        }
-
         async function confirmarCarga() {
             if(datosExcelCargados.length === 0) return;
             try {
                 const { error } = await db.from('matriculas').insert(datosExcelCargados);
                 if (error) throw error;
-                alert("✅ Carga Exitosa");
+                alert("✅ Carga Masiva Exitosa");
                 window.location.reload();
             } catch (err) { alert("Error: " + err.message); }
-        }
-
-        async function contarAlumnos() {
-            let query = db.from('matriculas').select('*', { count: 'exact', head: true });
-            if(currentProfile && currentProfile.rol !== 'superadmin') { query = query.eq('institution_id', currentProfile.institucion_id); }
-            const { count } = await query;
-            document.getElementById('stat-total').innerText = count || 0;
-        }
-
-        async function cargarAlumnos() {
-            const tbody = document.getElementById('tabla-alumnos');
-            tbody.innerHTML = '<tr><td colspan="4">Cargando...</td></tr>';
-            let query = db.from('matriculas').select('*').order('created_at', { ascending: false }).limit(50);
-            if(currentProfile && currentProfile.rol !== 'superadmin') { query = query.eq('institution_id', currentProfile.institucion_id); }
-            const { data } = await query;
-            tbody.innerHTML = "";
-            data.forEach(alumno => {
-                // Mostramos el registro (color) en la tabla también
-                tbody.innerHTML += `<tr class="hover:bg-slate-50"><td class="px-4 py-3 font-mono text-xs text-slate-500">${alumno.dni_alumno}</td><td class="px-4 py-3 font-bold text-slate-700">${alumno.apellido}, ${alumno.nombre}</td><td class="px-4 py-3 text-xs"><span class="bg-slate-100 text-slate-700 px-2 py-1 rounded-full font-bold border border-slate-200">${alumno.registro_id?.toUpperCase() || '---'}</span> <span class="text-blue-600 font-bold ml-1">${alumno.curso}</span></td><td class="px-4 py-3 text-right"><button onclick="borrarAlumno(${alumno.id})" class="text-red-400 hover:text-red-600 font-bold text-xs">ELIMINAR</button></td></tr>`;
-            });
-        }
-        
-        async function borrarAlumno(id) {
-            if(!confirm("¿Seguro?")) return;
-            await db.from('matriculas').delete().eq('id', id);
-            cargarAlumnos();
-        }
-
-        async function crearCliente() {
-            // (Lógica Super Admin Idéntica a versiones anteriores)
-            const nombre = document.getElementById('new-inst-name').value;
-            const sigla = document.getElementById('new-inst-sigla').value;
-            const color = document.getElementById('new-inst-color').value;
-            const email = document.getElementById('new-admin-email').value;
-            const pass = document.getElementById('new-admin-pass').value;
-            const logoInput = document.getElementById('new-inst-logo');
-
-            if(!nombre || !email || !pass) return alert("Faltan datos");
-            if(!confirm("Se creará el cliente. ¿OK?")) return;
-
-            try {
-                let logoUrl = null;
-                if(logoInput.files.length > 0) {
-                    const file = logoInput.files[0];
-                    const fileName = `logo_${Date.now()}_${file.name.replace(/\s/g, '')}`;
-                    const { error } = await db.storage.from('logos-instituciones').upload(fileName, file);
-                    if(!error) { const { data } = db.storage.from('logos-instituciones').getPublicUrl(fileName); logoUrl = data.publicUrl; }
-                }
-
-                const { data: inst, error: errInst } = await db.from('instituciones').insert({ nombre, sigla, color_primario: color, logo_url: logoUrl }).select().single();
-                if(errInst) throw errInst;
-
-                const { data: auth, error: errAuth } = await db.auth.signUp({ email, password: pass });
-                if(errAuth) throw errAuth;
-
-                if(auth.user) {
-                    await db.from('perfiles').insert({ id: auth.user.id, email, rol: 'admin', institucion_id: inst.id, nombre_completo: 'Admin ' + sigla });
-                    alert("Cliente Creado OK");
-                }
-            } catch(e) { alert(e.message); }
         }
     </script>
 </body>
