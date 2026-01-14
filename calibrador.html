@@ -2,238 +2,237 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Calibrador de Diploma ASARI</title>
+    <title>Calibrador Horizontal ASARI</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&family=Roboto+Slab:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: sans-serif; background: #333; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        body { font-family: sans-serif; background: #222; margin: 0; display: flex; height: 100vh; overflow: hidden; color: white; }
         
-        /* PANEL LATERAL DE CONTROLES */
-        #sidebar { width: 320px; background: #222; color: white; padding: 20px; overflow-y: auto; border-right: 1px solid #444; z-index: 100; box-shadow: 5px 0 15px rgba(0,0,0,0.5); }
-        h2 { font-size: 18px; margin-top: 0; color: #4facfe; }
-        .control-group { margin-bottom: 20px; background: #333; padding: 10px; border-radius: 8px; border: 1px solid #444; }
-        label { display: block; font-size: 12px; color: #aaa; margin-bottom: 5px; }
-        input[type="range"] { width: 100%; }
-        .coord-display { font-family: monospace; font-size: 12px; color: #00ff00; margin-top: 5px; background: black; padding: 5px; border-radius: 4px; }
+        /* SIDEBAR */
+        #sidebar { width: 300px; background: #1a1a1a; padding: 20px; overflow-y: auto; border-right: 1px solid #444; flex-shrink: 0; z-index: 100; }
+        .control-group { margin-bottom: 20px; background: #333; padding: 10px; border-radius: 8px; }
+        label { display: block; font-size: 11px; color: #aaa; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+        input[type="range"] { width: 100%; cursor: pointer; }
+        .coord-display { font-family: monospace; font-size: 14px; color: #4ade80; margin-top: 5px; background: black; padding: 8px; border-radius: 4px; border: 1px solid #444; }
         
-        /* ÁREA DE TRABAJO */
-        #workspace { flex: 1; position: relative; overflow: auto; background: #555; display: flex; justify-content: center; align-items: flex-start; padding: 50px; }
+        /* WORKSPACE (Área Gris) */
+        #workspace { 
+            flex: 1; 
+            background: #444; 
+            position: relative; 
+            overflow: auto; /* Permite scroll si es muy grande */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         
-        /* LIENZO DEL DIPLOMA (Mismas medidas que el sistema real) */
+        /* EL DIPLOMA (Lienzo Blanco) */
         #diploma-stage {
+            /* DIMENSIONES FIJAS HORIZONTALES */
             width: 2000px; 
             height: 1414px; 
-            background: white; 
-            position: relative; 
-            box-shadow: 0 0 50px rgba(0,0,0,0.5);
-            /* Escalado para que quepa en pantalla al editar */
-            transform-origin: top center;
-            transform: scale(0.4); 
+            background-color: white; 
+            box-shadow: 0 0 100px rgba(0,0,0,0.5);
+            position: relative;
+            flex-shrink: 0; /* Evita que se aplaste */
+            
+            /* TRUCO DE ZOOM: Escalamos desde el centro */
+            transform-origin: center center;
+            transition: transform 0.1s;
         }
 
-        /* ELEMENTOS DRAGGABLE */
+        /* ELEMENTOS MOVILES */
         .draggable {
-            position: absolute;
-            cursor: move;
-            border: 2px dashed rgba(0,0,0,0.2); /* Borde guía */
-            user-select: none;
+            position: absolute; cursor: grab; user-select: none;
+            border: 1px dashed rgba(0,0,255,0.3); /* Guía visual azul suave */
         }
-        .draggable:hover { border-color: red; background: rgba(255,255,0,0.1); }
-        .draggable.selected { border-color: #00ff00; z-index: 1000; }
+        .draggable:active { cursor: grabbing; border-color: #facc15; }
 
-        /* ESTILOS IDÉNTICOS AL FINAL */
+        /* ESTILOS REALES */
         .dip-texto-formal {
             font-family: 'Roboto Slab', serif; font-weight: 900; color: #003399; text-transform: uppercase;
-            text-align: center; white-space: nowrap; width: 100%;
-            text-shadow: 1px 1px 0px rgba(255,255,255,1);
+            text-align: center; white-space: nowrap; width: 100%; text-shadow: 1px 1px 0px rgba(255,255,255,1);
         }
+        .dip-qr-box { background: white; border: 2px solid #ccc; display: flex; align-items: center; justify-content: center; color: #aaa; font-size: 10px; width: 100%; height: 100%; }
         .dip-info-extra {
             font-family: 'Roboto', sans-serif; font-weight: 700; color: #444; background: rgba(255,255,255,0.9);
-            padding: 5px 20px; border-radius: 50px; border: 1px solid #eee; text-align: center;
-            white-space: nowrap;
+            padding: 5px 20px; border-radius: 50px; border: 1px solid #eee; text-align: center; white-space: nowrap;
         }
         .dip-sello {
-            border-radius: 50%;
+            border-radius: 50%; width: 100%; height: 100%;
             background: radial-gradient(ellipse at center, rgba(245,201,99,0.3) 0%,rgba(180,136,17,0.5) 100%);
-            border: 4px double rgba(180,136,17,0.6);
-            display: flex; align-items: center; justify-content: center;
+            border: 4px double rgba(180,136,17,0.6); box-shadow: 0 0 15px rgba(245,201,99,0.5);
         }
-        .dip-qr-box { background: white; padding: 5px; display: flex; justify-content: center; align-items: center; font-size: 10px; color: #ccc; }
-
     </style>
 </head>
 <body>
 
     <div id="sidebar">
-        <h2>🛠️ Calibrador</h2>
-        <p style="font-size:12px; color:#aaa;">1. Sube tu diploma vacío.<br>2. Arrastra los elementos.<br>3. Pásame los valores verdes.</p>
-        
+        <h2 style="margin-top:0; color:#60a5fa;">📐 Calibrador V2</h2>
+        <p style="font-size:11px; color:#888; margin-bottom:20px;">Ajusta para Diploma Horizontal (2000x1414)</p>
+
         <div class="control-group">
-            <label>Fondo (Diploma Vacío)</label>
+            <label>1. Cargar Fondo (JPG)</label>
             <input type="file" id="bg-uploader" accept="image/*">
         </div>
 
         <div class="control-group">
-            <label>ZOOM VISUAL (Para trabajar cómodo)</label>
-            <input type="range" min="0.1" max="1" step="0.05" value="0.4" oninput="cambiarZoom(this.value)">
+            <label>🔍 ZOOM PANTALLA</label>
+            <input type="range" min="0.1" max="0.8" step="0.01" value="0.35" oninput="cambiarZoom(this.value)">
         </div>
 
-        <hr style="border-color:#444">
+        <hr style="border-color:#444; margin: 20px 0;">
 
         <div class="control-group">
-            <label>1. NOMBRE Y DNI</label>
+            <label style="color:#facc15;">A. TEXTO CENTRAL</label>
             <label>Tamaño Letra (px)</label>
-            <input type="range" id="size-nombre" min="30" max="200" value="70" oninput="updateStyle('el-nombre', 'fontSize', this.value + 'px')">
+            <input type="range" min="40" max="150" value="80" oninput="updateStyle('el-nombre', 'fontSize', this.value + 'px')">
             <div class="coord-display" id="val-nombre">TOP: 450px</div>
         </div>
 
         <div class="control-group">
-            <label>2. CÓDIGO QR</label>
+            <label style="color:#facc15;">B. CÓDIGO QR</label>
             <label>Tamaño (px)</label>
-            <input type="range" id="size-qr" min="50" max="300" value="155" oninput="resizeQR(this.value)">
+            <input type="range" min="50" max="300" value="155" oninput="resizeElement('el-qr', this.value)">
             <div class="coord-display" id="val-qr">TOP: 130px | RIGHT: 65px</div>
         </div>
 
         <div class="control-group">
-            <label>3. FECHA Y REGISTRO</label>
+            <label style="color:#facc15;">C. FECHA Y REGISTRO</label>
             <div class="coord-display" id="val-fecha">BOTTOM: 300px</div>
         </div>
 
         <div class="control-group">
-            <label>4. SELLO HOLOGRÁFICO</label>
+            <label style="color:#facc15;">D. SELLO</label>
             <label>Tamaño (px)</label>
-            <input type="range" id="size-sello" min="100" max="400" value="180" oninput="resizeSello(this.value)">
+            <input type="range" min="100" max="300" value="180" oninput="resizeElement('el-sello', this.value)">
             <div class="coord-display" id="val-sello">BOTTOM: 60px | LEFT: 60px</div>
         </div>
     </div>
 
     <div id="workspace">
-        <div id="diploma-stage">
-            <img id="diploma-bg" src="" style="width:100%; height:100%; object-fit:cover; position:absolute; top:0; left:0; z-index:0; opacity:0.5;">
+        <div id="diploma-stage" style="transform: scale(0.35);">
+            <img id="diploma-bg" src="" style="width:100%; height:100%; object-fit:fill; position:absolute; top:0; left:0; z-index:0; opacity:0.3;">
             
-            <div id="el-nombre" class="draggable" style="top: 450px; left: 50%; transform: translateX(-50%); width: 90%; border:none;">
-                <div class="dip-texto-formal" style="font-size: 70px;">MARCELO ALEJANDRO PATRI • DNI 33656107</div>
+            <div id="el-nombre" class="draggable" style="top: 450px; left: 0; width: 100%; text-align: center; border:none;" data-axis="y">
+                <div class="dip-texto-formal" style="font-size: 80px;">MARCELO ALEJANDRO PATRI • DNI 33656107</div>
             </div>
 
-            <div id="el-qr" class="draggable" style="top: 130px; right: 65px; width: 155px; height: 155px;">
-                <div class="dip-qr-box" style="width:100%; height:100%;">QR CODE</div>
+            <div id="el-qr" class="draggable" style="top: 130px; right: 65px; width: 155px; height: 155px;" data-axis="xy">
+                <div class="dip-qr-box">QR</div>
             </div>
 
-            <div id="el-fecha" class="draggable" style="bottom: 300px; left: 50%; transform: translateX(-50%); border:none;">
-                <div class="dip-info-extra">REGISTRO: REMAEP • Fecha de emisión: 13 de enero de 2026</div>
+            <div id="el-fecha" class="draggable" style="bottom: 300px; left: 0; width: 100%; text-align: center; border:none;" data-axis="y">
+                <div class="dip-info-extra" style="display:inline-block;">REGISTRO: REMAEP • Fecha: 13/01/2026</div>
             </div>
 
-            <div id="el-sello" class="draggable" style="bottom: 60px; left: 60px; width: 180px; height: 180px;">
-                <div class="dip-sello" style="width:100%; height:100%;"></div>
+            <div id="el-sello" class="draggable" style="bottom: 60px; left: 60px; width: 180px; height: 180px;" data-axis="xy">
+                <div class="dip-sello"></div>
             </div>
 
         </div>
     </div>
 
     <script>
-        // CARGAR IMAGEN DE FONDO
+        // CARGAR IMAGEN
         document.getElementById('bg-uploader').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if(file) {
                 const reader = new FileReader();
-                reader.onload = function(evt) {
-                    document.getElementById('diploma-bg').src = evt.target.result;
-                    document.getElementById('diploma-bg').style.opacity = "1";
+                reader.onload = (evt) => {
+                    const img = document.getElementById('diploma-bg');
+                    img.src = evt.target.result;
+                    img.style.opacity = "1";
                 };
                 reader.readAsDataURL(file);
             }
         });
 
-        // ZOOM DEL AREA DE TRABAJO
+        // ZOOM
         function cambiarZoom(val) {
             document.getElementById('diploma-stage').style.transform = `scale(${val})`;
         }
 
-        // LÓGICA DE ARRASTRE
-        let activeElement = null;
-        let startX, startY, startTop, startLeft, startRight, startBottom;
-        const stage = document.getElementById('diploma-stage');
+        // DRAG & DROP LOGIC
+        let activeEl = null;
+        let startX, startY, startTop, startBottom, startRight, startLeft;
 
         document.querySelectorAll('.draggable').forEach(el => {
-            el.addEventListener('mousedown', startDrag);
+            el.addEventListener('mousedown', (e) => {
+                activeEl = el;
+                e.preventDefault();
+                startX = e.clientX;
+                startY = e.clientY;
+                
+                const style = window.getComputedStyle(el);
+                // Leemos las posiciones actuales
+                startTop = style.top !== 'auto' ? parseFloat(style.top) : null;
+                startBottom = style.bottom !== 'auto' ? parseFloat(style.bottom) : null;
+                startRight = style.right !== 'auto' ? parseFloat(style.right) : null;
+                startLeft = style.left !== 'auto' ? parseFloat(style.left) : null;
+
+                document.addEventListener('mousemove', onDrag);
+                document.addEventListener('mouseup', stopDrag);
+            });
         });
 
-        function startDrag(e) {
-            activeElement = this;
-            e.preventDefault();
-            startX = e.clientX;
-            startY = e.clientY;
+        function onDrag(e) {
+            if (!activeEl) return;
             
-            const style = window.getComputedStyle(activeElement);
-            
-            // Detectar si usa Top/Left o Bottom/Right
-            startTop = style.top !== 'auto' ? parseFloat(style.top) : null;
-            startBottom = style.bottom !== 'auto' ? parseFloat(style.bottom) : null;
-            startLeft = style.left !== 'auto' ? parseFloat(style.left) : null;
-            startRight = style.right !== 'auto' ? parseFloat(style.right) : null;
+            // Calculamos el desplazamiento compensando el Zoom
+            const zoom = parseFloat(document.getElementById('diploma-stage').style.transform.replace('scale(', '').replace(')', '')) || 1;
+            const dy = (e.clientY - startY) / zoom;
+            const dx = (e.clientX - startX) / zoom;
+            const axis = activeEl.dataset.axis || 'xy';
 
-            document.addEventListener('mousemove', drag);
-            document.addEventListener('mouseup', stopDrag);
-        }
+            // MOVIMIENTO VERTICAL (Todos)
+            if (startTop !== null) activeEl.style.top = (startTop + dy) + 'px';
+            if (startBottom !== null) activeEl.style.bottom = (startBottom - dy) + 'px';
 
-        function drag(e) {
-            if (!activeElement) return;
-            
-            // Ajustar el movimiento según el nivel de Zoom actual
-            const zoomLevel = parseFloat(document.getElementById('diploma-stage').style.transform.replace('scale(', '').replace(')', '')) || 0.4;
-            
-            const dx = (e.clientX - startX) / zoomLevel;
-            const dy = (e.clientY - startY) / zoomLevel;
-
-            // Actualizar posiciones
-            if (startTop !== null) activeElement.style.top = (startTop + dy) + 'px';
-            if (startBottom !== null) activeElement.style.bottom = (startBottom - dy) + 'px';
-            
-            // Solo mover horizontalmente si NO está centrado (los textos centrados no se mueven horizontalmente en este editor simple, solo vertical)
-            if (activeElement.id === 'el-qr' || activeElement.id === 'el-sello') {
-                if (startLeft !== null) activeElement.style.left = (startLeft + dx) + 'px';
-                if (startRight !== null) activeElement.style.right = (startRight - dx) + 'px';
+            // MOVIMIENTO HORIZONTAL (Solo QR y Sello)
+            if (axis === 'xy') {
+                if (startRight !== null) activeEl.style.right = (startRight - dx) + 'px'; // Right invierte X
+                if (startLeft !== null) activeEl.style.left = (startLeft + dx) + 'px';
             }
 
-            updateDisplays();
+            updateData();
         }
 
         function stopDrag() {
-            activeElement = null;
-            document.removeEventListener('mousemove', drag);
+            activeEl = null;
+            document.removeEventListener('mousemove', onDrag);
             document.removeEventListener('mouseup', stopDrag);
         }
 
-        // ACTUALIZAR VALORES EN PANTALLA
-        function updateDisplays() {
-            const n = document.getElementById('el-nombre').style;
-            document.getElementById('val-nombre').innerText = `TOP: ${parseInt(n.top)}px | FONT: ${document.querySelector('#el-nombre div').style.fontSize}`;
+        // ACTUALIZAR DATOS VISUALES
+        function updateData() {
+            const s = (id) => document.getElementById(id).style;
+            const txt = (id) => document.querySelector(`#${id} div`).style;
 
-            const q = document.getElementById('el-qr').style;
-            document.getElementById('val-qr').innerText = `TOP: ${parseInt(q.top)}px | RIGHT: ${parseInt(q.right)}px | SIZE: ${q.width}`;
+            // NOMBRE
+            document.getElementById('val-nombre').innerText = `TOP: ${parseInt(s('el-nombre').top)}px | FONT: ${parseInt(txt('el-nombre').fontSize)}px`;
+            
+            // QR
+            const qr = s('el-qr');
+            document.getElementById('val-qr').innerText = `TOP: ${parseInt(qr.top)}px | RIGHT: ${parseInt(qr.right)}px | SIZE: ${parseInt(qr.width)}px`;
 
-            const f = document.getElementById('el-fecha').style;
-            document.getElementById('val-fecha').innerText = `BOTTOM: ${parseInt(f.bottom)}px`;
+            // FECHA
+            document.getElementById('val-fecha').innerText = `BOTTOM: ${parseInt(s('el-fecha').bottom)}px`;
 
-            const s = document.getElementById('el-sello').style;
-            document.getElementById('val-sello').innerText = `BOTTOM: ${parseInt(s.bottom)}px | LEFT: ${parseInt(s.left)}px | SIZE: ${s.width}`;
+            // SELLO
+            const sello = s('el-sello');
+            document.getElementById('val-sello').innerText = `BOTTOM: ${parseInt(sello.bottom)}px | LEFT: ${parseInt(sello.left)}px | SIZE: ${parseInt(sello.width)}px`;
         }
 
-        // HELPERS PARA SLIDERS
+        // HELPERS SLIDERS
         function updateStyle(id, prop, val) {
             document.querySelector(`#${id} div`).style[prop] = val;
-            updateDisplays();
+            updateData();
         }
-        function resizeQR(val) {
-            const el = document.getElementById('el-qr');
+        function resizeElement(id, val) {
+            const el = document.getElementById(id);
             el.style.width = val + 'px';
             el.style.height = val + 'px';
-            updateDisplays();
-        }
-        function resizeSello(val) {
-            const el = document.getElementById('el-sello');
-            el.style.width = val + 'px';
-            el.style.height = val + 'px';
-            updateDisplays();
+            updateData();
         }
     </script>
 </body>
