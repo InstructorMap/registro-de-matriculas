@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control - ASARI V4 (Diplomas)</title>
+    <title>Panel de Control - ASARI V5 (Edición + Analíticos)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -40,21 +40,16 @@
             <button onclick="mostrarSeccion('panel-inicio')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl bg-white/10 hover:bg-white/20 transition-all border border-transparent hover:border-white/10">
                 <i data-lucide="layout-dashboard" size="18"></i> Inicio
             </button>
-            
             <p class="px-4 pt-4 pb-2 text-[10px] uppercase text-white/40 font-bold tracking-wider">Gestión</p>
-            
             <button onclick="mostrarSeccion('panel-alumnos')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all">
                 <i data-lucide="users" size="18"></i> Alumnos
             </button>
-            
             <button onclick="mostrarSeccion('panel-cursos')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all">
-                <i data-lucide="book-open" size="18"></i> Cursos & Diplomas
+                <i data-lucide="book-open" size="18"></i> Cursos & Docs
             </button>
-
             <button onclick="mostrarSeccion('panel-carga')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all">
                 <i data-lucide="upload-cloud" size="18"></i> Carga Masiva
             </button>
-            
             <div id="menu-superadmin" class="hidden pt-4 mt-2 border-t border-white/10">
                 <p class="px-4 text-[10px] uppercase text-yellow-500/80 font-bold mb-2 tracking-wider">Super Admin</p>
                 <button onclick="mostrarSeccion('panel-clientes')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-yellow-300 bg-yellow-900/20 hover:bg-yellow-900/40 border border-yellow-500/20 transition-all">
@@ -110,17 +105,16 @@
 
             <div id="panel-cursos" class="hidden animate-fade-in">
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
-                    <div class="mb-8">
-                        <h3 class="text-2xl font-black text-slate-800 mb-2">Cursos Oficiales</h3>
-                        <p class="text-slate-500">Haz clic en el botón <b class="text-slate-800">+ NUEVO CURSO</b> para agregar uno. Podrás subir la plantilla del diploma al crearlo.</p>
+                    <div class="flex justify-between items-center mb-8">
+                        <div>
+                            <h3 class="text-2xl font-black text-slate-800 mb-1">Cursos y Documentación</h3>
+                            <p class="text-slate-500 text-sm">Gestiona cursos, diplomas y analíticos.</p>
+                        </div>
+                        <button onclick="abrirModalCurso()" class="bg-slate-900 hover:bg-black text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg transition">
+                            <i data-lucide="plus-circle" size="18"></i> NUEVO CURSO
+                        </button>
                     </div>
-                    
-                    <button onclick="abrirModalCurso()" class="mb-8 bg-slate-900 hover:bg-black text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg transition">
-                        <i data-lucide="plus-circle"></i> AGREGAR NUEVO CURSO
-                    </button>
 
-                    <h4 class="font-bold text-slate-700 mb-4 border-b pb-2 flex items-center gap-2"><i data-lucide="list" size="16"></i> Catálogo Activo</h4>
-                    
                     <div id="lista-cursos-config" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <p class="text-slate-400 text-sm italic col-span-3 py-4">Cargando catálogo...</p>
                     </div>
@@ -142,18 +136,7 @@
                         </div>
                     </div>
                     <div class="overflow-x-auto flex-1">
-                        <table class="w-full text-sm text-left">
-                            <thead class="text-xs text-slate-400 uppercase bg-slate-50/50 border-b border-slate-100">
-                                <tr>
-                                    <th class="px-4 py-3 font-bold">DNI</th>
-                                    <th class="px-4 py-3 font-bold">Alumno</th>
-                                    <th class="px-4 py-3 font-bold">Curso / Registro</th>
-                                    <th class="px-4 py-3 font-bold">Fecha Alta</th>
-                                    <th class="px-4 py-3 text-right">Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tabla-alumnos" class="divide-y divide-slate-100"></tbody>
-                        </table>
+                        <table class="w-full text-sm text-left"><tbody id="tabla-alumnos" class="divide-y divide-slate-100"></tbody></table>
                         <div id="empty-state" class="hidden flex flex-col items-center justify-center py-12">
                             <div class="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mb-4"><i data-lucide="users" class="text-slate-300" size="40"></i></div>
                             <h3 class="text-slate-800 font-bold text-lg">No hay alumnos aún</h3>
@@ -215,14 +198,15 @@
     <div id="modal-curso" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 relative">
             <button onclick="cerrarModalCurso()" class="absolute top-4 right-4 text-slate-300 hover:text-slate-600 transition"><i data-lucide="x"></i></button>
-            <h3 class="text-xl font-black text-slate-800 mb-2">Crear Nuevo Curso</h3>
-            <p class="text-xs text-slate-500 mb-6">Asocia el curso a un registro para definir el color del carnet, y sube la plantilla para el diploma.</p>
+            
+            <h3 class="text-xl font-black text-slate-800 mb-1" id="modal-curso-titulo">Crear Nuevo Curso</h3>
+            <p class="text-xs text-slate-500 mb-6">Gestiona los archivos asociados.</p>
             
             <div class="space-y-4">
-                <div><label class="label-form">Nombre del Curso</label><input type="text" id="c-nombre" class="input-form" placeholder="Ej: Socorrismo Urbano"></div>
+                <input type="hidden" id="c-id-edit" value=""> <div><label class="label-form">Nombre del Curso</label><input type="text" id="c-nombre" class="input-form" placeholder="Ej: Socorrismo Urbano"></div>
                 
                 <div>
-                    <label class="label-form">Registro (Define Color)</label>
+                    <label class="label-form">Registro (Color)</label>
                     <select id="c-registro" class="input-form font-bold">
                         <option value="remaep">REMAEP (Azul)</option>
                         <option value="rubra">RUBRA (Rojo)</option>
@@ -234,17 +218,25 @@
                     </select>
                 </div>
 
-                <div>
+                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
                     <label class="label-form flex justify-between">
-                        <span>Plantilla Diploma (Opcional)</span>
-                        <span class="text-blue-500 text-[9px] bg-blue-50 px-2 py-0.5 rounded">JPG/PNG Horizontal</span>
+                        <span>📜 Plantilla Diploma</span>
+                        <span id="label-diploma-actual" class="text-[9px] text-green-600 font-bold hidden">YA CARGADO</span>
                     </label>
-                    <input type="file" id="c-diploma" accept="image/*" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 transition">
+                    <input type="file" id="c-diploma" accept="image/*" class="block w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-bold file:bg-blue-100 file:text-blue-700">
+                </div>
+
+                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                    <label class="label-form flex justify-between">
+                        <span>📄 Plantilla Analítico</span>
+                        <span id="label-analitico-actual" class="text-[9px] text-green-600 font-bold hidden">YA CARGADO</span>
+                    </label>
+                    <input type="file" id="c-analitico" accept="image/*" class="block w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:font-bold file:bg-slate-900 file:text-white">
                 </div>
 
                 <div id="status-curso" class="text-center text-xs font-bold h-4"></div>
                 
-                <button onclick="guardarCurso()" class="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl shadow-lg transition mt-2">GUARDAR CURSO</button>
+                <button onclick="guardarCurso()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg transition mt-2" id="btn-save-curso">GUARDAR</button>
             </div>
         </div>
     </div>
@@ -259,10 +251,7 @@
                     <div><label class="label-form">Nombre</label><input type="text" id="m-nombre" class="input-form" placeholder="Juan"></div>
                     <div><label class="label-form">Apellido</label><input type="text" id="m-apellido" class="input-form" placeholder="Pérez"></div>
                 </div>
-                <div>
-                    <label class="label-form text-blue-600">Curso Oficial</label>
-                    <select id="m-curso-select" class="input-form bg-blue-50/50 border-blue-200 text-blue-900 font-bold focus:bg-white"><option value="">Cargando cursos...</option></select>
-                </div>
+                <div><label class="label-form text-blue-600">Curso Oficial</label><select id="m-curso-select" class="input-form bg-blue-50/50 border-blue-200 text-blue-900 font-bold focus:bg-white"><option value="">Cargando cursos...</option></select></div>
                 <button onclick="guardarAlumnoManual()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-600/20 transition mt-4">CONFIRMAR INSCRIPCIÓN</button>
             </div>
         </div>
@@ -295,85 +284,107 @@
             cargarCursosDB(); cargarAlumnos(); contarAlumnos(); lucide.createIcons();
         });
 
-        function aplicarEstilosInstitucion(inst) {
-            if(inst.color_primario) document.getElementById('sidebar').style.backgroundColor = inst.color_primario;
-            if(inst.logo_url) {
-                const logoImg = document.getElementById('brand-logo');
-                logoImg.src = inst.logo_url; logoImg.classList.remove('hidden');
-                document.getElementById('brand-text').classList.add('hidden');
-                document.getElementById('dashboard-logo-container').innerHTML = `<img src="${inst.logo_url}" class="w-full h-full object-contain">`;
-            }
-            document.getElementById('sidebar-inst-name').innerText = inst.nombre;
-            document.getElementById('dash-inst-name').innerText = inst.nombre;
-        }
-
-        function mostrarSeccion(id) {
-            ['panel-inicio', 'panel-carga', 'panel-alumnos', 'panel-clientes', 'panel-cursos'].forEach(p => document.getElementById(p).classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
-            if(id === 'panel-cursos') renderizarPanelCursos();
-        }
-        async function logout() { await db.auth.signOut(); window.location.href = 'saas_login.html'; }
-
-        // --- GESTIÓN CURSOS & DIPLOMAS (NUEVO) ---
-        function abrirModalCurso() {
+        // --- FUNCIONES GESTIÓN CURSOS (NUEVO: EDICIÓN Y ANALÍTICO) ---
+        
+        // 1. Abrir Modal (Limpio o Pre-cargado)
+        function abrirModalCurso(idEdicion = null) {
+            const modal = document.getElementById('modal-curso');
+            const titulo = document.getElementById('modal-curso-titulo');
+            const btn = document.getElementById('btn-save-curso');
+            const hiddenId = document.getElementById('c-id-edit');
+            
+            // Resetear Formulario
             document.getElementById('c-nombre').value = "";
+            document.getElementById('c-registro').value = "remaep";
             document.getElementById('c-diploma').value = "";
+            document.getElementById('c-analitico').value = "";
             document.getElementById('status-curso').innerText = "";
-            document.getElementById('modal-curso').classList.remove('hidden');
+            document.getElementById('label-diploma-actual').classList.add('hidden');
+            document.getElementById('label-analitico-actual').classList.add('hidden');
+
+            if (idEdicion) {
+                // MODO EDICIÓN
+                const curso = cursosCache.find(c => c.id === idEdicion);
+                if(curso) {
+                    titulo.innerText = "Editar Curso";
+                    btn.innerText = "ACTUALIZAR DATOS";
+                    hiddenId.value = idEdicion;
+                    document.getElementById('c-nombre').value = curso.nombre;
+                    document.getElementById('c-registro').value = curso.registro_id;
+                    if(curso.diploma_bg_url) document.getElementById('label-diploma-actual').classList.remove('hidden');
+                    if(curso.analitico_bg_url) document.getElementById('label-analitico-actual').classList.remove('hidden');
+                }
+            } else {
+                // MODO CREACIÓN
+                titulo.innerText = "Crear Nuevo Curso";
+                btn.innerText = "GUARDAR CURSO";
+                hiddenId.value = "";
+            }
+            
+            modal.classList.remove('hidden');
         }
         function cerrarModalCurso() { document.getElementById('modal-curso').classList.add('hidden'); }
 
+        // 2. Guardar (Create or Update)
         async function guardarCurso() {
+            const idEdit = document.getElementById('c-id-edit').value;
             const nombre = document.getElementById('c-nombre').value.toUpperCase();
             const registro = document.getElementById('c-registro').value;
-            const fileInput = document.getElementById('c-diploma');
+            const fileDiploma = document.getElementById('c-diploma');
+            const fileAnalitico = document.getElementById('c-analitico');
             const status = document.getElementById('status-curso');
 
-            if(!nombre) return alert("Pon un nombre al curso");
+            if(!nombre) return alert("El nombre es obligatorio");
 
-            status.innerText = "⏳ Guardando...";
-            status.className = "text-center text-xs font-bold h-4 text-blue-600";
-
+            status.innerText = "⏳ Procesando...";
+            
             try {
-                let diplomaUrl = null;
-                // 1. Subir Plantilla Diploma (Si hay)
-                if(fileInput.files.length > 0) {
-                    status.innerText = "⏳ Subiendo plantilla...";
-                    const file = fileInput.files[0];
-                    const fileName = `diploma_${Date.now()}_${file.name.replace(/\s/g, '')}`;
-                    
-                    const { error: errUp } = await db.storage.from('plantillas-diplomas').upload(fileName, file);
-                    if(errUp) throw errUp;
-                    
-                    const { data } = db.storage.from('plantillas-diplomas').getPublicUrl(fileName);
-                    diplomaUrl = data.publicUrl;
+                let updates = { nombre: nombre, registro_id: registro };
+
+                // Función helper para subir archivos
+                const subirArchivo = async (input, prefix) => {
+                    if (input.files.length > 0) {
+                        const file = input.files[0];
+                        const fileName = `${prefix}_${Date.now()}_${file.name.replace(/\s/g, '')}`;
+                        const { error } = await db.storage.from('plantillas-diplomas').upload(fileName, file);
+                        if(error) throw error;
+                        const { data } = db.storage.from('plantillas-diplomas').getPublicUrl(fileName);
+                        return data.publicUrl;
+                    }
+                    return null;
+                };
+
+                // Subir Archivos si existen
+                const urlDiploma = await subirArchivo(fileDiploma, 'diploma');
+                const urlAnalitico = await subirArchivo(fileAnalitico, 'analitico');
+
+                if(urlDiploma) updates.diploma_bg_url = urlDiploma;
+                if(urlAnalitico) updates.analitico_bg_url = urlAnalitico;
+
+                let errorDB;
+                
+                if (idEdit) {
+                    // UPDATE
+                    const { error } = await db.from('cursos_oficiales').update(updates).eq('id', idEdit);
+                    errorDB = error;
+                } else {
+                    // INSERT
+                    const { error } = await db.from('cursos_oficiales').insert([updates]);
+                    errorDB = error;
                 }
 
-                // 2. Guardar Curso
-                const { error } = await db.from('cursos_oficiales').insert([{ 
-                    nombre: nombre, 
-                    registro_id: registro,
-                    diploma_bg_url: diplomaUrl
-                }]);
+                if(errorDB) throw errorDB;
 
-                if(error) throw error;
-
-                status.innerText = "✅ Curso creado!";
-                status.className = "text-center text-xs font-bold h-4 text-green-600";
+                status.innerText = "✅ Guardado!";
                 setTimeout(() => { cerrarModalCurso(); cargarCursosDB(); renderizarPanelCursos(); }, 1000);
 
             } catch (err) {
                 console.error(err);
                 status.innerText = "❌ Error: " + err.message;
-                status.className = "text-center text-xs font-bold h-4 text-red-600";
             }
         }
 
-        async function cargarCursosDB() {
-            const { data } = await db.from('cursos_oficiales').select('*').order('created_at', { ascending: false });
-            if(data) { cursosCache = data; actualizarSelectModal(); }
-        }
-
+        // 3. Renderizar Lista con botón editar
         function renderizarPanelCursos() {
             const lista = document.getElementById('lista-cursos-config');
             lista.innerHTML = "";
@@ -383,162 +394,48 @@
 
             cursosCache.forEach(c => {
                 const colorClass = colores[c.registro_id] || 'bg-slate-500';
-                const diplomaIcon = c.diploma_bg_url ? `<span class="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded border border-green-200 flex items-center gap-1"><i data-lucide="scroll-text" size="10"></i> CON DIPLOMA</span>` : '';
                 
+                // Iconos de estado
+                const iconDip = c.diploma_bg_url ? `<span class="text-green-600" title="Diploma OK"><i data-lucide="scroll-text" size="14"></i></span>` : `<span class="text-slate-200"><i data-lucide="scroll-text" size="14"></i></span>`;
+                const iconAna = c.analitico_bg_url ? `<span class="text-blue-600" title="Analítico OK"><i data-lucide="file-check" size="14"></i></span>` : `<span class="text-slate-200"><i data-lucide="file-check" size="14"></i></span>`;
+
                 lista.innerHTML += `
                     <div class="flex items-center justify-between p-4 border border-slate-100 rounded-xl bg-white hover:shadow-md transition">
-                        <div class="flex flex-col gap-1">
+                        <div class="flex flex-col gap-1 overflow-hidden">
                             <div class="flex items-center gap-2">
                                 <span class="px-2 py-0.5 rounded text-[9px] font-black text-white uppercase ${colorClass}">${c.registro_id}</span>
-                                ${diplomaIcon}
+                                <div class="flex gap-1 ml-2 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100">${iconDip}${iconAna}</div>
                             </div>
-                            <span class="font-bold text-slate-700 text-sm">${c.nombre}</span>
+                            <span class="font-bold text-slate-700 text-sm truncate">${c.nombre}</span>
                         </div>
-                        <button onclick="borrarCurso('${c.id}')" class="text-slate-300 hover:text-red-500 p-2"><i data-lucide="trash-2" size="16"></i></button>
+                        <div class="flex items-center gap-1">
+                            <button onclick="abrirModalCurso('${c.id}')" class="text-blue-400 hover:text-blue-600 p-2 bg-blue-50 rounded-lg transition"><i data-lucide="pencil" size="16"></i></button>
+                            <button onclick="borrarCurso('${c.id}')" class="text-slate-300 hover:text-red-500 p-2 hover:bg-red-50 rounded-lg transition"><i data-lucide="trash-2" size="16"></i></button>
+                        </div>
                     </div>`;
             });
             lucide.createIcons();
         }
-        
-        async function borrarCurso(id) {
-            if(confirm("¿Borrar curso?")) {
-                await db.from('cursos_oficiales').delete().eq('id', id);
-                await cargarCursosDB(); renderizarPanelCursos();
-            }
-        }
 
-        // --- GESTIÓN ALUMNOS ---
+        // --- (RESTO DE FUNCIONES IGUAL QUE ANTES) ---
+        async function cargarCursosDB() { const { data } = await db.from('cursos_oficiales').select('*').order('created_at', { ascending: false }); if(data) { cursosCache = data; actualizarSelectModal(); } }
+        async function borrarCurso(id) { if(confirm("¿Borrar curso?")) { await db.from('cursos_oficiales').delete().eq('id', id); await cargarCursosDB(); renderizarPanelCursos(); } }
+        function actualizarSelectModal() { const select = document.getElementById('m-curso-select'); select.innerHTML = '<option value="">-- Seleccionar --</option>'; cursosCache.forEach(c => { select.innerHTML += `<option value="${c.id}">${c.nombre} (${c.registro_id.toUpperCase()})</option>`; }); }
+        
+        function aplicarEstilosInstitucion(inst) { if(inst.color_primario) document.getElementById('sidebar').style.backgroundColor = inst.color_primario; if(inst.logo_url) { const logoImg = document.getElementById('brand-logo'); logoImg.src = inst.logo_url; logoImg.classList.remove('hidden'); document.getElementById('brand-text').classList.add('hidden'); document.getElementById('dashboard-logo-container').innerHTML = `<img src="${inst.logo_url}" class="w-full h-full object-contain">`; } document.getElementById('sidebar-inst-name').innerText = inst.nombre; document.getElementById('dash-inst-name').innerText = inst.nombre; }
+        function mostrarSeccion(id) { ['panel-inicio', 'panel-carga', 'panel-alumnos', 'panel-clientes', 'panel-cursos'].forEach(p => document.getElementById(p).classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); if(id === 'panel-cursos') renderizarPanelCursos(); }
+        async function logout() { await db.auth.signOut(); window.location.href = 'saas_login.html'; }
         async function buscarAlumnos() { cargarAlumnos(document.getElementById('input-busqueda').value.trim()); }
-        
-        async function cargarAlumnos(filtro = '') {
-            const tbody = document.getElementById('tabla-alumnos');
-            const emptyState = document.getElementById('empty-state');
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-400">Cargando...</td></tr>';
-            emptyState.classList.add('hidden');
-
-            let query = db.from('matriculas').select('*').order('created_at', { ascending: false }).limit(100);
-            if(currentProfile && currentProfile.rol !== 'superadmin') { query = query.eq('institution_id', currentProfile.institucion_id); }
-            if(filtro) { query = query.or(`dni_alumno.ilike.%${filtro}%,apellido.ilike.%${filtro}%`); }
-
-            const { data } = await query;
-            tbody.innerHTML = "";
-            if (!data || data.length === 0) { emptyState.classList.remove('hidden'); return; }
-
-            data.forEach(a => {
-                const fecha = new Date(a.fecha_inicio || a.created_at).toLocaleDateString('es-AR');
-                const map = { 'remaep': 'bg-blue-600', 'rubra': 'bg-red-600', 'rniue': 'bg-yellow-600', 'rmts': 'bg-slate-600', 'rce': 'bg-yellow-400 text-black', 'rpde': 'bg-sky-500', 'asarin': 'bg-red-900' };
-                const colorBadge = map[String(a.registro_id).toLowerCase()] || 'bg-slate-400';
-
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition border-b border-slate-50">
-                        <td class="px-4 py-3 font-mono text-xs text-slate-500 font-bold">${a.dni_alumno}</td>
-                        <td class="px-4 py-3 font-bold text-slate-700">${a.apellido}, ${a.nombre}</td>
-                        <td class="px-4 py-3 text-xs"><div class="flex items-center gap-2"><span class="${colorBadge} px-2 py-0.5 rounded text-[10px] font-black uppercase text-white tracking-wide">${a.registro_id?.substring(0,6) || 'N/A'}</span><span class="font-semibold text-slate-600 truncate max-w-[150px]">${a.curso}</span></div></td>
-                        <td class="px-4 py-3 text-xs text-slate-400 font-medium">${fecha}</td>
-                        <td class="px-4 py-3 text-right"><button onclick="borrarAlumno(${a.id})" class="text-slate-300 hover:text-red-500 transition"><i data-lucide="trash-2" size="16"></i></button></td>
-                    </tr>`;
-            });
-            lucide.createIcons();
-        }
-
-        // --- UTILS & MANUAL LOAD ---
-        function actualizarSelectModal() {
-            const select = document.getElementById('m-curso-select');
-            select.innerHTML = '<option value="">-- Seleccionar --</option>';
-            cursosCache.forEach(c => { select.innerHTML += `<option value="${c.id}">${c.nombre} (${c.registro_id.toUpperCase()})</option>`; });
-        }
+        async function cargarAlumnos(filtro = '') { const tbody = document.getElementById('tabla-alumnos'); const emptyState = document.getElementById('empty-state'); tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-slate-400">Cargando...</td></tr>'; emptyState.classList.add('hidden'); let query = db.from('matriculas').select('*').order('created_at', { ascending: false }).limit(100); if(currentProfile && currentProfile.rol !== 'superadmin') { query = query.eq('institution_id', currentProfile.institucion_id); } if(filtro) { query = query.or(`dni_alumno.ilike.%${filtro}%,apellido.ilike.%${filtro}%`); } const { data } = await query; tbody.innerHTML = ""; if (!data || data.length === 0) { emptyState.classList.remove('hidden'); return; } data.forEach(a => { const fecha = new Date(a.fecha_inicio || a.created_at).toLocaleDateString('es-AR'); const map = { 'remaep': 'bg-blue-600', 'rubra': 'bg-red-600', 'rniue': 'bg-yellow-600', 'rmts': 'bg-slate-600', 'rce': 'bg-yellow-400 text-black', 'rpde': 'bg-sky-500', 'asarin': 'bg-red-900' }; const colorBadge = map[String(a.registro_id).toLowerCase()] || 'bg-slate-400'; tbody.innerHTML += `<tr class="hover:bg-slate-50 transition border-b border-slate-50"><td class="px-4 py-3 font-mono text-xs text-slate-500 font-bold">${a.dni_alumno}</td><td class="px-4 py-3 font-bold text-slate-700">${a.apellido}, ${a.nombre}</td><td class="px-4 py-3 text-xs"><div class="flex items-center gap-2"><span class="${colorBadge} px-2 py-0.5 rounded text-[10px] font-black uppercase text-white tracking-wide">${a.registro_id?.substring(0,6) || 'N/A'}</span><span class="font-semibold text-slate-600 truncate max-w-[150px]">${a.curso}</span></div></td><td class="px-4 py-3 text-xs text-slate-400 font-medium">${fecha}</td><td class="px-4 py-3 text-right"><button onclick="borrarAlumno(${a.id})" class="text-slate-300 hover:text-red-500 transition"><i data-lucide="trash-2" size="16"></i></button></td></tr>`; }); lucide.createIcons(); }
         function abrirModalAlumno() { ['m-dni','m-nombre','m-apellido','m-curso-select'].forEach(id => document.getElementById(id).value = ''); document.getElementById('modal-alumno').classList.remove('hidden'); }
         function cerrarModalAlumno() { document.getElementById('modal-alumno').classList.add('hidden'); }
-        
-        async function guardarAlumnoManual() {
-            const dni = document.getElementById('m-dni').value;
-            const nombre = document.getElementById('m-nombre').value;
-            const apellido = document.getElementById('m-apellido').value;
-            const cursoId = document.getElementById('m-curso-select').value;
-            if(!dni || !nombre || !apellido || !cursoId) return alert("Complete todos los campos.");
-
-            const cursoInfo = cursosCache.find(c => c.id === cursoId);
-            if(!cursoInfo) return alert("Curso no válido");
-
-            try {
-                const { error } = await db.from('matriculas').insert({
-                    dni_alumno: dni, nombre, apellido,
-                    curso: cursoInfo.nombre,
-                    registro_id: cursoInfo.registro_id, 
-                    institution_id: currentProfile?.institucion_id,
-                    fecha_inicio: new Date().toISOString()
-                });
-                if(error) throw error;
-                alert("✅ Alumno matriculado.");
-                cerrarModalAlumno(); cargarAlumnos(); contarAlumnos();
-            } catch(err) { alert("Error: " + err.message); }
-        }
+        async function guardarAlumnoManual() { const dni = document.getElementById('m-dni').value; const nombre = document.getElementById('m-nombre').value; const apellido = document.getElementById('m-apellido').value; const cursoId = document.getElementById('m-curso-select').value; if(!dni || !nombre || !apellido || !cursoId) return alert("Complete todos los campos."); const cursoInfo = cursosCache.find(c => c.id === cursoId); if(!cursoInfo) return alert("Curso no válido"); try { const { error } = await db.from('matriculas').insert({ dni_alumno: dni, nombre, apellido, curso: cursoInfo.nombre, registro_id: cursoInfo.registro_id, institution_id: currentProfile?.institucion_id, fecha_inicio: new Date().toISOString() }); if(error) throw error; alert("✅ Alumno matriculado."); cerrarModalAlumno(); cargarAlumnos(); contarAlumnos(); } catch(err) { alert("Error: " + err.message); } }
         async function borrarAlumno(id) { if(confirm("¿Eliminar registro?")) { await db.from('matriculas').delete().eq('id', id); cargarAlumnos(); } }
-        async function contarAlumnos() {
-            let query = db.from('matriculas').select('*', { count: 'exact', head: true });
-            if(currentProfile && currentProfile.rol !== 'superadmin') { query = query.eq('institution_id', currentProfile.institucion_id); }
-            const { count } = await query;
-            document.getElementById('stat-total').innerText = count || 0;
-        }
-
-        // --- EXCEL & CLIENTES (Lógica Standard) ---
-        function procesarExcel() {
-            const input = document.getElementById('input-excel');
-            const status = document.getElementById('excel-status');
-            if(!input.files.length) return;
-            status.innerText = "⏳ Analizando...";
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, {type: 'array'});
-                const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-                datosExcelCargados = jsonData.map(fila => ({
-                    dni_alumno: fila['DNI'] || fila['dni'], nombre: fila['NOMBRE'] || fila['nombre'], apellido: fila['APELLIDO'] || fila['apellido'], curso: fila['CURSO'] || fila['curso'],
-                    registro_id: (currentProfile?.instituciones?.sigla || 'remaep').toLowerCase(), institution_id: currentProfile?.institucion_id, fecha_inicio: new Date().toISOString()
-                })).filter(d => d.dni_alumno);
-                const tbody = document.getElementById('tabla-preview'); tbody.innerHTML = "";
-                document.getElementById('count-preview').innerText = datosExcelCargados.length;
-                document.getElementById('preview-area').classList.remove('hidden');
-                datosExcelCargados.slice(0, 5).forEach(d => { tbody.innerHTML += `<tr class="border-b"><td class="px-2 py-1 font-mono text-xs">${d.dni_alumno}</td><td class="px-2 py-1 text-xs">${d.nombre}</td></tr>`; });
-                status.innerText = "";
-            }; reader.readAsArrayBuffer(input.files[0]);
-        }
-        async function confirmarCarga() {
-            if(datosExcelCargados.length === 0) return;
-            try { const { error } = await db.from('matriculas').insert(datosExcelCargados); if (error) throw error; alert("✅ Carga Exitosa"); window.location.reload(); } catch (err) { alert("Error: " + err.message); }
-        }
-        async function crearCliente() {
-            const nombre = document.getElementById('new-inst-name').value;
-            const sigla = document.getElementById('new-inst-sigla').value;
-            const color = document.getElementById('new-inst-color').value;
-            const email = document.getElementById('new-admin-email').value;
-            const pass = document.getElementById('new-admin-pass').value;
-            const logoInput = document.getElementById('new-inst-logo');
-            if(!nombre || !email || !pass) return alert("Complete los datos.");
-            if(!confirm("⚠️ Se creará el cliente y se cerrará su sesión. ¿Continuar?")) return;
-            try {
-                let logoUrl = null;
-                if(logoInput.files.length > 0) {
-                    const file = logoInput.files[0]; const fileName = `logo_${Date.now()}`;
-                    await db.storage.from('logos-instituciones').upload(fileName, file);
-                    const { data } = db.storage.from('logos-instituciones').getPublicUrl(fileName); logoUrl = data.publicUrl;
-                }
-                const { data: inst, error: e1 } = await db.from('instituciones').insert({ nombre, sigla, color_primario: color, logo_url: logoUrl }).select().single();
-                if(e1) throw e1;
-                const { data: auth, error: e2 } = await db.auth.signUp({ email, password: pass });
-                if(e2) throw e2;
-                if(auth.user) { await db.from('perfiles').insert({ id: auth.user.id, email, rol: 'admin', institucion_id: inst.id, nombre_completo: 'Admin ' + sigla }); alert("✅ Cliente creado."); window.location.href = 'saas_login.html'; }
-            } catch(err) { alert(err.message); }
-        }
-        async function cargarInstituciones() {
-            const container = document.getElementById('lista-instituciones');
-            const { data } = await db.from('instituciones').select('*').order('created_at', {ascending:false});
-            container.innerHTML = "";
-            data.forEach(i => {
-                const logoHtml = i.logo_url ? `<img src="${i.logo_url}" class="w-8 h-8 object-contain rounded bg-slate-100 border border-slate-200">` : `<div class="w-8 h-8 rounded flex items-center justify-center text-white text-[10px] font-bold" style="background:${i.color_primario}">${i.sigla?.substring(0,2)}</div>`;
-                container.innerHTML += `<div class="flex items-center justify-between p-3 border border-slate-100 rounded-lg hover:bg-slate-50 transition"><div class="flex items-center gap-3">${logoHtml}<div><p class="text-sm font-bold text-slate-700">${i.nombre}</p><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full" style="background:${i.color_primario}"></div><p class="text-[10px] text-slate-400">ID: ${i.sigla}</p></div></div></div></div>`;
-            });
-        }
+        async function contarAlumnos() { let query = db.from('matriculas').select('*', { count: 'exact', head: true }); if(currentProfile && currentProfile.rol !== 'superadmin') { query = query.eq('institution_id', currentProfile.institucion_id); } const { count } = await query; document.getElementById('stat-total').innerText = count || 0; }
+        function procesarExcel() { const input = document.getElementById('input-excel'); const status = document.getElementById('excel-status'); if(!input.files.length) return; status.innerText = "⏳ Analizando..."; const reader = new FileReader(); reader.onload = function(e) { const data = new Uint8Array(e.target.result); const workbook = XLSX.read(data, {type: 'array'}); const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]); datosExcelCargados = jsonData.map(fila => ({ dni_alumno: fila['DNI'] || fila['dni'], nombre: fila['NOMBRE'] || fila['nombre'], apellido: fila['APELLIDO'] || fila['apellido'], curso: fila['CURSO'] || fila['curso'], registro_id: (currentProfile?.instituciones?.sigla || 'remaep').toLowerCase(), institution_id: currentProfile?.institucion_id, fecha_inicio: new Date().toISOString() })).filter(d => d.dni_alumno); const tbody = document.getElementById('tabla-preview'); tbody.innerHTML = ""; document.getElementById('count-preview').innerText = datosExcelCargados.length; document.getElementById('preview-area').classList.remove('hidden'); datosExcelCargados.slice(0, 5).forEach(d => { tbody.innerHTML += `<tr class="border-b"><td class="px-2 py-1 font-mono text-xs">${d.dni_alumno}</td><td class="px-2 py-1 text-xs">${d.nombre}</td></tr>`; }); status.innerText = ""; }; reader.readAsArrayBuffer(input.files[0]); }
+        async function confirmarCarga() { if(datosExcelCargados.length === 0) return; try { const { error } = await db.from('matriculas').insert(datosExcelCargados); if (error) throw error; alert("✅ Carga Exitosa"); window.location.reload(); } catch (err) { alert("Error: " + err.message); } }
+        async function crearCliente() { const nombre = document.getElementById('new-inst-name').value; const sigla = document.getElementById('new-inst-sigla').value; const color = document.getElementById('new-inst-color').value; const email = document.getElementById('new-admin-email').value; const pass = document.getElementById('new-admin-pass').value; const logoInput = document.getElementById('new-inst-logo'); if(!nombre || !email || !pass) return alert("Complete los datos."); if(!confirm("⚠️ Se creará el cliente. ¿Continuar?")) return; try { let logoUrl = null; if(logoInput.files.length > 0) { const file = logoInput.files[0]; const fileName = `logo_${Date.now()}`; await db.storage.from('logos-instituciones').upload(fileName, file); const { data } = db.storage.from('logos-instituciones').getPublicUrl(fileName); logoUrl = data.publicUrl; } const { data: inst, error: e1 } = await db.from('instituciones').insert({ nombre, sigla, color_primario: color, logo_url: logoUrl }).select().single(); if(e1) throw e1; const { data: auth, error: e2 } = await db.auth.signUp({ email, password: pass }); if(e2) throw e2; if(auth.user) { await db.from('perfiles').insert({ id: auth.user.id, email, rol: 'admin', institucion_id: inst.id, nombre_completo: 'Admin ' + sigla }); alert("✅ Cliente creado."); window.location.href = 'saas_login.html'; } } catch(err) { alert(err.message); } }
+        async function cargarInstituciones() { const container = document.getElementById('lista-instituciones'); const { data } = await db.from('instituciones').select('*').order('created_at', {ascending:false}); container.innerHTML = ""; data.forEach(i => { const logoHtml = i.logo_url ? `<img src="${i.logo_url}" class="w-8 h-8 object-contain rounded bg-slate-100 border border-slate-200">` : `<div class="w-8 h-8 rounded flex items-center justify-center text-white text-[10px] font-bold" style="background:${i.color_primario}">${i.sigla?.substring(0,2)}</div>`; container.innerHTML += `<div class="flex items-center justify-between p-3 border border-slate-100 rounded-lg hover:bg-slate-50 transition"><div class="flex items-center gap-3">${logoHtml}<div><p class="text-sm font-bold text-slate-700">${i.nombre}</p><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full" style="background:${i.color_primario}"></div><p class="text-[10px] text-slate-400">ID: ${i.sigla}</p></div></div></div></div>`; }); }
     </script>
 </body>
 </html>
