@@ -57,15 +57,14 @@
         }
         .card-back { transform: rotateY(180deg); background: #e2e8f0; display: flex; align-items: center; justify-content: center; }
 
-        /* ESCALADO DEL DISEÑO ORIGINAL (Para que quepa en el celular) */
-        /* El diseño original es 1011px x 638px. Usamos scale() para ajustarlo al div responsive */
+        /* ESCALADO DEL DISEÑO ORIGINAL */
         .scaler {
             width: 1011px; height: 638px;
             transform-origin: top left;
             background: white;
         }
 
-        /* ESTILOS DEL CARNET (Copiados y minificados del V3) */
+        /* ESTILOS DEL CARNET (Minificados) */
         .front-left { width: 380px; height: 100%; position: absolute; left: 0; top: 0; background: #d4d4d4; border-top-left-radius: 40px; border-bottom-left-radius: 40px; overflow: hidden; z-index: 2; }
         .front-right { width: 631px; height: 100%; position: absolute; right: 0; top: 0; background: #0033cc; color: white; padding: 25px 35px; display: flex; flex-direction: column; justify-content: space-between; border-top-right-radius: 40px; border-bottom-right-radius: 40px; }
         .student-photo { width: 100%; height: 100%; object-fit: cover; }
@@ -173,6 +172,7 @@
             }
         });
 
+        // FUNCIÓN PRINCIPAL CORREGIDA (MANUAL JOIN)
         async function ingresarWallet() {
             const dni = document.getElementById('dni-input').value.trim();
             const btn = document.querySelector('button');
@@ -180,30 +180,51 @@
             
             if(!dni) return;
             
+            // UI de Carga
             btn.innerHTML = `<i data-lucide="loader-2" class="animate-spin"></i> CARGANDO...`;
             errorMsg.classList.add('hidden');
             lucide.createIcons();
 
             try {
-                // Buscar TODAS las matrículas de este DNI
-                // Traemos también datos del curso oficial para saber colores y documentos
-                const { data, error } = await db
+                // PASO 1: Buscar al alumno en MATRICULAS
+                const { data: listaAlumnos, error } = await db
                     .from('matriculas')
-                    .select('*, cursos_oficiales(diploma_bg_url, analitico_bg_url)')
+                    .select('*')
                     .eq('dni_alumno', dni);
 
                 if (error) throw error;
                 
-                if (!data || data.length === 0) {
+                if (!listaAlumnos || listaAlumnos.length === 0) {
                     throw new Error("No encontramos credenciales para este DNI.");
                 }
 
-                misMatriculas = data;
+                // PASO 2: "Unión Manual" - Buscar los documentos de cada curso
+                // Esto soluciona el error "Could not find a relationship"
+                const datosCompletos = await Promise.all(listaAlumnos.map(async (alumno) => {
+                    // Buscamos en cursos_oficiales usando el NOMBRE del curso
+                    const { data: cursoDoc } = await db
+                        .from('cursos_oficiales')
+                        .select('diploma_bg_url, analitico_bg_url')
+                        .eq('nombre', alumno.curso)
+                        .single();
+                    
+                    // Devolvemos el alumno con la info del curso pegada manualmente
+                    return {
+                        ...alumno,
+                        cursos_oficiales: cursoDoc || { diploma_bg_url: null, analitico_bg_url: null }
+                    };
+                }));
+
+                // Guardamos los datos completos en memoria
+                misMatriculas = datosCompletos;
                 localStorage.setItem('asari_wallet_dni', dni);
-                inicializarApp(data);
+                
+                // Iniciar la App
+                inicializarApp(datosCompletos);
 
             } catch (err) {
-                errorMsg.innerText = err.message;
+                console.error(err);
+                errorMsg.innerText = err.message || "Error de conexión o datos no encontrados";
                 errorMsg.classList.remove('hidden');
                 btn.innerHTML = `INGRESAR <i data-lucide="arrow-right"></i>`;
                 lucide.createIcons();
@@ -211,14 +232,14 @@
         }
 
         function inicializarApp(data) {
-            // Ocultar login, mostrar app
+            // Ocultar login, mostrar app con transición suave
             document.getElementById('login-screen').style.opacity = '0';
             setTimeout(() => {
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app-interface').classList.remove('hidden');
             }, 500);
 
-            // Cargar Header
+            // Cargar Header con datos del primer registro
             const alumno = data[0];
             document.getElementById('user-name').innerText = `${alumno.nombre} ${alumno.apellido}`;
             if(alumno.foto_url) document.getElementById('header-avatar').src = alumno.foto_url;
@@ -233,7 +254,6 @@
 
             matriculas.forEach((mat, index) => {
                 const config = obtenerConfigColor(mat.registro_id);
-                const isActive = index === 0 ? 'active-card' : '';
                 
                 const cardHTML = `
                 <div class="card-wrapper" onclick="voltearTarjeta(this, ${index})">
@@ -272,14 +292,14 @@
                 container.innerHTML += cardHTML;
             });
 
-            // Ajustar escala después de renderizar
+            // Ajustar escala después de renderizar y generar QRs
             requestAnimationFrame(() => {
                 ajustarEscalaTarjetas();
                 generarQRs(matriculas);
-                mostrarDocs(0); // Mostrar docs de la primera tarjeta
+                mostrarDocs(0); // Mostrar docs de la primera tarjeta por defecto
             });
 
-            // Detectar scroll para cambiar docs activos
+            // Detectar scroll para cambiar los documentos activos según la tarjeta visible
             container.addEventListener('scroll', () => {
                 const center = container.scrollLeft + (container.offsetWidth / 2);
                 const cards = document.querySelectorAll('.card-wrapper');
@@ -300,7 +320,7 @@
             const scalers = document.querySelectorAll('.scaler');
             scalers.forEach(el => {
                 const parentWidth = el.parentElement.offsetWidth;
-                const scale = parentWidth / 1011; // 1011 es el ancho original
+                const scale = parentWidth / 1011; // 1011 es el ancho original del diseño
                 el.style.transform = `scale(${scale})`;
                 el.style.width = '1011px';
                 el.style.height = '638px';
@@ -319,29 +339,34 @@
         }
 
         function mostrarDocs(index) {
+            if (!misMatriculas[index]) return;
+            
             const mat = misMatriculas[index];
             const docsDiv = document.getElementById('docs-buttons');
-            const docs = mat.cursos_oficiales; // Datos unidos
+            const docs = mat.cursos_oficiales; 
 
             let html = `<p class="text-xs font-bold text-slate-500 uppercase mb-2">Documentos de: ${mat.curso}</p>`;
             
+            // Botón Diploma
             if (docs && docs.diploma_bg_url) {
-                html += `<button class="w-full bg-white border border-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl flex items-center gap-3 shadow-sm active:bg-slate-50" onclick="window.open('credencial_v3.html?dni=${mat.dni_alumno}', '_blank')">
+                html += `<button class="w-full bg-white border border-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl flex items-center gap-3 shadow-sm active:bg-slate-50 mb-2" onclick="window.open('credencial_v3.html?dni=${mat.dni_alumno}', '_blank')">
                     <div class="bg-green-100 p-2 rounded-lg text-green-600"><i data-lucide="scroll-text"></i></div>
                     <div class="text-left"><p class="text-sm">Diploma Oficial</p><p class="text-[10px] text-slate-400">Descargar certificado</p></div>
                     <i data-lucide="chevron-right" class="ml-auto text-slate-300"></i>
                 </button>`;
             } else {
-                html += `<div class="p-3 text-xs text-slate-400 bg-slate-50 rounded-lg text-center">Sin diploma disponible</div>`;
+                html += `<div class="p-3 text-xs text-slate-400 bg-slate-50 rounded-lg text-center mb-2">Sin diploma disponible</div>`;
             }
 
-            // Analítico (Pendiente backend, pero preparado visualmente)
+            // Botón Analítico
             if (docs && docs.analitico_bg_url) {
-                html += `<button class="w-full mt-2 bg-white border border-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl flex items-center gap-3 shadow-sm active:bg-slate-50">
+                html += `<button class="w-full bg-white border border-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl flex items-center gap-3 shadow-sm active:bg-slate-50" onclick="alert('Descarga de Analítico disponible próximamente en generador V4')">
                     <div class="bg-blue-100 p-2 rounded-lg text-blue-600"><i data-lucide="file-bar-chart"></i></div>
                     <div class="text-left"><p class="text-sm">Analítico</p><p class="text-[10px] text-slate-400">Historial académico</p></div>
                     <i data-lucide="chevron-right" class="ml-auto text-slate-300"></i>
                 </button>`;
+            } else {
+                html += `<div class="p-3 text-xs text-slate-400 bg-slate-50 rounded-lg text-center">Sin analítico disponible</div>`;
             }
 
             docsDiv.innerHTML = html;
