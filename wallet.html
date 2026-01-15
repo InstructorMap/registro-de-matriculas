@@ -28,35 +28,37 @@
         /* CARD SLIDER */
         .card-slider {
             display: flex; overflow-x: auto; scroll-snap-type: x mandatory; 
-            gap: 15px; padding: 20px 20px; 
-            min-height: 240px; /* Altura forzada para que no colapse */
-            align-items: flex-start;
+            gap: 20px; padding: 20px 30px; 
+            height: 300px; /* Espacio reservado fijo */
+            align-items: center;
         }
+        .card-slider::-webkit-scrollbar { display: none; }
+
         .card-wrapper {
-            flex: 0 0 100%; /* Una tarjeta por pantalla */
+            flex: 0 0 85vw; /* Ancho relativo al celular */
             scroll-snap-align: center;
             perspective: 1000px;
-            height: 220px; /* Altura fija inicial móvil */
+            aspect-ratio: 1011/638; /* Proporción Mágica del Carnet */
             position: relative;
         }
 
         /* TARJETA */
-        .digital-card { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.6s; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .digital-card { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.6s; border-radius: 20px; box-shadow: 0 15px 40px -5px rgba(0,0,0,0.4); }
         .card-wrapper.flipped .digital-card { transform: rotateY(180deg); }
-        .card-face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 20px; overflow: hidden; background: white; }
+        .card-face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 20px; overflow: hidden; background: white; -webkit-mask-image: -webkit-radial-gradient(white, black); /* Fix bordes safari */ }
         .card-back { transform: rotateY(180deg); background: #eee; display:flex; align-items:center; justify-content:center; }
 
-        /* ESCALADOR CSS (EL TRUCO) */
-        /* El diseño original es 1011px. Lo metemos en un contenedor que transformamos con CSS Scale */
+        /* ESCALADOR CSS (SOLUCIÓN CRÍTICA) */
         .scaler-container { width: 100%; height: 100%; position: relative; overflow: hidden; }
         .scaler {
             width: 1011px; height: 638px;
             position: absolute; top: 0; left: 0;
-            transform-origin: top left;
+            transform-origin: 0 0; /* Punto de anclaje esquina superior izquierda */
             background: white;
+            pointer-events: none; /* Mejorar scroll táctil */
         }
 
-        /* DISEÑO INTERNO (Igual al generador) */
+        /* DISEÑO INTERNO (Heredado del generador V3) */
         .front-left { width: 380px; height: 100%; position: absolute; left: 0; top: 0; background: #d4d4d4; border-top-left-radius: 40px; border-bottom-left-radius: 40px; overflow: hidden; z-index: 2; }
         .front-right { width: 631px; height: 100%; position: absolute; right: 0; top: 0; background: #0033cc; color: white; padding: 25px 35px; display: flex; flex-direction: column; justify-content: space-between; border-top-right-radius: 40px; border-bottom-right-radius: 40px; }
         .reg-sigla { position: absolute; bottom: 15px; width: 100%; text-align: center; color: white; font-size: 26px; font-weight: 900; z-index: 10; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
@@ -79,7 +81,7 @@
         <div class="w-full max-w-xs space-y-4">
             <input type="tel" id="dni-input" class="w-full bg-white/10 border border-white/20 text-white font-bold text-xl px-4 py-4 rounded-2xl text-center placeholder-white/20 backdrop-blur-sm" placeholder="Ingrese DNI">
             <button onclick="ingresarWallet()" class="w-full bg-white text-slate-900 font-black py-4 rounded-2xl shadow-xl flex items-center justify-center gap-2">INGRESAR</button>
-            <p id="login-error" class="text-red-300 text-center text-xs font-bold hidden"></p>
+            <p id="login-error" class="text-red-300 text-center text-xs font-bold hidden bg-red-900/50 p-2 rounded"></p>
         </div>
     </div>
 
@@ -98,7 +100,7 @@
         </header>
 
         <main class="flex-1 flex flex-col relative overflow-y-auto">
-            <p class="text-center text-[10px] font-bold text-slate-400 uppercase mt-4 tracking-widest">Tus Credenciales</p>
+            <p class="text-center text-[10px] font-bold text-slate-400 uppercase mt-6 tracking-widest">Tus Credenciales</p>
             
             <div class="card-slider" id="card-container">
                 </div>
@@ -107,7 +109,7 @@
                 <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
                     <h3 class="font-bold text-slate-800 text-sm mb-3 flex items-center gap-2"><i data-lucide="file-text" class="w-4 h-4 text-brand"></i> Documentos</h3>
                     <div id="docs-buttons" class="space-y-2">
-                        <p class="text-xs text-slate-400 text-center">Selecciona una tarjeta...</p>
+                        <p class="text-xs text-slate-400 text-center italic">Selecciona una tarjeta arriba...</p>
                     </div>
                 </div>
             </div>
@@ -129,21 +131,29 @@
             lucide.createIcons();
             const savedDNI = localStorage.getItem('asari_wallet_dni');
             if(savedDNI) document.getElementById('dni-input').value = savedDNI;
-            window.addEventListener('resize', () => requestAnimationFrame(ajustarEscala));
+            // Re-calcular si se gira el celular
+            window.addEventListener('resize', () => {
+                setTimeout(ajustarTodasLasEscalas, 100);
+            });
         });
 
         async function ingresarWallet() {
             const dni = document.getElementById('dni-input').value.trim();
             const btn = document.querySelector('#login-screen button');
+            const errDiv = document.getElementById('login-error');
+            
             if(!dni) return;
-            btn.innerHTML = `BUSCANDO...`;
+            
+            btn.innerText = "BUSCANDO...";
+            errDiv.classList.add('hidden');
 
             try {
-                // 1. Buscar Alumno
+                // 1. Obtener Matrículas
                 const { data: alumnos, error } = await db.from('matriculas').select('*').eq('dni_alumno', dni);
-                if (error || !alumnos.length) throw new Error("No encontrado");
+                if (error) throw error;
+                if (!alumnos || alumnos.length === 0) throw new Error("DNI no encontrado en el sistema.");
 
-                // 2. Unir Docs Manualmente
+                // 2. Unir Documentos (Manual Join)
                 const datos = await Promise.all(alumnos.map(async (al) => {
                     const { data: curso } = await db.from('cursos_oficiales').select('diploma_bg_url, analitico_bg_url').eq('nombre', al.curso).single();
                     return { ...al, cursos_oficiales: curso || { diploma_bg_url: null, analitico_bg_url: null } };
@@ -154,21 +164,26 @@
                 iniciarApp(datos);
 
             } catch (err) {
-                alert("DNI no encontrado o error de conexión");
-                btn.innerHTML = `INGRESAR`;
+                console.error(err);
+                errDiv.innerText = err.message || "Error de conexión.";
+                errDiv.classList.remove('hidden');
+                btn.innerText = "INGRESAR";
             }
         }
 
         function iniciarApp(data) {
+            // Transición UI
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('app-interface').classList.remove('hidden');
-            document.getElementById('app-interface').style.opacity = '1';
+            
+            // Forzar reflow para asegurar que el navegador vea el cambio
+            document.getElementById('app-interface').style.opacity = 1;
 
             const alumno = data[0];
             document.getElementById('user-name').innerText = alumno.nombre.split(' ')[0] + ' ' + alumno.apellido;
             if(alumno.foto_url) document.getElementById('header-avatar').src = alumno.foto_url;
 
-            // COLOR AUTOMÁTICO BASADO EN LA PRIMERA CREDENCIAL (Si no hay institución)
+            // Determinar Color App (Usando el primer registro)
             const colorConfig = obtenerConfigColor(alumno.registro_id);
             document.documentElement.style.setProperty('--brand-color', colorConfig.c2);
             document.getElementById('meta-theme-color').setAttribute('content', colorConfig.c2);
@@ -183,7 +198,6 @@
             matriculas.forEach((mat, i) => {
                 const cfg = obtenerConfigColor(mat.registro_id);
                 
-                // HTML COMPACTO PERO COMPLETO
                 container.innerHTML += `
                 <div class="card-wrapper" onclick="this.classList.toggle('flipped')">
                     <div class="digital-card">
@@ -218,38 +232,46 @@
                 </div>`;
             });
 
-            // Retardo para asegurar que el DOM existe antes de dibujar QR y Escalar
-            setTimeout(() => {
-                matriculas.forEach((mat, i) => {
-                    new QRCode(document.getElementById(`qr-${i}`), { text: `https://instructormap.github.io/registro-de-matriculas/validador.html?id=${mat.id}`, width: 140, height: 140 });
-                });
-                ajustarEscala();
-                mostrarDocs(0);
-            }, 100);
+            // 1. Generar QRs
+            matriculas.forEach((mat, i) => {
+                new QRCode(document.getElementById(`qr-${i}`), { text: `https://instructormap.github.io/registro-de-matriculas/validador.html?id=${mat.id}`, width: 140, height: 140 });
+            });
 
-            // Listener Scroll
+            // 2. Ejecutar Ajuste de Escala (Con Retry por seguridad)
+            setTimeout(ajustarTodasLasEscalas, 50);
+            setTimeout(ajustarTodasLasEscalas, 500); // Segundo intento por si el navegador es lento
+
+            // 3. Listener Scroll
             container.addEventListener('scroll', () => {
                 const center = container.scrollLeft + (container.offsetWidth/2);
                 document.querySelectorAll('.card-wrapper').forEach((el, i) => {
                     if(Math.abs(center - (el.offsetLeft + el.offsetWidth/2)) < el.offsetWidth/2) mostrarDocs(i);
                 });
             });
+            
+            // Mostrar documentos del primero por defecto
+            if(matriculas.length > 0) mostrarDocs(0);
         }
 
-        function ajustarEscala() {
+        // FUNCIÓN CRÍTICA REPARADA: Cálculo de Escala
+        function ajustarTodasLasEscalas() {
             const wrappers = document.querySelectorAll('.card-wrapper');
-            if(!wrappers.length) return;
-            // Calculamos el scale basado en el ancho de la pantalla del celular
-            const cardWidth = wrappers[0].offsetWidth; 
-            const scale = cardWidth / 1011; 
+            if(wrappers.length === 0) return;
+
+            // Obtenemos el ancho real del contenedor en pantalla
+            const cardWidth = wrappers[0].getBoundingClientRect().width;
             
+            if (cardWidth === 0) return; // Si aún no se pintó, salimos
+
+            // El diseño original mide 1011px de ancho
+            const scale = cardWidth / 1011; 
+
             document.querySelectorAll('.scaler').forEach(el => {
                 el.style.transform = `scale(${scale})`;
+                // Forzamos el tamaño del contenedor "falso" para que el scale no lo rompa
+                el.style.width = '1011px';
+                el.style.height = '638px';
             });
-            
-            // Ajustar altura del contenedor padre
-            const height = 638 * scale;
-            document.querySelectorAll('.card-wrapper').forEach(el => el.style.height = height + 'px');
         }
 
         function mostrarDocs(i) {
@@ -270,7 +292,7 @@
             if(docs && docs.diploma_bg_url) html += btn('Diploma Oficial', 'Descargar Certificado', 'scroll-text', `credencial_v3.html?dni=${mat.dni_alumno}`);
             else html += `<div class="text-center text-xs text-slate-300 py-2">Sin Diploma</div>`;
 
-            if(docs && docs.analitico_bg_url) html += btn('Analítico', 'Historial Académico', 'file-check', `credencial_v3.html?dni=${mat.dni_alumno}`); // Enlaza al mismo generador que ya detecta analitico
+            if(docs && docs.analitico_bg_url) html += btn('Analítico', 'Historial Académico', 'file-check', `credencial_v3.html?dni=${mat.dni_alumno}`);
 
             div.innerHTML = html;
             lucide.createIcons();
@@ -278,8 +300,11 @@
 
         function logout() { localStorage.removeItem('asari_wallet_dni'); location.reload(); }
 
-        // DATOS VISUALES
+        // --- LÓGICA DE COLORES ROBUSTA ---
         function obtenerConfigColor(rid) {
+            // Limpieza de datos (Trim + LowerCase) para evitar errores de tipeo en DB
+            const key = String(rid || '').trim().toLowerCase();
+            
             const map = {
                 'remaep': { c2:'#0033cc', sigla:'R.E.M.A.E.P', txt:'white' },
                 'rniue':  { c2:'#b8860b', sigla:'R.N.I.U.E',   txt:'white' },
@@ -289,8 +314,9 @@
                 'rpde':   { c2:'#0099ff', sigla:'R.P.D.E',     txt:'white' },
                 'asarin': { c2:'#800000', sigla:'ASARIN',      txt:'white' }
             };
-            return map[String(rid).toLowerCase()] || map['remaep'];
+            return map[key] || map['remaep']; // Si no encuentra, usa remaep (azul)
         }
+
         function generarHash(d) { let h=0; for(let i=0;i<d.length;i++) h=((h<<5)-h)+d.charCodeAt(i)|0; return String(Math.abs(h)).substring(0,6).padStart(6,'9'); }
         function calcularVencimiento(f) { const d=new Date(f||new Date()); d.setFullYear(d.getFullYear()+1); return d.toLocaleDateString('es-AR'); }
     </script>
