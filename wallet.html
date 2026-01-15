@@ -8,8 +8,6 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e293b" id="meta-theme-color">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/60/60484.png">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -18,271 +16,163 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
 
     <style>
-        body { font-family: 'Roboto', sans-serif; background-color: #f0f4f8; overflow-x: hidden; height: 100vh; width: 100vw; }
+        body { font-family: 'Roboto', sans-serif; background-color: #f0f4f8; overflow-x: hidden; height: 100vh; width: 100vw; touch-action: pan-y; }
         
-        /* VARIABLES DINÁMICAS (Se llenan con JS) */
-        :root {
-            --brand-color: #1e293b; /* Color por defecto (Slate-900) */
-        }
-
-        /* CLASES DINÁMICAS */
+        :root { --brand-color: #1e293b; }
         .bg-brand { background-color: var(--brand-color) !important; }
         .text-brand { color: var(--brand-color) !important; }
-        .border-brand { border-color: var(--brand-color) !important; }
 
-        /* PANTALLA DE LOGIN */
-        #login-screen { position: fixed; inset: 0; background: linear-gradient(135deg, var(--brand-color) 0%, #000000 100%); z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; transition: opacity 0.5s; }
+        /* LOGIN */
+        #login-screen { position: fixed; inset: 0; background: linear-gradient(135deg, var(--brand-color) 0%, #000 100%); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; transition: opacity 0.5s; }
         
-        /* BOTÓN INSTALAR */
-        #install-btn { display: none; position: fixed; top: 15px; right: 15px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); color: white; padding: 8px 12px; border-radius: 20px; font-size: 10px; font-weight: bold; border: 1px solid rgba(255,255,255,0.3); z-index: 100; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        /* CARD SLIDER */
+        .card-slider {
+            display: flex; overflow-x: auto; scroll-snap-type: x mandatory; 
+            gap: 15px; padding: 20px 20px; 
+            min-height: 240px; /* Altura forzada para que no colapse */
+            align-items: flex-start;
+        }
+        .card-wrapper {
+            flex: 0 0 100%; /* Una tarjeta por pantalla */
+            scroll-snap-align: center;
+            perspective: 1000px;
+            height: 220px; /* Altura fija inicial móvil */
+            position: relative;
+        }
 
-        /* TARJETAS 3D */
-        .card-slider { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 20px; padding: 20px 40px; -webkit-overflow-scrolling: touch; scrollbar-width: none; min-height: 400px; align-items: center; }
-        .card-slider::-webkit-scrollbar { display: none; }
-        .card-wrapper { flex: 0 0 85vw; scroll-snap-align: center; perspective: 1000px; aspect-ratio: 1011/638; position: relative; }
-        .digital-card { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); box-shadow: 0 20px 50px -10px rgba(0,0,0,0.4); border-radius: 20px; }
+        /* TARJETA */
+        .digital-card { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.6s; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .card-wrapper.flipped .digital-card { transform: rotateY(180deg); }
-        .card-face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 20px; overflow: hidden; background: white; -webkit-mask-image: -webkit-radial-gradient(white, black); }
-        .card-back { transform: rotateY(180deg); background: #e2e8f0; display: flex; align-items: center; justify-content: center; }
-        .scaler { width: 1011px; height: 638px; transform-origin: top left; background: white; }
+        .card-face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 20px; overflow: hidden; background: white; }
+        .card-back { transform: rotateY(180deg); background: #eee; display:flex; align-items:center; justify-content:center; }
 
-        /* DISEÑO CARNET INTERNO */
+        /* ESCALADOR CSS (EL TRUCO) */
+        /* El diseño original es 1011px. Lo metemos en un contenedor que transformamos con CSS Scale */
+        .scaler-container { width: 100%; height: 100%; position: relative; overflow: hidden; }
+        .scaler {
+            width: 1011px; height: 638px;
+            position: absolute; top: 0; left: 0;
+            transform-origin: top left;
+            background: white;
+        }
+
+        /* DISEÑO INTERNO (Igual al generador) */
         .front-left { width: 380px; height: 100%; position: absolute; left: 0; top: 0; background: #d4d4d4; border-top-left-radius: 40px; border-bottom-left-radius: 40px; overflow: hidden; z-index: 2; }
         .front-right { width: 631px; height: 100%; position: absolute; right: 0; top: 0; background: #0033cc; color: white; padding: 25px 35px; display: flex; flex-direction: column; justify-content: space-between; border-top-right-radius: 40px; border-bottom-right-radius: 40px; }
-        .student-photo { width: 100%; height: 100%; object-fit: cover; }
         .reg-sigla { position: absolute; bottom: 15px; width: 100%; text-align: center; color: white; font-size: 26px; font-weight: 900; z-index: 10; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
         .header-text { font-size: 80px; font-weight: 900; text-transform: uppercase; line-height: 0.9; }
         .student-name { font-size: 38px; font-weight: 700; text-transform: uppercase; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; margin-bottom: 10px; }
         .data-row { font-size: 32px; font-weight: 700; display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 5px; }
-        .qr-box { position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%); width: 160px; height: 160px; background: white; padding: 10px; border-radius: 15px; z-index: 5; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
+        .qr-box { position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%); width: 160px; height: 160px; background: white; padding: 10px; border-radius: 15px; z-index: 5; }
     </style>
 </head>
-<body class="bg-slate-100 h-screen flex flex-col overflow-hidden">
-
-    <button id="install-btn" onclick="instalarApp()">📲 INSTALAR APP</button>
+<body class="bg-slate-100 flex flex-col h-screen">
 
     <div id="login-screen">
         <div class="mb-8 text-center animate-fade-in">
-            <div id="app-logo-container" class="w-24 h-24 bg-white/10 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl backdrop-blur-md border border-white/20">
+            <div class="w-24 h-24 bg-white/10 rounded-3xl flex items-center justify-center mx-auto mb-6 backdrop-blur-md border border-white/20">
                 <i data-lucide="wallet" class="text-white w-12 h-12"></i>
             </div>
-            <h1 class="text-3xl font-black text-white tracking-tight">Mi Billetera</h1>
-            <p class="text-white/60 text-sm mt-1">Credenciales Digitales Oficiales</p>
+            <h1 class="text-3xl font-black text-white">Mi Billetera</h1>
+            <p class="text-white/60 text-sm">Credenciales Oficiales</p>
         </div>
-        
         <div class="w-full max-w-xs space-y-4">
-            <div>
-                <label class="block text-xs font-bold text-white/60 uppercase mb-1 ml-1">Documento de Identidad</label>
-                <input type="tel" id="dni-input" class="w-full bg-white/10 border border-white/20 text-white font-bold text-xl px-4 py-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-white/50 text-center tracking-widest placeholder-white/20 backdrop-blur-sm transition" placeholder="Ej: 33656107">
-            </div>
-            <button onclick="ingresarWallet()" class="w-full bg-white text-slate-900 font-black py-4 rounded-2xl shadow-xl hover:scale-[1.02] transition transform active:scale-95 flex items-center justify-center gap-2">
-                INGRESAR <i data-lucide="arrow-right" class="w-5 h-5"></i>
-            </button>
-            <p id="login-error" class="text-red-300 bg-red-900/50 py-2 rounded-lg text-center text-xs font-bold hidden mt-2 border border-red-500/30"></p>
+            <input type="tel" id="dni-input" class="w-full bg-white/10 border border-white/20 text-white font-bold text-xl px-4 py-4 rounded-2xl text-center placeholder-white/20 backdrop-blur-sm" placeholder="Ingrese DNI">
+            <button onclick="ingresarWallet()" class="w-full bg-white text-slate-900 font-black py-4 rounded-2xl shadow-xl flex items-center justify-center gap-2">INGRESAR</button>
+            <p id="login-error" class="text-red-300 text-center text-xs font-bold hidden"></p>
         </div>
-        <p class="absolute bottom-8 text-[10px] text-white/30 font-bold tracking-widest">SECURED BY ASARI</p>
     </div>
 
-    <div id="app-interface" class="hidden flex-1 flex flex-col h-full opacity-0 transition-opacity duration-500">
+    <div id="app-interface" class="hidden flex-1 flex flex-col h-full overflow-hidden">
         
-        <header class="bg-brand text-white p-6 pt-14 pb-8 rounded-b-[35px] shadow-2xl z-20 relative">
-            <div class="flex justify-between items-center mb-6">
+        <header class="bg-brand text-white p-6 pt-10 pb-6 rounded-b-[30px] shadow-lg z-20 flex-shrink-0">
+            <div class="flex justify-between items-center mb-4">
                 <div>
-                    <p class="text-white/60 text-xs font-bold uppercase tracking-wider mb-1" id="inst-label">Bienvenido/a</p>
-                    <h2 class="text-2xl font-black leading-tight truncate max-w-[200px]" id="user-name">Usuario</h2>
+                    <p class="text-white/60 text-xs font-bold uppercase" id="inst-label">Hola,</p>
+                    <h2 class="text-xl font-black truncate max-w-[200px]" id="user-name">Usuario</h2>
                 </div>
-                <div class="w-14 h-14 rounded-2xl bg-white p-1 shadow-lg flex items-center justify-center overflow-hidden">
-                    <img id="inst-logo" src="" class="w-full h-full object-contain" onerror="this.style.display='none'">
-                    <i id="inst-icon-fallback" data-lucide="building-2" class="text-slate-300 w-8 h-8 hidden"></i>
+                <div class="w-12 h-12 rounded-full bg-white p-0.5 shadow overflow-hidden">
+                    <img id="header-avatar" src="https://via.placeholder.com/100" class="w-full h-full rounded-full object-cover">
                 </div>
-            </div>
-            
-            <div class="flex bg-black/20 p-1.5 rounded-2xl backdrop-blur-sm">
-                <button class="flex-1 py-2.5 text-xs font-bold rounded-xl bg-white text-brand shadow-sm transition">Mis Credenciales</button>
-                <button class="flex-1 py-2.5 text-xs font-bold rounded-xl text-white/60 hover:text-white transition" onclick="alert('Próximamente: Historial')">Historial</button>
             </div>
         </header>
 
-        <main class="flex-1 flex flex-col overflow-hidden relative">
+        <main class="flex-1 flex flex-col relative overflow-y-auto">
+            <p class="text-center text-[10px] font-bold text-slate-400 uppercase mt-4 tracking-widest">Tus Credenciales</p>
             
-            <p class="px-8 mt-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Desliza para ver tus tarjetas</p>
-            
-            <div class="card-slider flex-1" id="card-container">
+            <div class="card-slider" id="card-container">
                 </div>
 
-            <div class="px-6 mb-6 z-10" id="docs-area">
-                <div class="bg-white p-5 rounded-3xl shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] border border-slate-100">
-                    <h3 class="font-bold text-slate-800 flex items-center gap-2 mb-4 text-sm">
-                        <div class="p-1.5 rounded-lg bg-brand/10 text-brand"><i data-lucide="folder-open" class="w-4 h-4"></i></div>
-                        Documentación Digital
-                    </h3>
+            <div class="px-5 mb-6">
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-slate-800 text-sm mb-3 flex items-center gap-2"><i data-lucide="file-text" class="w-4 h-4 text-brand"></i> Documentos</h3>
                     <div id="docs-buttons" class="space-y-2">
-                        <p class="text-xs text-slate-400 italic py-2 text-center">Cargando documentos...</p>
+                        <p class="text-xs text-slate-400 text-center">Selecciona una tarjeta...</p>
                     </div>
                 </div>
             </div>
-
         </main>
 
-        <nav class="bg-white border-t border-slate-200 p-4 pb-8 flex justify-around items-center z-30 rounded-t-[30px] shadow-[0_-5px_20px_rgba(0,0,0,0.05)]">
-            <button class="flex flex-col items-center gap-1.5 text-brand transition hover:scale-105">
-                <i data-lucide="wallet-cards" class="w-6 h-6"></i>
-                <span class="text-[10px] font-bold">Wallet</span>
-            </button>
-            <button class="flex flex-col items-center gap-1.5 text-slate-300 hover:text-slate-500 transition hover:scale-105">
-                <i data-lucide="qr-code" class="w-6 h-6"></i>
-                <span class="text-[10px] font-bold">Escanear</span>
-            </button>
-            <button onclick="logout()" class="flex flex-col items-center gap-1.5 text-slate-300 hover:text-red-500 transition hover:scale-105">
-                <i data-lucide="log-out" class="w-6 h-6"></i>
-                <span class="text-[10px] font-bold">Salir</span>
-            </button>
+        <nav class="bg-white border-t border-slate-200 p-3 flex justify-around items-center z-30 flex-shrink-0 safe-area-pb">
+            <button class="flex flex-col items-center gap-1 text-brand"><i data-lucide="wallet-cards" class="w-6 h-6"></i><span class="text-[10px] font-bold">Wallet</span></button>
+            <button onclick="logout()" class="flex flex-col items-center gap-1 text-slate-400"><i data-lucide="log-out" class="w-6 h-6"></i><span class="text-[10px] font-bold">Salir</span></button>
         </nav>
-
     </div>
 
     <script>
         const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
-        
         let misMatriculas = [];
-        let deferredPrompt; // Para la instalación PWA
-
-        // --- PWA LOGIC ---
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            const btn = document.getElementById('install-btn');
-            btn.style.display = 'block'; // Mostrar botón solo si es instalable
-        });
-
-        async function instalarApp() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    document.getElementById('install-btn').style.display = 'none';
-                }
-                deferredPrompt = null;
-            }
-        }
 
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
             const savedDNI = localStorage.getItem('asari_wallet_dni');
-            if(savedDNI) { document.getElementById('dni-input').value = savedDNI; }
-            
-            window.addEventListener('resize', () => {
-                if(document.getElementById('app-interface').classList.contains('hidden')) return;
-                requestAnimationFrame(ajustarEscalaTarjetas);
-            });
+            if(savedDNI) document.getElementById('dni-input').value = savedDNI;
+            window.addEventListener('resize', () => requestAnimationFrame(ajustarEscala));
         });
 
-        // 1. INGRESO (CON FETCH DE INSTITUCIÓN)
         async function ingresarWallet() {
             const dni = document.getElementById('dni-input').value.trim();
             const btn = document.querySelector('#login-screen button');
-            const errorMsg = document.getElementById('login-error');
-            
             if(!dni) return;
-            
-            btn.innerHTML = `<i data-lucide="loader-2" class="animate-spin"></i> BUSCANDO...`;
-            errorMsg.classList.add('hidden');
+            btn.innerHTML = `BUSCANDO...`;
 
             try {
-                // A. Buscar Alumno
-                const { data: listaAlumnos, error } = await db.from('matriculas').select('*').eq('dni_alumno', dni);
-                if (error) throw error;
-                if (!listaAlumnos || listaAlumnos.length === 0) throw new Error("No encontramos credenciales.");
+                // 1. Buscar Alumno
+                const { data: alumnos, error } = await db.from('matriculas').select('*').eq('dni_alumno', dni);
+                if (error || !alumnos.length) throw new Error("No encontrado");
 
-                // B. Unir Documentos y Obtener ID Institución (Usamos el primero para el branding)
-                let institucionData = null;
-                const instId = listaAlumnos[0].institution_id;
-
-                if (instId) {
-                    const { data: inst } = await db.from('instituciones').select('*').eq('id', instId).single();
-                    institucionData = inst;
-                }
-
-                // Unir docs de cursos
-                const datosCompletos = await Promise.all(listaAlumnos.map(async (alumno) => {
-                    const { data: cursoDoc } = await db.from('cursos_oficiales').select('diploma_bg_url, analitico_bg_url').eq('nombre', alumno.curso).single();
-                    return { ...alumno, cursos_oficiales: cursoDoc || { diploma_bg_url: null, analitico_bg_url: null } };
+                // 2. Unir Docs Manualmente
+                const datos = await Promise.all(alumnos.map(async (al) => {
+                    const { data: curso } = await db.from('cursos_oficiales').select('diploma_bg_url, analitico_bg_url').eq('nombre', al.curso).single();
+                    return { ...al, cursos_oficiales: curso || { diploma_bg_url: null, analitico_bg_url: null } };
                 }));
 
-                misMatriculas = datosCompletos;
+                misMatriculas = datos;
                 localStorage.setItem('asari_wallet_dni', dni);
-                
-                // C. APLICAR BRANDING INSTITUCIONAL
-                aplicarBranding(institucionData);
-
-                // D. INICIAR APP
-                lanzarAnimacionEntrada(datosCompletos);
+                iniciarApp(datos);
 
             } catch (err) {
-                console.error(err);
-                errorMsg.innerText = err.message || "Error de conexión";
-                errorMsg.classList.remove('hidden');
-                btn.innerHTML = `INGRESAR <i data-lucide="arrow-right"></i>`;
-                lucide.createIcons();
+                alert("DNI no encontrado o error de conexión");
+                btn.innerHTML = `INGRESAR`;
             }
         }
 
-        function aplicarBranding(inst) {
-            const root = document.documentElement;
-            const logo = document.getElementById('inst-logo');
-            const label = document.getElementById('inst-label');
-            const appLogo = document.getElementById('app-logo-container');
+        function iniciarApp(data) {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('app-interface').classList.remove('hidden');
+            document.getElementById('app-interface').style.opacity = '1';
 
-            if (inst) {
-                // Colores
-                if (inst.color_primario) {
-                    root.style.setProperty('--brand-color', inst.color_primario);
-                    document.getElementById('meta-theme-color').setAttribute('content', inst.color_primario);
-                }
-                // Logo Header
-                if (inst.logo_url) {
-                    logo.src = inst.logo_url;
-                    logo.style.display = 'block';
-                    document.getElementById('inst-icon-fallback').classList.add('hidden');
-                    // Logo Login (Opcional, si quieres que el login tambien tenga el logo)
-                    appLogo.innerHTML = `<img src="${inst.logo_url}" class="w-full h-full object-contain">`;
-                } else {
-                    logo.style.display = 'none';
-                    document.getElementById('inst-icon-fallback').classList.remove('hidden');
-                }
-                // Texto
-                label.innerText = inst.nombre || "Bienvenido/a";
-            } else {
-                // Reset a default (ASARI)
-                root.style.setProperty('--brand-color', '#1e293b');
-                logo.style.display = 'none';
-                document.getElementById('inst-icon-fallback').classList.remove('hidden');
-                label.innerText = "Bienvenido/a";
-            }
-        }
-
-        function lanzarAnimacionEntrada(data) {
-            const login = document.getElementById('login-screen');
-            const app = document.getElementById('app-interface');
-            
-            login.style.opacity = '0';
-            
-            setTimeout(() => {
-                login.classList.add('hidden');
-                app.classList.remove('hidden');
-                requestAnimationFrame(() => {
-                    app.style.opacity = '1';
-                    cargarDatosEnPantalla(data);
-                });
-            }, 500);
-        }
-
-        function cargarDatosEnPantalla(data) {
             const alumno = data[0];
-            document.getElementById('user-name').innerText = `${alumno.nombre.split(' ')[0]} ${alumno.apellido}`; // Solo primer nombre + apellido
+            document.getElementById('user-name').innerText = alumno.nombre.split(' ')[0] + ' ' + alumno.apellido;
             if(alumno.foto_url) document.getElementById('header-avatar').src = alumno.foto_url;
+
+            // COLOR AUTOMÁTICO BASADO EN LA PRIMERA CREDENCIAL (Si no hay institución)
+            const colorConfig = obtenerConfigColor(alumno.registro_id);
+            document.documentElement.style.setProperty('--brand-color', colorConfig.c2);
+            document.getElementById('meta-theme-color').setAttribute('content', colorConfig.c2);
+
             renderizarTarjetas(data);
         }
 
@@ -290,136 +180,119 @@
             const container = document.getElementById('card-container');
             container.innerHTML = "";
 
-            matriculas.forEach((mat, index) => {
-                const config = obtenerConfigColor(mat.registro_id);
+            matriculas.forEach((mat, i) => {
+                const cfg = obtenerConfigColor(mat.registro_id);
                 
-                const cardHTML = `
-                <div class="card-wrapper" onclick="voltearTarjeta(this)">
+                // HTML COMPACTO PERO COMPLETO
+                container.innerHTML += `
+                <div class="card-wrapper" onclick="this.classList.toggle('flipped')">
                     <div class="digital-card">
                         <div class="card-face">
-                            <div class="scaler" id="scaler-${index}">
-                                <div class="front-left">
-                                    <img src="${mat.foto_url || 'https://via.placeholder.com/380x638?text=FOTO'}" class="student-photo">
-                                    <div class="reg-sigla" style="position:absolute; bottom:15px; width:100%; text-align:center; z-index:10;">${config.sigla}</div>
-                                    <div class="qr-box" id="qr-${index}"></div>
-                                    <svg style="position:absolute; bottom:0; left:0; width:100%; height:100%; z-index:2;" viewBox="0 0 380 638" preserveAspectRatio="none">
-                                        <path d="M -50 680 L 350 680 L -50 280 Z" fill="${config.c2}" style="opacity:0.9" />
-                                    </svg>
-                                </div>
-                                <div class="front-right" style="background:${config.c2}; color:${config.txt}">
-                                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:4px solid rgba(255,255,255,0.5); padding-bottom:5px;">
-                                        <span class="header-text">CARNET</span>
-                                        <span class="header-text">${new Date(mat.fecha_inicio || new Date()).getFullYear()}</span>
+                            <div class="scaler-container">
+                                <div class="scaler" id="scaler-${i}">
+                                    <div class="front-left">
+                                        <img src="${mat.foto_url || ''}" class="student-photo">
+                                        <div class="reg-sigla">${cfg.sigla}</div>
+                                        <div class="qr-box" id="qr-${i}"></div>
+                                        <svg style="position:absolute;bottom:0;left:0;width:100%;height:100%;z-index:2;" viewBox="0 0 380 638" preserveAspectRatio="none"><path d="M -50 680 L 350 680 L -50 280 Z" fill="${cfg.c2}" style="opacity:0.9"/></svg>
                                     </div>
-                                    <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
-                                        <div style="font-size:55px; font-weight:900; text-transform:uppercase; line-height:1; text-align:center; margin-bottom:10px;">${mat.curso}</div>
-                                        <div class="student-name" style="text-align:center;">${mat.nombre} ${mat.apellido}</div>
-                                        <div class="data-row"><span>DNI:</span><span>${mat.dni_alumno}</span></div>
-                                        <div class="data-row"><span>MATRÍCULA:</span><span>${generarHash(mat.dni_alumno)}</span></div>
-                                        <div class="data-row"><span>VENCE:</span><span>${calcularVencimiento(mat.fecha_inicio)}</span></div>
+                                    <div class="front-right" style="background:${cfg.c2};color:${cfg.txt}">
+                                        <div style="display:flex;justify-content:space-between;border-bottom:4px solid rgba(255,255,255,0.5);padding-bottom:5px;">
+                                            <span class="header-text">CARNET</span><span class="header-text">${new Date(mat.fecha_inicio||new Date()).getFullYear()}</span>
+                                        </div>
+                                        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+                                            <div style="font-size:55px;font-weight:900;text-transform:uppercase;text-align:center;line-height:1;margin-bottom:15px;">${mat.curso}</div>
+                                            <div class="student-name" style="text-align:center;">${mat.nombre} ${mat.apellido}</div>
+                                            <div class="data-row"><span>DNI:</span><span>${mat.dni_alumno}</span></div>
+                                            <div class="data-row"><span>MATRÍCULA:</span><span>${generarHash(mat.dni_alumno)}</span></div>
+                                            <div class="data-row"><span>VENCE:</span><span>${calcularVencimiento(mat.fecha_inicio)}</span></div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="card-face card-back">
-                            <img src="reverso.jpg" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='https://via.placeholder.com/1011x638/CCCCCC/666666?text=REVERSO+INSTITUCIONAL'">
+                            <img src="reverso.jpg" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='https://via.placeholder.com/1011x638?text=REVERSO'">
                         </div>
                     </div>
                 </div>`;
-                container.innerHTML += cardHTML;
             });
 
+            // Retardo para asegurar que el DOM existe antes de dibujar QR y Escalar
             setTimeout(() => {
-                ajustarEscalaTarjetas();
-                generarQRs(matriculas);
+                matriculas.forEach((mat, i) => {
+                    new QRCode(document.getElementById(`qr-${i}`), { text: `https://instructormap.github.io/registro-de-matriculas/validador.html?id=${mat.id}`, width: 140, height: 140 });
+                });
+                ajustarEscala();
                 mostrarDocs(0);
             }, 100);
 
+            // Listener Scroll
             container.addEventListener('scroll', () => {
-                const center = container.scrollLeft + (container.offsetWidth / 2);
-                const cards = document.querySelectorAll('.card-wrapper');
-                cards.forEach((card, idx) => {
-                    const cardCenter = card.offsetLeft + (card.offsetWidth / 2);
-                    if (Math.abs(center - cardCenter) < card.offsetWidth / 2) {
-                        mostrarDocs(idx);
-                    }
+                const center = container.scrollLeft + (container.offsetWidth/2);
+                document.querySelectorAll('.card-wrapper').forEach((el, i) => {
+                    if(Math.abs(center - (el.offsetLeft + el.offsetWidth/2)) < el.offsetWidth/2) mostrarDocs(i);
                 });
             });
         }
 
-        function voltearTarjeta(element) { element.classList.toggle('flipped'); }
-
-        function ajustarEscalaTarjetas() {
+        function ajustarEscala() {
             const wrappers = document.querySelectorAll('.card-wrapper');
-            if(wrappers.length === 0) return;
-            const parentWidth = wrappers[0].offsetWidth; 
-            const scale = parentWidth / 1011; 
+            if(!wrappers.length) return;
+            // Calculamos el scale basado en el ancho de la pantalla del celular
+            const cardWidth = wrappers[0].offsetWidth; 
+            const scale = cardWidth / 1011; 
+            
             document.querySelectorAll('.scaler').forEach(el => {
                 el.style.transform = `scale(${scale})`;
-                el.style.width = '1011px';
-                el.style.height = '638px';
             });
-        }
-
-        function generarQRs(matriculas) {
-            matriculas.forEach((mat, idx) => {
-                const div = document.getElementById(`qr-${idx}`);
-                if(div) { div.innerHTML = ""; new QRCode(div, { text: `https://instructormap.github.io/registro-de-matriculas/validador.html?id=${mat.id}`, width: 140, height: 140 }); }
-            });
-        }
-
-        function mostrarDocs(index) {
-            if (!misMatriculas[index]) return;
-            const mat = misMatriculas[index];
-            const docsDiv = document.getElementById('docs-buttons');
-            const docs = mat.cursos_oficiales; 
-
-            let html = `<p class="text-[10px] font-bold text-slate-400 uppercase mb-2 text-center tracking-wider">Documentos de: ${mat.curso}</p>`;
             
-            // Botón Diploma
-            if (docs && docs.diploma_bg_url) {
-                html += `<button class="w-full bg-white border border-slate-200 text-slate-700 font-bold py-4 px-5 rounded-2xl flex items-center gap-4 shadow-sm active:bg-slate-50 mb-3 transition hover:shadow-md" onclick="window.open('credencial_v3.html?dni=${mat.dni_alumno}', '_blank')">
-                    <div class="bg-brand/10 p-2.5 rounded-xl text-brand"><i data-lucide="scroll-text"></i></div>
-                    <div class="text-left flex-1"><p class="text-sm font-black">Diploma Oficial</p><p class="text-[10px] text-slate-400 font-medium">Descargar certificado digital</p></div>
-                    <i data-lucide="chevron-right" class="text-slate-300"></i>
-                </button>`;
-            } else {
-                html += `<div class="p-3 text-xs text-slate-400 bg-slate-50 rounded-xl text-center mb-3 border border-dashed border-slate-200">Sin diploma disponible</div>`;
-            }
+            // Ajustar altura del contenedor padre
+            const height = 638 * scale;
+            document.querySelectorAll('.card-wrapper').forEach(el => el.style.height = height + 'px');
+        }
 
-            // Botón Analítico
-            if (docs && docs.analitico_bg_url) {
-                html += `<button class="w-full bg-white border border-slate-200 text-slate-700 font-bold py-4 px-5 rounded-2xl flex items-center gap-4 shadow-sm active:bg-slate-50 transition hover:shadow-md" onclick="window.open('credencial_v3.html?dni=${mat.dni_alumno}', '_blank')">
-                    <div class="bg-blue-50 p-2.5 rounded-xl text-blue-600"><i data-lucide="file-check"></i></div>
-                    <div class="text-left flex-1"><p class="text-sm font-black">Analítico</p><p class="text-[10px] text-slate-400 font-medium">Historial académico</p></div>
-                    <i data-lucide="chevron-right" class="text-slate-300"></i>
-                </button>`;
-            } else {
-                html += `<div class="p-3 text-xs text-slate-400 bg-slate-50 rounded-xl text-center border border-dashed border-slate-200">Sin analítico disponible</div>`;
-            }
+        function mostrarDocs(i) {
+            if(!misMatriculas[i]) return;
+            const mat = misMatriculas[i];
+            const docs = mat.cursos_oficiales;
+            const div = document.getElementById('docs-buttons');
+            
+            let html = `<p class="text-[10px] font-bold text-slate-400 uppercase mb-2 text-center">Curso: ${mat.curso}</p>`;
+            
+            const btn = (lbl, sub, icon, url) => `
+            <button onclick="${url ? `window.open('${url}','_blank')` : "alert('No disponible')"}" class="w-full bg-white border border-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl flex items-center gap-3 shadow-sm active:bg-slate-50 mb-2 transition">
+                <div class="bg-slate-100 p-2 rounded-lg text-brand"><i data-lucide="${icon}"></i></div>
+                <div class="text-left flex-1"><p class="text-sm">${lbl}</p><p class="text-[10px] text-slate-400">${sub}</p></div>
+                <i data-lucide="chevron-right" class="text-slate-300"></i>
+            </button>`;
 
-            docsDiv.innerHTML = html;
+            if(docs && docs.diploma_bg_url) html += btn('Diploma Oficial', 'Descargar Certificado', 'scroll-text', `credencial_v3.html?dni=${mat.dni_alumno}`);
+            else html += `<div class="text-center text-xs text-slate-300 py-2">Sin Diploma</div>`;
+
+            if(docs && docs.analitico_bg_url) html += btn('Analítico', 'Historial Académico', 'file-check', `credencial_v3.html?dni=${mat.dni_alumno}`); // Enlaza al mismo generador que ya detecta analitico
+
+            div.innerHTML = html;
             lucide.createIcons();
         }
 
         function logout() { localStorage.removeItem('asari_wallet_dni'); location.reload(); }
 
-        // --- HELPERS ---
+        // DATOS VISUALES
         function obtenerConfigColor(rid) {
-            const configs = {
-                'remaep': { c2: '#0033cc', sigla: 'R.E.M.A.E.P', txt: 'white' },
-                'rniue':  { c2: '#b8860b', sigla: 'R.N.I.U.E',   txt: 'white' },
-                'rubra':  { c2: '#cc0000', sigla: 'R.U.B.R.A',   txt: 'white' },
-                'rmts':   { c2: '#2f4f4f', sigla: 'R.M.T.S',     txt: 'white' },
-                'rce':    { c2: '#ffcc00', sigla: 'R.C.E',       txt: 'black' },
-                'rpde':   { c2: '#0099ff', sigla: 'R.P.D.E',     txt: 'white' },
-                'asarin': { c2: '#800000', sigla: 'ASARIN',      txt: 'white' }
+            const map = {
+                'remaep': { c2:'#0033cc', sigla:'R.E.M.A.E.P', txt:'white' },
+                'rniue':  { c2:'#b8860b', sigla:'R.N.I.U.E',   txt:'white' },
+                'rubra':  { c2:'#cc0000', sigla:'R.U.B.R.A',   txt:'white' },
+                'rmts':   { c2:'#2f4f4f', sigla:'R.M.T.S',     txt:'white' },
+                'rce':    { c2:'#ffcc00', sigla:'R.C.E',       txt:'black' },
+                'rpde':   { c2:'#0099ff', sigla:'R.P.D.E',     txt:'white' },
+                'asarin': { c2:'#800000', sigla:'ASARIN',      txt:'white' }
             };
-            return configs[String(rid).toLowerCase()] || configs['remaep'];
+            return map[String(rid).toLowerCase()] || map['remaep'];
         }
-        function generarHash(dni) { let hash = 0; for (let i = 0; i < dni.length; i++) { hash = ((hash << 5) - hash) + dni.charCodeAt(i); hash |= 0; } return String(Math.abs(hash)).substring(0, 6).padStart(6, '9'); }
-        function calcularVencimiento(fechaStr) { const f = new Date(fechaStr || new Date()); f.setFullYear(f.getFullYear() + 1); return f.toLocaleDateString('es-AR'); }
-
+        function generarHash(d) { let h=0; for(let i=0;i<d.length;i++) h=((h<<5)-h)+d.charCodeAt(i)|0; return String(Math.abs(h)).substring(0,6).padStart(6,'9'); }
+        function calcularVencimiento(f) { const d=new Date(f||new Date()); d.setFullYear(d.getFullYear()+1); return d.toLocaleDateString('es-AR'); }
     </script>
 </body>
 </html>
