@@ -3,8 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mi Billetera Digital - ASARI</title>
+    <title>Mi Billetera Digital</title>
     
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e293b" id="meta-theme-color">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/60/60484.png">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -12,59 +18,35 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
 
     <style>
-        body { font-family: 'Roboto', sans-serif; background-color: #f0f4f8; overflow-x: hidden; }
+        body { font-family: 'Roboto', sans-serif; background-color: #f0f4f8; overflow-x: hidden; height: 100vh; width: 100vw; }
         
+        /* VARIABLES DINÁMICAS (Se llenan con JS) */
+        :root {
+            --brand-color: #1e293b; /* Color por defecto (Slate-900) */
+        }
+
+        /* CLASES DINÁMICAS */
+        .bg-brand { background-color: var(--brand-color) !important; }
+        .text-brand { color: var(--brand-color) !important; }
+        .border-brand { border-color: var(--brand-color) !important; }
+
         /* PANTALLA DE LOGIN */
-        #login-screen { position: fixed; inset: 0; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; transition: opacity 0.5s; }
+        #login-screen { position: fixed; inset: 0; background: linear-gradient(135deg, var(--brand-color) 0%, #000000 100%); z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; transition: opacity 0.5s; }
         
-        /* SWIPER DE TARJETAS */
-        .card-slider {
-            display: flex;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            gap: 20px;
-            padding: 20px;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none; /* Firefox */
-        }
+        /* BOTÓN INSTALAR */
+        #install-btn { display: none; position: fixed; top: 15px; right: 15px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); color: white; padding: 8px 12px; border-radius: 20px; font-size: 10px; font-weight: bold; border: 1px solid rgba(255,255,255,0.3); z-index: 100; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+
+        /* TARJETAS 3D */
+        .card-slider { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 20px; padding: 20px 40px; -webkit-overflow-scrolling: touch; scrollbar-width: none; min-height: 400px; align-items: center; }
         .card-slider::-webkit-scrollbar { display: none; }
-
-        .card-wrapper {
-            flex: 0 0 85vw; /* Ocupa el 85% del ancho de pantalla */
-            scroll-snap-align: center;
-            perspective: 1000px;
-            height: 55vw; /* Proporción tarjeta */
-            position: relative;
-        }
-
-        /* EFECTO FLIP (Giro) */
-        .digital-card {
-            width: 100%; height: 100%;
-            position: relative;
-            transform-style: preserve-3d;
-            transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
-            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.3);
-            border-radius: 16px;
-        }
+        .card-wrapper { flex: 0 0 85vw; scroll-snap-align: center; perspective: 1000px; aspect-ratio: 1011/638; position: relative; }
+        .digital-card { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); box-shadow: 0 20px 50px -10px rgba(0,0,0,0.4); border-radius: 20px; }
         .card-wrapper.flipped .digital-card { transform: rotateY(180deg); }
-        
-        .card-face {
-            position: absolute; inset: 0;
-            backface-visibility: hidden;
-            border-radius: 16px;
-            overflow: hidden;
-            background: white;
-        }
+        .card-face { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 20px; overflow: hidden; background: white; -webkit-mask-image: -webkit-radial-gradient(white, black); }
         .card-back { transform: rotateY(180deg); background: #e2e8f0; display: flex; align-items: center; justify-content: center; }
+        .scaler { width: 1011px; height: 638px; transform-origin: top left; background: white; }
 
-        /* ESCALADO DEL DISEÑO ORIGINAL */
-        .scaler {
-            width: 1011px; height: 638px;
-            transform-origin: top left;
-            background: white;
-        }
-
-        /* ESTILOS DEL CARNET (Minificados) */
+        /* DISEÑO CARNET INTERNO */
         .front-left { width: 380px; height: 100%; position: absolute; left: 0; top: 0; background: #d4d4d4; border-top-left-radius: 40px; border-bottom-left-radius: 40px; overflow: hidden; z-index: 2; }
         .front-right { width: 631px; height: 100%; position: absolute; right: 0; top: 0; background: #0033cc; color: white; padding: 25px 35px; display: flex; flex-direction: column; justify-content: space-between; border-top-right-radius: 40px; border-bottom-right-radius: 40px; }
         .student-photo { width: 100%; height: 100%; object-fit: cover; }
@@ -73,82 +55,85 @@
         .student-name { font-size: 38px; font-weight: 700; text-transform: uppercase; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; margin-bottom: 10px; }
         .data-row { font-size: 32px; font-weight: 700; display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 5px; }
         .qr-box { position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%); width: 160px; height: 160px; background: white; padding: 10px; border-radius: 15px; z-index: 5; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
-
     </style>
 </head>
-<body class="bg-slate-100 h-screen flex flex-col">
+<body class="bg-slate-100 h-screen flex flex-col overflow-hidden">
+
+    <button id="install-btn" onclick="instalarApp()">📲 INSTALAR APP</button>
 
     <div id="login-screen">
-        <div class="mb-8 text-center">
-            <div class="w-20 h-20 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/30">
-                <i data-lucide="wallet" class="text-white w-10 h-10"></i>
+        <div class="mb-8 text-center animate-fade-in">
+            <div id="app-logo-container" class="w-24 h-24 bg-white/10 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl backdrop-blur-md border border-white/20">
+                <i data-lucide="wallet" class="text-white w-12 h-12"></i>
             </div>
             <h1 class="text-3xl font-black text-white tracking-tight">Mi Billetera</h1>
-            <p class="text-slate-400 text-sm mt-1">Credenciales Digitales Oficiales</p>
+            <p class="text-white/60 text-sm mt-1">Credenciales Digitales Oficiales</p>
         </div>
         
         <div class="w-full max-w-xs space-y-4">
             <div>
-                <label class="block text-xs font-bold text-slate-400 uppercase mb-1 ml-1">Documento de Identidad</label>
-                <input type="tel" id="dni-input" class="w-full bg-slate-800/50 border border-slate-700 text-white font-bold text-xl px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-center tracking-widest placeholder-slate-600" placeholder="Ej: 33656107">
+                <label class="block text-xs font-bold text-white/60 uppercase mb-1 ml-1">Documento de Identidad</label>
+                <input type="tel" id="dni-input" class="w-full bg-white/10 border border-white/20 text-white font-bold text-xl px-4 py-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-white/50 text-center tracking-widest placeholder-white/20 backdrop-blur-sm transition" placeholder="Ej: 33656107">
             </div>
-            <button onclick="ingresarWallet()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-900/50 transition transform active:scale-95 flex items-center justify-center gap-2">
+            <button onclick="ingresarWallet()" class="w-full bg-white text-slate-900 font-black py-4 rounded-2xl shadow-xl hover:scale-[1.02] transition transform active:scale-95 flex items-center justify-center gap-2">
                 INGRESAR <i data-lucide="arrow-right" class="w-5 h-5"></i>
             </button>
-            <p id="login-error" class="text-red-400 text-center text-xs font-bold hidden mt-2"></p>
+            <p id="login-error" class="text-red-300 bg-red-900/50 py-2 rounded-lg text-center text-xs font-bold hidden mt-2 border border-red-500/30"></p>
         </div>
-        <p class="absolute bottom-6 text-[10px] text-slate-600">Powered by ASARI SaaS</p>
+        <p class="absolute bottom-8 text-[10px] text-white/30 font-bold tracking-widest">SECURED BY ASARI</p>
     </div>
 
-    <div id="app-interface" class="hidden flex-1 flex flex-col h-full">
+    <div id="app-interface" class="hidden flex-1 flex flex-col h-full opacity-0 transition-opacity duration-500">
         
-        <header class="bg-slate-900 text-white p-6 pt-12 pb-8 rounded-b-[30px] shadow-2xl z-10 relative">
+        <header class="bg-brand text-white p-6 pt-14 pb-8 rounded-b-[35px] shadow-2xl z-20 relative">
             <div class="flex justify-between items-center mb-6">
                 <div>
-                    <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Bienvenido/a</p>
-                    <h2 class="text-2xl font-black leading-tight" id="user-name">Cargando...</h2>
+                    <p class="text-white/60 text-xs font-bold uppercase tracking-wider mb-1" id="inst-label">Bienvenido/a</p>
+                    <h2 class="text-2xl font-black leading-tight truncate max-w-[200px]" id="user-name">Usuario</h2>
                 </div>
-                <div class="w-12 h-12 rounded-full bg-slate-800 border-2 border-slate-700 overflow-hidden">
-                    <img id="header-avatar" src="https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff" class="w-full h-full object-cover">
+                <div class="w-14 h-14 rounded-2xl bg-white p-1 shadow-lg flex items-center justify-center overflow-hidden">
+                    <img id="inst-logo" src="" class="w-full h-full object-contain" onerror="this.style.display='none'">
+                    <i id="inst-icon-fallback" data-lucide="building-2" class="text-slate-300 w-8 h-8 hidden"></i>
                 </div>
             </div>
             
-            <div class="flex bg-slate-800/50 p-1 rounded-xl">
-                <button class="flex-1 py-2 text-xs font-bold rounded-lg bg-blue-600 text-white shadow-sm">Mis Credenciales</button>
-                <button class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-white" onclick="alert('Próximamente: Historial de cursos')">Historial</button>
+            <div class="flex bg-black/20 p-1.5 rounded-2xl backdrop-blur-sm">
+                <button class="flex-1 py-2.5 text-xs font-bold rounded-xl bg-white text-brand shadow-sm transition">Mis Credenciales</button>
+                <button class="flex-1 py-2.5 text-xs font-bold rounded-xl text-white/60 hover:text-white transition" onclick="alert('Próximamente: Historial')">Historial</button>
             </div>
         </header>
 
-        <main class="flex-1 overflow-y-auto pb-20">
+        <main class="flex-1 flex flex-col overflow-hidden relative">
             
-            <p class="px-6 mt-6 text-xs font-bold text-slate-400 uppercase tracking-widest">Tus Tarjetas Activas</p>
+            <p class="px-8 mt-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Desliza para ver tus tarjetas</p>
             
-            <div class="card-slider" id="card-container">
+            <div class="card-slider flex-1" id="card-container">
                 </div>
 
-            <div class="px-6 mt-2" id="docs-area">
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-                    <h3 class="font-bold text-slate-800 flex items-center gap-2 mb-4">
-                        <i data-lucide="folder-open" class="text-blue-600 w-5 h-5"></i> Documentación
+            <div class="px-6 mb-6 z-10" id="docs-area">
+                <div class="bg-white p-5 rounded-3xl shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] border border-slate-100">
+                    <h3 class="font-bold text-slate-800 flex items-center gap-2 mb-4 text-sm">
+                        <div class="p-1.5 rounded-lg bg-brand/10 text-brand"><i data-lucide="folder-open" class="w-4 h-4"></i></div>
+                        Documentación Digital
                     </h3>
-                    <div id="docs-buttons" class="space-y-3">
-                        <p class="text-sm text-slate-400 italic">Selecciona una tarjeta arriba para ver sus documentos.</p>
+                    <div id="docs-buttons" class="space-y-2">
+                        <p class="text-xs text-slate-400 italic py-2 text-center">Cargando documentos...</p>
                     </div>
                 </div>
             </div>
 
         </main>
 
-        <nav class="bg-white border-t border-slate-200 p-3 pb-6 flex justify-around items-center">
-            <button class="flex flex-col items-center gap-1 text-blue-600">
+        <nav class="bg-white border-t border-slate-200 p-4 pb-8 flex justify-around items-center z-30 rounded-t-[30px] shadow-[0_-5px_20px_rgba(0,0,0,0.05)]">
+            <button class="flex flex-col items-center gap-1.5 text-brand transition hover:scale-105">
                 <i data-lucide="wallet-cards" class="w-6 h-6"></i>
                 <span class="text-[10px] font-bold">Wallet</span>
             </button>
-            <button class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600">
+            <button class="flex flex-col items-center gap-1.5 text-slate-300 hover:text-slate-500 transition hover:scale-105">
                 <i data-lucide="qr-code" class="w-6 h-6"></i>
                 <span class="text-[10px] font-bold">Escanear</span>
             </button>
-            <button onclick="logout()" class="flex flex-col items-center gap-1 text-slate-400 hover:text-red-500">
+            <button onclick="logout()" class="flex flex-col items-center gap-1.5 text-slate-300 hover:text-red-500 transition hover:scale-105">
                 <i data-lucide="log-out" class="w-6 h-6"></i>
                 <span class="text-[10px] font-bold">Salir</span>
             </button>
@@ -162,89 +147,142 @@
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
         
         let misMatriculas = [];
+        let deferredPrompt; // Para la instalación PWA
+
+        // --- PWA LOGIC ---
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const btn = document.getElementById('install-btn');
+            btn.style.display = 'block'; // Mostrar botón solo si es instalable
+        });
+
+        async function instalarApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    document.getElementById('install-btn').style.display = 'none';
+                }
+                deferredPrompt = null;
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
-            // Comprobar si hay sesión guardada (Simple localStorage para UX)
             const savedDNI = localStorage.getItem('asari_wallet_dni');
-            if(savedDNI) {
-                document.getElementById('dni-input').value = savedDNI;
-            }
+            if(savedDNI) { document.getElementById('dni-input').value = savedDNI; }
+            
+            window.addEventListener('resize', () => {
+                if(document.getElementById('app-interface').classList.contains('hidden')) return;
+                requestAnimationFrame(ajustarEscalaTarjetas);
+            });
         });
 
-        // FUNCIÓN PRINCIPAL CORREGIDA (MANUAL JOIN)
+        // 1. INGRESO (CON FETCH DE INSTITUCIÓN)
         async function ingresarWallet() {
             const dni = document.getElementById('dni-input').value.trim();
-            const btn = document.querySelector('button');
+            const btn = document.querySelector('#login-screen button');
             const errorMsg = document.getElementById('login-error');
             
             if(!dni) return;
             
-            // UI de Carga
-            btn.innerHTML = `<i data-lucide="loader-2" class="animate-spin"></i> CARGANDO...`;
+            btn.innerHTML = `<i data-lucide="loader-2" class="animate-spin"></i> BUSCANDO...`;
             errorMsg.classList.add('hidden');
-            lucide.createIcons();
 
             try {
-                // PASO 1: Buscar al alumno en MATRICULAS
-                const { data: listaAlumnos, error } = await db
-                    .from('matriculas')
-                    .select('*')
-                    .eq('dni_alumno', dni);
-
+                // A. Buscar Alumno
+                const { data: listaAlumnos, error } = await db.from('matriculas').select('*').eq('dni_alumno', dni);
                 if (error) throw error;
-                
-                if (!listaAlumnos || listaAlumnos.length === 0) {
-                    throw new Error("No encontramos credenciales para este DNI.");
+                if (!listaAlumnos || listaAlumnos.length === 0) throw new Error("No encontramos credenciales.");
+
+                // B. Unir Documentos y Obtener ID Institución (Usamos el primero para el branding)
+                let institucionData = null;
+                const instId = listaAlumnos[0].institution_id;
+
+                if (instId) {
+                    const { data: inst } = await db.from('instituciones').select('*').eq('id', instId).single();
+                    institucionData = inst;
                 }
 
-                // PASO 2: "Unión Manual" - Buscar los documentos de cada curso
-                // Esto soluciona el error "Could not find a relationship"
+                // Unir docs de cursos
                 const datosCompletos = await Promise.all(listaAlumnos.map(async (alumno) => {
-                    // Buscamos en cursos_oficiales usando el NOMBRE del curso
-                    const { data: cursoDoc } = await db
-                        .from('cursos_oficiales')
-                        .select('diploma_bg_url, analitico_bg_url')
-                        .eq('nombre', alumno.curso)
-                        .single();
-                    
-                    // Devolvemos el alumno con la info del curso pegada manualmente
-                    return {
-                        ...alumno,
-                        cursos_oficiales: cursoDoc || { diploma_bg_url: null, analitico_bg_url: null }
-                    };
+                    const { data: cursoDoc } = await db.from('cursos_oficiales').select('diploma_bg_url, analitico_bg_url').eq('nombre', alumno.curso).single();
+                    return { ...alumno, cursos_oficiales: cursoDoc || { diploma_bg_url: null, analitico_bg_url: null } };
                 }));
 
-                // Guardamos los datos completos en memoria
                 misMatriculas = datosCompletos;
                 localStorage.setItem('asari_wallet_dni', dni);
                 
-                // Iniciar la App
-                inicializarApp(datosCompletos);
+                // C. APLICAR BRANDING INSTITUCIONAL
+                aplicarBranding(institucionData);
+
+                // D. INICIAR APP
+                lanzarAnimacionEntrada(datosCompletos);
 
             } catch (err) {
                 console.error(err);
-                errorMsg.innerText = err.message || "Error de conexión o datos no encontrados";
+                errorMsg.innerText = err.message || "Error de conexión";
                 errorMsg.classList.remove('hidden');
                 btn.innerHTML = `INGRESAR <i data-lucide="arrow-right"></i>`;
                 lucide.createIcons();
             }
         }
 
-        function inicializarApp(data) {
-            // Ocultar login, mostrar app con transición suave
-            document.getElementById('login-screen').style.opacity = '0';
+        function aplicarBranding(inst) {
+            const root = document.documentElement;
+            const logo = document.getElementById('inst-logo');
+            const label = document.getElementById('inst-label');
+            const appLogo = document.getElementById('app-logo-container');
+
+            if (inst) {
+                // Colores
+                if (inst.color_primario) {
+                    root.style.setProperty('--brand-color', inst.color_primario);
+                    document.getElementById('meta-theme-color').setAttribute('content', inst.color_primario);
+                }
+                // Logo Header
+                if (inst.logo_url) {
+                    logo.src = inst.logo_url;
+                    logo.style.display = 'block';
+                    document.getElementById('inst-icon-fallback').classList.add('hidden');
+                    // Logo Login (Opcional, si quieres que el login tambien tenga el logo)
+                    appLogo.innerHTML = `<img src="${inst.logo_url}" class="w-full h-full object-contain">`;
+                } else {
+                    logo.style.display = 'none';
+                    document.getElementById('inst-icon-fallback').classList.remove('hidden');
+                }
+                // Texto
+                label.innerText = inst.nombre || "Bienvenido/a";
+            } else {
+                // Reset a default (ASARI)
+                root.style.setProperty('--brand-color', '#1e293b');
+                logo.style.display = 'none';
+                document.getElementById('inst-icon-fallback').classList.remove('hidden');
+                label.innerText = "Bienvenido/a";
+            }
+        }
+
+        function lanzarAnimacionEntrada(data) {
+            const login = document.getElementById('login-screen');
+            const app = document.getElementById('app-interface');
+            
+            login.style.opacity = '0';
+            
             setTimeout(() => {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('app-interface').classList.remove('hidden');
+                login.classList.add('hidden');
+                app.classList.remove('hidden');
+                requestAnimationFrame(() => {
+                    app.style.opacity = '1';
+                    cargarDatosEnPantalla(data);
+                });
             }, 500);
+        }
 
-            // Cargar Header con datos del primer registro
+        function cargarDatosEnPantalla(data) {
             const alumno = data[0];
-            document.getElementById('user-name').innerText = `${alumno.nombre} ${alumno.apellido}`;
+            document.getElementById('user-name').innerText = `${alumno.nombre.split(' ')[0]} ${alumno.apellido}`; // Solo primer nombre + apellido
             if(alumno.foto_url) document.getElementById('header-avatar').src = alumno.foto_url;
-
-            // Renderizar Tarjetas
             renderizarTarjetas(data);
         }
 
@@ -256,10 +294,10 @@
                 const config = obtenerConfigColor(mat.registro_id);
                 
                 const cardHTML = `
-                <div class="card-wrapper" onclick="voltearTarjeta(this, ${index})">
+                <div class="card-wrapper" onclick="voltearTarjeta(this)">
                     <div class="digital-card">
                         <div class="card-face">
-                            <div class="scaler" id="card-${index}">
+                            <div class="scaler" id="scaler-${index}">
                                 <div class="front-left">
                                     <img src="${mat.foto_url || 'https://via.placeholder.com/380x638?text=FOTO'}" class="student-photo">
                                     <div class="reg-sigla" style="position:absolute; bottom:15px; width:100%; text-align:center; z-index:10;">${config.sigla}</div>
@@ -288,18 +326,15 @@
                         </div>
                     </div>
                 </div>`;
-                
                 container.innerHTML += cardHTML;
             });
 
-            // Ajustar escala después de renderizar y generar QRs
-            requestAnimationFrame(() => {
+            setTimeout(() => {
                 ajustarEscalaTarjetas();
                 generarQRs(matriculas);
-                mostrarDocs(0); // Mostrar docs de la primera tarjeta por defecto
-            });
+                mostrarDocs(0);
+            }, 100);
 
-            // Detectar scroll para cambiar los documentos activos según la tarjeta visible
             container.addEventListener('scroll', () => {
                 const center = container.scrollLeft + (container.offsetWidth / 2);
                 const cards = document.querySelectorAll('.card-wrapper');
@@ -312,15 +347,14 @@
             });
         }
 
-        function voltearTarjeta(element, index) {
-            element.classList.toggle('flipped');
-        }
+        function voltearTarjeta(element) { element.classList.toggle('flipped'); }
 
         function ajustarEscalaTarjetas() {
-            const scalers = document.querySelectorAll('.scaler');
-            scalers.forEach(el => {
-                const parentWidth = el.parentElement.offsetWidth;
-                const scale = parentWidth / 1011; // 1011 es el ancho original del diseño
+            const wrappers = document.querySelectorAll('.card-wrapper');
+            if(wrappers.length === 0) return;
+            const parentWidth = wrappers[0].offsetWidth; 
+            const scale = parentWidth / 1011; 
+            document.querySelectorAll('.scaler').forEach(el => {
                 el.style.transform = `scale(${scale})`;
                 el.style.width = '1011px';
                 el.style.height = '638px';
@@ -330,55 +364,47 @@
         function generarQRs(matriculas) {
             matriculas.forEach((mat, idx) => {
                 const div = document.getElementById(`qr-${idx}`);
-                div.innerHTML = "";
-                new QRCode(div, {
-                    text: `https://instructormap.github.io/registro-de-matriculas/validador.html?id=${mat.id}`,
-                    width: 140, height: 140
-                });
+                if(div) { div.innerHTML = ""; new QRCode(div, { text: `https://instructormap.github.io/registro-de-matriculas/validador.html?id=${mat.id}`, width: 140, height: 140 }); }
             });
         }
 
         function mostrarDocs(index) {
             if (!misMatriculas[index]) return;
-            
             const mat = misMatriculas[index];
             const docsDiv = document.getElementById('docs-buttons');
             const docs = mat.cursos_oficiales; 
 
-            let html = `<p class="text-xs font-bold text-slate-500 uppercase mb-2">Documentos de: ${mat.curso}</p>`;
+            let html = `<p class="text-[10px] font-bold text-slate-400 uppercase mb-2 text-center tracking-wider">Documentos de: ${mat.curso}</p>`;
             
             // Botón Diploma
             if (docs && docs.diploma_bg_url) {
-                html += `<button class="w-full bg-white border border-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl flex items-center gap-3 shadow-sm active:bg-slate-50 mb-2" onclick="window.open('credencial_v3.html?dni=${mat.dni_alumno}', '_blank')">
-                    <div class="bg-green-100 p-2 rounded-lg text-green-600"><i data-lucide="scroll-text"></i></div>
-                    <div class="text-left"><p class="text-sm">Diploma Oficial</p><p class="text-[10px] text-slate-400">Descargar certificado</p></div>
-                    <i data-lucide="chevron-right" class="ml-auto text-slate-300"></i>
+                html += `<button class="w-full bg-white border border-slate-200 text-slate-700 font-bold py-4 px-5 rounded-2xl flex items-center gap-4 shadow-sm active:bg-slate-50 mb-3 transition hover:shadow-md" onclick="window.open('credencial_v3.html?dni=${mat.dni_alumno}', '_blank')">
+                    <div class="bg-brand/10 p-2.5 rounded-xl text-brand"><i data-lucide="scroll-text"></i></div>
+                    <div class="text-left flex-1"><p class="text-sm font-black">Diploma Oficial</p><p class="text-[10px] text-slate-400 font-medium">Descargar certificado digital</p></div>
+                    <i data-lucide="chevron-right" class="text-slate-300"></i>
                 </button>`;
             } else {
-                html += `<div class="p-3 text-xs text-slate-400 bg-slate-50 rounded-lg text-center mb-2">Sin diploma disponible</div>`;
+                html += `<div class="p-3 text-xs text-slate-400 bg-slate-50 rounded-xl text-center mb-3 border border-dashed border-slate-200">Sin diploma disponible</div>`;
             }
 
             // Botón Analítico
             if (docs && docs.analitico_bg_url) {
-                html += `<button class="w-full bg-white border border-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl flex items-center gap-3 shadow-sm active:bg-slate-50" onclick="alert('Descarga de Analítico disponible próximamente en generador V4')">
-                    <div class="bg-blue-100 p-2 rounded-lg text-blue-600"><i data-lucide="file-bar-chart"></i></div>
-                    <div class="text-left"><p class="text-sm">Analítico</p><p class="text-[10px] text-slate-400">Historial académico</p></div>
-                    <i data-lucide="chevron-right" class="ml-auto text-slate-300"></i>
+                html += `<button class="w-full bg-white border border-slate-200 text-slate-700 font-bold py-4 px-5 rounded-2xl flex items-center gap-4 shadow-sm active:bg-slate-50 transition hover:shadow-md" onclick="window.open('credencial_v3.html?dni=${mat.dni_alumno}', '_blank')">
+                    <div class="bg-blue-50 p-2.5 rounded-xl text-blue-600"><i data-lucide="file-check"></i></div>
+                    <div class="text-left flex-1"><p class="text-sm font-black">Analítico</p><p class="text-[10px] text-slate-400 font-medium">Historial académico</p></div>
+                    <i data-lucide="chevron-right" class="text-slate-300"></i>
                 </button>`;
             } else {
-                html += `<div class="p-3 text-xs text-slate-400 bg-slate-50 rounded-lg text-center">Sin analítico disponible</div>`;
+                html += `<div class="p-3 text-xs text-slate-400 bg-slate-50 rounded-xl text-center border border-dashed border-slate-200">Sin analítico disponible</div>`;
             }
 
             docsDiv.innerHTML = html;
             lucide.createIcons();
         }
 
-        function logout() {
-            localStorage.removeItem('asari_wallet_dni');
-            location.reload();
-        }
+        function logout() { localStorage.removeItem('asari_wallet_dni'); location.reload(); }
 
-        // --- HELPERS VISUALES ---
+        // --- HELPERS ---
         function obtenerConfigColor(rid) {
             const configs = {
                 'remaep': { c2: '#0033cc', sigla: 'R.E.M.A.E.P', txt: 'white' },
