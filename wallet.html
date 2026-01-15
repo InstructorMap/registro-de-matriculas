@@ -3,8 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mi Billetera Digital - ASARI</title>
+    <title>Wallet Oficial</title>
     
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e293b" id="meta-theme-color">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -12,388 +16,345 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
 
     <style>
-        body { font-family: 'Roboto', sans-serif; background-color: #f0f4f8; overflow-x: hidden; }
+        /* BASE & RESET */
+        body { font-family: 'Roboto', sans-serif; background-color: #f0f4f8; overflow-x: hidden; height: 100vh; width: 100vw; touch-action: pan-y; -webkit-tap-highlight-color: transparent; }
         
-        /* PANTALLA DE LOGIN */
-        #login-screen { position: fixed; inset: 0; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; transition: opacity 0.5s; }
+        :root { --brand-color: #1e293b; }
+        .bg-brand { background-color: var(--brand-color) !important; }
+        .text-brand { color: var(--brand-color) !important; }
+
+        /* LOGIN */
+        #login-screen { position: fixed; inset: 0; background: linear-gradient(135deg, var(--brand-color) 0%, #000 100%); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; transition: opacity 0.5s; }
         
-        /* SWIPER DE TARJETAS */
+        /* CARD SLIDER */
         .card-slider {
-            display: flex;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            gap: 20px;
-            padding: 20px;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none; /* Firefox */
+            display: flex; overflow-x: auto; scroll-snap-type: x mandatory; 
+            gap: 20px; padding: 20px 30px; 
+            height: auto; min-height: 260px;
+            align-items: center;
         }
         .card-slider::-webkit-scrollbar { display: none; }
 
         .card-wrapper {
-            flex: 0 0 85vw; /* Ocupa el 85% del ancho de pantalla */
+            flex: 0 0 85vw;
             scroll-snap-align: center;
             perspective: 1000px;
-            height: 55vw; /* Proporción tarjeta */
+            aspect-ratio: 1011/638; 
             position: relative;
+            z-index: 1;
         }
 
-        /* EFECTO FLIP (Giro) */
-        .digital-card {
-            width: 100%; height: 100%;
-            position: relative;
-            transform-style: preserve-3d;
-            transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
-            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.3);
-            border-radius: 16px;
+        /* 3D FLIP - CORRECCIÓN DE "FANTASMA" */
+        .digital-card { 
+            width: 100%; height: 100%; position: relative; 
+            transform-style: preserve-3d; 
+            transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); 
+            border-radius: 20px; 
+            box-shadow: 0 15px 40px -5px rgba(0,0,0,0.4); 
         }
         .card-wrapper.flipped .digital-card { transform: rotateY(180deg); }
         
-        .card-face {
-            position: absolute; inset: 0;
-            backface-visibility: hidden;
-            border-radius: 16px;
-            overflow: hidden;
-            background: white;
+        .card-face { 
+            position: absolute; inset: 0; 
+            -webkit-backface-visibility: hidden; /* Vital para Safari/iOS */
+            backface-visibility: hidden; /* Estándar */
+            border-radius: 20px; 
+            overflow: hidden; 
+            background: white; 
+            -webkit-transform-style: preserve-3d;
         }
-        .card-back { transform: rotateY(180deg); background: #e2e8f0; display: flex; align-items: center; justify-content: center; }
+        
+        /* Z-INDEX TRICK: Fuerza al frente a estar arriba cuando no está girado */
+        .card-front-face { z-index: 2; transform: rotateY(0deg); }
+        .card-back-face { z-index: 1; transform: rotateY(180deg); background: #eee; display:flex; align-items:center; justify-content:center; }
 
-        /* ESCALADO DEL DISEÑO ORIGINAL */
+        /* ESCALADOR */
+        .scaler-container { width: 100%; height: 100%; position: relative; overflow: hidden; pointer-events: none; /* Permite click through */ }
         .scaler {
             width: 1011px; height: 638px;
-            transform-origin: top left;
+            position: absolute; top: 0; left: 0;
+            transform-origin: 0 0; 
             background: white;
         }
 
-        /* ESTILOS DEL CARNET (Minificados) */
+        /* DISEÑO INTERNO CARNET */
         .front-left { width: 380px; height: 100%; position: absolute; left: 0; top: 0; background: #d4d4d4; border-top-left-radius: 40px; border-bottom-left-radius: 40px; overflow: hidden; z-index: 2; }
         .front-right { width: 631px; height: 100%; position: absolute; right: 0; top: 0; background: #0033cc; color: white; padding: 25px 35px; display: flex; flex-direction: column; justify-content: space-between; border-top-right-radius: 40px; border-bottom-right-radius: 40px; }
-        .student-photo { width: 100%; height: 100%; object-fit: cover; }
         .reg-sigla { position: absolute; bottom: 15px; width: 100%; text-align: center; color: white; font-size: 26px; font-weight: 900; z-index: 10; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
         .header-text { font-size: 80px; font-weight: 900; text-transform: uppercase; line-height: 0.9; }
         .student-name { font-size: 38px; font-weight: 700; text-transform: uppercase; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; margin-bottom: 10px; }
         .data-row { font-size: 32px; font-weight: 700; display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 5px; }
-        .qr-box { position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%); width: 160px; height: 160px; background: white; padding: 10px; border-radius: 15px; z-index: 5; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
-
+        .qr-box { position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%); width: 160px; height: 160px; background: white; padding: 10px; border-radius: 15px; z-index: 5; }
     </style>
 </head>
-<body class="bg-slate-100 h-screen flex flex-col">
+<body class="bg-slate-100 flex flex-col h-screen overflow-hidden">
 
     <div id="login-screen">
-        <div class="mb-8 text-center">
-            <div class="w-20 h-20 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/30">
-                <i data-lucide="wallet" class="text-white w-10 h-10"></i>
+        <div class="mb-8 text-center animate-fade-in">
+            <div id="login-logo-container" class="w-24 h-24 bg-white/10 rounded-3xl flex items-center justify-center mx-auto mb-6 backdrop-blur-md border border-white/20">
+                <i data-lucide="wallet" class="text-white w-12 h-12"></i>
             </div>
-            <h1 class="text-3xl font-black text-white tracking-tight">Mi Billetera</h1>
-            <p class="text-slate-400 text-sm mt-1">Credenciales Digitales Oficiales</p>
+            <h1 class="text-3xl font-black text-white">Mi Billetera</h1>
+            <p class="text-white/60 text-sm">Credenciales Oficiales</p>
         </div>
-        
         <div class="w-full max-w-xs space-y-4">
-            <div>
-                <label class="block text-xs font-bold text-slate-400 uppercase mb-1 ml-1">Documento de Identidad</label>
-                <input type="tel" id="dni-input" class="w-full bg-slate-800/50 border border-slate-700 text-white font-bold text-xl px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-center tracking-widest placeholder-slate-600" placeholder="Ej: 33656107">
-            </div>
-            <button onclick="ingresarWallet()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-900/50 transition transform active:scale-95 flex items-center justify-center gap-2">
-                INGRESAR <i data-lucide="arrow-right" class="w-5 h-5"></i>
-            </button>
-            <p id="login-error" class="text-red-400 text-center text-xs font-bold hidden mt-2"></p>
+            <input type="tel" id="dni-input" class="w-full bg-white/10 border border-white/20 text-white font-bold text-xl px-4 py-4 rounded-2xl text-center placeholder-white/20 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-white/50 transition" placeholder="INGRESE DNI">
+            <button onclick="ingresarWallet()" class="w-full bg-white text-slate-900 font-black py-4 rounded-2xl shadow-xl flex items-center justify-center gap-2 hover:scale-[1.02] transition">INGRESAR</button>
+            <p id="login-error" class="text-red-200 text-center text-xs font-bold hidden bg-red-900/50 p-2 rounded border border-red-500/30"></p>
         </div>
-        <p class="absolute bottom-6 text-[10px] text-slate-600">Powered by ASARI SaaS</p>
     </div>
 
-    <div id="app-interface" class="hidden flex-1 flex flex-col h-full">
+    <div id="app-interface" class="hidden flex-1 flex flex-col h-full overflow-hidden opacity-0 transition-opacity duration-700">
         
-        <header class="bg-slate-900 text-white p-6 pt-12 pb-8 rounded-b-[30px] shadow-2xl z-10 relative">
+        <header class="bg-brand text-white p-6 pt-12 pb-8 rounded-b-[35px] shadow-xl z-20 flex-shrink-0 transition-colors duration-500">
             <div class="flex justify-between items-center mb-6">
                 <div>
-                    <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Bienvenido/a</p>
-                    <h2 class="text-2xl font-black leading-tight" id="user-name">Cargando...</h2>
+                    <p class="text-white/70 text-xs font-bold uppercase tracking-wider mb-1" id="inst-label">Bienvenido/a</p>
+                    <h2 class="text-xl font-black truncate max-w-[180px] leading-tight" id="user-name">Usuario</h2>
                 </div>
-                <div class="w-12 h-12 rounded-full bg-slate-800 border-2 border-slate-700 overflow-hidden">
-                    <img id="header-avatar" src="https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff" class="w-full h-full object-cover">
+                <div class="w-14 h-14 rounded-2xl bg-white p-1 shadow-lg flex items-center justify-center overflow-hidden">
+                    <img id="inst-logo" src="" class="w-full h-full object-contain" style="display:none;">
+                    <i id="inst-icon-fallback" data-lucide="building-2" class="text-slate-300 w-8 h-8"></i>
                 </div>
             </div>
-            
-            <div class="flex bg-slate-800/50 p-1 rounded-xl">
-                <button class="flex-1 py-2 text-xs font-bold rounded-lg bg-blue-600 text-white shadow-sm">Mis Credenciales</button>
-                <button class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-white" onclick="alert('Próximamente: Historial de cursos')">Historial</button>
+            <div class="flex bg-black/20 p-1.5 rounded-xl backdrop-blur-sm">
+                <button class="flex-1 py-2 text-[10px] font-bold rounded-lg bg-white text-brand shadow-sm uppercase tracking-wide">Mis Credenciales</button>
+                <button class="flex-1 py-2 text-[10px] font-bold rounded-lg text-white/60 hover:text-white uppercase tracking-wide" onclick="alert('Próximamente')">Historial</button>
             </div>
         </header>
 
-        <main class="flex-1 overflow-y-auto pb-20">
-            
-            <p class="px-6 mt-6 text-xs font-bold text-slate-400 uppercase tracking-widest">Tus Tarjetas Activas</p>
-            
-            <div class="card-slider" id="card-container">
-                </div>
-
-            <div class="px-6 mt-2" id="docs-area">
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-                    <h3 class="font-bold text-slate-800 flex items-center gap-2 mb-4">
-                        <i data-lucide="folder-open" class="text-blue-600 w-5 h-5"></i> Documentación
+        <main class="flex-1 flex flex-col relative overflow-y-auto">
+            <p class="text-center text-[10px] font-bold text-slate-400 uppercase mt-6 tracking-widest">Desliza para ver</p>
+            <div class="card-slider flex-1" id="card-container"></div>
+            <div class="px-6 mb-6 z-10">
+                <div class="bg-white p-5 rounded-3xl shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] border border-slate-100">
+                    <h3 class="font-bold text-slate-800 flex items-center gap-2 mb-4 text-sm">
+                        <div class="p-1.5 rounded-lg bg-brand/10 text-brand"><i data-lucide="folder-open" class="w-4 h-4"></i></div>
+                        Documentación Digital
                     </h3>
-                    <div id="docs-buttons" class="space-y-3">
-                        <p class="text-sm text-slate-400 italic">Selecciona una tarjeta arriba para ver sus documentos.</p>
+                    <div id="docs-buttons" class="space-y-2">
+                        <p class="text-xs text-slate-400 italic text-center py-2">Cargando...</p>
                     </div>
                 </div>
             </div>
-
         </main>
 
-        <nav class="bg-white border-t border-slate-200 p-3 pb-6 flex justify-around items-center">
-            <button class="flex flex-col items-center gap-1 text-blue-600">
-                <i data-lucide="wallet-cards" class="w-6 h-6"></i>
-                <span class="text-[10px] font-bold">Wallet</span>
-            </button>
-            <button class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600">
-                <i data-lucide="qr-code" class="w-6 h-6"></i>
-                <span class="text-[10px] font-bold">Escanear</span>
-            </button>
-            <button onclick="logout()" class="flex flex-col items-center gap-1 text-slate-400 hover:text-red-500">
-                <i data-lucide="log-out" class="w-6 h-6"></i>
-                <span class="text-[10px] font-bold">Salir</span>
-            </button>
+        <nav class="bg-white border-t border-slate-200 p-4 pb-8 flex justify-around items-center z-30 rounded-t-[30px] shadow-lg">
+            <button class="flex flex-col items-center gap-1 text-brand"><i data-lucide="wallet-cards" class="w-5 h-5"></i><span class="text-[9px] font-bold uppercase">Wallet</span></button>
+            <button onclick="logout()" class="flex flex-col items-center gap-1 text-slate-300 hover:text-red-500"><i data-lucide="log-out" class="w-5 h-5"></i><span class="text-[9px] font-bold uppercase">Salir</span></button>
         </nav>
-
     </div>
 
     <script>
         const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
-        
         let misMatriculas = [];
 
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
-            // Comprobar si hay sesión guardada (Simple localStorage para UX)
             const savedDNI = localStorage.getItem('asari_wallet_dni');
-            if(savedDNI) {
-                document.getElementById('dni-input').value = savedDNI;
-            }
+            if(savedDNI) document.getElementById('dni-input').value = savedDNI;
+            window.addEventListener('resize', () => { if(!document.getElementById('app-interface').classList.contains('hidden')) ajustarEscalaTarjetas(); });
         });
 
-        // FUNCIÓN PRINCIPAL CORREGIDA (MANUAL JOIN)
+        // 1. INGRESO
         async function ingresarWallet() {
             const dni = document.getElementById('dni-input').value.trim();
-            const btn = document.querySelector('button');
+            const btn = document.querySelector('#login-screen button');
             const errorMsg = document.getElementById('login-error');
             
             if(!dni) return;
-            
-            // UI de Carga
-            btn.innerHTML = `<i data-lucide="loader-2" class="animate-spin"></i> CARGANDO...`;
+            btn.innerHTML = `<i data-lucide="loader-2" class="animate-spin"></i> BUSCANDO...`;
             errorMsg.classList.add('hidden');
-            lucide.createIcons();
 
             try {
-                // PASO 1: Buscar al alumno en MATRICULAS
-                const { data: listaAlumnos, error } = await db
-                    .from('matriculas')
-                    .select('*')
-                    .eq('dni_alumno', dni);
-
+                // A. Buscar Alumno
+                const { data: alumnos, error } = await db.from('matriculas').select('*').eq('dni_alumno', dni);
                 if (error) throw error;
-                
-                if (!listaAlumnos || listaAlumnos.length === 0) {
-                    throw new Error("No encontramos credenciales para este DNI.");
+                if (!alumnos || alumnos.length === 0) throw new Error("DNI no encontrado.");
+
+                // B. Branding
+                let instData = null;
+                if (alumnos[0].institution_id) {
+                    const { data: inst } = await db.from('instituciones').select('*').eq('id', alumnos[0].institution_id).single();
+                    instData = inst;
                 }
 
-                // PASO 2: "Unión Manual" - Buscar los documentos de cada curso
-                // Esto soluciona el error "Could not find a relationship"
-                const datosCompletos = await Promise.all(listaAlumnos.map(async (alumno) => {
-                    // Buscamos en cursos_oficiales usando el NOMBRE del curso
-                    const { data: cursoDoc } = await db
-                        .from('cursos_oficiales')
-                        .select('diploma_bg_url, analitico_bg_url')
-                        .eq('nombre', alumno.curso)
-                        .single();
-                    
-                    // Devolvemos el alumno con la info del curso pegada manualmente
-                    return {
-                        ...alumno,
-                        cursos_oficiales: cursoDoc || { diploma_bg_url: null, analitico_bg_url: null }
-                    };
+                // C. Unir Docs
+                const datos = await Promise.all(alumnos.map(async (al) => {
+                    const { data: curso } = await db.from('cursos_oficiales').select('diploma_bg_url, analitico_bg_url').eq('nombre', al.curso).single();
+                    return { ...al, cursos_oficiales: curso || { diploma_bg_url: null, analitico_bg_url: null } };
                 }));
 
-                // Guardamos los datos completos en memoria
-                misMatriculas = datosCompletos;
+                misMatriculas = datos;
                 localStorage.setItem('asari_wallet_dni', dni);
-                
-                // Iniciar la App
-                inicializarApp(datosCompletos);
+                aplicarBranding(instData, datos[0].registro_id);
+                iniciarApp(datos);
 
             } catch (err) {
                 console.error(err);
-                errorMsg.innerText = err.message || "Error de conexión o datos no encontrados";
+                errorMsg.innerText = "Error: Verifica tu DNI o conexión.";
                 errorMsg.classList.remove('hidden');
-                btn.innerHTML = `INGRESAR <i data-lucide="arrow-right"></i>`;
+                btn.innerText = "INGRESAR";
                 lucide.createIcons();
             }
         }
 
-        function inicializarApp(data) {
-            // Ocultar login, mostrar app con transición suave
-            document.getElementById('login-screen').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('app-interface').classList.remove('hidden');
-            }, 500);
+        function aplicarBranding(inst, registroId) {
+            const root = document.documentElement;
+            if (inst && inst.color_primario) {
+                root.style.setProperty('--brand-color', inst.color_primario);
+                document.getElementById('meta-theme-color').setAttribute('content', inst.color_primario);
+                if(inst.logo_url) {
+                    document.getElementById('inst-logo').src = inst.logo_url;
+                    document.getElementById('inst-logo').style.display = 'block';
+                    document.getElementById('inst-icon-fallback').classList.add('hidden');
+                    document.getElementById('login-logo-container').innerHTML = `<img src="${inst.logo_url}" class="w-full h-full object-contain">`;
+                }
+                if(inst.nombre) document.getElementById('inst-label').innerText = inst.nombre;
+            } else {
+                const configCarnet = obtenerConfigColor(registroId);
+                root.style.setProperty('--brand-color', configCarnet.c2);
+                document.getElementById('meta-theme-color').setAttribute('content', configCarnet.c2);
+            }
+        }
 
-            // Cargar Header con datos del primer registro
-            const alumno = data[0];
-            document.getElementById('user-name').innerText = `${alumno.nombre} ${alumno.apellido}`;
-            if(alumno.foto_url) document.getElementById('header-avatar').src = alumno.foto_url;
-
-            // Renderizar Tarjetas
-            renderizarTarjetas(data);
+        function iniciarApp(data) {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('app-interface').classList.remove('hidden');
+            requestAnimationFrame(() => {
+                document.getElementById('app-interface').style.opacity = '1';
+                const alumno = data[0];
+                document.getElementById('user-name').innerText = `${alumno.nombre.split(' ')[0]} ${alumno.apellido}`;
+                renderizarTarjetas(data);
+            });
         }
 
         function renderizarTarjetas(matriculas) {
             const container = document.getElementById('card-container');
             container.innerHTML = "";
 
-            matriculas.forEach((mat, index) => {
-                const config = obtenerConfigColor(mat.registro_id);
-                
-                const cardHTML = `
-                <div class="card-wrapper" onclick="voltearTarjeta(this, ${index})">
+            matriculas.forEach((mat, i) => {
+                const cfg = obtenerConfigColor(mat.registro_id);
+                container.innerHTML += `
+                <div class="card-wrapper" onclick="voltearTarjeta(this)">
                     <div class="digital-card">
-                        <div class="card-face">
-                            <div class="scaler" id="card-${index}">
-                                <div class="front-left">
-                                    <img src="${mat.foto_url || 'https://via.placeholder.com/380x638?text=FOTO'}" class="student-photo">
-                                    <div class="reg-sigla" style="position:absolute; bottom:15px; width:100%; text-align:center; z-index:10;">${config.sigla}</div>
-                                    <div class="qr-box" id="qr-${index}"></div>
-                                    <svg style="position:absolute; bottom:0; left:0; width:100%; height:100%; z-index:2;" viewBox="0 0 380 638" preserveAspectRatio="none">
-                                        <path d="M -50 680 L 350 680 L -50 280 Z" fill="${config.c2}" style="opacity:0.9" />
-                                    </svg>
-                                </div>
-                                <div class="front-right" style="background:${config.c2}; color:${config.txt}">
-                                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:4px solid rgba(255,255,255,0.5); padding-bottom:5px;">
-                                        <span class="header-text">CARNET</span>
-                                        <span class="header-text">${new Date(mat.fecha_inicio || new Date()).getFullYear()}</span>
+                        <div class="card-face card-front-face">
+                            <div class="scaler-container">
+                                <div class="scaler" id="scaler-${i}">
+                                    <div class="front-left">
+                                        <img src="${mat.foto_url || ''}" class="student-photo">
+                                        <div class="reg-sigla">${cfg.sigla}</div>
+                                        <div class="qr-box" id="qr-${i}"></div>
+                                        <svg style="position:absolute;bottom:0;left:0;width:100%;height:100%;z-index:2;" viewBox="0 0 380 638" preserveAspectRatio="none"><path d="M -50 680 L 350 680 L -50 280 Z" fill="${cfg.c2}" style="opacity:0.9"/></svg>
                                     </div>
-                                    <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
-                                        <div style="font-size:55px; font-weight:900; text-transform:uppercase; line-height:1; text-align:center; margin-bottom:10px;">${mat.curso}</div>
-                                        <div class="student-name" style="text-align:center;">${mat.nombre} ${mat.apellido}</div>
-                                        <div class="data-row"><span>DNI:</span><span>${mat.dni_alumno}</span></div>
-                                        <div class="data-row"><span>MATRÍCULA:</span><span>${generarHash(mat.dni_alumno)}</span></div>
-                                        <div class="data-row"><span>VENCE:</span><span>${calcularVencimiento(mat.fecha_inicio)}</span></div>
+                                    <div class="front-right" style="background:${cfg.c2};color:${cfg.txt}">
+                                        <div style="display:flex;justify-content:space-between;border-bottom:4px solid rgba(255,255,255,0.5);padding-bottom:5px;">
+                                            <span class="header-text">CARNET</span><span class="header-text">${new Date(mat.fecha_inicio||new Date()).getFullYear()}</span>
+                                        </div>
+                                        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+                                            <div style="font-size:55px;font-weight:900;text-transform:uppercase;text-align:center;line-height:1;margin-bottom:15px;">${mat.curso}</div>
+                                            <div class="student-name" style="text-align:center;">${mat.nombre} ${mat.apellido}</div>
+                                            <div class="data-row"><span>DNI:</span><span>${mat.dni_alumno}</span></div>
+                                            <div class="data-row"><span>MATRÍCULA:</span><span>${generarHash(mat.dni_alumno)}</span></div>
+                                            <div class="data-row"><span>VENCE:</span><span>${calcularVencimiento(mat.fecha_inicio)}</span></div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="card-face card-back">
-                            <img src="reverso.jpg" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='https://via.placeholder.com/1011x638/CCCCCC/666666?text=REVERSO+INSTITUCIONAL'">
+                        <div class="card-face card-back-face">
+                            <img src="reverso.jpg" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='https://via.placeholder.com/1011x638?text=REVERSO'">
                         </div>
                     </div>
                 </div>`;
-                
-                container.innerHTML += cardHTML;
             });
 
-            // Ajustar escala después de renderizar y generar QRs
-            requestAnimationFrame(() => {
+            setTimeout(() => {
+                matriculas.forEach((mat, i) => {
+                    new QRCode(document.getElementById(`qr-${i}`), { text: `https://instructormap.github.io/registro-de-matriculas/validador.html?id=${mat.id}`, width: 140, height: 140 });
+                });
                 ajustarEscalaTarjetas();
-                generarQRs(matriculas);
-                mostrarDocs(0); // Mostrar docs de la primera tarjeta por defecto
-            });
+                mostrarDocs(0);
+            }, 100);
 
-            // Detectar scroll para cambiar los documentos activos según la tarjeta visible
             container.addEventListener('scroll', () => {
-                const center = container.scrollLeft + (container.offsetWidth / 2);
-                const cards = document.querySelectorAll('.card-wrapper');
-                cards.forEach((card, idx) => {
-                    const cardCenter = card.offsetLeft + (card.offsetWidth / 2);
-                    if (Math.abs(center - cardCenter) < card.offsetWidth / 2) {
-                        mostrarDocs(idx);
-                    }
+                const center = container.scrollLeft + (container.offsetWidth/2);
+                document.querySelectorAll('.card-wrapper').forEach((el, i) => {
+                    if(Math.abs(center - (el.offsetLeft + el.offsetWidth/2)) < el.offsetWidth/2) mostrarDocs(i);
                 });
             });
         }
 
-        function voltearTarjeta(element, index) {
-            element.classList.toggle('flipped');
-        }
+        // FUNCIÓN GLOBAL PARA ABRIR DOCUMENTOS (EVITA BLOQUEOS)
+        window.abrirDocumento = function(url) {
+            if(url) {
+                // Usamos location.href para evitar bloqueos de popup en móviles
+                window.location.href = url;
+            } else {
+                alert("Documento no disponible aún.");
+            }
+        };
+
+        function voltearTarjeta(element) { element.classList.toggle('flipped'); }
 
         function ajustarEscalaTarjetas() {
-            const scalers = document.querySelectorAll('.scaler');
-            scalers.forEach(el => {
-                const parentWidth = el.parentElement.offsetWidth;
-                const scale = parentWidth / 1011; // 1011 es el ancho original del diseño
+            const wrappers = document.querySelectorAll('.card-wrapper');
+            if(wrappers.length === 0) return;
+            const parentWidth = wrappers[0].getBoundingClientRect().width;
+            if(parentWidth === 0) return;
+            const scale = parentWidth / 1011; 
+            document.querySelectorAll('.scaler').forEach(el => {
                 el.style.transform = `scale(${scale})`;
                 el.style.width = '1011px';
                 el.style.height = '638px';
             });
         }
 
-        function generarQRs(matriculas) {
-            matriculas.forEach((mat, idx) => {
-                const div = document.getElementById(`qr-${idx}`);
-                div.innerHTML = "";
-                new QRCode(div, {
-                    text: `https://instructormap.github.io/registro-de-matriculas/validador.html?id=${mat.id}`,
-                    width: 140, height: 140
-                });
-            });
-        }
-
-        function mostrarDocs(index) {
-            if (!misMatriculas[index]) return;
+        function mostrarDocs(i) {
+            if(!misMatriculas[i]) return;
+            const mat = misMatriculas[i];
+            const docs = mat.cursos_oficiales;
+            const div = document.getElementById('docs-buttons');
             
-            const mat = misMatriculas[index];
-            const docsDiv = document.getElementById('docs-buttons');
-            const docs = mat.cursos_oficiales; 
-
-            let html = `<p class="text-xs font-bold text-slate-500 uppercase mb-2">Documentos de: ${mat.curso}</p>`;
+            let html = `<p class="text-[10px] font-bold text-slate-400 uppercase mb-2 text-center tracking-wider">Curso: ${mat.curso}</p>`;
             
-            // Botón Diploma
-            if (docs && docs.diploma_bg_url) {
-                html += `<button class="w-full bg-white border border-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl flex items-center gap-3 shadow-sm active:bg-slate-50 mb-2" onclick="window.open('credencial_v3.html?dni=${mat.dni_alumno}', '_blank')">
-                    <div class="bg-green-100 p-2 rounded-lg text-green-600"><i data-lucide="scroll-text"></i></div>
-                    <div class="text-left"><p class="text-sm">Diploma Oficial</p><p class="text-[10px] text-slate-400">Descargar certificado</p></div>
-                    <i data-lucide="chevron-right" class="ml-auto text-slate-300"></i>
-                </button>`;
-            } else {
-                html += `<div class="p-3 text-xs text-slate-400 bg-slate-50 rounded-lg text-center mb-2">Sin diploma disponible</div>`;
-            }
+            // Usamos la nueva función global abrirDocumento
+            const btn = (lbl, sub, icon, url) => `
+            <div onclick="abrirDocumento('${url}')" class="cursor-pointer w-full bg-white border border-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl flex items-center gap-3 shadow-sm active:bg-slate-50 mb-2 transition hover:shadow-md hover:border-brand/30">
+                <div class="bg-brand/10 p-2 rounded-lg text-brand"><i data-lucide="${icon}"></i></div>
+                <div class="text-left flex-1"><p class="text-sm">${lbl}</p><p class="text-[10px] text-slate-400">${sub}</p></div>
+                <i data-lucide="chevron-right" class="text-slate-300"></i>
+            </div>`;
 
-            // Botón Analítico
-            if (docs && docs.analitico_bg_url) {
-                html += `<button class="w-full bg-white border border-slate-200 text-slate-700 font-bold py-3 px-4 rounded-xl flex items-center gap-3 shadow-sm active:bg-slate-50" onclick="alert('Descarga de Analítico disponible próximamente en generador V4')">
-                    <div class="bg-blue-100 p-2 rounded-lg text-blue-600"><i data-lucide="file-bar-chart"></i></div>
-                    <div class="text-left"><p class="text-sm">Analítico</p><p class="text-[10px] text-slate-400">Historial académico</p></div>
-                    <i data-lucide="chevron-right" class="ml-auto text-slate-300"></i>
-                </button>`;
-            } else {
-                html += `<div class="p-3 text-xs text-slate-400 bg-slate-50 rounded-lg text-center">Sin analítico disponible</div>`;
-            }
+            if(docs && docs.diploma_bg_url) html += btn('Diploma Oficial', 'Descargar Certificado', 'scroll-text', `credencial_v3.html?dni=${mat.dni_alumno}`);
+            else html += `<div class="text-center text-xs text-slate-300 py-2 border border-dashed rounded-lg mb-2">Sin Diploma</div>`;
 
-            docsDiv.innerHTML = html;
+            if(docs && docs.analitico_bg_url) html += btn('Analítico', 'Historial Académico', 'file-check', `credencial_v3.html?dni=${mat.dni_alumno}`);
+            else html += `<div class="text-center text-xs text-slate-300 py-2 border border-dashed rounded-lg">Sin Analítico</div>`;
+
+            div.innerHTML = html;
             lucide.createIcons();
         }
 
-        function logout() {
-            localStorage.removeItem('asari_wallet_dni');
-            location.reload();
-        }
+        function logout() { localStorage.removeItem('asari_wallet_dni'); location.reload(); }
 
-        // --- HELPERS VISUALES ---
         function obtenerConfigColor(rid) {
-            const configs = {
-                'remaep': { c2: '#0033cc', sigla: 'R.E.M.A.E.P', txt: 'white' },
-                'rniue':  { c2: '#b8860b', sigla: 'R.N.I.U.E',   txt: 'white' },
-                'rubra':  { c2: '#cc0000', sigla: 'R.U.B.R.A',   txt: 'white' },
-                'rmts':   { c2: '#2f4f4f', sigla: 'R.M.T.S',     txt: 'white' },
-                'rce':    { c2: '#ffcc00', sigla: 'R.C.E',       txt: 'black' },
-                'rpde':   { c2: '#0099ff', sigla: 'R.P.D.E',     txt: 'white' },
-                'asarin': { c2: '#800000', sigla: 'ASARIN',      txt: 'white' }
+            const key = String(rid || '').trim().toLowerCase();
+            const map = {
+                'remaep': { c2:'#0033cc', sigla:'R.E.M.A.E.P', txt:'white' },
+                'rniue':  { c2:'#b8860b', sigla:'R.N.I.U.E',   txt:'white' },
+                'rubra':  { c2:'#cc0000', sigla:'R.U.B.R.A',   txt:'white' },
+                'rmts':   { c2:'#2f4f4f', sigla:'R.M.T.S',     txt:'white' },
+                'rce':    { c2:'#ffcc00', sigla:'R.C.E',       txt:'black' },
+                'rpde':   { c2:'#0099ff', sigla:'R.P.D.E',     txt:'white' },
+                'asarin': { c2:'#800000', sigla:'ASARIN',      txt:'white' }
             };
-            return configs[String(rid).toLowerCase()] || configs['remaep'];
+            return map[key] || map['remaep'];
         }
-        function generarHash(dni) { let hash = 0; for (let i = 0; i < dni.length; i++) { hash = ((hash << 5) - hash) + dni.charCodeAt(i); hash |= 0; } return String(Math.abs(hash)).substring(0, 6).padStart(6, '9'); }
-        function calcularVencimiento(fechaStr) { const f = new Date(fechaStr || new Date()); f.setFullYear(f.getFullYear() + 1); return f.toLocaleDateString('es-AR'); }
-
+        function generarHash(d) { let h=0; for(let i=0;i<d.length;i++) h=((h<<5)-h)+d.charCodeAt(i)|0; return String(Math.abs(h)).substring(0,6).padStart(6,'9'); }
+        function calcularVencimiento(f) { const d=new Date(f||new Date()); d.setFullYear(d.getFullYear()+1); return d.toLocaleDateString('es-AR'); }
     </script>
 </body>
 </html>
