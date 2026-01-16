@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control - ASARI V2 (Gestión Total)</title>
+    <title>Panel de Control - ASARI V2.1</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -18,7 +18,6 @@
         .input-form:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
         .animate-fade-in { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        /* Toggle Switch para Estado */
         .toggle-checkbox:checked { right: 0; border-color: #22c55e; }
         .toggle-checkbox:checked + .toggle-label { background-color: #22c55e; }
     </style>
@@ -234,7 +233,7 @@
         </div>
     </div>
 
-<script>
+    <script>
         const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
@@ -243,17 +242,14 @@
         let analiticoPaginas = [];
 
         document.addEventListener('DOMContentLoaded', async () => {
-            // 1. Verificar Sesión
             const { data: { session } } = await db.auth.getSession();
             if (!session) { window.location.href = 'saas_login.html'; return; }
             currentUser = session.user;
             document.getElementById('user-email').innerText = currentUser.email;
 
-            // 2. Cargar Perfil COMPLETO
             const { data: perfil } = await db.from('perfiles').select('*, instituciones(*)').eq('id', currentUser.id).single();
             currentProfile = perfil;
 
-            // 3. Validaciones de Seguridad
             if (perfil.instituciones && perfil.instituciones.activo === false && perfil.rol !== 'superadmin') {
                 alert("⛔ SU CUENTA ESTÁ SUSPENDIDA. Contacte a soporte.");
                 await db.auth.signOut();
@@ -261,17 +257,14 @@
                 return;
             }
 
-            // 4. Configurar UI según Rol
             if(perfil && perfil.instituciones) {
                 aplicarEstilosInstitucion(perfil.instituciones);
-                // Si es SuperAdmin, mostramos herramientas extra
                 if(perfil.rol === 'superadmin') {
                     document.getElementById('menu-superadmin').classList.remove('hidden');
-                    cargarInstituciones(); // Solo carga esto si es admin
+                    cargarInstituciones();
                 }
             }
 
-            // 5. CARGA DE DATOS (AHORA SÍ, CON EL PERFIL LISTO)
             console.log("Perfil cargado:", currentProfile.rol, "Inst ID:", currentProfile.institucion_id);
             await cargarCursosDB(); 
             await cargarAlumnos(); 
@@ -280,7 +273,7 @@
             lucide.createIcons();
         });
 
-        // --- LÓGICA DE ALUMNOS (CONTADOR Y LISTA) ---
+        // --- FUNCIONES CORE ---
         async function buscarAlumnos() { cargarAlumnos(document.getElementById('input-busqueda').value.trim()); }
 
         async function cargarAlumnos(filtro='') { 
@@ -288,16 +281,12 @@
             tb.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-slate-400">Cargando...</td></tr>';
             
             let query = db.from('matriculas').select('*').order('created_at',{ascending:false}).limit(50);
-            
-            // FILTRO DE SEGURIDAD: Si NO es superadmin, solo ve sus alumnos
             if(currentProfile && currentProfile.rol !== 'superadmin') {
                 query = query.eq('institution_id', currentProfile.institucion_id);
             }
-            
             if(filtro) query = query.or(`dni_alumno.ilike.%${filtro}%,apellido.ilike.%${filtro}%`);
             
             const {data, error} = await query;
-            
             if(error) { console.error(error); tb.innerHTML = "<tr><td colspan='5'>Error</td></tr>"; return; }
 
             tb.innerHTML = ""; 
@@ -314,57 +303,26 @@
         }
 
         async function contarAlumnos() {
-            // Usamos count: 'exact' para obtener el número real sin traer todos los datos
             let query = db.from('matriculas').select('*', { count: 'exact', head: true });
-            
             if(currentProfile && currentProfile.rol !== 'superadmin') {
                 query = query.eq('institution_id', currentProfile.institucion_id);
             }
-            
-            const { count, error } = await query;
-            if(error) console.error("Error contando:", error);
-            
-            // Animación simple del número
+            const { count } = await query;
             document.getElementById('stat-total').innerText = count || 0;
         }
 
-// --- LÓGICA DE CURSOS CORREGIDA (FILTRADO LOCAL) ---
         async function cargarCursosDB() {
-            // Referencia al contenedor visual
             const lista = document.getElementById('lista-cursos-config');
-            
-            // 1. Traer TODOS los cursos (sin filtros complejos de base de datos)
             const { data, error } = await db.from('cursos_oficiales').select('*').order('created_at', { ascending: false });
             
-            if(error) { 
-                console.error("Error cargando cursos:", error);
-                // Mostrar error visual si falla la conexión
-                if(lista) lista.innerHTML = `<p class="text-red-500 text-sm col-span-3 text-center py-4">Error de conexión: ${error.message}</p>`;
-                return;
-            }
+            if(error) { lista.innerHTML = `<p class="text-red-500 text-sm col-span-3 text-center py-4">Error de conexión.</p>`; return; }
             
             if(data) { 
-                // 2. Filtrar en Javascript (Mucho más seguro y rápido)
                 if (currentProfile && currentProfile.rol !== 'superadmin') {
-                    // Lógica: Me quedo con los que son MÍOS (coincide ID) o los GLOBALES (ID es null)
                     cursosCache = data.filter(c => c.institution_id === currentProfile.institucion_id || c.institution_id === null);
                 } else {
-                    // Si soy SuperAdmin: Me quedo con todo
                     cursosCache = data;
                 }
-
-                // 3. Actualizar la interfaz
-                actualizarSelectModal(); 
-                renderizarPanelCursos(); 
-            } else {
-                if(lista) lista.innerHTML = `<p class="text-slate-400 text-sm col-span-3 text-center py-4">No se encontraron datos.</p>`;
-            }
-        }
-            const { data, error } = await query;
-            if(error) console.error("Error cursos:", error);
-            
-            if(data) { 
-                cursosCache = data; 
                 actualizarSelectModal(); 
                 renderizarPanelCursos(); 
             }
@@ -373,41 +331,24 @@
         function renderizarPanelCursos() { 
             const l = document.getElementById('lista-cursos-config'); 
             l.innerHTML = ""; 
-            
             if(cursosCache.length === 0) {
                 l.innerHTML = `<div class="col-span-3 text-center py-10 bg-slate-50 rounded-xl border border-dashed border-slate-300"><p class="text-slate-500 mb-2">No tienes cursos disponibles.</p><button onclick="abrirModalCurso()" class="text-blue-600 font-bold text-sm hover:underline">Crear tu primer curso</button></div>`;
                 return;
             }
-
             cursosCache.forEach(c => { 
                 const cl = {'remaep':'bg-blue-600','asarin':'bg-red-900'}[c.registro_id] || 'bg-slate-500';
-                // Diferenciar visualmente cursos globales de propios
                 const esGlobal = !c.institution_id;
                 const badgeGlobal = esGlobal ? `<span class="bg-yellow-100 text-yellow-700 text-[9px] px-2 py-0.5 rounded font-bold border border-yellow-200">GLOBAL</span>` : ``;
                 const btnAcciones = !esGlobal || currentProfile.rol === 'superadmin' 
                     ? `<button onclick="abrirModalCurso('${c.id}')" class="text-blue-500 text-xs hover:underline flex items-center gap-1"><i data-lucide="pencil" size="12"></i> Editar</button>` 
                     : `<span class="text-slate-300 text-[10px] italic">Solo lectura</span>`;
 
-                l.innerHTML += `
-                <div class="p-4 border border-slate-200 rounded-xl bg-white hover:shadow-md transition">
-                    <div class="flex justify-between items-start mb-2">
-                        <div class="flex gap-2">
-                            <span class="text-[9px] text-white px-2 py-0.5 rounded ${cl} uppercase font-bold">${c.registro_id}</span>
-                            ${badgeGlobal}
-                        </div>
-                    </div>
-                    <p class="font-bold text-slate-700 text-sm truncate mb-3" title="${c.nombre}">${c.nombre}</p>
-                    <div class="flex justify-between items-center border-t border-slate-50 pt-2">
-                        ${btnAcciones}
-                    </div>
-                </div>`; 
+                l.innerHTML += `<div class="p-4 border border-slate-200 rounded-xl bg-white hover:shadow-md transition"><div class="flex justify-between items-start mb-2"><div class="flex gap-2"><span class="text-[9px] text-white px-2 py-0.5 rounded ${cl} uppercase font-bold">${c.registro_id}</span>${badgeGlobal}</div></div><p class="font-bold text-slate-700 text-sm truncate mb-3" title="${c.nombre}">${c.nombre}</p><div class="flex justify-between items-center border-t border-slate-50 pt-2">${btnAcciones}</div></div>`; 
             }); 
             lucide.createIcons();
         }
 
-        // --- EL RESTO DE FUNCIONES (EXCEL, MODALES, ETC) ---
-        // Se mantienen casi iguales, solo asegurando el uso de currentProfile.institucion_id
-
+        // --- RESTO DE FUNCIONALIDADES ---
         function actualizarSelectModal() { const s = document.getElementById('m-curso-select'); s.innerHTML = '<option value="">-- Seleccionar --</option>'; cursosCache.forEach(c => s.innerHTML += `<option value="${c.id}">${c.nombre}</option>`); }
         function aplicarEstilosInstitucion(inst) { if(inst.color_primario) document.getElementById('sidebar').style.backgroundColor = inst.color_primario; if(inst.logo_url) { document.getElementById('brand-logo').src = inst.logo_url; document.getElementById('brand-logo').classList.remove('hidden'); document.getElementById('brand-text').classList.add('hidden'); document.getElementById('dashboard-logo-container').innerHTML = `<img src="${inst.logo_url}" class="w-full h-full object-contain">`; } document.getElementById('sidebar-inst-name').innerText = inst.nombre; document.getElementById('dash-inst-name').innerText = inst.nombre; if(inst.activo !== false) document.getElementById('badge-estado').classList.remove('hidden'); }
         function mostrarSeccion(id) { ['panel-inicio','panel-carga','panel-alumnos','panel-clientes','panel-cursos'].forEach(p => document.getElementById(p).classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
@@ -421,56 +362,37 @@
                 const d=new Uint8Array(e.target.result); 
                 const w=XLSX.read(d,{type:'array'}); 
                 const j=XLSX.utils.sheet_to_json(w.Sheets[w.SheetNames[0]]); 
-                
-                // Mapeo seguro de datos del Excel
                 datosExcelCargados=j.map(f=>({
                     dni_alumno: f['DNI'] || f['dni'],
                     nombre: f['NOMBRE'] || f['nombre'],
                     apellido: f['APELLIDO'] || f['apellido'],
                     curso: f['CURSO'] || f['curso'],
                     registro_id: (currentProfile?.instituciones?.sigla || 'remaep').toLowerCase(),
-                    // AQUÍ ESTÁ LA CLAVE: Usamos el ID de la institución del usuario logueado
                     institution_id: currentProfile?.institucion_id, 
                     fecha_inicio: new Date().toISOString()
                 })).filter(x=>x.dni_alumno); 
-                
                 document.getElementById('count-preview').innerText=datosExcelCargados.length; 
                 document.getElementById('preview-area').classList.remove('hidden'); 
-                
-                // Renderizar tabla preview
                 const tb = document.getElementById('tabla-preview'); tb.innerHTML="";
-                datosExcelCargados.slice(0,5).forEach(d => {
-                    tb.innerHTML += `<tr class="border-b"><td class="p-1">${d.dni_alumno}</td><td class="p-1">${d.nombre}</td><td class="p-1 text-xs text-slate-400">${d.curso}</td></tr>`
-                });
+                datosExcelCargados.slice(0,5).forEach(d => { tb.innerHTML += `<tr class="border-b"><td class="p-1">${d.dni_alumno}</td><td class="p-1">${d.nombre}</td><td class="p-1 text-xs text-slate-400">${d.curso}</td></tr>` });
             }; 
             r.readAsArrayBuffer(i.files[0]); 
         }
 
         async function confirmarCarga() { 
             if(!datosExcelCargados.length) return; 
-            try{ 
-                const {error}=await db.from('matriculas').insert(datosExcelCargados); 
-                if(error) throw error; 
-                alert("✅ Carga Exitosa. " + datosExcelCargados.length + " alumnos procesados."); 
-                location.reload(); 
-            }catch(e){alert(e.message);} 
+            try{ const {error}=await db.from('matriculas').insert(datosExcelCargados); if(error) throw error; alert("✅ Carga Exitosa. " + datosExcelCargados.length + " alumnos procesados."); location.reload(); }catch(e){alert(e.message);} 
         }
 
         function abrirModalAlumno() { document.getElementById('modal-alumno').classList.remove('hidden'); }
         function cerrarModalAlumno() { document.getElementById('modal-alumno').classList.add('hidden'); }
+        async function borrarAlumno(id) { if(confirm("¿Eliminar alumno?")) { await db.from('matriculas').delete().eq('id', id); cargarAlumnos(); contarAlumnos(); } }
         
         async function guardarAlumnoManual() { 
             const d=document.getElementById('m-dni').value, n=document.getElementById('m-nombre').value, a=document.getElementById('m-apellido').value, cId=document.getElementById('m-curso-select').value; 
             if(!d||!n||!a||!cId) return alert("Datos incompletos"); 
             const c=cursosCache.find(x=>x.id===cId); 
-            
-            await db.from('matriculas').insert({
-                dni_alumno:d, nombre:n, apellido:a, 
-                curso:c.nombre, 
-                registro_id:c.registro_id, 
-                institution_id: currentProfile.institucion_id, // ID VINCULANTE
-                fecha_inicio:new Date().toISOString()
-            }); 
+            await db.from('matriculas').insert({dni_alumno:d, nombre:n, apellido:a, curso:c.nombre, registro_id:c.registro_id, institution_id: currentProfile.institucion_id, fecha_inicio:new Date().toISOString()}); 
             alert("Guardado"); cerrarModalAlumno(); cargarAlumnos(); contarAlumnos();
         }
 
@@ -517,7 +439,7 @@
                 if(auth.user) { 
                     await db.from('perfiles').insert({ id: auth.user.id, email, rol: 'admin', institucion_id: inst.id, nombre_completo: 'Admin ' + sigla }); 
                     alert("✅ Cliente creado."); 
-                    cargarInstituciones(); // Recargar lista
+                    cargarInstituciones(); 
                 } 
             } catch(err) { alert(err.message); } 
         }
@@ -572,7 +494,6 @@
             let updates = { 
                 nombre, 
                 registro_id: registro, 
-                // AUTO-ASIGNAR INSTITUCIÓN: Si soy SuperAdmin es global (null), si no es mio.
                 institution_id: currentProfile.rol === 'superadmin' ? null : currentProfile.institucion_id,
                 analitico_bg_url: analiticoPaginas.length > 0 ? JSON.stringify(analiticoPaginas) : null 
             };
