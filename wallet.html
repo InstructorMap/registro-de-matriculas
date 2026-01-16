@@ -12,19 +12,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&family=Roboto+Slab:wght@700&display=swap" rel="stylesheet">
 
     <style>
-        /* ESTILOS APP V4 */
-        :root { --primary: #0033cc; --bg-app: #f4f6f9; --text-dark: #222; }
+        /* ESTILOS APP V6 */
+        :root { --primary: #0033cc; --bg-app: #f4f6f9; --text-dark: #222; --asari-gold: #b8860b; }
+        
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; padding: 0; font-family: 'Roboto', sans-serif; background-color: var(--bg-app); color: #333; height: 100vh; display: flex; flex-direction: column; }
 
-        /* HEADER (IDENTITY) */
-        .app-header { background: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; height: 60px; }
-        .brand-container { display: flex; align-items: center; gap: 10px; }
-        .app-logo { height: 40px; width: auto; object-fit: contain; } /* Logo Institucional Grande */
-        .user-avatar-mini { width: 35px; height: 35px; border-radius: 50%; background: #ddd; object-fit: cover; border: 2px solid var(--primary); display: none; }
+        /* HEADER DINÁMICO */
+        .app-header { background: white; padding: 10px 20px; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; height: 70px; }
+        .app-logo { height: 50px; width: auto; object-fit: contain; transition: opacity 0.3s; }
 
         /* PANTALLAS */
-        .screen { display: none; flex: 1; flex-direction: column; padding: 20px; animation: fadeIn 0.3s ease; }
+        .screen { display: none; flex: 1; flex-direction: column; padding: 20px; animation: fadeIn 0.3s ease; padding-bottom: 60px; }
         .screen.active { display: flex; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -36,25 +35,22 @@
         .input-dni { width: 100%; padding: 15px 15px 15px 45px; border: 2px solid #ddd; border-radius: 12px; font-size: 18px; outline: none; transition: 0.3s; }
         .input-dni:focus { border-color: var(--primary); }
         .input-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #999; }
+        
         .btn-main { width: 100%; max-width: 320px; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0, 0.2); transition: transform 0.2s; }
         .btn-main:active { transform: scale(0.98); }
 
-        /* SELECTOR */
-        .curso-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid var(--primary); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .curso-info h4 { margin: 0; font-size: 16px; color: #222; }
-        .curso-info p { margin: 5px 0 0; font-size: 12px; color: #666; }
-
         /* WALLET */
-        .wallet-welcome { margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
-        .welcome-name { font-size: 22px; font-weight: 900; color: var(--text-dark); }
-        .btn-cambiar { font-size: 12px; color: var(--primary); text-decoration: underline; cursor: pointer; font-weight: bold; }
+        .wallet-welcome { margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .welcome-sub { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+        .welcome-name { font-size: 20px; font-weight: 900; color: var(--text-dark); }
+        .user-avatar-mini { width: 40px; height: 40px; border-radius: 50%; background: #ddd; object-fit: cover; border: 2px solid var(--primary); }
 
+        /* CARNET VIEWPORT */
         .card-viewport { width: 100%; overflow: hidden; background: transparent; position: relative; margin-bottom: 20px; height: 220px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); transition: height 0.3s; }
         #carnet-render { width: 1011px; height: 638px; background: white; position: absolute; top: 0; left: 0; transform-origin: top left; }
 
-        /* ESTILOS CARNET (CONTROLADOS POR REGISTRO) */
+        /* CARNET V19 BASE */
         .card-base { width: 100%; height: 100%; display: flex; position: relative; border: 5px solid; border-radius: 40px; overflow: hidden; background: white; }
-        /* Los colores del carnet se inyectan vía JS en el style inline */
         .front-left { width: 380px; height: 100%; position: relative; background: #d4d4d4; z-index: 1; border-top-left-radius: 35px; border-bottom-left-radius: 35px; overflow: hidden; }
         .student-photo { width: 100%; height: 100%; object-fit: cover; }
         .rect-banda { position: absolute; bottom: 0; left: 0; width: 100%; height: 160px; z-index: 2; }
@@ -74,11 +70,18 @@
         .label-text { font-size: 32px; font-weight: 700; opacity: 0.9; }
         .value-text { font-size: 36px; font-weight: 900; text-align: right; }
 
+        /* ACCIONES & FOOTER */
         .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
         .action-card { background: white; padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-decoration: none; color: #333; }
         .action-icon { font-size: 24px; color: var(--primary); margin-bottom: 8px; display: block; }
         .action-title { font-size: 14px; font-weight: 700; }
-        .estado-matricula { margin-top: 20px; background: #e8f5e9; color: #2e7d32; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        
+        /* SELECTOR */
+        .curso-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid var(--primary); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .curso-info h4 { margin: 0; font-size: 16px; color: #222; }
+        .curso-info p { margin: 5px 0 0; font-size: 12px; color: #666; }
+
+        .footer-brand { margin-top: auto; text-align: center; padding: 20px; font-size: 11px; color: #999; }
         #msg-error { color: #d32f2f; margin-top: 15px; font-weight: bold; display: none; }
         .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: none; margin: 0 auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -87,15 +90,11 @@
 <body>
 
     <header class="app-header">
-        <div class="brand-container">
-            <img src="https://via.placeholder.com/150x50?text=ASARI" id="app-logo" class="app-logo" alt="Logo">
-        </div>
-        <img src="" id="header-avatar" class="user-avatar-mini">
+        <img src="https://via.placeholder.com/150x50?text=CARGANDO..." id="app-logo" class="app-logo" alt="Institución">
     </header>
 
     <div id="screen-login" class="screen active">
         <div class="login-container">
-            <div style="font-size: 50px; color: #ccc; margin-bottom: 20px;"><i class="fas fa-wallet"></i></div>
             <h1 class="login-title">Acceso Alumnos</h1>
             <p class="login-desc">Ingresa tu DNI para ver tus credenciales.</p>
             <div class="input-group">
@@ -105,18 +104,27 @@
             <button class="btn-main" onclick="ingresar()"><span id="btn-text">INGRESAR</span><div id="loader" class="loader"></div></button>
             <div id="msg-error"></div>
         </div>
+        
+        <div class="footer-brand">
+            Tecnología y Seguridad Educativa<br>
+            <strong>POWERED BY ASARI</strong>
+        </div>
     </div>
 
     <div id="screen-selector" class="screen">
         <div class="wallet-welcome"><div class="welcome-name">Mis Cursos</div></div>
         <div id="lista-cursos-container"></div>
         <div class="action-card" onclick="cerrarSesion()" style="margin-top:20px; background: #fff0f0;"><span class="action-title" style="color: #d32f2f;">Salir</span></div>
+        <div class="footer-brand">Validado por <strong>ASARI</strong></div>
     </div>
 
     <div id="screen-wallet" class="screen">
         <div class="wallet-welcome">
-            <div><div class="welcome-sub">Bienvenido/a,</div><div class="welcome-name" id="user-name">...</div></div>
-            <div class="btn-cambiar" id="btn-cambiar-curso" style="display:none;" onclick="volverAlSelector()">Cambiar</div>
+            <div>
+                <div class="welcome-sub">Alumno</div>
+                <div class="welcome-name" id="user-name">...</div>
+            </div>
+            <img src="" id="user-avatar-wallet" class="user-avatar-mini" style="display:none;">
         </div>
 
         <div class="card-viewport" id="card-viewport">
@@ -145,12 +153,16 @@
             </div>
         </div>
 
-        <div class="estado-matricula"><i class="fas fa-check-circle"></i> Matrícula Activa</div>
-
         <div class="actions-grid">
             <a href="#" class="action-card" id="btn-descargar-analitico" style="display:none;" onclick="alert('Disponible próximamente')"><span class="action-icon"><i class="fas fa-file-contract"></i></span><span class="action-title">Analítico</span></a>
             <a href="#" class="action-card" id="btn-descargar-diploma" style="display:none;" onclick="alert('Disponible próximamente')"><span class="action-icon"><i class="fas fa-award"></i></span><span class="action-title">Diploma</span></a>
+            <div class="action-card" id="btn-cambiar-curso" style="display:none;" onclick="volverAlSelector()"><span class="action-icon" style="color:#666"><i class="fas fa-exchange-alt"></i></span><span class="action-title">Cambiar</span></div>
             <div class="action-card" onclick="cerrarSesion()"><span class="action-icon"><i class="fas fa-sign-out-alt" style="color:#d32f2f;"></i></span><span class="action-title">Salir</span></div>
+        </div>
+
+        <div class="footer-brand">
+            Soporte y Seguridad<br>
+            <strong>ASARI PLATFORM</strong>
         </div>
     </div>
 
@@ -163,17 +175,11 @@
 
         window.addEventListener('resize', ajustarCarnetResponsivo);
 
-        // --- MAPA DE COLORES DE CARNET (FIJO/TÉCNICO) ---
-        // Esto define el COLOR DEL PLÁSTICO según el registro
+        // COLORES TÉCNICOS DEL CARNET (Por Registro)
         const COLORES_REGISTRO = {
-            'remaep': '#0033cc', // Azul
-            'rniue': '#b8860b',  // Dorado
-            'rubra': '#cc0000',  // Rojo
-            'rmts': '#2f4f4f',   // Verde Oscuro
-            'asarin': '#800000', // Bordó
-            'rpde': '#0099ff',   // Celeste
-            'rce': '#ffcc00',    // Amarillo
-            'default': '#0033cc'
+            'remaep': '#0033cc', 'rniue': '#b8860b', 'rubra': '#cc0000', 
+            'rmts': '#2f4f4f', 'asarin': '#800000', 'rpde': '#0099ff', 
+            'rce': '#ffcc00', 'colbert': '#2f4f4f', 'default': '#0033cc'
         };
 
         async function ingresar() {
@@ -186,19 +192,27 @@
             btnText.style.display = 'none'; loader.style.display = 'block'; errorMsg.style.display = 'none';
 
             try {
+                // 1. Buscar Alumno
                 const { data: matriculas, error } = await db.from('matriculas').select('*').eq('dni_alumno', dni);
                 if (!matriculas || matriculas.length === 0) throw new Error("No encontrado");
 
                 globalMatriculas = matriculas;
 
-                // LOGICA DE INSTITUCION (HEADER): Tomamos el primer registro para definir la institución "madre"
-                // En un caso real, esto podría venir de una tabla de usuarios, pero aquí usamos el curso principal.
-                const cursoPrincipal = matriculas[0].curso;
-                const { data: cursoData } = await db.from('cursos_oficiales').select('logo_url, color_tema').eq('nombre', cursoPrincipal).single();
+                // 2. BUSCAR IDENTIDAD INSTITUCIONAL (Desde la tabla 'instituciones')
+                // Usamos el 'registro_id' del primer curso como clave para saber de qué instituto es (ej: 'colbert')
+                const idInstitucion = (matriculas[0].registro_id || 'default').toLowerCase().trim();
                 
-                // Configurar HEADER (Institución)
-                configurarApp(cursoData);
+                // IMPORTANTE: Aquí busca en tu tabla 'instituciones'
+                const { data: instData } = await db
+                    .from('instituciones')
+                    .select('logo_url, color_tema')
+                    .ilike('nombre', `%${idInstitucion}%`) // Busca flexible por nombre
+                    .maybeSingle();
 
+                // 3. Configurar la App (Header y Botones)
+                configurarApp(instData);
+
+                // 4. Navegar
                 if (matriculas.length === 1) {
                     cargarWallet(matriculas[0]);
                     mostrarPantalla('screen-wallet');
@@ -208,23 +222,25 @@
                 }
 
             } catch (err) {
-                errorMsg.style.display = 'block'; errorMsg.innerText = "DNI no encontrado.";
+                console.error(err);
+                errorMsg.style.display = 'block'; errorMsg.innerText = "DNI no encontrado o error de conexión.";
             } finally {
                 btnText.style.display = 'block'; loader.style.display = 'none';
             }
         }
 
-        // --- 1. CONFIGURACIÓN DE LA APP (HEADER / INSTITUCIÓN) ---
-        function configurarApp(cursoData) {
-            let logoUrl = 'https://via.placeholder.com/150x50?text=ASARI'; // Default
-            let appColor = '#0033cc'; // Default
+        // --- APLICA EL LOGO DE LA DB AL HEADER ---
+        function configurarApp(instData) {
+            // Valores por defecto (ASARI Genérico) si no encuentra nada en la DB
+            let logoUrl = 'https://via.placeholder.com/150x50?text=ASARI'; 
+            let appColor = '#0033cc'; 
 
-            if (cursoData) {
-                if (cursoData.logo_url) logoUrl = cursoData.logo_url;
-                if (cursoData.color_tema) appColor = cursoData.color_tema;
+            if (instData) {
+                if (instData.logo_url) logoUrl = instData.logo_url;
+                if (instData.color_tema) appColor = instData.color_tema;
             }
 
-            // Aplicar al Header y Botones (Interfaz)
+            // Inyectar en el DOM
             document.getElementById('app-logo').src = logoUrl;
             document.documentElement.style.setProperty('--primary', appColor);
             document.getElementById('meta-theme-color').setAttribute('content', appColor);
@@ -236,9 +252,9 @@
             matriculas.forEach((m) => {
                 const card = document.createElement('div');
                 card.className = 'curso-card';
-                // El borde de la tarjeta del selector sí usa el color del carnet para identificarlo
-                const colorCarnet = COLORES_REGISTRO[(m.registro_id || 'default').toLowerCase()] || COLORES_REGISTRO['default'];
-                card.style.borderLeftColor = colorCarnet;
+                // Borde de color según el registro técnico
+                const color = COLORES_REGISTRO[(m.registro_id || 'default').toLowerCase()] || COLORES_REGISTRO['default'];
+                card.style.borderLeftColor = color;
                 
                 card.innerHTML = `
                     <div class="curso-info">
@@ -252,15 +268,14 @@
             });
         }
 
-        // --- 2. RENDERIZADO DE CARNET (REGISTRO) ---
         async function cargarWallet(alumno) {
             document.getElementById('user-name').innerText = alumno.nombre.split(' ')[0];
-            const av = document.getElementById('header-avatar');
-            if(alumno.foto_url) { av.src = alumno.foto_url; av.style.display = 'block'; }
-            
-            document.getElementById('btn-cambiar-curso').style.display = globalMatriculas.length > 1 ? 'block' : 'none';
+            const av = document.getElementById('user-avatar-wallet');
+            if(alumno.foto_url) { av.src = alumno.foto_url; av.style.display = 'block'; document.getElementById('img-foto').src = alumno.foto_url; }
 
-            // Datos Texto
+            document.getElementById('btn-cambiar-curso').style.display = globalMatriculas.length > 1 ? 'flex' : 'none';
+
+            // Datos Carnet
             document.getElementById('txt-nombre').innerText = `${alumno.nombre} ${alumno.apellido}`;
             document.getElementById('txt-dni').innerText = alumno.dni_alumno;
             document.getElementById('txt-matricula').innerText = generarHashMatricula(String(alumno.dni_alumno));
@@ -268,17 +283,15 @@
             document.getElementById('txt-anio-header').innerText = `CARNET ${fecha.getFullYear()}`;
             const vence = new Date(fecha); vence.setFullYear(vence.getFullYear() + 1);
             document.getElementById('txt-vence').innerText = vence.toLocaleDateString('es-AR');
-            if (alumno.foto_url) document.getElementById('img-foto').src = alumno.foto_url;
 
             document.getElementById('qr-container').innerHTML = ""; 
             new QRCode(document.getElementById('qr-container'), { text: `${URL_WEB}/validador.html?id=${alumno.id}`, width: 144, height: 144 });
 
-            // --- APLICAR ESTILO DEL CARNET (Separado de la App) ---
+            // PINTAR CARNET (Lógica Técnica V19)
             const registroId = (alumno.registro_id || 'default').toLowerCase();
             const colorCarnet = COLORES_REGISTRO[registroId] || COLORES_REGISTRO['default'];
             const nombreRegistro = (alumno.registro_id || 'OFICIAL').toUpperCase();
 
-            // Pintar Carnet
             const cardEl = document.getElementById('card-base-el');
             const bgPanel = document.getElementById('bg-panel');
             const banda = document.getElementById('banda-color');
@@ -290,9 +303,7 @@
             sigla.innerText = nombreRegistro;
             sigla.style.color = colorCarnet;
 
-            // Ajuste especial RCE (Negro sobre amarillo)
-            if(registroId === 'rce') bgPanel.style.color = 'black';
-            else bgPanel.style.color = 'white';
+            if(registroId === 'rce') bgPanel.style.color = 'black'; else bgPanel.style.color = 'white';
 
             justificarTitulos(alumno.curso || "CURSO PROFESIONAL");
             verificarDocs(alumno.curso);
@@ -306,6 +317,7 @@
         }
         function volverAlSelector() { mostrarPantalla('screen-selector'); }
         function cerrarSesion() { location.reload(); }
+        
         function ajustarCarnetResponsivo() {
             const viewport = document.getElementById('card-viewport');
             const carnet = document.getElementById('carnet-render');
@@ -326,8 +338,8 @@
         async function verificarDocs(n) {
             const { data } = await db.from('cursos_oficiales').select('*').eq('nombre', n).single();
             if(data) {
-                if(data.analitico_bg_url) document.getElementById('btn-descargar-analitico').style.display = 'block';
-                if(data.diploma_bg_url) document.getElementById('btn-descargar-diploma').style.display = 'block';
+                if(data.analitico_bg_url) document.getElementById('btn-descargar-analitico').style.display = 'flex';
+                if(data.diploma_bg_url) document.getElementById('btn-descargar-diploma').style.display = 'flex';
             }
         }
     </script>
