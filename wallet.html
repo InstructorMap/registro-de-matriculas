@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0033cc" id="meta-theme-color">
-    <title>Billetera Educativa</title>
+    <meta name="theme-color" content="#b8860b"> <title>Billetera Educativa</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -12,15 +11,19 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&family=Roboto+Slab:wght@700&display=swap" rel="stylesheet">
 
     <style>
-        /* ESTILOS APP V6 */
-        :root { --primary: #0033cc; --bg-app: #f4f6f9; --text-dark: #222; --asari-gold: #b8860b; }
+        /* ESTILOS APP V8.1 */
+        :root { 
+            --primary: #b8860b; /* Color ASARI por defecto */
+            --bg-app: #f4f6f9; 
+            --text-dark: #222; 
+        }
         
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; padding: 0; font-family: 'Roboto', sans-serif; background-color: var(--bg-app); color: #333; height: 100vh; display: flex; flex-direction: column; }
 
-        /* HEADER DINÁMICO */
-        .app-header { background: white; padding: 10px 20px; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; height: 70px; }
-        .app-logo { height: 50px; width: auto; object-fit: contain; transition: opacity 0.3s; }
+        /* HEADER */
+        .app-header { background: white; padding: 10px 20px; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; height: 80px; transition: all 0.3s; }
+        .app-logo { height: 60px; width: auto; object-fit: contain; transition: all 0.3s; }
 
         /* PANTALLAS */
         .screen { display: none; flex: 1; flex-direction: column; padding: 20px; animation: fadeIn 0.3s ease; padding-bottom: 60px; }
@@ -35,7 +38,6 @@
         .input-dni { width: 100%; padding: 15px 15px 15px 45px; border: 2px solid #ddd; border-radius: 12px; font-size: 18px; outline: none; transition: 0.3s; }
         .input-dni:focus { border-color: var(--primary); }
         .input-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #999; }
-        
         .btn-main { width: 100%; max-width: 320px; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0, 0.2); transition: transform 0.2s; }
         .btn-main:active { transform: scale(0.98); }
 
@@ -49,7 +51,7 @@
         .card-viewport { width: 100%; overflow: hidden; background: transparent; position: relative; margin-bottom: 20px; height: 220px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); transition: height 0.3s; }
         #carnet-render { width: 1011px; height: 638px; background: white; position: absolute; top: 0; left: 0; transform-origin: top left; }
 
-        /* CARNET V19 BASE */
+        /* CARNET BASE V19 */
         .card-base { width: 100%; height: 100%; display: flex; position: relative; border: 5px solid; border-radius: 40px; overflow: hidden; background: white; }
         .front-left { width: 380px; height: 100%; position: relative; background: #d4d4d4; z-index: 1; border-top-left-radius: 35px; border-bottom-left-radius: 35px; overflow: hidden; }
         .student-photo { width: 100%; height: 100%; object-fit: cover; }
@@ -90,13 +92,13 @@
 <body>
 
     <header class="app-header">
-        <img src="https://via.placeholder.com/150x50?text=CARGANDO..." id="app-logo" class="app-logo" alt="Institución">
+        <img src="https://vxggatcfrywyodovjwxj.supabase.co/storage/v1/object/public/logos-instituciones/Asari%20Logo.jpg" id="app-logo" class="app-logo" alt="Logo">
     </header>
 
     <div id="screen-login" class="screen active">
         <div class="login-container">
             <h1 class="login-title">Acceso Alumnos</h1>
-            <p class="login-desc">Ingresa tu DNI para ver tus credenciales.</p>
+            <p class="login-desc">Ingresa tu DNI para acceder a tus credenciales digitales.</p>
             <div class="input-group">
                 <i class="fas fa-id-card input-icon"></i>
                 <input type="tel" id="input-dni" class="input-dni" placeholder="Número de DNI" autocomplete="off">
@@ -104,11 +106,7 @@
             <button class="btn-main" onclick="ingresar()"><span id="btn-text">INGRESAR</span><div id="loader" class="loader"></div></button>
             <div id="msg-error"></div>
         </div>
-        
-        <div class="footer-brand">
-            Tecnología y Seguridad Educativa<br>
-            <strong>POWERED BY ASARI</strong>
-        </div>
+        <div class="footer-brand">POWERED BY <strong>ASARI</strong></div>
     </div>
 
     <div id="screen-selector" class="screen">
@@ -121,7 +119,7 @@
     <div id="screen-wallet" class="screen">
         <div class="wallet-welcome">
             <div>
-                <div class="welcome-sub">Alumno</div>
+                <div class="welcome-sub">Bienvenido/a</div>
                 <div class="welcome-name" id="user-name">...</div>
             </div>
             <img src="" id="user-avatar-wallet" class="user-avatar-mini" style="display:none;">
@@ -160,10 +158,7 @@
             <div class="action-card" onclick="cerrarSesion()"><span class="action-icon"><i class="fas fa-sign-out-alt" style="color:#d32f2f;"></i></span><span class="action-title">Salir</span></div>
         </div>
 
-        <div class="footer-brand">
-            Soporte y Seguridad<br>
-            <strong>ASARI PLATFORM</strong>
-        </div>
+        <div class="footer-brand">Soporte y Seguridad<br><strong>ASARI PLATFORM</strong></div>
     </div>
 
     <script>
@@ -173,9 +168,18 @@
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
         let globalMatriculas = [];
 
+        /* ========================================================
+           CONFIGURACIÓN BASE (LOGO ASARI)
+           ======================================================== */
+        const LOGO_ASARI_DEFAULT = "https://vxggatcfrywyodovjwxj.supabase.co/storage/v1/object/public/logos-instituciones/Asari%20Logo.jpg"; 
+        const COLOR_DEFAULT = "#b8860b"; // Dorado Asari
+
+        // INICIALIZAR HEADER CON LOGO ASARI
+        document.getElementById('app-logo').src = LOGO_ASARI_DEFAULT;
+
         window.addEventListener('resize', ajustarCarnetResponsivo);
 
-        // COLORES TÉCNICOS DEL CARNET (Por Registro)
+        // COLORES TÉCNICOS DEL CARNET
         const COLORES_REGISTRO = {
             'remaep': '#0033cc', 'rniue': '#b8860b', 'rubra': '#cc0000', 
             'rmts': '#2f4f4f', 'asarin': '#800000', 'rpde': '#0099ff', 
@@ -198,19 +202,25 @@
 
                 globalMatriculas = matriculas;
 
-                // 2. BUSCAR IDENTIDAD INSTITUCIONAL (Desde la tabla 'instituciones')
-                // Usamos el 'registro_id' del primer curso como clave para saber de qué instituto es (ej: 'colbert')
-                const idInstitucion = (matriculas[0].registro_id || 'default').toLowerCase().trim();
+                // 2. BUSCAR IDENTIDAD (SaaS Dinámico)
+                // Intenta buscar si este alumno pertenece a una institución con logo propio
+                const idRegistro = (matriculas[0].registro_id || '').toLowerCase().trim();
                 
-                // IMPORTANTE: Aquí busca en tu tabla 'instituciones'
-                const { data: instData } = await db
-                    .from('instituciones')
-                    .select('logo_url, color_tema')
-                    .ilike('nombre', `%${idInstitucion}%`) // Busca flexible por nombre
-                    .maybeSingle();
+                // Estrategia: Buscar en instituciones y luego en cursos
+                let instData = null;
+                const { data: dataInst } = await db.from('instituciones').select('logo_url, color_tema').ilike('nombre', `%${idRegistro}%`).maybeSingle();
+                if(dataInst) instData = dataInst;
+                else {
+                    const { data: dataCurso } = await db.from('cursos_oficiales').select('logo_url, color_tema').eq('nombre', matriculas[0].curso).maybeSingle();
+                    instData = dataCurso;
+                }
 
-                // 3. Configurar la App (Header y Botones)
-                configurarApp(instData);
+                // 3. CAMBIAR LA INTERFAZ
+                if (instData && instData.logo_url) {
+                    cambiarIdentidadVisual(instData.logo_url, instData.color_tema || '#0033cc');
+                } else {
+                    cambiarIdentidadVisual(LOGO_ASARI_DEFAULT, COLOR_DEFAULT);
+                }
 
                 // 4. Navegar
                 if (matriculas.length === 1) {
@@ -223,27 +233,16 @@
 
             } catch (err) {
                 console.error(err);
-                errorMsg.style.display = 'block'; errorMsg.innerText = "DNI no encontrado o error de conexión.";
+                errorMsg.style.display = 'block'; errorMsg.innerText = "Error: DNI no encontrado o conexión fallida.";
             } finally {
                 btnText.style.display = 'block'; loader.style.display = 'none';
             }
         }
 
-        // --- APLICA EL LOGO DE LA DB AL HEADER ---
-        function configurarApp(instData) {
-            // Valores por defecto (ASARI Genérico) si no encuentra nada en la DB
-            let logoUrl = 'https://via.placeholder.com/150x50?text=ASARI'; 
-            let appColor = '#0033cc'; 
-
-            if (instData) {
-                if (instData.logo_url) logoUrl = instData.logo_url;
-                if (instData.color_tema) appColor = instData.color_tema;
-            }
-
-            // Inyectar en el DOM
-            document.getElementById('app-logo').src = logoUrl;
-            document.documentElement.style.setProperty('--primary', appColor);
-            document.getElementById('meta-theme-color').setAttribute('content', appColor);
+        function cambiarIdentidadVisual(logo, color) {
+            document.getElementById('app-logo').src = logo;
+            document.documentElement.style.setProperty('--primary', color);
+            document.getElementById('meta-theme-color').setAttribute('content', color);
         }
 
         function generarListaCursos(matriculas) {
@@ -252,15 +251,11 @@
             matriculas.forEach((m) => {
                 const card = document.createElement('div');
                 card.className = 'curso-card';
-                // Borde de color según el registro técnico
                 const color = COLORES_REGISTRO[(m.registro_id || 'default').toLowerCase()] || COLORES_REGISTRO['default'];
                 card.style.borderLeftColor = color;
                 
                 card.innerHTML = `
-                    <div class="curso-info">
-                        <h4>${m.curso}</h4>
-                        <p>${(m.registro_id || '').toUpperCase()} • ${new Date(m.fecha_inicio).getFullYear()}</p>
-                    </div>
+                    <div class="curso-info"><h4>${m.curso}</h4><p>${(m.registro_id || '').toUpperCase()} • ${new Date(m.fecha_inicio).getFullYear()}</p></div>
                     <div><i class="fas fa-chevron-right" style="color:#ccc"></i></div>
                 `;
                 card.onclick = () => { cargarWallet(m); mostrarPantalla('screen-wallet'); };
@@ -272,10 +267,9 @@
             document.getElementById('user-name').innerText = alumno.nombre.split(' ')[0];
             const av = document.getElementById('user-avatar-wallet');
             if(alumno.foto_url) { av.src = alumno.foto_url; av.style.display = 'block'; document.getElementById('img-foto').src = alumno.foto_url; }
-
             document.getElementById('btn-cambiar-curso').style.display = globalMatriculas.length > 1 ? 'flex' : 'none';
 
-            // Datos Carnet
+            // Textos Carnet
             document.getElementById('txt-nombre').innerText = `${alumno.nombre} ${alumno.apellido}`;
             document.getElementById('txt-dni').innerText = alumno.dni_alumno;
             document.getElementById('txt-matricula').innerText = generarHashMatricula(String(alumno.dni_alumno));
@@ -287,61 +281,32 @@
             document.getElementById('qr-container').innerHTML = ""; 
             new QRCode(document.getElementById('qr-container'), { text: `${URL_WEB}/validador.html?id=${alumno.id}`, width: 144, height: 144 });
 
-            // PINTAR CARNET (Lógica Técnica V19)
+            // COLORES CARNET
             const registroId = (alumno.registro_id || 'default').toLowerCase();
             const colorCarnet = COLORES_REGISTRO[registroId] || COLORES_REGISTRO['default'];
             const nombreRegistro = (alumno.registro_id || 'OFICIAL').toUpperCase();
 
-            const cardEl = document.getElementById('card-base-el');
-            const bgPanel = document.getElementById('bg-panel');
-            const banda = document.getElementById('banda-color');
-            const sigla = document.getElementById('txt-sigla');
+            document.getElementById('card-base-el').style.borderColor = colorCarnet;
+            document.getElementById('bg-panel').style.backgroundColor = colorCarnet;
+            document.getElementById('banda-color').style.backgroundColor = colorCarnet;
+            document.getElementById('txt-sigla').innerText = nombreRegistro;
+            document.getElementById('txt-sigla').style.color = colorCarnet;
 
-            cardEl.style.borderColor = colorCarnet;
-            bgPanel.style.backgroundColor = colorCarnet;
-            banda.style.backgroundColor = colorCarnet;
-            sigla.innerText = nombreRegistro;
-            sigla.style.color = colorCarnet;
-
-            if(registroId === 'rce') bgPanel.style.color = 'black'; else bgPanel.style.color = 'white';
+            if(registroId === 'rce') document.getElementById('bg-panel').style.color = 'black'; 
+            else document.getElementById('bg-panel').style.color = 'white';
 
             justificarTitulos(alumno.curso || "CURSO PROFESIONAL");
             verificarDocs(alumno.curso);
-            
             setTimeout(ajustarCarnetResponsivo, 100);
         }
 
-        function mostrarPantalla(id) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-        }
+        function mostrarPantalla(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
         function volverAlSelector() { mostrarPantalla('screen-selector'); }
         function cerrarSesion() { location.reload(); }
-        
-        function ajustarCarnetResponsivo() {
-            const viewport = document.getElementById('card-viewport');
-            const carnet = document.getElementById('carnet-render');
-            if(viewport && carnet) {
-                const scale = viewport.offsetWidth / 1011;
-                carnet.style.transform = `scale(${scale})`;
-                viewport.style.height = `${638 * scale}px`;
-            }
-        }
-        function generarHashMatricula(dni) { let hash = 0; for (let i = 0; i < dni.length; i++) { hash = ((hash << 5) - hash) + dni.charCodeAt(i); hash |= 0; } return String(Math.abs(hash)).substring(0, 6).padStart(6, '9'); }
-        function justificarTitulos(t) { 
-            const p = t.trim().toUpperCase().split(/\s+/);
-            const e1 = document.getElementById('txt-titulo-main'); const e2 = document.getElementById('txt-titulo-sub');
-            if(p.length < 2) { e1.innerText = t; e2.innerText = ""; } else {
-                const c = Math.ceil(p.length / 2); e1.innerText = p.slice(0, c).join(' '); e2.innerText = p.slice(c).join(' ');
-            }
-        }
-        async function verificarDocs(n) {
-            const { data } = await db.from('cursos_oficiales').select('*').eq('nombre', n).single();
-            if(data) {
-                if(data.analitico_bg_url) document.getElementById('btn-descargar-analitico').style.display = 'flex';
-                if(data.diploma_bg_url) document.getElementById('btn-descargar-diploma').style.display = 'flex';
-            }
-        }
+        function ajustarCarnetResponsivo() { const v = document.getElementById('card-viewport'); const c = document.getElementById('carnet-render'); if(v && c) { const s = v.offsetWidth / 1011; c.style.transform = `scale(${s})`; v.style.height = `${638 * s}px`; } }
+        function generarHashMatricula(d) { let h = 0; for (let i = 0; i < d.length; i++) { h = ((h << 5) - h) + d.charCodeAt(i); h |= 0; } return String(Math.abs(h)).substring(0, 6).padStart(6, '9'); }
+        function justificarTitulos(t) { const p = t.trim().toUpperCase().split(/\s+/); const e1 = document.getElementById('txt-titulo-main'); const e2 = document.getElementById('txt-titulo-sub'); if(p.length < 2) { e1.innerText = t; e2.innerText = ""; } else { const c = Math.ceil(p.length / 2); e1.innerText = p.slice(0, c).join(' '); e2.innerText = p.slice(c).join(' '); } }
+        async function verificarDocs(n) { const { data } = await db.from('cursos_oficiales').select('*').eq('nombre', n).single(); if(data) { if(data.analitico_bg_url) document.getElementById('btn-descargar-analitico').style.display = 'flex'; if(data.diploma_bg_url) document.getElementById('btn-descargar-diploma').style.display = 'flex'; } }
     </script>
 </body>
 </html>
