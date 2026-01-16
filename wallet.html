@@ -12,24 +12,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&family=Roboto+Slab:wght@700&display=swap" rel="stylesheet">
 
     <style>
-        /* --- ESTILOS APP MOVIL --- */
-        /* Variables CSS dinámicas para el branding */
-        :root { 
-            --primary: #0033cc; /* Se cambiará con JS */
-            --bg-app: #f4f6f9; 
-            --text-dark: #222;
-        }
-        
+        /* ESTILOS APP V3 */
+        :root { --primary: #0033cc; --bg-app: #f4f6f9; --text-dark: #222; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; padding: 0; font-family: 'Roboto', sans-serif; background-color: var(--bg-app); color: #333; height: 100vh; display: flex; flex-direction: column; }
 
         /* HEADER */
         .app-header { background: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; height: 60px; }
-        
         .brand-container { display: flex; align-items: center; gap: 10px; }
-        .app-logo { height: 35px; width: auto; object-fit: contain; } /* LOGO DINÁMICO */
-        .logo-text { font-weight: 900; font-size: 18px; color: var(--text-dark); letter-spacing: -0.5px; display: none; } /* Fallback */
-        
+        .app-logo { height: 35px; width: auto; object-fit: contain; transition: opacity 0.3s; }
         .user-avatar-mini { width: 35px; height: 35px; border-radius: 50%; background: #ddd; object-fit: cover; border: 2px solid var(--primary); display: none; }
 
         /* PANTALLAS */
@@ -37,31 +28,34 @@
         .screen.active { display: flex; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* LOGIN SCREEN */
+        /* LOGIN */
         .login-container { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
-        .login-logo-placeholder { width: 80px; height: 80px; background: #e0e0e0; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; color: #666; font-size: 30px; }
         .login-title { font-size: 22px; font-weight: 900; margin-bottom: 10px; color: #222; }
         .login-desc { font-size: 14px; color: #666; margin-bottom: 30px; max-width: 280px; }
-        
         .input-group { width: 100%; max-width: 320px; margin-bottom: 20px; position: relative; }
         .input-dni { width: 100%; padding: 15px 15px 15px 45px; border: 2px solid #ddd; border-radius: 12px; font-size: 18px; outline: none; transition: 0.3s; }
         .input-dni:focus { border-color: var(--primary); }
         .input-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #999; }
-        
         .btn-main { width: 100%; max-width: 320px; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0, 0.2); transition: transform 0.2s; }
         .btn-main:active { transform: scale(0.98); }
 
-        /* WALLET SCREEN */
-        .wallet-welcome { margin-bottom: 20px; }
-        .welcome-sub { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
-        .welcome-name { font-size: 22px; font-weight: 900; color: var(--text-dark); }
+        /* SELECTOR DE CURSOS (NUEVO) */
+        .selector-title { font-size: 18px; font-weight: 900; margin-bottom: 15px; color: #333; }
+        .curso-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid var(--primary); cursor: pointer; transition: transform 0.2s; display: flex; justify-content: space-between; align-items: center; }
+        .curso-card:active { transform: scale(0.98); background: #fafafa; }
+        .curso-info h4 { margin: 0; font-size: 16px; color: #222; }
+        .curso-info p { margin: 5px 0 0; font-size: 12px; color: #666; }
+        .curso-arrow { color: #ccc; }
 
-        /* CARD VIEWPORT (ESCALABLE) */
+        /* WALLET & CARNET */
+        .wallet-welcome { margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .welcome-name { font-size: 22px; font-weight: 900; color: var(--text-dark); }
+        .btn-cambiar { font-size: 12px; color: var(--primary); text-decoration: underline; cursor: pointer; font-weight: bold; }
+
         .card-viewport { width: 100%; overflow: hidden; background: transparent; position: relative; margin-bottom: 20px; height: 220px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); transition: height 0.3s; }
-        
         #carnet-render { width: 1011px; height: 638px; background: white; position: absolute; top: 0; left: 0; transform-origin: top left; }
 
-        /* --- ESTILOS CARNET V19 (Embed) --- */
+        /* COPIA ESTILOS CARNET V19 */
         .card-base { width: 100%; height: 100%; display: flex; position: relative; border: 5px solid; border-color: var(--primary); border-radius: 40px; overflow: hidden; background: white; }
         .front-left { width: 380px; height: 100%; position: relative; background: #d4d4d4; z-index: 1; border-top-left-radius: 35px; border-bottom-left-radius: 35px; overflow: hidden; }
         .student-photo { width: 100%; height: 100%; object-fit: cover; }
@@ -82,55 +76,57 @@
         .label-text { font-size: 32px; font-weight: 700; opacity: 0.9; }
         .value-text { font-size: 36px; font-weight: 900; text-align: right; }
 
-        /* ACCIONES */
         .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
-        .action-card { background: white; padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-decoration: none; color: #333; transition: 0.2s; position: relative; overflow: hidden; }
-        .action-card:active { background: #f0f0f0; }
+        .action-card { background: white; padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-decoration: none; color: #333; }
         .action-icon { font-size: 24px; color: var(--primary); margin-bottom: 8px; display: block; }
-        .action-title { font-size: 14px; font-weight: 700; display: block; }
-
+        .action-title { font-size: 14px; font-weight: 700; }
         .estado-matricula { margin-top: 20px; background: #e8f5e9; color: #2e7d32; padding: 10px; border-radius: 8px; text-align: center; font-weight: bold; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 10px; }
-
         #msg-error { color: #d32f2f; margin-top: 15px; font-weight: bold; display: none; }
         .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: none; margin: 0 auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
     </style>
 </head>
 <body>
 
     <header class="app-header">
         <div class="brand-container">
-            <img src="https://via.placeholder.com/150x50?text=ASARI+WALLET" id="app-logo" class="app-logo" alt="Logo Instituto">
+            <img src="https://via.placeholder.com/150x50?text=ASARI" id="app-logo" class="app-logo" alt="Logo">
         </div>
         <img src="" id="header-avatar" class="user-avatar-mini">
     </header>
 
     <div id="screen-login" class="screen active">
         <div class="login-container">
-            <div class="login-logo-placeholder">
-                <i class="fas fa-university"></i>
-            </div>
+            <div style="font-size: 50px; color: #ccc; margin-bottom: 20px;"><i class="fas fa-wallet"></i></div>
             <h1 class="login-title">Acceso Alumnos</h1>
-            <p class="login-desc">Ingresa tu DNI para conectar con tu institución educativa.</p>
-            
+            <p class="login-desc">Ingresa tu DNI para ver tus credenciales.</p>
             <div class="input-group">
                 <i class="fas fa-id-card input-icon"></i>
                 <input type="tel" id="input-dni" class="input-dni" placeholder="Número de DNI" autocomplete="off">
             </div>
-
-            <button class="btn-main" onclick="ingresar()">
-                <span id="btn-text">INGRESAR</span>
-                <div id="loader" class="loader"></div>
-            </button>
+            <button class="btn-main" onclick="ingresar()"><span id="btn-text">INGRESAR</span><div id="loader" class="loader"></div></button>
             <div id="msg-error"></div>
+        </div>
+    </div>
+
+    <div id="screen-selector" class="screen">
+        <div class="wallet-welcome">
+            <div class="welcome-name">Mis Cursos</div>
+        </div>
+        <p style="color:#666; font-size:14px; margin-bottom:20px;">Tienes varias matrículas activas. Selecciona una:</p>
+        <div id="lista-cursos-container"></div>
+        <div class="action-card" onclick="cerrarSesion()" style="margin-top:20px; background: #fff0f0;">
+            <span class="action-title" style="color: #d32f2f;">Salir</span>
         </div>
     </div>
 
     <div id="screen-wallet" class="screen">
         <div class="wallet-welcome">
-            <div class="welcome-sub">Bienvenido/a,</div>
-            <div class="welcome-name" id="user-name">...</div>
+            <div>
+                <div class="welcome-sub">Bienvenido/a,</div>
+                <div class="welcome-name" id="user-name">...</div>
+            </div>
+            <div class="btn-cambiar" id="btn-cambiar-curso" style="display:none;" onclick="volverAlSelector()">Cambiar</div>
         </div>
 
         <div class="card-viewport" id="card-viewport">
@@ -162,24 +158,12 @@
             </div>
         </div>
 
-        <div class="estado-matricula">
-            <i class="fas fa-check-circle"></i> <span id="instituto-label">Matrícula Verificada</span>
-        </div>
+        <div class="estado-matricula"><i class="fas fa-check-circle"></i> <span id="instituto-label">Matrícula Verificada</span></div>
 
-        <h3 style="font-size: 16px; margin: 25px 0 10px 0; color: #444;">Mis Documentos</h3>
         <div class="actions-grid">
-            <a href="#" class="action-card" id="btn-descargar-analitico" style="display:none;" onclick="alert('Descarga PDF disponible próximamente en móvil.')">
-                <span class="action-icon"><i class="fas fa-file-contract"></i></span>
-                <span class="action-title">Analítico</span>
-            </a>
-            <a href="#" class="action-card" id="btn-descargar-diploma" style="display:none;" onclick="alert('Descarga PDF disponible próximamente en móvil.')">
-                <span class="action-icon"><i class="fas fa-award"></i></span>
-                <span class="action-title">Diploma</span>
-            </a>
-            <div class="action-card" onclick="location.reload()">
-                <span class="action-icon"><i class="fas fa-sign-out-alt" style="color:#d32f2f;"></i></span>
-                <span class="action-title">Salir</span>
-            </div>
+            <a href="#" class="action-card" id="btn-descargar-analitico" style="display:none;" onclick="alert('Disponible próximamente')"><span class="action-icon"><i class="fas fa-file-contract"></i></span><span class="action-title">Analítico</span></a>
+            <a href="#" class="action-card" id="btn-descargar-diploma" style="display:none;" onclick="alert('Disponible próximamente')"><span class="action-icon"><i class="fas fa-award"></i></span><span class="action-title">Diploma</span></a>
+            <div class="action-card" onclick="cerrarSesion()"><span class="action-icon"><i class="fas fa-sign-out-alt" style="color:#d32f2f;"></i></span><span class="action-title">Salir</span></div>
         </div>
     </div>
 
@@ -188,52 +172,10 @@
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const URL_WEB = 'https://instructormap.github.io/registro-de-matriculas';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
+        let globalMatriculas = [];
 
-        /* ---------------------------------------------------------
-           CONFIGURACIÓN SAAS (LOGOS DE INSTITUTOS)
-           Pega aquí las URLs de los logos de cada instituto.
-           ---------------------------------------------------------
-        */
-        const INSTITUTOS = {
-            'remaep': { 
-                logo: 'https://via.placeholder.com/150x50?text=REMAEP', // CAMBIAR URL
-                color: '#0033cc', 
-                nombre: 'R.E.M.A.E.P' 
-            },
-            'colbert': { 
-                logo: 'https://via.placeholder.com/150x50?text=COLBERT', // CAMBIAR URL
-                color: '#2f4f4f', 
-                nombre: 'Instituto Colbert' 
-            },
-            'rniue': { 
-                logo: 'https://via.placeholder.com/150x50?text=RNIUE', // CAMBIAR URL
-                color: '#b8860b', 
-                nombre: 'R.N.I.U.E' 
-            },
-            'asarin': { 
-                logo: 'https://via.placeholder.com/150x50?text=ASARIN', // CAMBIAR URL
-                color: '#800000', 
-                nombre: 'ASARIN' 
-            },
-            // Default si no encuentra ID
-            'default': { 
-                logo: 'https://via.placeholder.com/150x50?text=ASARI', // CAMBIAR URL
-                color: '#0033cc', 
-                nombre: 'ASARI Oficial' 
-            }
-        };
-
-        // --- RESPONSIVE CARNET ---
-        function ajustarCarnetResponsivo() {
-            const viewport = document.getElementById('card-viewport');
-            const carnet = document.getElementById('carnet-render');
-            const scale = viewport.offsetWidth / 1011;
-            carnet.style.transform = `scale(${scale})`;
-            viewport.style.height = `${638 * scale}px`;
-        }
         window.addEventListener('resize', ajustarCarnetResponsivo);
 
-        // --- LOGIN ---
         async function ingresar() {
             const dni = document.getElementById('input-dni').value.trim();
             const btnText = document.getElementById('btn-text');
@@ -244,52 +186,58 @@
             btnText.style.display = 'none'; loader.style.display = 'block'; errorMsg.style.display = 'none';
 
             try {
-                const { data, error } = await db.from('matriculas').select('*').eq('dni_alumno', dni);
-                if (!data || data.length === 0) throw new Error("No encontrado");
+                // Recuperamos las matrículas Y la data de la tabla 'cursos_oficiales' relacionada (si existiera clave foránea)
+                // Como no sé si tienes claves foráneas, haré la consulta en dos pasos para mayor seguridad.
+                
+                // 1. Buscar Alumno
+                const { data: matriculas, error } = await db.from('matriculas').select('*').eq('dni_alumno', dni);
+                
+                if (!matriculas || matriculas.length === 0) throw new Error("No encontrado");
 
-                const alumno = data[0];
-                
-                // INICIAR TRANSFORMACIÓN DE INTERFAZ (SAAS)
-                aplicarBranding(alumno.registro_id);
-                
-                cargarDatosWallet(alumno);
-                
-                document.getElementById('screen-login').classList.remove('active');
-                document.getElementById('screen-wallet').classList.add('active');
-                setTimeout(ajustarCarnetResponsivo, 100);
+                globalMatriculas = matriculas;
+
+                // 2. Lógica de Redirección
+                if (matriculas.length === 1) {
+                    cargarWallet(matriculas[0]);
+                    mostrarPantalla('screen-wallet');
+                } else {
+                    generarListaCursos(matriculas);
+                    mostrarPantalla('screen-selector');
+                }
 
             } catch (err) {
-                errorMsg.style.display = 'block';
-                errorMsg.innerText = "DNI no encontrado o matrícula inactiva.";
+                errorMsg.style.display = 'block'; errorMsg.innerText = "DNI no encontrado.";
             } finally {
                 btnText.style.display = 'block'; loader.style.display = 'none';
             }
         }
 
-        // --- LÓGICA SAAS: CAMBIAR LOGO Y COLORES ---
-        function aplicarBranding(registroId) {
-            const rid = (registroId || '').toLowerCase();
-            const config = INSTITUTOS[rid] || INSTITUTOS['default'];
-
-            // 1. Cambiar Color Principal de la App (Variables CSS)
-            document.documentElement.style.setProperty('--primary', config.color);
-            document.getElementById('meta-theme-color').setAttribute('content', config.color);
-
-            // 2. Cambiar Logo del Header
-            document.getElementById('app-logo').src = config.logo;
-            
-            // 3. Cambiar Texto de Estado
-            document.getElementById('instituto-label').innerText = `Matrícula Verificada • ${config.nombre}`;
+        function generarListaCursos(matriculas) {
+            const container = document.getElementById('lista-cursos-container');
+            container.innerHTML = '';
+            matriculas.forEach((m, index) => {
+                const card = document.createElement('div');
+                card.className = 'curso-card';
+                card.innerHTML = `
+                    <div class="curso-info">
+                        <h4>${m.curso}</h4>
+                        <p>${m.registro_id.toUpperCase()} • ${new Date(m.fecha_inicio).getFullYear()}</p>
+                    </div>
+                    <div class="curso-arrow"><i class="fas fa-chevron-right"></i></div>
+                `;
+                card.onclick = () => { cargarWallet(m); mostrarPantalla('screen-wallet'); };
+                container.appendChild(card);
+            });
         }
 
-        async function cargarDatosWallet(alumno) {
+        async function cargarWallet(alumno) {
             // Header User
-            document.getElementById('user-name').innerText = alumno.nombre.split(' ')[0]; // Solo primer nombre
-            if(alumno.foto_url) {
-                const av = document.getElementById('header-avatar');
-                av.src = alumno.foto_url; av.style.display = 'block';
-                document.getElementById('img-foto').src = alumno.foto_url;
-            }
+            document.getElementById('user-name').innerText = alumno.nombre.split(' ')[0];
+            const av = document.getElementById('header-avatar');
+            if(alumno.foto_url) { av.src = alumno.foto_url; av.style.display = 'block'; }
+            
+            // Botón cambiar (solo si hay más de 1)
+            document.getElementById('btn-cambiar-curso').style.display = globalMatriculas.length > 1 ? 'block' : 'none';
 
             // Datos Carnet
             document.getElementById('txt-nombre').innerText = `${alumno.nombre} ${alumno.apellido}`;
@@ -299,41 +247,83 @@
             document.getElementById('txt-anio-header').innerText = `CARNET ${fecha.getFullYear()}`;
             const vence = new Date(fecha); vence.setFullYear(vence.getFullYear() + 1);
             document.getElementById('txt-vence').innerText = vence.toLocaleDateString('es-AR');
+            if (alumno.foto_url) document.getElementById('img-foto').src = alumno.foto_url;
 
             // QR
             document.getElementById('qr-container').innerHTML = ""; 
             new QRCode(document.getElementById('qr-container'), { text: `${URL_WEB}/validador.html?id=${alumno.id}`, width: 144, height: 144 });
 
-            // Branding Carnet (Colores internos de la tarjeta)
-            const config = INSTITUTOS[(alumno.registro_id || '').toLowerCase()] || INSTITUTOS['default'];
-            const color = config.color;
+            // --- BRANDING DINÁMICO (SAAS) DESDE SUPABASE ---
+            // Buscamos el curso oficial para sacar logo y color
+            const { data: cursoOficial } = await db.from('cursos_oficiales').select('*').eq('nombre', alumno.curso).single();
             
-            /* Aplicar color al carnet renderizado también (redundancia visual) */
+            aplicarBranding(cursoOficial, alumno.registro_id); // Pasa la data del curso o null
+
+            justificarTitulos(alumno.curso || "CURSO PROFESIONAL");
+            if(cursoOficial) {
+                if(cursoOficial.analitico_bg_url) document.getElementById('btn-descargar-analitico').style.display = 'block';
+                if(cursoOficial.diploma_bg_url) document.getElementById('btn-descargar-diploma').style.display = 'block';
+            }
+            
+            setTimeout(ajustarCarnetResponsivo, 100);
+        }
+
+        function aplicarBranding(cursoData, registroId) {
+            let color = '#0033cc'; // Default
+            let logoUrl = 'https://via.placeholder.com/150x50?text=ASARI'; // Default
+            let nombreInst = (registroId || 'INSTITUTO').toUpperCase();
+
+            // Prioridad 1: Datos desde Supabase (Tabla cursos_oficiales)
+            if (cursoData) {
+                if (cursoData.color_tema) color = cursoData.color_tema; // Necesitas crear esta columna
+                if (cursoData.logo_url) logoUrl = cursoData.logo_url;   // Necesitas crear esta columna
+            } 
+            // Fallback: Si no hay data en DB, usamos lógica hardcodeada de emergencia (opcional)
+            else {
+                const rid = (registroId || '').toLowerCase();
+                if(rid === 'asarin') color = '#800000';
+                if(rid === 'rniue') color = '#b8860b';
+                // ... etc
+            }
+
+            // Aplicar cambios visuales
+            document.documentElement.style.setProperty('--primary', color);
+            document.getElementById('meta-theme-color').setAttribute('content', color);
+            document.getElementById('app-logo').src = logoUrl;
+            document.getElementById('instituto-label').innerText = `Matrícula Verificada • ${nombreInst}`;
+
+            // Aplicar al Carnet Renderizado
             document.getElementById('bg-panel').style.backgroundColor = color;
             document.getElementById('banda-color').style.backgroundColor = color;
             document.querySelector('.card-base').style.borderColor = color;
-            document.getElementById('txt-sigla').innerText = config.nombre;
+            document.getElementById('txt-sigla').innerText = nombreInst;
             document.getElementById('txt-sigla').style.color = color;
-
-            justificarTitulos(alumno.curso || "CURSO PROFESIONAL");
-            verificarDocs(alumno.curso);
         }
 
-        // --- HELPERS ---
+        function mostrarPantalla(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function volverAlSelector() { mostrarPantalla('screen-selector'); }
+        function cerrarSesion() { location.reload(); }
+        
+        function ajustarCarnetResponsivo() {
+            const viewport = document.getElementById('card-viewport');
+            const carnet = document.getElementById('carnet-render');
+            if(viewport && carnet) {
+                const scale = viewport.offsetWidth / 1011;
+                carnet.style.transform = `scale(${scale})`;
+                viewport.style.height = `${638 * scale}px`;
+            }
+        }
+
         function generarHashMatricula(dni) { let hash = 0; for (let i = 0; i < dni.length; i++) { hash = ((hash << 5) - hash) + dni.charCodeAt(i); hash |= 0; } return String(Math.abs(hash)).substring(0, 6).padStart(6, '9'); }
-        function justificarTitulos(t) { /* Lógica de justificación V19 simplificada para wallet */
+        function justificarTitulos(t) { 
             const p = t.trim().toUpperCase().split(/\s+/);
             const e1 = document.getElementById('txt-titulo-main'); const e2 = document.getElementById('txt-titulo-sub');
             if(p.length < 2) { e1.innerText = t; e2.innerText = ""; } else {
-                const c = Math.ceil(p.length / 2);
-                e1.innerText = p.slice(0, c).join(' '); e2.innerText = p.slice(c).join(' ');
-            }
-        }
-        async function verificarDocs(n) {
-            const { data } = await db.from('cursos_oficiales').select('*').eq('nombre', n).single();
-            if(data) {
-                if(data.analitico_bg_url) document.getElementById('btn-descargar-analitico').style.display = 'block';
-                if(data.diploma_bg_url) document.getElementById('btn-descargar-diploma').style.display = 'block';
+                const c = Math.ceil(p.length / 2); e1.innerText = p.slice(0, c).join(' '); e2.innerText = p.slice(c).join(' ');
             }
         }
     </script>
