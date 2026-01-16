@@ -16,7 +16,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
 
     <style>
-        /* ESTILOS V16 */
+        /* ESTILOS APP V17 */
         :root { --primary: #0033cc; --bg-app: #f4f6f9; --text-dark: #222; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; padding: 0; font-family: 'Roboto', sans-serif; background-color: var(--bg-app); color: #333; height: 100vh; display: flex; flex-direction: column; }
@@ -79,16 +79,16 @@
         /* REVERSO CARNET (Imagen Fija) */
         .carnet-back-img { width: 1011px; height: 638px; object-fit: cover; border-radius: 40px; border: 5px solid var(--primary); }
 
-        /* DIPLOMA (CORREGIDO) */
-        .diploma-container { width: 2000px; height: 1414px; position: relative; background-size: cover; background-position: center; color: #222; font-family: 'Playfair Display', serif; }
+        /* DIPLOMA (CORREGIDO V2) */
+        .diploma-container { width: 2000px; height: 1414px; position: relative; background-size: cover; background-position: center; color: #0033cc; font-family: 'Playfair Display', serif; }
         
-        /* Caja del nombre: Ancho restringido y centrado perfecto */
+        /* CAJA NOMBRE: Ancho restringido y NO wrap */
         .dip-nombre-box { 
             position: absolute; 
             top: 42%; 
             left: 50%; 
             transform: translate(-50%, -50%); 
-            width: 1400px; /* Límite de ancho fijo para forzar reducción */
+            width: 1400px; /* Límite para forzar reducción */
             text-align: center; 
             white-space: nowrap; 
         }
@@ -97,16 +97,32 @@
             font-size: 85px; 
             font-weight: 900; 
             text-transform: uppercase; 
-            color: #0033cc; /* AZUL INSTITUCIONAL */
+            color: #0033cc; /* Azul solicitado */
             display: inline-block;
         }
 
-        .dip-dni { position: absolute; top: 48%; left: 50%; transform: translateX(-50%); font-size: 30px; font-family: 'Roboto', sans-serif; font-weight: bold; color: #444; }
+        /* CAJA DNI: Ancho restringido y NO wrap */
+        .dip-dni-box {
+            position: absolute;
+            top: 48%; /* Debajo del nombre */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 1400px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .dip-dni { 
+            font-size: 35px; 
+            font-family: 'Playfair Display', serif; /* Misma fuente solicitada */
+            font-weight: 900; 
+            color: #0033cc; /* Azul solicitado */
+        }
         
-        /* QR EN ESPACIO EN BLANCO (ARRIBA DERECHA) */
+        /* QR: Bajado para no tapar FUC */
         .dip-qr { 
             position: absolute; 
-            top: 160px; 
+            top: 320px; /* BAJADO (antes 160px) */
             right: 80px; 
             width: 180px; 
             height: 180px; 
@@ -192,9 +208,7 @@
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
         
         const LOGO_ASARI_DEFAULT = "https://vxggatcfrywyodovjwxj.supabase.co/storage/v1/object/public/logos-instituciones/Asari%20Logo.jpg"; 
-        
-        // --- 1. RUTA DEL REVERSO (EN EL REPO) ---
-        const URL_REVERSO = "./reverso.jpg"; // Asegúrate de que el archivo esté en la raíz del repo
+        const URL_REVERSO = "./reverso.jpg"; 
 
         const COLOR_DEFAULT = "#b8860b"; 
         let globalMatriculas = [];
@@ -231,10 +245,10 @@
                 </div>
             </div>`;
 
-        // HTML REVERSO (Imagen Cargada)
+        // HTML REVERSO
         const CARNET_BACK_HTML = `<img src="${URL_REVERSO}" class="carnet-back-img" id="carnet-back-img">`;
 
-        // --- LÓGICA DE INGRESO Y UPLOAD (Igual que V15) ---
+        // --- LÓGICA GENERAL ---
         async function ingresar() {
             const dni = document.getElementById('input-dni').value.trim();
             const btnText = document.getElementById('btn-text');
@@ -344,9 +358,8 @@
         function ajustarTextoAlAncho(element, startSize, maxWidth) {
             let size = startSize;
             element.style.fontSize = size + 'px';
-            // Bucle: Mientras el ancho del texto supere el del contenedor... reduce
             while (element.scrollWidth > (maxWidth || element.clientWidth) && size > 10) {
-                size -= 2; // Bajamos de a 2px para ser más rápidos
+                size -= 2;
                 element.style.fontSize = size + 'px';
             }
         }
@@ -364,12 +377,9 @@
                 ghost.appendChild(wrapper);
                 
                 llenarDatosCarnet(ghost, alumnoActual);
-                
-                // Forzar medidas
                 const cards = ghost.querySelectorAll('.card-base, .carnet-back-img');
                 cards.forEach(c => { c.style.width = "1011px"; c.style.height = "638px"; });
                 
-                // Colorear borde reverso si es necesario (para la imagen es opcional pero se ve bien)
                 const backImg = ghost.querySelector('#carnet-back-img');
                 backImg.style.borderColor = ghost.querySelector('.card-base').style.borderColor;
 
@@ -386,6 +396,7 @@
             } catch(e) { alert("Error: " + e.message); } finally { btn.innerHTML = txt; }
         }
 
+        // --- DESCARGAR DIPLOMA (CORREGIDO V17) ---
         async function descargarDiploma() {
             if(!cursoActualData || !cursoActualData.diploma_bg_url) return alert("Diploma no disponible.");
             const btn = document.getElementById('btn-descargar-diploma'); const txt = btn.innerHTML; btn.innerHTML = '⏳';
@@ -394,7 +405,7 @@
                 const ghost = document.getElementById('ghost-container');
                 ghost.innerHTML = `<div class="diploma-container" id="diploma-box">
                     <div class="dip-nombre-box"><span class="dip-nombre" id="dip-nombre"></span></div>
-                    <div class="dip-dni">D.N.I: <span id="dip-dni-val"></span></div>
+                    <div class="dip-dni-box"><span class="dip-dni" id="dip-dni-val"></span></div>
                     <div class="dip-qr" id="dip-qr"></div>
                 </div>`;
 
@@ -405,13 +416,18 @@
                 await new Promise(r => bgImg.onload = r);
                 box.style.backgroundImage = `url('${bgImg.src}')`;
 
+                // 1. NOMBRE (Con Autoajuste)
                 const nombreEl = ghost.querySelector('#dip-nombre');
                 nombreEl.innerText = `${alumnoActual.nombre} ${alumnoActual.apellido}`;
-                ghost.querySelector('#dip-dni-val').innerText = alumnoActual.dni_alumno;
-                new QRCode(ghost.querySelector('#dip-qr'), { text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, width: 160, height: 160 });
+                ajustarTextoAlAncho(nombreEl, 90, 1400); // Max Width 1400px
 
-                // 🔥 2. AUTO AJUSTE CON LÍMITE DE 1400px (70% de 2000px)
-                ajustarTextoAlAncho(nombreEl, 90, 1400);
+                // 2. DNI (Con Autoajuste y Color Azul)
+                const dniEl = ghost.querySelector('#dip-dni-val');
+                dniEl.innerText = `D.N.I: ${alumnoActual.dni_alumno}`;
+                ajustarTextoAlAncho(dniEl, 35, 1400);
+
+                // 3. QR (Posición Corregida: Top 320px)
+                new QRCode(ghost.querySelector('#dip-qr'), { text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, width: 160, height: 160 });
 
                 await new Promise(r => setTimeout(r, 500)); 
                 const canvas = await html2canvas(box, { scale: 1, useCORS: true });
