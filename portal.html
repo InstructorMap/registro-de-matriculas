@@ -57,7 +57,7 @@
             <div class="icon-alumno"><i class="fas fa-id-card-alt"></i></div>
             <div class="text-group">
                 <h3>Soy Alumno</h3>
-                <p>Acceder a Credencial Digital y Documentación</p>
+                <p>Gestionar Credencial Digital</p>
             </div>
             <div style="margin-left:auto; color:#ccc;"><i class="fas fa-chevron-right"></i></div>
         </a>
@@ -65,8 +65,8 @@
         <div onclick="accesoAdmin()" class="card-link card-admin">
             <div class="icon-admin"><i class="fas fa-user-cog"></i></div>
             <div class="text-group">
-                <h3>Acceso Administrativo</h3>
-                <p>Gestión de Matrículas y Generador</p>
+                <h3>Acceso Institución</h3>
+                <p>Panel de Control SaaS</p>
             </div>
             <div style="margin-left:auto; color:#ccc;"><i class="fas fa-lock"></i></div>
         </div>
@@ -79,14 +79,12 @@
 
     <script>
         function accesoAdmin() {
-            // SEGURIDAD BÁSICA: Pide un PIN para entrar al panel
-            // Puedes cambiar "1234" por la clave que quieras
-            const pin = prompt("🔐 Ingrese Clave de Acceso Administrativo:");
-            
-            if (pin === "1234") { // <--- CAMBIA ESTA CLAVE
-                window.location.href = "dashboard.html";
+            const pin = prompt("🔐 Ingrese Clave de Institución:");
+            if (pin === "1234") { // CLAVE SIMPLE
+                // AQUI ESTA EL CAMBIO QUE PEDISTE:
+                window.location.href = "saas_dashboard.html"; 
             } else if (pin !== null) {
-                alert("⛔ Clave incorrecta. Acceso denegado.");
+                alert("⛔ Clave incorrecta.");
             }
         }
     </script>
