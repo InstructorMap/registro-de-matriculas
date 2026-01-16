@@ -232,32 +232,54 @@
 
         function ajustarTextoAlAncho(element, startSize, maxWidth, minSize = 20) {
             if (!element) return;
-            let size = startSize;
-            element.style.fontSize = size + 'px';
+            
+            // Configuración inicial crítica
             element.style.display = 'inline-block';
             element.style.whiteSpace = 'nowrap';
             element.style.overflow = 'visible';
             element.style.textOverflow = 'clip';
+            element.style.maxWidth = 'none';
+            element.style.width = 'auto';
+            element.style.letterSpacing = '0px';
+            element.style.fontSize = startSize + 'px';
             
-            // Forzar renderizado antes de medir
-            element.offsetHeight;
+            // Forzar renderizado completo
+            void element.offsetWidth;
             
-            // Reducción progresiva con límite mínimo legible
-            let attempts = 0;
-            while (element.scrollWidth > maxWidth && size > minSize && attempts < 100) {
-                size -= 0.5;
-                element.style.fontSize = size + 'px';
-                element.offsetHeight; // Forzar recálculo
-                attempts++;
+            let size = startSize;
+            let iterations = 0;
+            const maxIterations = 200;
+            
+            // Función para obtener ancho real
+            function getActualWidth() {
+                void element.offsetWidth; // Forzar reflow
+                return element.getBoundingClientRect().width;
             }
             
-            // Si aún no entra con el tamaño mínimo, aplicar letter-spacing negativo
-            if (element.scrollWidth > maxWidth) {
+            // Reducción de tamaño de fuente
+            while (getActualWidth() > maxWidth && size > minSize && iterations < maxIterations) {
+                size -= 0.3;
+                element.style.fontSize = size + 'px';
+                iterations++;
+            }
+            
+            // Si todavía no cabe, aplicar letter-spacing negativo gradualmente
+            if (getActualWidth() > maxWidth && size <= minSize) {
                 let spacing = 0;
-                while (element.scrollWidth > maxWidth && spacing > -3) {
-                    spacing -= 0.2;
+                iterations = 0;
+                while (getActualWidth() > maxWidth && spacing > -4 && iterations < maxIterations) {
+                    spacing -= 0.1;
                     element.style.letterSpacing = spacing + 'px';
-                    element.offsetHeight;
+                    iterations++;
+                }
+            }
+            
+            // Última verificación y ajuste fino
+            if (getActualWidth() > maxWidth) {
+                const scaleFactor = maxWidth / getActualWidth();
+                const newSize = size * scaleFactor * 0.98; // 98% para margen de seguridad
+                if (newSize >= minSize) {
+                    element.style.fontSize = newSize + 'px';
                 }
             }
         }
@@ -360,8 +382,9 @@
             el('#txt-titulo-main').innerText = t.slice(0, mid).join(' ');
             el('#txt-titulo-sub').innerText = t.slice(mid).join(' ');
 
-            // AJUSTE NOMBRE CARNET (Ancho máximo del panel derecho aprox 550px, mínimo 18px)
-            ajustarTextoAlAncho(nomEl, 34, 550, 18);
+            // AJUSTE NOMBRE CARNET (Ancho máximo del panel derecho aprox 550px, mínimo 16px)
+            await new Promise(r => setTimeout(r, 50));
+            ajustarTextoAlAncho(nomEl, 34, 550, 16);
         }
 
         async function descargarDiploma() {
@@ -387,21 +410,34 @@
 
                 await document.fonts.ready;
 
-                // AJUSTE NOMBRE DIPLOMA - Con tamaño mínimo legible de 40px
-                const nEl = ghost.querySelector('#dip-nombre');
-                nEl.innerText = `${alumnoActual.nombre} ${alumnoActual.apellido}`;
-                nEl.style.lineHeight = '1.2';
-                ajustarTextoAlAncho(nEl, 90, 1480, 40); 
+                // Esperar a que la imagen de fondo cargue completamente
+                await new Promise(r => setTimeout(r, 300));
 
-                // AJUSTE DNI DIPLOMA - Con tamaño mínimo legible de 24px
+                // AJUSTE NOMBRE DIPLOMA - Con tamaño mínimo legible de 35px
+                const nEl = ghost.querySelector('#dip-nombre');
+                const nombreCompleto = `${alumnoActual.nombre} ${alumnoActual.apellido}`.trim().toUpperCase();
+                nEl.innerText = nombreCompleto;
+                nEl.style.lineHeight = '1.1';
+                nEl.style.fontWeight = '900';
+                
+                // Esperar render
+                await new Promise(r => setTimeout(r, 100));
+                ajustarTextoAlAncho(nEl, 90, 1480, 35); 
+
+                // AJUSTE DNI DIPLOMA - Con tamaño mínimo legible de 22px
                 const dEl = ghost.querySelector('#dip-dni-val');
                 dEl.innerText = `D.N.I: ${alumnoActual.dni_alumno}`;
-                dEl.style.lineHeight = '1.2';
-                ajustarTextoAlAncho(dEl, 35, 1380, 24);
+                dEl.style.lineHeight = '1.1';
+                dEl.style.fontWeight = '900';
+                
+                // Esperar render
+                await new Promise(r => setTimeout(r, 100));
+                ajustarTextoAlAncho(dEl, 35, 1380, 22);
 
                 new QRCode(ghost.querySelector('#dip-qr'), { text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, width: 160, height: 160 });
 
-                await new Promise(r => setTimeout(r, 800)); 
+                // Esperar más tiempo para asegurar que todo esté renderizado
+                await new Promise(r => setTimeout(r, 1000)); 
                 
                 const canvas = await html2canvas(box, { scale: 1, useCORS: true });
                 const link = document.createElement('a');
