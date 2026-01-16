@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador Oficial V20 - Gold Master</title>
+    <title>Generador Oficial V22 - Analítico Final</title>
     
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -12,16 +12,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&family=Roboto+Slab:wght@700;900&display=swap" rel="stylesheet">
     
     <style>
-        /* ESTILOS BASE */
+        /* ESTILOS GENERALES */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Roboto', sans-serif; background: #1a1a1a; display: flex; flex-direction: column; align-items: center; padding: 30px; gap: 20px; color: white; }
+        
         .controls { background: #222; padding: 25px; border-radius: 10px; position: sticky; top: 10px; z-index: 999; width: 95%; max-width: 600px; border: 1px solid #444; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
         .input-group { display: flex; gap: 10px; margin-bottom: 5px; }
         .input-dni { flex: 1; padding: 12px; font-size: 18px; border-radius: 5px; border: none; text-align: center; font-weight: bold; letter-spacing: 1px;}
         .btn-generate { padding: 12px 25px; font-size: 16px; background: linear-gradient(135deg, #005c99, #007acc); border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: 900; text-transform: uppercase; }
         #selector-cursos { display: none; margin-top: 20px; text-align: center; border-top: 1px solid #444; padding-top: 15px; }
         #lista-botones button { width: 100%; padding: 12px; background: #333; color: white; border: 1px solid #555; border-radius: 5px; cursor: pointer; text-align: left; margin-bottom: 8px; font-weight: bold; }
-        #lista-botones button:hover { background: #444; }
         .action-buttons { display: none; gap: 10px; flex-wrap: wrap; justify-content: center; border-top: 1px solid #444; padding-top: 20px; margin-top: 15px;}
         .btn-action { padding: 12px 15px; font-size: 12px; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; flex: 1; min-width: 130px; }
         .btn-upload { background: #444; color: white; border: 1px solid #666; }
@@ -31,18 +31,16 @@
         #msg-error { color: #ff5555; text-align: center; margin-top: 15px; display: none; font-weight: bold; }
         #upload-status { font-size: 12px; color: #aaa; text-align: center; margin-top: 5px; display:none; }
 
-        /* --- CLASES COMPARTIDAS (VISTA Y MOLDE) --- */
-        /* Usamos .card-base para que el molde fantasma y la vista sean idénticos */
-        .card-base { width: 1011px; height: 638px; background: white; display: flex; position: relative; border: 5px solid #0033cc; border-radius: 40px; overflow: hidden; margin-bottom: 20px; }
-        
-        /* VISTA PREVIA (Solo visualización) */
+        /* --- VISTA PREVIA (SOLO VISUAL) --- */
         .preview-wrapper { transform: scale(0.4); transform-origin: top center; margin-bottom: -350px; border-radius: 20px; opacity: 0.5; filter: grayscale(1); transition: all 0.3s; }
         .preview-wrapper.active { opacity: 1; filter: grayscale(0); }
 
-        /* MOLDE FANTASMA (Para impresión perfecta) */
-        #ghost-container { position: fixed; top: -9999px; left: -9999px; width: 1011px; }
+        /* --- MOLDE FANTASMA (CONTENEDOR DE IMPRESIÓN) --- */
+        #ghost-container { position: fixed; top: -9999px; left: -9999px; width: auto; height: auto; }
 
-        /* ESTILOS INTERNOS CARNET */
+        /* --- ESTILOS DEL CARNET (BASE V19) --- */
+        .card-base { width: 1011px; height: 638px; background: white; display: flex; position: relative; border: 5px solid #0033cc; border-radius: 40px; overflow: hidden; margin-bottom: 20px; }
+        
         .front-left { width: 380px; height: 100%; position: relative; background: #d4d4d4; z-index: 1; border-top-left-radius: 35px; border-bottom-left-radius: 35px; overflow: hidden; }
         .student-photo { width: 100%; height: 100%; object-fit: cover; position: relative; z-index: 1; }
         .rect-banda { position: absolute; bottom: 0; left: 0; width: 100%; height: 160px; background-color: #0033cc; z-index: 2; }
@@ -54,20 +52,8 @@
         .front-content { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 6px solid rgba(255,255,255,0.9); padding-bottom: 2px; }
         .header-text { font-size: 85px; font-weight: 900; text-transform: uppercase; line-height: 0.9; text-shadow: 3px 3px 0px rgba(0,0,0,0.2); }
-        
         .course-container { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 10px 0; background: linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.3)); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 0 10px; }
-        
-        /* TÍTULOS CURSO (AUMENTADOS A 54px) */
-        .course-title-main, .course-title-sub { 
-            font-size: 54px; /* AUMENTADO */
-            font-weight: 900; 
-            text-transform: uppercase; 
-            line-height: 1; 
-            text-align: center; 
-            text-shadow: 0 4px 8px rgba(0,0,0,0.4); 
-            display: inline-block; white-space: nowrap;
-        }
-        
+        .course-title-main, .course-title-sub { font-size: 54px; font-weight: 900; text-transform: uppercase; line-height: 1; text-align: center; text-shadow: 0 4px 8px rgba(0,0,0,0.4); display: inline-block; white-space: nowrap; }
         .student-name { font-size: 34px; font-weight: 700; text-transform: uppercase; background: transparent; padding: 10px; text-align: center; border-radius: 8px; margin-bottom: 15px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
         .data-grid { display: grid; grid-template-columns: 65px 1fr; row-gap: 10px; align-items: center; }
         .icon-box { font-size: 55px; text-align: center; }
@@ -76,43 +62,61 @@
         .value-text { font-size: 36px; font-weight: 900; text-align: right; }
         .back-image { width: 100%; height: 100%; object-fit: fill; display: block; }
 
-        /* --- ESTILOS ANALÍTICO PDF --- */
-        #pdf-page-container { width: 1123px; height: 1587px; background: white; position: relative; overflow: hidden; }
-        .diploma-bg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
-        .diploma-overlay { position: relative; z-index: 10; width: 100%; height: 100%; }
+        /* --- ESTILOS ANALÍTICO PDF (MILIMÉTRICO V22) --- */
         
-        /* ANALÍTICO: CENTRADO AUTOMÁTICO */
-        .ana-foto { 
-            position: absolute; 
-            top: 290px; /* ALTURA SEGURA */
-            right: 8%;  /* MARGEN DINÁMICO (TU PEDIDO) */
-            width: 15%; /* ANCHO DINÁMICO */
-            height: auto;
-            aspect-ratio: 3/4;
+        .hoja-a4 {
+            width: 210mm; /* Ancho A4 */
+            height: 297mm; /* Alto A4 */
+            position: relative;
+            background-color: white;
+            overflow: hidden;
+        }
+
+        .diploma-bg { 
+            width: 100%; 
+            height: 100%; 
             object-fit: cover; 
-            border: 3px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.3); background: #ddd; z-index: 25; 
+            position: absolute; top: 0; left: 0; z-index: 1; 
         }
-        
-        .ana-datos-linea { 
-            position: absolute; 
-            top: 290px; /* ALINEADO CON FOTO */
-            left: 50%; /* CENTRO ABSOLUTO */
-            transform: translateX(-50%); /* TRUCO DE CENTRADO EXACTO */
-            width: auto; 
-            text-align: center; 
-            z-index: 20; 
-            white-space: nowrap; 
-        }
-        .ana-texto-unico { 
+
+        /* DATOS (Texto - Centrado Absoluto) */
+        .dato-nombre-dni {
+            position: absolute;
+            top: 118mm; /* Coordenada Vertical Fija */
+            left: 50%; /* Centro Hoja */
+            transform: translateX(-50%); /* Centrado Perfecto */
             font-family: 'Roboto Slab', serif; 
-            font-size: 28px; /* TAMAÑO SEGURO PARA A4 */
-            font-weight: 900; 
-            color: #333; 
-            text-transform: uppercase; 
+            font-weight: 900;
+            font-size: 24pt; /* Tamaño legible en impresión */
+            color: #1a3a63; 
+            white-space: nowrap;
+            z-index: 20;
+            text-transform: uppercase;
         }
-        
-        /* DIPLOMA */
+
+        /* FOTO (Margen Derecho Fijo) */
+        .foto-carnet {
+            position: absolute;
+            top: 128mm; /* Coordenada Vertical Fija */
+            right: 25mm; /* Margen Derecho Fijo */
+            width: 35mm; /* Ancho Foto Carnet */
+            height: 45mm; /* Alto Foto Carnet */
+            overflow: hidden;
+            border: 2px solid white;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+            z-index: 25;
+            background: #ddd;
+        }
+
+        .foto-carnet img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* --- DIPLOMA (Mismo sistema oculto) --- */
         .diploma-layout { width: 2000px; height: 1414px; position: relative; overflow: hidden; color: #333; --diploma-blue: #003399; }
+        .dip-overlay { position: relative; z-index: 10; width: 100%; height: 100%; }
         .dip-linea-unica-container { position: absolute; top: 595px; left: 50%; transform: translateX(-50%); width: 90%; text-align: center; white-space: nowrap; }
         .dip-texto-formal { font-family: 'Roboto Slab', serif; font-weight: 900; color: var(--diploma-blue); text-transform: uppercase; font-size: 80px; letter-spacing: 1px; text-shadow: 2px 2px 0px rgba(255,255,255,1); }
         .dip-qr { position: absolute; top: 284px; right: 176px; width: 233px; height: 233px; background: white; padding: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
@@ -124,7 +128,7 @@
 <body>
 
     <div class="controls">
-        <h2 style="text-align:center; color:#fff; margin-bottom: 15px;">🎓 Generador V20 (Master)</h2>
+        <h2 style="text-align:center; color:#fff; margin-bottom: 15px;">🎓 Generador V22 - Final</h2>
         <div class="input-group">
             <input type="text" id="input-dni-search" class="input-dni" placeholder="Ingrese DNI del Alumno">
             <button class="btn-generate" onclick="window.generarCarnet()">⚙️ GENERAR</button>
@@ -146,6 +150,7 @@
     </div>
 
     <div id="ghost-container">
+        <div id="analitico-print-container"></div>
         <div class="diploma-layout" id="diploma-final">
             <img id="dip-bg-img" class="diploma-bg" src="" crossorigin="anonymous">
             <div class="diploma-overlay">
@@ -155,7 +160,6 @@
                 <div class="dip-sello"></div>
             </div>
         </div>
-        <div id="pdf-page-container"></div>
     </div>
 
     <template id="carnet-template">
@@ -260,6 +264,7 @@
             }
         }
 
+        // --- RENDERIZADO CARNET (VISTA Y MOLDE) ---
         function renderizarCarnetEnContenedor(containerId, alumno) {
             const container = document.getElementById(containerId);
             container.innerHTML = ""; 
@@ -337,7 +342,7 @@
             }
         }
 
-        // --- DESCARGAS (USANDO MOLDE FANTASMA) ---
+        // --- DESCARGAR CARNET (USANDO MOLDE FANTASMA) ---
         window.descargarCarnet = async function() {
             const btn = document.querySelector('.btn-download');
             const originalText = btn.innerText; btn.innerText = "⏳ Generando..."; btn.disabled = true;
@@ -366,12 +371,13 @@
                 link.href = fin.toDataURL("image/png");
                 link.click();
                 
-                document.getElementById('ghost-container').innerHTML = '<div id="pdf-page-container"></div>';
+                document.getElementById('ghost-container').innerHTML = '<div id="analitico-print-container"></div><div class="diploma-layout" id="diploma-final">...</div>'; // Reset
 
             } catch(e) { alert("Error: " + e.message); } 
             finally { btn.innerText = originalText; btn.disabled = false; }
         };
 
+        // --- ANALÍTICO PDF (MILIMÉTRICO V22) ---
         window.descargarAnaliticoPDF = async function() {
             const btn = document.getElementById('btn-descargar-analitico');
             const originalText = btn.innerText; btn.innerText = "⏳ PDF..."; btn.disabled = true;
@@ -379,8 +385,8 @@
                 if(!cursoActualData || !cursoActualData.analitico_bg_url) throw new Error("No hay analítico.");
                 
                 const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF('p', 'mm', 'a4');
-                const container = document.getElementById('pdf-page-container');
+                const pdf = new jsPDF('p', 'mm', 'a4'); // A4 Vertical (210x297)
+                const container = document.getElementById('analitico-print-container');
                 
                 let paginas = [];
                 try {
@@ -393,23 +399,28 @@
                     const url = paginas[i] + '?t=' + Date.now();
                     const esPrimera = (i === 0);
                     
+                    // HTML CON MEDIDAS MM PARA IMPRESIÓN PRECISA
                     const overlay = esPrimera ? `
-                        <div class="diploma-overlay">
-                            <div class="ana-datos-linea">
-                                <span class="ana-texto-unico">${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${alumnoActual.dni_alumno}</span>
+                        <div class="hoja-a4">
+                            <img class="diploma-bg" src="${url}" crossorigin="anonymous">
+                            <div class="dato-nombre-dni">
+                                ${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${alumnoActual.dni_alumno}
                             </div>
-                            <img class="ana-foto" src="${alumnoActual.foto_url ? alumnoActual.foto_url + '?t=' + Date.now() : ''}" style="display:${alumnoActual.foto_url ? 'block' : 'none'}" crossorigin="anonymous">
-                        </div>` : '';
+                            <div class="foto-carnet">
+                                <img src="${alumnoActual.foto_url ? alumnoActual.foto_url + '?t=' + Date.now() : ''}" crossorigin="anonymous">
+                            </div>
+                        </div>` 
+                        : `<div class="hoja-a4"><img class="diploma-bg" src="${url}" crossorigin="anonymous"></div>`;
                     
-                    container.innerHTML = `<img class="diploma-bg" src="${url}" crossorigin="anonymous" onload="this.setAttribute('loaded','true')">${overlay}`;
+                    container.innerHTML = overlay;
                     
+                    // Esperar imágenes
                     const images = container.getElementsByTagName('img');
-                    for(let img of images) {
-                        if(img.src && !img.complete) await new Promise(r => img.onload = r);
-                    }
+                    for(let img of images) { if(img.src && !img.complete) await new Promise(r => img.onload = r); }
 
-                    const canvas = await html2canvas(container, { scale: 1.5, useCORS: true, allowTaint: true });
-                    const imgData = canvas.toDataURL('image/jpeg', 0.9);
+                    // Renderizar con ALTA RESOLUCIÓN (SCALE 3)
+                    const canvas = await html2canvas(container.querySelector('.hoja-a4'), { scale: 3, useCORS: true, allowTaint: true });
+                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
                     
                     if (i > 0) pdf.addPage();
                     pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297); 
@@ -419,6 +430,7 @@
             finally { btn.innerText = originalText; btn.disabled = false; }
         };
 
+        // --- DIPLOMA (Mismo sistema ghost) ---
         window.descargarDiploma = async function() {
             const btn = document.getElementById('btn-descargar-diploma');
             const originalText = btn.innerText; btn.innerText = "⏳"; btn.disabled=true; 
@@ -438,6 +450,7 @@
 
         function generarHashMatricula(dni) { let hash = 0; for (let i = 0; i < dni.length; i++) { hash = ((hash << 5) - hash) + dni.charCodeAt(i); hash |= 0; } return String(Math.abs(hash)).substring(0, 6).padStart(6, '9'); }
         function ajustarTexto(elId, conId, size) { const el = document.getElementById(elId); const con = document.getElementById(conId); el.style.fontSize = size+'px'; while (el.scrollWidth > con.clientWidth && size > 40) { size-=2; el.style.fontSize = size+'px'; } }
+        window.subirFotoNube = async function(input) { if (!input.files || !input.files[0]) return; const file = input.files[0]; const dni = document.getElementById('txt-dni').innerText; const status = document.getElementById('upload-status'); const imgLocal = document.getElementById('img-foto'); status.style.display = 'block'; status.innerText = "☁️ Subiendo..."; try { const fileName = `${dni}.png`; await db.storage.from('fotos-alumnos').upload(fileName, file, { upsert: true }); const { data } = db.storage.from('fotos-alumnos').getPublicUrl(fileName); await db.from('matriculas').update({ foto_url: data.publicUrl }).eq('dni_alumno', dni); status.innerText = "✅ Listo"; const reader = new FileReader(); reader.onload = (e) => { imgLocal.src = e.target.result; imgLocal.style.display = 'block'; document.getElementById('placeholder-foto').style.display = 'none'; }; reader.readAsDataURL(file); } catch (err) { alert(err.message); } };
     </script>
 </body>
 </html>
