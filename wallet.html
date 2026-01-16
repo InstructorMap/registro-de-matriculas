@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0033cc" id="meta-theme-color">
-    <title>Billetera Educativa</title>
+    <title>Billetera Educativa - ASARI</title>
     
     <link rel="manifest" href="manifest.json">
     
@@ -16,7 +16,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
 
     <style>
-        /* ESTILOS APP V18 */
+        /* ESTILOS APP BASE */
         :root { --primary: #0033cc; --bg-app: #f4f6f9; --text-dark: #222; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; padding: 0; font-family: 'Roboto', sans-serif; background-color: var(--bg-app); color: #333; height: 100vh; display: flex; flex-direction: column; }
@@ -30,7 +30,7 @@
         .screen.active { display: flex; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* LOGIN */
+        /* LOGIN & UPLOAD */
         .login-container { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
         .login-title { font-size: 22px; font-weight: 900; margin-bottom: 10px; color: #222; }
         .login-desc { font-size: 14px; color: #666; margin-bottom: 30px; max-width: 280px; }
@@ -41,100 +41,87 @@
         .btn-main { width: 100%; max-width: 320px; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: transform 0.2s; }
         .btn-main:active { transform: scale(0.98); }
 
-        /* UPLOAD */
         .upload-area { border: 2px dashed #ccc; padding: 30px; border-radius: 15px; background: white; margin-bottom: 20px; cursor: pointer; width: 100%; max-width: 320px; }
-        .upload-icon { font-size: 40px; color: #ccc; margin-bottom: 10px; }
         #preview-upload { max-width: 100%; max-height: 200px; border-radius: 10px; display: none; margin-top: 10px; object-fit: cover; }
 
         /* WALLET */
         .wallet-welcome { margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-        .welcome-sub { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
         .welcome-name { font-size: 20px; font-weight: 900; color: var(--text-dark); }
         .user-avatar-mini { width: 40px; height: 40px; border-radius: 50%; background: #ddd; object-fit: cover; border: 2px solid var(--primary); }
 
         .card-viewport { width: 100%; overflow: hidden; background: transparent; position: relative; margin-bottom: 20px; height: 220px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); transition: height 0.3s; }
         #carnet-render { width: 1011px; height: 638px; background: white; position: absolute; top: 0; left: 0; transform-origin: top left; }
 
-        /* ESTILOS CARNET (FRENTE) */
+        /* CARNET (ESTILOS INTERNOS) */
         .card-base { width: 100%; height: 100%; display: flex; position: relative; border: 5px solid; border-radius: 40px; overflow: hidden; background: white; }
         .front-left { width: 380px; height: 100%; position: relative; background: #d4d4d4; z-index: 1; border-top-left-radius: 35px; border-bottom-left-radius: 35px; overflow: hidden; }
         .student-photo { width: 100%; height: 100%; object-fit: cover; }
         .rect-banda { position: absolute; bottom: 0; left: 0; width: 100%; height: 160px; z-index: 2; }
         .reg-sigla { position: absolute; bottom: 15px; left: 0; width: 100%; text-align: center; color: white; font-size: 22px; font-weight: 900; z-index: 6; text-shadow: 2px 2px 4px rgba(0,0,0,0.9); }
         .qr-container { position: absolute; bottom: 45px; left: 50%; transform: translateX(-50%); width: 160px; height: 160px; background: white; padding: 8px; border-radius: 12px; z-index: 5; display: flex; justify-content: center; align-items: center; }
-        .front-right { flex: 1; padding: 20px 35px; display: flex; flex-direction: column; justify-content: space-between; color: white; }
-        .holo-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(45deg, rgba(255,255,255,0.08) 0px, rgba(255,255,255,0.08) 1px, transparent 1px, transparent 4px), linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.2) 45%, rgba(200,255,255,0.4) 50%, rgba(255,255,255,0.2) 55%, transparent 70%); mix-blend-mode: overlay; }
+        .front-right { flex: 1; padding: 20px 35px; display: flex; flex-direction: column; justify-content: space-between; color: white; position: relative; }
+        .holo-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(45deg, rgba(255,255,255,0.08) 0px, rgba(255,255,255,0.08) 1px, transparent 1px, transparent 4px); mix-blend-mode: overlay; pointer-events: none; }
         .front-content { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 6px solid rgba(255,255,255,0.9); padding-bottom: 2px; }
         .header-text { font-size: 85px; font-weight: 900; text-transform: uppercase; line-height: 0.9; }
-        .course-container { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 10px 0; background: linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.3)); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 0 10px; }
-        .course-title-main, .course-title-sub { font-size: 54px; font-weight: 900; text-transform: uppercase; line-height: 1; text-align: center; display: inline-block; white-space: nowrap; }
-        .student-name { font-size: 34px; font-weight: 700; text-transform: uppercase; background: transparent; padding: 10px; text-align: center; border-radius: 8px; margin-bottom: 15px; width: 100%; overflow: hidden; }
+        .course-container { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 10px 0; background: rgba(0,0,0,0.1); border-radius: 12px; padding: 0 10px; }
+        .course-title-main, .course-title-sub { font-size: 54px; font-weight: 900; text-transform: uppercase; line-height: 1; text-align: center; white-space: nowrap; }
+        
+        /* CORRECCIÓN: Nombre una sola línea en carnet */
+        .student-name { font-size: 34px; font-weight: 700; text-transform: uppercase; text-align: center; margin-bottom: 15px; width: 100%; white-space: nowrap; overflow: hidden; display: block; }
+        
         .data-grid { display: grid; grid-template-columns: 65px 1fr; row-gap: 10px; align-items: center; }
         .icon-box { font-size: 55px; text-align: center; }
-        .data-box { background: linear-gradient(90deg, rgba(0,0,0,0.2), rgba(0,0,0,0.3)); padding: 6px 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.15); height: 55px; }
+        .data-box { background: rgba(0,0,0,0.2); padding: 6px 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.15); height: 55px; }
         .label-text { font-size: 32px; font-weight: 700; opacity: 0.9; }
         .value-text { font-size: 36px; font-weight: 900; text-align: right; }
 
-        /* REVERSO CARNET */
+        /* REVERSO */
         .carnet-back-img { width: 1011px; height: 638px; object-fit: cover; border-radius: 40px; border: 5px solid var(--primary); }
 
-        /* DIPLOMA (POSICIONAMIENTO) */
+        /* DIPLOMA CORRECCIONES */
         .diploma-container { width: 2000px; height: 1414px; position: relative; background-size: cover; background-position: center; color: #0033cc; font-family: 'Playfair Display', serif; }
         
         .dip-nombre-box { 
             position: absolute; top: 42%; left: 50%; transform: translate(-50%, -50%); 
-            width: 1400px; /* Límite Fijo para forzar achicamiento */
-            text-align: center; white-space: nowrap; 
+            width: 1500px; text-align: center; 
         }
-        
-        .dip-nombre { font-size: 85px; font-weight: 900; text-transform: uppercase; color: #0033cc; display: inline-block; }
+        .dip-nombre { font-size: 90px; font-weight: 900; text-transform: uppercase; color: #0033cc; display: inline-block; white-space: nowrap; }
 
         .dip-dni-box {
             position: absolute; top: 48%; left: 50%; transform: translateX(-50%);
-            width: 1400px; text-align: center; white-space: nowrap;
+            width: 1400px; text-align: center;
         }
-
-        .dip-dni { font-size: 35px; font-family: 'Playfair Display', serif; font-weight: 900; color: #0033cc; }
+        .dip-dni { font-size: 35px; font-weight: 900; color: #0033cc; display: inline-block; white-space: nowrap; }
         
-        /* QR CORREGIDO (BAJADO PARA NO TAPAR LOGO FUC) */
-        .dip-qr { 
-            position: absolute; 
-            top: 360px; /* Posición Segura */
-            right: 80px; 
-            width: 180px; height: 180px; 
-            background: white; padding: 10px; border: 2px solid #eee;
-        }
+        .dip-qr { position: absolute; top: 360px; right: 80px; width: 180px; height: 180px; background: white; padding: 10px; border: 2px solid #eee; }
 
-        /* ACTIONS */
+        /* ACCIONES */
         .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
         .action-card { background: white; padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-decoration: none; color: #333; cursor: pointer; }
         .action-icon { font-size: 24px; color: var(--primary); margin-bottom: 8px; display: block; }
         .action-title { font-size: 14px; font-weight: 700; }
-        .footer-brand { margin-top: auto; text-align: center; padding: 20px; font-size: 11px; color: #999; }
-        #msg-error { color: #d32f2f; margin-top: 15px; font-weight: bold; display: none; }
+        
+        #ghost-container { position: fixed; top: -9999px; left: -9999px; }
         .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: none; margin: 0 auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .curso-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid var(--primary); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-
-        #ghost-container { position: fixed; top: -9999px; left: -9999px; }
+        .curso-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border-left: 5px solid var(--primary); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
     </style>
 </head>
 <body>
 
     <header class="app-header">
-        <img src="https://vxggatcfrywyodovjwxj.supabase.co/storage/v1/object/public/logos-instituciones/Asari%20Logo.jpg" id="app-logo" class="app-logo" alt="Logo">
+        <img src="" id="app-logo" class="app-logo" alt="Logo">
     </header>
 
     <div id="screen-login" class="screen active">
         <div class="login-container">
             <h1 class="login-title">Acceso Alumnos</h1>
             <p class="login-desc">Ingresa tu DNI para acceder.</p>
-            <div class="input-group"><i class="fas fa-id-card input-icon"></i><input type="tel" id="input-dni" class="input-dni" placeholder="Número de DNI" autocomplete="off"></div>
+            <div class="input-group"><i class="fas fa-id-card input-icon"></i><input type="tel" id="input-dni" class="input-dni" placeholder="DNI sin puntos"></div>
             <button class="btn-main" onclick="ingresar()"><span id="btn-text">INGRESAR</span><div id="loader" class="loader"></div></button>
-            <div id="msg-error"></div>
+            <div id="msg-error" style="color:red; margin-top:10px; display:none;"></div>
         </div>
-        <div class="footer-brand">POWERED BY <strong>ASARI PLATFORM</strong></div>
     </div>
 
     <div id="screen-upload" class="screen">
@@ -142,7 +129,7 @@
             <h1 class="login-title">Foto de Perfil</h1>
             <p class="login-desc">Sube una foto clara para tu credencial.</p>
             <label class="upload-area">
-                <div class="upload-icon"><i class="fas fa-camera"></i></div>
+                <i class="fas fa-camera" style="font-size:40px; color:#ccc;"></i><br>
                 <div id="txt-upload">Tocar para subir</div>
                 <input type="file" id="input-foto-alumno" accept="image/*" style="display:none;" onchange="previsualizarFoto()">
                 <img id="preview-upload" src="">
@@ -156,22 +143,20 @@
         <div class="wallet-welcome"><div class="welcome-name">Mis Cursos</div></div>
         <div id="lista-cursos-container"></div>
         <div class="action-card" onclick="cerrarSesion()" style="margin-top:20px; background: #fff0f0;"><span class="action-title" style="color: #d32f2f;">Salir</span></div>
-        <div class="footer-brand">Validado por <strong>ASARI</strong></div>
     </div>
 
     <div id="screen-wallet" class="screen">
         <div class="wallet-welcome">
-            <div><div class="welcome-sub">Bienvenido/a</div><div class="welcome-name" id="user-name">...</div></div>
+            <div><div class="welcome-name" id="user-name">...</div></div>
             <img src="" id="user-avatar-wallet" class="user-avatar-mini" style="display:none;">
         </div>
         <div class="card-viewport" id="card-viewport"><div id="carnet-render"></div></div>
         <div class="actions-grid">
-            <div class="action-card" onclick="descargarCarnetCompleto()"><span class="action-icon"><i class="fas fa-id-card"></i></span><span class="action-title">Descargar Carnet</span></div>
-            <div class="action-card" id="btn-descargar-diploma" style="display:none;" onclick="descargarDiploma()"><span class="action-icon"><i class="fas fa-certificate"></i></span><span class="action-title">Descargar Diploma</span></div>
-            <div class="action-card" id="btn-cambiar-curso" style="display:none;" onclick="volverAlSelector()"><span class="action-icon" style="color:#666"><i class="fas fa-exchange-alt"></i></span><span class="action-title">Cambiar</span></div>
-            <div class="action-card" onclick="cerrarSesion()"><span class="action-icon"><i class="fas fa-sign-out-alt" style="color:#d32f2f;"></i></span><span class="action-title">Salir</span></div>
+            <div class="action-card" onclick="descargarCarnetCompleto()"><span class="action-icon"><i class="fas fa-id-card"></i></span><span class="action-title">Carnet</span></div>
+            <div class="action-card" id="btn-descargar-diploma" style="display:none;" onclick="descargarDiploma()"><span class="action-icon"><i class="fas fa-certificate"></i></span><span class="action-title">Diploma</span></div>
+            <div class="action-card" id="btn-cambiar-curso" style="display:none;" onclick="volverAlSelector()"><span class="action-icon"><i class="fas fa-exchange-alt"></i></span><span class="action-title">Cambiar</span></div>
+            <div class="action-card" onclick="cerrarSesion()"><span class="action-icon"><i class="fas fa-sign-out-alt"></i></span><span class="action-title">Salir</span></div>
         </div>
-        <div class="footer-brand">Soporte y Seguridad<br><strong>ASARI PLATFORM</strong></div>
     </div>
 
     <div id="ghost-container"></div>
@@ -185,20 +170,17 @@
         const LOGO_ASARI_DEFAULT = "https://vxggatcfrywyodovjwxj.supabase.co/storage/v1/object/public/logos-instituciones/Asari%20Logo.jpg"; 
         const URL_REVERSO = "./reverso.jpg"; 
 
-        const COLOR_DEFAULT = "#b8860b"; 
+        const COLORES_REGISTRO = { 'remaep': '#0033cc', 'rniue': '#b8860b', 'rubra': '#cc0000', 'rmts': '#2f4f4f', 'asarin': '#800000', 'rpde': '#0099ff', 'rce': '#ffcc00', 'colbert': '#2f4f4f', 'default': '#0033cc' };
+
         let globalMatriculas = [];
         let alumnoActual = null; 
         let cursoActualData = null;
 
         document.getElementById('app-logo').src = LOGO_ASARI_DEFAULT;
-        document.documentElement.style.setProperty('--primary', COLOR_DEFAULT);
-        window.addEventListener('resize', ajustarCarnetResponsivo);
-
-        const COLORES_REGISTRO = { 'remaep': '#0033cc', 'rniue': '#b8860b', 'rubra': '#cc0000', 'rmts': '#2f4f4f', 'asarin': '#800000', 'rpde': '#0099ff', 'rce': '#ffcc00', 'colbert': '#2f4f4f', 'default': '#0033cc' };
 
         const CARNET_HTML = `
             <div class="card-base" id="card-base-el">
-                <div class="front-left" id="panel-izq-bg">
+                <div class="front-left">
                     <img id="img-foto" class="student-photo" src="">
                     <div class="rect-banda" id="banda-color"></div>
                     <div class="qr-container" id="qr-container"></div>
@@ -208,55 +190,58 @@
                     <div class="holo-layer"></div>
                     <div class="front-content">
                         <div class="header"><span class="header-text" id="txt-anio-header">CARNET</span></div>
-                        <div class="course-container"><div class="course-title-main" id="txt-titulo-main">CURSO</div><div class="course-title-sub" id="txt-titulo-sub">PROFESIONAL</div></div>
-                        <div class="student-name" id="txt-nombre" style="white-space: nowrap;">---</div>
+                        <div class="course-container"><div class="course-title-main" id="txt-titulo-main"></div><div class="course-title-sub" id="txt-titulo-sub"></div></div>
+                        <div class="student-name" id="txt-nombre"></div>
                         <div class="data-grid">
-                            <div class="icon-box">✱</div><div class="data-box"><span class="label-text">DNI:</span><span class="value-text" id="txt-dni">---</span></div>
-                            <div class="icon-box">#</div><div class="data-box"><span class="label-text">MATRÍCULA:</span><span class="value-text" id="txt-matricula">---</span></div>
-                            <div class="icon-box">🚨</div><div class="data-box"><span class="label-text">VENCE:</span><span class="value-text" id="txt-vence">---</span></div>
+                            <div class="icon-box">✱</div><div class="data-box"><span class="label-text">DNI:</span><span class="value-text" id="txt-dni"></span></div>
+                            <div class="icon-box">#</div><div class="data-box"><span class="label-text">MATRÍCULA:</span><span class="value-text" id="txt-matricula"></span></div>
+                            <div class="icon-box">🚨</div><div class="data-box"><span class="label-text">VENCE:</span><span class="value-text" id="txt-vence"></span></div>
                         </div>
                     </div>
                 </div>
             </div>`;
 
-        const CARNET_BACK_HTML = `<img src="${URL_REVERSO}" class="carnet-back-img" id="carnet-back-img">`;
+        // --- FUNCIONES CORE ---
 
-        // INGRESO
+        function ajustarTextoAlAncho(element, startSize, maxWidth) {
+            if (!element) return;
+            let size = startSize;
+            element.style.fontSize = size + 'px';
+            element.style.display = 'inline-block';
+            element.style.whiteSpace = 'nowrap';
+            
+            // Reducción agresiva hasta que entre
+            while (element.scrollWidth > maxWidth && size > 8) {
+                size -= 1;
+                element.style.fontSize = size + 'px';
+            }
+        }
+
         async function ingresar() {
             const dni = document.getElementById('input-dni').value.trim();
-            const btnText = document.getElementById('btn-text');
-            const loader = document.getElementById('loader');
-            const errorMsg = document.getElementById('msg-error');
             if(!dni) return;
-            btnText.style.display = 'none'; loader.style.display = 'block'; errorMsg.style.display = 'none';
+            
+            document.getElementById('btn-text').style.display = 'none';
+            document.getElementById('loader').style.display = 'block';
+
             try {
                 const { data: matriculas, error } = await db.from('matriculas').select('*').eq('dni_alumno', dni);
                 if (!matriculas || matriculas.length === 0) throw new Error("No encontrado");
-                globalMatriculas = matriculas;
                 
-                const idRegistro = (matriculas[0].registro_id || '').toLowerCase().trim();
-                let instData = null;
-                try {
-                    const { data: dataInst } = await db.from('instituciones').select('logo_url, color_tema').ilike('nombre', `%${idRegistro}%`).maybeSingle();
-                    if(dataInst) instData = dataInst;
-                    else {
-                        const { data: dataCurso } = await db.from('cursos_oficiales').select('logo_url, color_tema').eq('nombre', matriculas[0].curso).maybeSingle();
-                        instData = dataCurso;
-                    }
-                } catch(e) {}
+                globalMatriculas = matriculas;
+                alumnoActual = matriculas[0];
 
-                if (instData && instData.logo_url) {
-                    cambiarIdentidadVisual(instData.logo_url, instData.color_tema || '#0033cc');
-                } else {
-                    cambiarIdentidadVisual(LOGO_ASARI_DEFAULT, COLOR_DEFAULT);
-                }
+                // Cargar Logo Institución
+                const idReg = (alumnoActual.registro_id || '').toLowerCase();
+                const { data: inst } = await db.from('instituciones').select('logo_url, color_tema').ilike('nombre', `%${idReg}%`).maybeSingle();
+                
+                cambiarIdentidadVisual(inst?.logo_url || LOGO_ASARI_DEFAULT, inst?.color_tema || '#0033cc');
 
-                if (!matriculas[0].foto_url) {
-                    alumnoActual = matriculas[0];
+                if (!alumnoActual.foto_url) {
                     mostrarPantalla('screen-upload');
                 } else {
                     if (matriculas.length === 1) {
-                        cargarWallet(matriculas[0]);
+                        cargarWallet(alumnoActual);
                         mostrarPantalla('screen-wallet');
                     } else {
                         generarListaCursos(matriculas);
@@ -264,123 +249,89 @@
                     }
                 }
             } catch (err) {
-                errorMsg.style.display = 'block'; errorMsg.innerText = "DNI no encontrado.";
+                const e = document.getElementById('msg-error'); e.style.display='block'; e.innerText="DNI no encontrado.";
             } finally {
-                btnText.style.display = 'block'; loader.style.display = 'none';
+                document.getElementById('btn-text').style.display = 'block';
+                document.getElementById('loader').style.display = 'none';
             }
         }
 
-        function previsualizarFoto() { const file = document.getElementById('input-foto-alumno').files[0]; if(file) { const reader = new FileReader(); reader.onload = function(e) { document.getElementById('preview-upload').src = e.target.result; document.getElementById('preview-upload').style.display = 'block'; document.getElementById('txt-upload').style.display = 'none'; document.getElementById('btn-subir').style.display = 'block'; }; reader.readAsDataURL(file); } }
-        async function subirFoto() { const file = document.getElementById('input-foto-alumno').files[0]; if (!file) return; const btn = document.getElementById('btn-subir'); const loader = document.getElementById('upload-loader'); btn.style.display = 'none'; loader.style.display = 'block'; try { const fileName = `${alumnoActual.dni_alumno}_${Date.now()}.${file.name.split('.').pop()}`; const { data, error } = await db.storage.from('fotos-alumnos').upload(fileName, file); if (error) throw error; const { data: urlData } = db.storage.from('fotos-alumnos').getPublicUrl(fileName); await db.from('matriculas').update({ foto_url: urlData.publicUrl }).eq('dni_alumno', alumnoActual.dni_alumno); alumnoActual.foto_url = urlData.publicUrl; globalMatriculas.forEach(m => m.foto_url = urlData.publicUrl); alert("¡Foto guardada!"); if (globalMatriculas.length === 1) { cargarWallet(alumnoActual); mostrarPantalla('screen-wallet'); } else { generarListaCursos(globalMatriculas); mostrarPantalla('screen-selector'); } } catch (err) { alert("Error: " + err.message); btn.style.display = 'block'; } finally { loader.style.display = 'none'; } }
-        function cambiarIdentidadVisual(logo, color) { const img = document.getElementById('app-logo'); img.src = ""; img.src = logo; document.documentElement.style.setProperty('--primary', color); }
-        function generarListaCursos(matriculas) { const container = document.getElementById('lista-cursos-container'); container.innerHTML = ''; matriculas.forEach((m) => { const card = document.createElement('div'); card.className = 'curso-card'; const color = COLORES_REGISTRO[(m.registro_id || 'default').toLowerCase()] || COLORES_REGISTRO['default']; card.style.borderLeftColor = color; card.innerHTML = `<div class="curso-info"><h4>${m.curso}</h4><p>${(m.registro_id || '').toUpperCase()} • ${new Date(m.fecha_inicio).getFullYear()}</p></div><div><i class="fas fa-chevron-right" style="color:#ccc"></i></div>`; card.onclick = () => { cargarWallet(m); mostrarPantalla('screen-wallet'); }; container.appendChild(card); }); }
-        
         async function cargarWallet(alumno) {
             alumnoActual = alumno; 
             document.getElementById('user-name').innerText = alumno.nombre.split(' ')[0];
             const av = document.getElementById('user-avatar-wallet');
             if(alumno.foto_url) { av.src = alumno.foto_url; av.style.display = 'block'; }
+            
             document.getElementById('btn-cambiar-curso').style.display = globalMatriculas.length > 1 ? 'flex' : 'none';
 
             const container = document.getElementById('carnet-render');
             container.innerHTML = CARNET_HTML; 
-            llenarDatosCarnet(container, alumno);
+            await llenarDatosCarnet(container, alumno);
             
-            const { data } = await db.from('cursos_oficiales').select('*').eq('nombre', alumno.curso).single();
+            const { data } = await db.from('cursos_oficiales').select('*').eq('nombre', alumno.curso).maybeSingle();
             cursoActualData = data;
-            document.getElementById('btn-descargar-diploma').style.display = (data && data.diploma_bg_url) ? 'block' : 'none';
+            document.getElementById('btn-descargar-diploma').style.display = data?.diploma_bg_url ? 'block' : 'none';
 
             setTimeout(ajustarCarnetResponsivo, 100);
         }
 
-        function llenarDatosCarnet(container, alumno) {
+        async function llenarDatosCarnet(container, alumno) {
             const el = (sel) => container.querySelector(sel);
-            const nombreEl = el('#txt-nombre');
-            nombreEl.innerText = `${alumno.nombre} ${alumno.apellido}`;
+            
+            const nombreCompleto = `${alumno.nombre} ${alumno.apellido}`;
+            const nomEl = el('#txt-nombre');
+            nomEl.innerText = nombreCompleto;
+            
             el('#txt-dni').innerText = alumno.dni_alumno;
             el('#txt-matricula').innerText = generarHashMatricula(String(alumno.dni_alumno));
+            
             const fecha = new Date(alumno.fecha_inicio || new Date());
             el('#txt-anio-header').innerText = `CARNET ${fecha.getFullYear()}`;
+            
             const vence = new Date(fecha); vence.setFullYear(vence.getFullYear() + 1);
             el('#txt-vence').innerText = vence.toLocaleDateString('es-AR');
-            if (alumno.foto_url) { const img = el('#img-foto'); img.crossOrigin = "anonymous"; img.src = alumno.foto_url + "?t=" + Date.now(); }
+
+            if (alumno.foto_url) { 
+                const img = el('#img-foto'); 
+                img.crossOrigin = "anonymous"; 
+                img.src = alumno.foto_url + "?t=" + Date.now(); 
+            }
+
             el('#qr-container').innerHTML = ""; 
             new QRCode(el('#qr-container'), { text: `${URL_WEB}/validador.html?id=${alumno.id}`, width: 144, height: 144 });
 
-            const registroId = (alumno.registro_id || 'default').toLowerCase();
-            const colorCarnet = COLORES_REGISTRO[registroId] || COLORES_REGISTRO['default'];
-            const nombreRegistro = (alumno.registro_id || 'OFICIAL').toUpperCase();
+            const regId = (alumno.registro_id || 'default').toLowerCase();
+            const color = COLORES_REGISTRO[regId] || COLORES_REGISTRO['default'];
+            
+            el('#card-base-el').style.borderColor = color;
+            el('#bg-panel').style.backgroundColor = color;
+            el('#banda-color').style.backgroundColor = color;
+            el('#txt-sigla').innerText = regId.toUpperCase();
+            el('#txt-sigla').style.color = color;
 
-            el('#card-base-el').style.borderColor = colorCarnet;
-            el('#bg-panel').style.backgroundColor = colorCarnet;
-            el('#banda-color').style.backgroundColor = colorCarnet;
-            const sigla = el('#txt-sigla');
-            sigla.innerText = nombreRegistro;
-            sigla.style.color = colorCarnet;
-            if(registroId === 'rce') el('#bg-panel').style.color = 'black'; else el('#bg-panel').style.color = 'white';
+            // Títulos Curso
+            const t = (alumno.curso || "CURSO").trim().toUpperCase().split(/\s+/);
+            const mid = Math.ceil(t.length / 2);
+            el('#txt-titulo-main').innerText = t.slice(0, mid).join(' ');
+            el('#txt-titulo-sub').innerText = t.slice(mid).join(' ');
 
-            const t = (alumno.curso || "CURSO PROFESIONAL").trim().toUpperCase().split(/\s+/);
-            const e1 = el('#txt-titulo-main'); const e2 = el('#txt-titulo-sub');
-            if(t.length < 2) { e1.innerText = t.join(' '); e2.innerText = ""; } 
-            else { const c = Math.ceil(t.length / 2); e1.innerText = t.slice(0, c).join(' '); e2.innerText = t.slice(c).join(' '); }
-
-            ajustarTextoAlAncho(nombreEl, 34); 
-        }
-
-        // FUNCION AJUSTE (Con MaxWidth fijo)
-        function ajustarTextoAlAncho(element, startSize, maxWidth) {
-            let size = startSize;
-            element.style.fontSize = size + 'px';
-            // Mientras el contenido sea más ancho que su caja (1400px)... reduce
-            while (element.scrollWidth > (maxWidth || element.clientWidth) && size > 10) {
-                size -= 2;
-                element.style.fontSize = size + 'px';
-            }
-        }
-
-        async function descargarCarnetCompleto() {
-            if(!alumnoActual) return;
-            const btn = document.querySelector('.action-card'); const txt = btn.innerHTML; btn.innerHTML = '⏳';
-            try {
-                const ghost = document.getElementById('ghost-container'); ghost.innerHTML = "";
-                const wrapper = document.createElement('div');
-                wrapper.style.display = "flex"; wrapper.style.flexDirection = "column"; wrapper.style.gap = "20px"; wrapper.style.padding = "20px"; wrapper.style.backgroundColor = "white";
-                
-                wrapper.insertAdjacentHTML('beforeend', CARNET_HTML);
-                wrapper.insertAdjacentHTML('beforeend', CARNET_BACK_HTML);
-                ghost.appendChild(wrapper);
-                
-                llenarDatosCarnet(ghost, alumnoActual);
-                const cards = ghost.querySelectorAll('.card-base, .carnet-back-img');
-                cards.forEach(c => { c.style.width = "1011px"; c.style.height = "638px"; });
-                
-                const backImg = ghost.querySelector('#carnet-back-img');
-                backImg.style.borderColor = ghost.querySelector('.card-base').style.borderColor;
-
-                const images = ghost.getElementsByTagName('img');
-                for(let img of images) { if(img.src && !img.complete) await new Promise(r => img.onload = r); }
-                await new Promise(r => setTimeout(r, 500)); 
-
-                const canvas = await html2canvas(wrapper, { scale: 1.5, useCORS: true });
-                const link = document.createElement('a');
-                link.download = `Carnet_${alumnoActual.dni_alumno}.png`;
-                link.href = canvas.toDataURL("image/png");
-                link.click();
-                ghost.innerHTML = '';
-            } catch(e) { alert("Error: " + e.message); } finally { btn.innerHTML = txt; }
+            // AJUSTE NOMBRE CARNET (Ancho máximo del panel derecho aprox 550px)
+            ajustarTextoAlAncho(nomEl, 34, 550);
         }
 
         async function descargarDiploma() {
-            if(!cursoActualData || !cursoActualData.diploma_bg_url) return alert("Diploma no disponible.");
-            const btn = document.getElementById('btn-descargar-diploma'); const txt = btn.innerHTML; btn.innerHTML = '⏳';
+            if(!cursoActualData?.diploma_bg_url) return;
+            const btn = document.getElementById('btn-descargar-diploma');
+            btn.innerHTML = '⏳...';
 
             try {
                 const ghost = document.getElementById('ghost-container');
-                ghost.innerHTML = `<div class="diploma-container" id="diploma-box">
-                    <div class="dip-nombre-box"><span class="dip-nombre" id="dip-nombre"></span></div>
-                    <div class="dip-dni-box"><span class="dip-dni" id="dip-dni-val"></span></div>
-                    <div class="dip-qr" id="dip-qr"></div>
-                </div>`;
+                ghost.innerHTML = `
+                    <div class="diploma-container" id="diploma-box">
+                        <div class="dip-nombre-box"><span class="dip-nombre" id="dip-nombre"></span></div>
+                        <div class="dip-dni-box"><span class="dip-dni" id="dip-dni-val"></span></div>
+                        <div class="dip-qr" id="dip-qr"></div>
+                    </div>`;
 
                 const box = ghost.querySelector('#diploma-box');
                 const bgImg = new Image();
@@ -389,37 +340,107 @@
                 await new Promise(r => bgImg.onload = r);
                 box.style.backgroundImage = `url('${bgImg.src}')`;
 
-                // ESPERAR FUENTE (CRUCIAL PARA AUTOAJUSTE)
                 await document.fonts.ready;
 
-                // 1. NOMBRE 
-                const nombreEl = ghost.querySelector('#dip-nombre');
-                nombreEl.innerText = `${alumnoActual.nombre} ${alumnoActual.apellido}`;
-                ajustarTextoAlAncho(nombreEl, 90, 1400); 
+                // AJUSTE NOMBRE DIPLOMA
+                const nEl = ghost.querySelector('#dip-nombre');
+                nEl.innerText = `${alumnoActual.nombre} ${alumnoActual.apellido}`;
+                ajustarTextoAlAncho(nEl, 90, 1450); 
 
-                // 2. DNI
-                const dniEl = ghost.querySelector('#dip-dni-val');
-                dniEl.innerText = `D.N.I: ${alumnoActual.dni_alumno}`;
-                ajustarTextoAlAncho(dniEl, 35, 1400);
+                // AJUSTE DNI DIPLOMA
+                const dEl = ghost.querySelector('#dip-dni-val');
+                dEl.innerText = `D.N.I: ${alumnoActual.dni_alumno}`;
+                ajustarTextoAlAncho(dEl, 35, 1200);
 
-                // 3. QR (Posición Corregida: Top 360px)
                 new QRCode(ghost.querySelector('#dip-qr'), { text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, width: 160, height: 160 });
 
-                await new Promise(r => setTimeout(r, 500)); 
+                await new Promise(r => setTimeout(r, 800)); 
+                
                 const canvas = await html2canvas(box, { scale: 1, useCORS: true });
                 const link = document.createElement('a');
                 link.download = `Diploma_${alumnoActual.dni_alumno}.png`;
                 link.href = canvas.toDataURL("image/png");
                 link.click();
-                ghost.innerHTML = '';
-            } catch(e) { alert("Error diploma: " + e.message); } finally { btn.innerHTML = txt; }
+            } catch(e) { alert("Error: " + e.message); }
+            finally { btn.innerHTML = '<span class="action-icon"><i class="fas fa-certificate"></i></span><span class="action-title">Diploma</span>'; }
         }
 
+        async function descargarCarnetCompleto() {
+            const ghost = document.getElementById('ghost-container');
+            ghost.innerHTML = `<div id="wrap-desc" style="display:flex; flex-direction:column; gap:20px; padding:20px; background:white;"></div>`;
+            const wrap = ghost.querySelector('#wrap-desc');
+            
+            wrap.insertAdjacentHTML('beforeend', CARNET_HTML);
+            wrap.insertAdjacentHTML('beforeend', `<img src="${URL_REVERSO}" class="carnet-back-img" id="back-desc">`);
+            
+            await llenarDatosCarnet(wrap, alumnoActual);
+            const b = wrap.querySelector('#back-desc');
+            b.style.borderColor = wrap.querySelector('.card-base').style.borderColor;
+
+            const images = wrap.getElementsByTagName('img');
+            for(let img of images) { if(img.src && !img.complete) await new Promise(r => img.onload = r); }
+            
+            await new Promise(r => setTimeout(r, 500));
+            const canvas = await html2canvas(wrap, { scale: 1.5, useCORS: true });
+            const link = document.createElement('a');
+            link.download = `Carnet_${alumnoActual.dni_alumno}.png`;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+            ghost.innerHTML = "";
+        }
+
+        // --- UTILIDADES ---
         function mostrarPantalla(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+        function cambiarIdentidadVisual(logo, color) { document.getElementById('app-logo').src = logo; document.documentElement.style.setProperty('--primary', color); }
         function volverAlSelector() { mostrarPantalla('screen-selector'); }
         function cerrarSesion() { location.reload(); }
-        function ajustarCarnetResponsivo() { const v = document.getElementById('card-viewport'); const c = document.getElementById('carnet-render'); if(v && c) { const s = v.offsetWidth / 1011; c.style.transform = `scale(${s})`; v.style.height = `${638 * s}px`; } }
+        function ajustarCarnetResponsivo() { 
+            const v = document.getElementById('card-viewport'); 
+            const c = document.getElementById('carnet-render'); 
+            if(v && c) { const s = v.offsetWidth / 1011; c.style.transform = `scale(${s})`; v.style.height = `${638 * s}px`; } 
+        }
         function generarHashMatricula(d) { let h = 0; for (let i = 0; i < d.length; i++) { h = ((h << 5) - h) + d.charCodeAt(i); h |= 0; } return String(Math.abs(h)).substring(0, 6).padStart(6, '9'); }
+        function previsualizarFoto() { 
+            const file = document.getElementById('input-foto-alumno').files[0]; 
+            if(file) { 
+                const reader = new FileReader(); 
+                reader.onload = (e) => { 
+                    document.getElementById('preview-upload').src = e.target.result; 
+                    document.getElementById('preview-upload').style.display = 'block'; 
+                    document.getElementById('txt-upload').style.display = 'none'; 
+                    document.getElementById('btn-subir').style.display = 'block'; 
+                }; 
+                reader.readAsDataURL(file); 
+            } 
+        }
+        async function subirFoto() {
+            const file = document.getElementById('input-foto-alumno').files[0];
+            const loader = document.getElementById('upload-loader');
+            document.getElementById('btn-subir').style.display = 'none';
+            loader.style.display = 'block';
+            try {
+                const fileName = `${alumnoActual.dni_alumno}_${Date.now()}.jpg`;
+                await db.storage.from('fotos-alumnos').upload(fileName, file);
+                const { data: urlData } = db.storage.from('fotos-alumnos').getPublicUrl(fileName);
+                await db.from('matriculas').update({ foto_url: urlData.publicUrl }).eq('dni_alumno', alumnoActual.dni_alumno);
+                alumnoActual.foto_url = urlData.publicUrl;
+                globalMatriculas.forEach(m => m.foto_url = urlData.publicUrl);
+                cargarWallet(alumnoActual);
+                mostrarPantalla('screen-wallet');
+            } catch(e) { alert("Error al subir"); document.getElementById('btn-subir').style.display = 'block'; }
+            finally { loader.style.display = 'none'; }
+        }
+        function generarListaCursos(matriculas) {
+            const container = document.getElementById('lista-cursos-container');
+            container.innerHTML = '';
+            matriculas.forEach(m => {
+                const card = document.createElement('div'); card.className = 'curso-card';
+                card.innerHTML = `<div><b>${m.curso}</b><br><small>${m.registro_id || 'OFICIAL'}</small></div><i class="fas fa-chevron-right"></i>`;
+                card.onclick = () => { cargarWallet(m); mostrarPantalla('screen-wallet'); };
+                container.appendChild(card);
+            });
+        }
+        window.onresize = ajustarCarnetResponsivo;
     </script>
 </body>
 </html>
