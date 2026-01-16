@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control - ASARI V2.1</title>
+    <title>Panel de Control - ASARI V2.2</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -191,7 +191,18 @@
                 
                 <div class="grid grid-cols-3 gap-4">
                     <div class="col-span-2"><label class="label-form">Nombre</label><input type="text" id="c-nombre" class="input-form" placeholder="Ej: Socorrismo"></div>
-                    <div><label class="label-form">Registro</label><select id="c-registro" class="input-form font-bold"><option value="remaep">REMAEP</option><option value="asarin">ASARIN</option><option value="rubra">RUBRA</option></select></div>
+                    <div>
+                        <label class="label-form">Registro</label>
+                        <select id="c-registro" class="input-form font-bold">
+                            <option value="remaep">REMAEP</option>
+                            <option value="asarin">ASARIN</option>
+                            <option value="rubra">RUBRA</option>
+                            <option value="rniue">RNIUE</option>
+                            <option value="rmts">RMTS</option>
+                            <option value="rce">RCE</option>
+                            <option value="rpde">RPDE</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
@@ -265,7 +276,7 @@
                 }
             }
 
-            console.log("Perfil cargado:", currentProfile.rol, "Inst ID:", currentProfile.institucion_id);
+            console.log("Perfil:", currentProfile.rol, "Inst ID:", currentProfile.institucion_id);
             await cargarCursosDB(); 
             await cargarAlumnos(); 
             await contarAlumnos(); 
@@ -273,7 +284,7 @@
             lucide.createIcons();
         });
 
-        // --- FUNCIONES CORE ---
+        // --- CORE LOGIC ---
         async function buscarAlumnos() { cargarAlumnos(document.getElementById('input-busqueda').value.trim()); }
 
         async function cargarAlumnos(filtro='') { 
@@ -311,15 +322,22 @@
             document.getElementById('stat-total').innerText = count || 0;
         }
 
+        // --- CORRECCIÓN 1: Filtro de Cursos más permisivo ---
         async function cargarCursosDB() {
             const lista = document.getElementById('lista-cursos-config');
+            // Trae TODO primero
             const { data, error } = await db.from('cursos_oficiales').select('*').order('created_at', { ascending: false });
             
-            if(error) { lista.innerHTML = `<p class="text-red-500 text-sm col-span-3 text-center py-4">Error de conexión.</p>`; return; }
+            if(error) { 
+                console.error("Error cursos:", error);
+                lista.innerHTML = `<p class="text-red-500 text-sm col-span-3 text-center py-4">Error de conexión.</p>`; 
+                return; 
+            }
             
             if(data) { 
                 if (currentProfile && currentProfile.rol !== 'superadmin') {
-                    cursosCache = data.filter(c => c.institution_id === currentProfile.institucion_id || c.institution_id === null);
+                    // Filtra aquí: Si es MIO (mismo ID) o es GLOBAL (ID null/vacio)
+                    cursosCache = data.filter(c => c.institution_id === currentProfile.institucion_id || !c.institution_id);
                 } else {
                     cursosCache = data;
                 }
@@ -348,7 +366,6 @@
             lucide.createIcons();
         }
 
-        // --- RESTO DE FUNCIONALIDADES ---
         function actualizarSelectModal() { const s = document.getElementById('m-curso-select'); s.innerHTML = '<option value="">-- Seleccionar --</option>'; cursosCache.forEach(c => s.innerHTML += `<option value="${c.id}">${c.nombre}</option>`); }
         function aplicarEstilosInstitucion(inst) { if(inst.color_primario) document.getElementById('sidebar').style.backgroundColor = inst.color_primario; if(inst.logo_url) { document.getElementById('brand-logo').src = inst.logo_url; document.getElementById('brand-logo').classList.remove('hidden'); document.getElementById('brand-text').classList.add('hidden'); document.getElementById('dashboard-logo-container').innerHTML = `<img src="${inst.logo_url}" class="w-full h-full object-contain">`; } document.getElementById('sidebar-inst-name').innerText = inst.nombre; document.getElementById('dash-inst-name').innerText = inst.nombre; if(inst.activo !== false) document.getElementById('badge-estado').classList.remove('hidden'); }
         function mostrarSeccion(id) { ['panel-inicio','panel-carga','panel-alumnos','panel-clientes','panel-cursos'].forEach(p => document.getElementById(p).classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
@@ -396,7 +413,6 @@
             alert("Guardado"); cerrarModalAlumno(); cargarAlumnos(); contarAlumnos();
         }
 
-        // --- SUPERADMIN TOOLS ---
         async function cargarInstituciones() { 
             const container = document.getElementById('lista-instituciones'); 
             const { data } = await db.from('instituciones').select('*').order('created_at', {ascending:false});
@@ -456,7 +472,6 @@
             if(error) alert(error.message); else cargarInstituciones();
         }
 
-        // --- GESTIÓN DE CURSOS (ANALÍTICO MÚLTIPLE + SIMPLE) ---
         async function agregarPaginaAnalitico(input) {
             if(!input.files || input.files.length === 0) return;
             for(let i=0; i<input.files.length; i++) {
@@ -473,7 +488,9 @@
             const div = document.getElementById('galeria-analitico');
             div.innerHTML = "";
             analiticoPaginas.forEach((url, index) => {
-                div.innerHTML += `<div class="relative group w-16 h-20 bg-slate-200 rounded border border-slate-300 overflow-hidden"><img src="${url}" class="w-full h-full object-cover"><button onclick="borrarPaginaAnalitico(${index})" class="absolute top-0 right-0 bg-red-500 text-white p-0.5 rounded-bl hover:bg-red-700"><i data-lucide="x" size="12"></i></button><span class="absolute bottom-0 left-0 bg-black/50 text-white text-[8px] px-1 w-full text-center">Pág ${index+1}</span></div>`;
+                // CORRECCIÓN 3: Agregar timestamp al mostrar la imagen para evitar caché
+                const safeUrl = `${url}?t=${Date.now()}`;
+                div.innerHTML += `<div class="relative group w-16 h-20 bg-slate-200 rounded border border-slate-300 overflow-hidden"><img src="${safeUrl}" class="w-full h-full object-cover"><button onclick="borrarPaginaAnalitico(${index})" class="absolute top-0 right-0 bg-red-500 text-white p-0.5 rounded-bl hover:bg-red-700"><i data-lucide="x" size="12"></i></button><span class="absolute bottom-0 left-0 bg-black/50 text-white text-[8px] px-1 w-full text-center">Pág ${index+1}</span></div>`;
             });
             lucide.createIcons();
         }
@@ -495,6 +512,7 @@
                 nombre, 
                 registro_id: registro, 
                 institution_id: currentProfile.rol === 'superadmin' ? null : currentProfile.institucion_id,
+                // CORRECCIÓN 3b: Asegurar que se guarda el array JSON
                 analitico_bg_url: analiticoPaginas.length > 0 ? JSON.stringify(analiticoPaginas) : null 
             };
 
