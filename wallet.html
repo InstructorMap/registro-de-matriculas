@@ -156,7 +156,7 @@
 
     <div id="ghost-container"></div>
 
-    <script>
+<script>
         const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const URL_WEB = 'https://instructormap.github.io/registro-de-matriculas';
@@ -172,6 +172,7 @@
         window.addEventListener('resize', ajustarCarnetResponsivo);
 
         const COLORES_REGISTRO = { 'remaep': '#0033cc', 'rniue': '#b8860b', 'rubra': '#cc0000', 'rmts': '#2f4f4f', 'asarin': '#800000', 'rpde': '#0099ff', 'rce': '#ffcc00', 'colbert': '#2f4f4f', 'default': '#0033cc' };
+        
         const CARNET_HTML = `
             <div class="card-base" id="card-base-el">
                 <div class="front-left" id="panel-izq-bg">
@@ -185,7 +186,7 @@
                     <div class="front-content">
                         <div class="header"><span class="header-text" id="txt-anio-header">CARNET</span></div>
                         <div class="course-container"><div class="course-title-main" id="txt-titulo-main">CURSO</div><div class="course-title-sub" id="txt-titulo-sub">PROFESIONAL</div></div>
-                        <div class="student-name" id="txt-nombre">---</div>
+                        <div class="student-name" id="txt-nombre" style="white-space: nowrap; overflow: hidden;">---</div>
                         <div class="data-grid">
                             <div class="icon-box">✱</div><div class="data-box"><span class="label-text">DNI:</span><span class="value-text" id="txt-dni">---</span></div>
                             <div class="icon-box">#</div><div class="data-box"><span class="label-text">MATRÍCULA:</span><span class="value-text" id="txt-matricula">---</span></div>
@@ -210,7 +211,6 @@
 
                 globalMatriculas = matriculas;
                 
-                // DETECTAR BRANDING
                 const idRegistro = (matriculas[0].registro_id || '').toLowerCase().trim();
                 let instData = null;
                 try {
@@ -221,20 +221,17 @@
                         instData = dataCurso;
                     }
                 } catch(e) {}
+
                 if (instData && instData.logo_url && instData.logo_url.length > 5) {
                     cambiarIdentidadVisual(instData.logo_url, instData.color_tema || '#0033cc');
                 } else {
                     cambiarIdentidadVisual(LOGO_ASARI_DEFAULT, COLOR_DEFAULT);
                 }
 
-                // --- LÓGICA DE ACTIVACIÓN (FOTO) ---
-                // Si el alumno NO tiene foto en ningun registro (o en el primero), lo mandamos a subirla
-                // Asumimos que la foto es global por DNI, si falta en el primero, falta en todos.
                 if (!matriculas[0].foto_url) {
-                    alumnoActual = matriculas[0]; // Guardamos referencia
+                    alumnoActual = matriculas[0];
                     mostrarPantalla('screen-upload');
                 } else {
-                    // SI TIENE FOTO, FLUJO NORMAL
                     if (matriculas.length === 1) {
                         cargarWallet(matriculas[0]);
                         mostrarPantalla('screen-wallet');
@@ -243,7 +240,6 @@
                         mostrarPantalla('screen-selector');
                     }
                 }
-
             } catch (err) {
                 console.error(err);
                 errorMsg.style.display = 'block'; errorMsg.innerText = "DNI no encontrado.";
@@ -252,7 +248,6 @@
             }
         }
 
-        // --- FUNCIONES DE UPLOAD (GENERADOR INTEGRADO) ---
         function previsualizarFoto() {
             const file = document.getElementById('input-foto-alumno').files[0];
             if(file) {
@@ -273,40 +268,19 @@
 
             const btn = document.getElementById('btn-subir');
             const loader = document.getElementById('upload-loader');
-            btn.style.display = 'none';
-            loader.style.display = 'block';
+            btn.style.display = 'none'; loader.style.display = 'block';
 
             try {
-                // 1. Subir a Supabase Storage
-                // Nombre archivo: dni_timestamp.png
                 const fileName = `${alumnoActual.dni_alumno}_${Date.now()}.${file.name.split('.').pop()}`;
-                
-                const { data, error } = await db.storage
-                    .from('fotos-alumnos') // Asegurate que este bucket exista y sea público
-                    .upload(fileName, file);
-
+                const { data, error } = await db.storage.from('fotos-alumnos').upload(fileName, file);
                 if (error) throw error;
-
-                // 2. Obtener URL Pública
                 const { data: urlData } = db.storage.from('fotos-alumnos').getPublicUrl(fileName);
-                const publicUrl = urlData.publicUrl;
-
-                // 3. Actualizar TODAS las matrículas de ese DNI (para que la foto aparezca en todos sus cursos)
-                const { error: updateError } = await db
-                    .from('matriculas')
-                    .update({ foto_url: publicUrl })
-                    .eq('dni_alumno', alumnoActual.dni_alumno);
-
-                if (updateError) throw updateError;
-
-                // 4. Éxito: Actualizar objeto local y pasar a Wallet
-                alumnoActual.foto_url = publicUrl;
-                // Actualizar todas las locales tambien
-                globalMatriculas.forEach(m => m.foto_url = publicUrl);
-
-                alert("¡Foto guardada con éxito!");
                 
-                // Redirigir según cantidad de cursos
+                await db.from('matriculas').update({ foto_url: urlData.publicUrl }).eq('dni_alumno', alumnoActual.dni_alumno);
+                alumnoActual.foto_url = urlData.publicUrl;
+                globalMatriculas.forEach(m => m.foto_url = urlData.publicUrl);
+
+                alert("¡Foto guardada!");
                 if (globalMatriculas.length === 1) {
                     cargarWallet(alumnoActual);
                     mostrarPantalla('screen-wallet');
@@ -314,13 +288,10 @@
                     generarListaCursos(globalMatriculas);
                     mostrarPantalla('screen-selector');
                 }
-
             } catch (err) {
-                alert("Error subiendo foto: " + err.message);
+                alert("Error: " + err.message);
                 btn.style.display = 'block';
-            } finally {
-                loader.style.display = 'none';
-            }
+            } finally { loader.style.display = 'none'; }
         }
 
         function cambiarIdentidadVisual(logo, color) {
@@ -359,7 +330,10 @@
 
         function llenarDatosCarnet(container, alumno) {
             const el = (sel) => container.querySelector(sel);
-            el('#txt-nombre').innerText = `${alumno.nombre} ${alumno.apellido}`;
+            const nombreEl = el('#txt-nombre');
+            
+            // Llenar datos
+            nombreEl.innerText = `${alumno.nombre} ${alumno.apellido}`;
             el('#txt-dni').innerText = alumno.dni_alumno;
             el('#txt-matricula').innerText = generarHashMatricula(String(alumno.dni_alumno));
             const fecha = new Date(alumno.fecha_inicio || new Date());
@@ -376,6 +350,7 @@
             el('#qr-container').innerHTML = ""; 
             new QRCode(el('#qr-container'), { text: `${URL_WEB}/validador.html?id=${alumno.id}`, width: 144, height: 144 });
 
+            // Branding Carnet
             const registroId = (alumno.registro_id || 'default').toLowerCase();
             const colorCarnet = COLORES_REGISTRO[registroId] || COLORES_REGISTRO['default'];
             const nombreRegistro = (alumno.registro_id || 'OFICIAL').toUpperCase();
@@ -394,6 +369,20 @@
             const e1 = el('#txt-titulo-main'); const e2 = el('#txt-titulo-sub');
             if(t.length < 2) { e1.innerText = t.join(' '); e2.innerText = ""; } 
             else { const c = Math.ceil(t.length / 2); e1.innerText = t.slice(0, c).join(' '); e2.innerText = t.slice(c).join(' '); }
+
+            // 🔥 MAGIA: AUTO-AJUSTAR TAMAÑO NOMBRE
+            ajustarTextoAlAncho(nombreEl, 34); // Comienza probando con 34px
+        }
+
+        // --- FUNCIÓN NUEVA: REDUCE LA LETRA HASTA QUE QUEPA ---
+        function ajustarTextoAlAncho(element, startSize) {
+            let size = startSize;
+            element.style.fontSize = size + 'px';
+            // Mientras el contenido sea más ancho que la caja... reduce 1px
+            while (element.scrollWidth > element.clientWidth && size > 12) {
+                size--;
+                element.style.fontSize = size + 'px';
+            }
         }
 
         async function descargarCarnetImagen() {
@@ -408,6 +397,7 @@
                 const cardNode = ghost.querySelector('.card-base');
                 cardNode.style.width = "1011px"; cardNode.style.height = "638px";
                 llenarDatosCarnet(ghost, alumnoActual);
+                
                 const images = ghost.getElementsByTagName('img');
                 for(let img of images) { if(img.src && !img.complete) await new Promise(r => img.onload = r); }
                 await new Promise(r => setTimeout(r, 300)); 
@@ -418,7 +408,7 @@
                 link.href = canvas.toDataURL("image/png");
                 link.click();
                 ghost.innerHTML = '';
-            } catch (e) { alert("Error al generar imagen: " + e.message); } finally { btn.innerHTML = originalText; }
+            } catch (e) { alert("Error: " + e.message); } finally { btn.innerHTML = originalText; }
         }
 
         function mostrarPantalla(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
@@ -426,6 +416,6 @@
         function cerrarSesion() { location.reload(); }
         function ajustarCarnetResponsivo() { const v = document.getElementById('card-viewport'); const c = document.getElementById('carnet-render'); if(v && c) { const s = v.offsetWidth / 1011; c.style.transform = `scale(${s})`; v.style.height = `${638 * s}px`; } }
         function generarHashMatricula(d) { let h = 0; for (let i = 0; i < d.length; i++) { h = ((h << 5) - h) + d.charCodeAt(i); h |= 0; } return String(Math.abs(h)).substring(0, 6).padStart(6, '9'); }
-    </script>
-</body>
+        async function verificarDocs(n) { const { data } = await db.from('cursos_oficiales').select('*').eq('nombre', n).single(); if(data) { if(data.analitico_bg_url) document.getElementById('btn-descargar-analitico').style.display = 'flex'; if(data.diploma_bg_url) document.getElementById('btn-descargar-diploma').style.display = 'flex'; } }
+    </script></body>
 </html>
