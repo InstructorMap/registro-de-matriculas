@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control - ASARI V2.3 (Final)</title>
+    <title>Panel de Control - ASARI V2.4 (Edición Total)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -322,10 +322,9 @@
             document.getElementById('stat-total').innerText = count || 0;
         }
 
-        // --- CORRECCIÓN 1: Filtro de Cursos más permisivo ---
+        // --- CORRECCIÓN PERMISIVA: Permitir edición si es mío O si es huérfano ---
         async function cargarCursosDB() {
             const lista = document.getElementById('lista-cursos-config');
-            // Trae TODO primero
             const { data, error } = await db.from('cursos_oficiales').select('*').order('created_at', { ascending: false });
             
             if(error) { 
@@ -339,7 +338,7 @@
                     // BLINDAJE DE ID: Revisa ambas columnas por si acaso
                     const myId = currentProfile.institucion_id;
                     cursosCache = data.filter(c => {
-                        const cursoInstId = c.institution_id || c.institucion_id; // Check both English/Spanish
+                        const cursoInstId = c.institution_id || c.institucion_id; // Check both
                         return cursoInstId === myId || !cursoInstId; // Es mío o es Global
                     });
                 } else {
@@ -359,20 +358,13 @@
             }
             cursosCache.forEach(c => { 
                 const cl = {'remaep':'bg-blue-600','asarin':'bg-red-900'}[c.registro_id] || 'bg-slate-500';
-                // Lógica de "Es Mío" (Editable)
-                const cursoInstId = c.institution_id || c.institucion_id;
-                const esMio = cursoInstId === currentProfile.institucion_id;
-                const esGlobal = !cursoInstId;
                 
-                // Muestro el botón si: ES MIO  -O-  SOY SUPERADMIN
-                const puedeEditar = esMio || currentProfile.rol === 'superadmin';
-                
-                const badgeGlobal = esGlobal ? `<span class="bg-yellow-100 text-yellow-700 text-[9px] px-2 py-0.5 rounded font-bold border border-yellow-200">GLOBAL</span>` : ``;
-                const btnAcciones = puedeEditar
-                    ? `<button onclick="abrirModalCurso('${c.id}')" class="text-blue-500 text-xs hover:underline flex items-center gap-1"><i data-lucide="pencil" size="12"></i> Editar</button>` 
-                    : `<span class="text-slate-300 text-[10px] italic">Solo lectura</span>`;
+                // LÓGICA DE EDICIÓN FORZADA (PATCH)
+                // Si el curso no tiene ID, lo tratamos como "Global" pero permitimos editarlo
+                // para que el dueño actual (Colbert) pueda tomar posesión de él al guardar.
+                const btnAcciones = `<button onclick="abrirModalCurso('${c.id}')" class="text-blue-500 text-xs hover:underline flex items-center gap-1"><i data-lucide="pencil" size="12"></i> Editar</button>`;
 
-                l.innerHTML += `<div class="p-4 border border-slate-200 rounded-xl bg-white hover:shadow-md transition"><div class="flex justify-between items-start mb-2"><div class="flex gap-2"><span class="text-[9px] text-white px-2 py-0.5 rounded ${cl} uppercase font-bold">${c.registro_id}</span>${badgeGlobal}</div></div><p class="font-bold text-slate-700 text-sm truncate mb-3" title="${c.nombre}">${c.nombre}</p><div class="flex justify-between items-center border-t border-slate-50 pt-2">${btnAcciones}</div></div>`; 
+                l.innerHTML += `<div class="p-4 border border-slate-200 rounded-xl bg-white hover:shadow-md transition"><div class="flex justify-between items-start mb-2"><div class="flex gap-2"><span class="text-[9px] text-white px-2 py-0.5 rounded ${cl} uppercase font-bold">${c.registro_id}</span></div></div><p class="font-bold text-slate-700 text-sm truncate mb-3" title="${c.nombre}">${c.nombre}</p><div class="flex justify-between items-center border-t border-slate-50 pt-2">${btnAcciones}</div></div>`; 
             }); 
             lucide.createIcons();
         }
@@ -489,7 +481,6 @@
             for(let i=0; i<input.files.length; i++) {
                 const file = input.files[i];
                 const fileName = `analitico_pag_${Date.now()}_${i}`;
-                // CORRECCIÓN 2: Upsert true para sobrescribir si hiciera falta
                 await db.storage.from('plantillas-diplomas').upload(fileName, file, { upsert: true });
                 const { data } = db.storage.from('plantillas-diplomas').getPublicUrl(fileName);
                 analiticoPaginas.push(data.publicUrl);
@@ -501,7 +492,6 @@
             const div = document.getElementById('galeria-analitico');
             div.innerHTML = "";
             analiticoPaginas.forEach((url, index) => {
-                // Cache Buster visual
                 const safeUrl = `${url}?t=${Date.now()}`;
                 div.innerHTML += `<div class="relative group w-16 h-20 bg-slate-200 rounded border border-slate-300 overflow-hidden"><img src="${safeUrl}" class="w-full h-full object-cover"><button onclick="borrarPaginaAnalitico(${index})" class="absolute top-0 right-0 bg-red-500 text-white p-0.5 rounded-bl hover:bg-red-700"><i data-lucide="x" size="12"></i></button><span class="absolute bottom-0 left-0 bg-black/50 text-white text-[8px] px-1 w-full text-center">Pág ${index+1}</span></div>`;
             });
@@ -525,6 +515,7 @@
                 nombre, 
                 registro_id: registro, 
                 institution_id: currentProfile.rol === 'superadmin' ? null : currentProfile.institucion_id,
+                // CORRECCION CRITICA: Asegurar formato JSON correcto para el generador
                 analitico_bg_url: analiticoPaginas.length > 0 ? JSON.stringify(analiticoPaginas) : null 
             };
 
