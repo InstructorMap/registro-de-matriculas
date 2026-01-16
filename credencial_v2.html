@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador V12 - Diseño Final</title>
+    <title>Generador Oficial V13 - Final</title>
     
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -12,17 +12,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&family=Roboto+Slab:wght@700;900&display=swap" rel="stylesheet">
     
     <style>
-        /* RESET & BASE */
+        /* ESTILOS BASE */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Roboto', sans-serif; background: #1a1a1a; display: flex; flex-direction: column; align-items: center; padding: 30px; gap: 20px; color: white; }
-        
-        /* CONTROLES */
         .controls { background: #222; padding: 25px; border-radius: 10px; position: sticky; top: 10px; z-index: 999; width: 95%; max-width: 600px; border: 1px solid #444; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
         .input-group { display: flex; gap: 10px; margin-bottom: 5px; }
         .input-dni { flex: 1; padding: 12px; font-size: 18px; border-radius: 5px; border: none; text-align: center; font-weight: bold; letter-spacing: 1px;}
         .btn-generate { padding: 12px 25px; font-size: 16px; background: linear-gradient(135deg, #005c99, #007acc); border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: 900; text-transform: uppercase; }
         #selector-cursos { display: none; margin-top: 20px; text-align: center; border-top: 1px solid #444; padding-top: 15px; }
         #lista-botones button { width: 100%; padding: 12px; background: #333; color: white; border: 1px solid #555; border-radius: 5px; cursor: pointer; text-align: left; margin-bottom: 8px; font-weight: bold; }
+        #lista-botones button:hover { background: #444; }
         .action-buttons { display: none; gap: 10px; flex-wrap: wrap; justify-content: center; border-top: 1px solid #444; padding-top: 20px; margin-top: 15px;}
         .btn-action { padding: 12px 15px; font-size: 12px; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; flex: 1; min-width: 130px; }
         .btn-upload { background: #444; color: white; border: 1px solid #666; }
@@ -32,99 +31,83 @@
         #msg-error { color: #ff5555; text-align: center; margin-top: 15px; display: none; font-weight: bold; }
         #upload-status { font-size: 12px; color: #aaa; text-align: center; margin-top: 5px; display:none; }
 
-        /* --- VISTA PREVIA (ESCALADA) --- */
+        /* --- PREVIEW CARNET (MODIFICADO: Rectángulo completo a la izquierda) --- */
         :root { --card-width: 1011px; --card-height: 638px; }
         .preview-wrapper { transform: scale(0.4); transform-origin: top center; margin-bottom: -350px; border-radius: 20px; transition: transform 0.3s ease; opacity: 0.5; filter: grayscale(1); }
         .preview-wrapper.active { opacity: 1; filter: grayscale(0); }
+        @media (max-width: 600px) { .preview-wrapper { transform: scale(0.28); margin-bottom: -450px; } }
         
-        .card { width: var(--card-width); height: var(--card-height); background: white; display: flex; position: relative; border-radius: 40px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); margin-bottom: 50px; }
+        .card { width: var(--card-width); height: var(--card-height); background: white; display: flex; position: relative; border: 5px solid #0033cc; border-radius: 40px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); margin-bottom: 50px; }
         
-        /* IZQUIERDA (FOTO + QR) */
-        .front-left { width: 380px; height: 100%; position: relative; background: #d4d4d4; z-index: 1; overflow: hidden; }
-        .student-photo { width: 100%; height: 100%; object-fit: cover; position: relative; z-index: 1; display: block; }
-        .rect-banda { position: absolute; bottom: 0; left: 0; width: 100%; height: 135px; background-color: #0033cc; z-index: 2; }
+        /* IZQUIERDA RECTANGULAR (Sin borde inferior redondeado) */
+        .front-left { width: 380px; height: 100%; position: relative; background: #0033cc; z-index: 1; border-top-left-radius: 35px; border-bottom-left-radius: 0px; overflow: hidden; }
+        
+        .student-photo { width: 100%; height: 100%; object-fit: cover; position: relative; z-index: 1; }
+        /* SVG TRIANGLE CONTAINER ELIMINADO */
+        
         .reg-sigla { position: absolute; bottom: 15px; left: 0; width: 100%; text-align: center; color: white; font-size: 22px; font-weight: 900; z-index: 6; text-shadow: 2px 2px 4px rgba(0,0,0,0.9); letter-spacing: 2px; }
-        .qr-on-photo { position: absolute; bottom: 65px; left: 50%; transform: translateX(-50%); width: 160px; height: 160px; background: white; padding: 8px; border-radius: 12px; z-index: 5; box-shadow: 0 6px 20px rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; }
-
-        /* DERECHA (DATOS) - AJUSTADO AL DISEÑO FINAL */
-        .front-right { flex: 1; position: relative; color: white; padding: 25px 40px; display: flex; flex-direction: column; justify-content: flex-start; gap: 15px; background-color: #0033cc; }
+        .qr-on-photo { position: absolute; bottom: 45px; left: 50%; transform: translateX(-50%); width: 160px; height: 160px; background: white; padding: 8px; border-radius: 12px; z-index: 5; box-shadow: 0 6px 20px rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; }
         
-        /* 1. Header (Arriba a la derecha) */
-        .header { width: 100%; text-align: right; border-bottom: 4px solid rgba(255,255,255,0.3); padding-bottom: 5px; margin-bottom: 10px; }
-        .header-text { font-size: 55px; font-weight: 900; text-transform: uppercase; line-height: 1; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); display: block; }
-        
-        /* 2. Caja del Curso */
-        .course-container { 
-            background: rgba(0, 40, 100, 0.4); /* Azul oscuro transparente */
-            border-radius: 10px; 
-            padding: 15px 10px; 
-            text-align: center;
-            border: 2px solid rgba(255,255,255,0.1);
-            min-height: 140px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-        .titulo-bloque { font-size: 48px; font-weight: 900; text-transform: uppercase; line-height: 1; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
-        
-        /* 3. Nombre del Alumno (Barra oscura) */
-        .student-name { 
-            background: #001a4d; /* Azul muy oscuro */
-            color: white;
-            font-size: 30px; 
-            font-weight: 700; 
-            text-transform: uppercase; 
-            text-align: center; 
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        /* 4. Grilla de Datos */
-        .data-grid { display: grid; grid-template-columns: 50px 1fr; row-gap: 15px; align-items: center; margin-top: auto; }
-        .icon-box { font-size: 40px; text-align: center; }
-        .data-box { 
-            background: rgba(255,255,255,0.15); 
-            padding: 5px 15px; 
-            border-radius: 6px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            height: 50px; 
-        }
-        .label-text { font-size: 26px; font-weight: 700; opacity: 0.9; text-transform: uppercase; }
-        .value-text { font-size: 32px; font-weight: 900; text-align: right; }
-
+        .front-right { flex: 1; position: relative; color: white; padding: 20px 35px; display: flex; flex-direction: column; justify-content: space-between; background-color: #0033cc; }
+        .holo-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(45deg, rgba(255,255,255,0.08) 0px, rgba(255,255,255,0.08) 1px, transparent 1px, transparent 4px), linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.2) 45%, rgba(200,255,255,0.4) 50%, rgba(255,255,255,0.2) 55%, transparent 70%); opacity: 1; mix-blend-mode: overlay; pointer-events: none; }
+        .front-content { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 6px solid rgba(255,255,255,0.9); padding-bottom: 2px; }
+        .header-text { font-size: 85px; font-weight: 900; text-transform: uppercase; line-height: 0.9; text-shadow: 3px 3px 0px rgba(0,0,0,0.2); }
+        .course-container { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 10px 0; background: linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.3)); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; }
+        .course-title-main { font-size: 60px; font-weight: 900; text-transform: uppercase; line-height: 0.9; text-align: center; text-shadow: 0 4px 8px rgba(0,0,0,0.4); }
+        .course-title-sub { font-size: 30px; font-weight: 700; text-transform: uppercase; margin-top: 5px; text-align: center; }
+        .student-name { font-size: 34px; font-weight: 700; text-transform: uppercase; background: rgba(0,0,0,0.3); padding: 10px; text-align: center; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); margin-bottom: 15px;}
+        .data-grid { display: grid; grid-template-columns: 65px 1fr; row-gap: 10px; align-items: center; }
+        .icon-box { font-size: 55px; text-align: center; }
+        .data-box { background: linear-gradient(90deg, rgba(0,0,0,0.2), rgba(0,0,0,0.3)); padding: 6px 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.15); height: 55px; }
+        .label-text { font-size: 32px; font-weight: 700; opacity: 0.9; }
+        .value-text { font-size: 36px; font-weight: 900; text-align: right; }
         .card-back { padding: 0; background: #ccc; }
         .back-image { width: 100%; height: 100%; object-fit: fill; display: block; }
 
-        /* --- ELEMENTOS OCULTOS PARA GENERACIÓN --- */
+        /* --- ESTILOS DIPLOMA & ANALITICO --- */
         #hidden-canvas-container { position: absolute; top: -9999px; left: -9999px; }
-        #pdf-page-container { width: 1123px; height: 1587px; background: white; position: relative; } /* A4 */
-        
+        #pdf-page-container { width: 1123px; height: 1587px; background: white; position: relative; } /* Contenedor A4 */
+
+        .diploma-layout { width: 2000px; height: 1414px; position: relative; overflow: hidden; color: #333; --diploma-blue: #003399; }
         .diploma-bg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
         .diploma-overlay { position: relative; z-index: 10; width: 100%; height: 100%; }
-        .ana-foto { position: absolute; top: 150px; right: 80px; width: 180px; height: 220px; object-fit: cover; border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.3); background: #ddd; }
-        .ana-datos { position: absolute; top: 220px; left: 100px; text-align: left; z-index: 20; }
-        .ana-nombre { font-family: 'Roboto Slab', serif; font-size: 42px; font-weight: 900; color: #333; text-transform: uppercase; }
-        .ana-dni { font-family: 'Roboto', sans-serif; font-size: 28px; font-weight: 700; color: #555; margin-top: 5px; }
-        
-        /* Diploma Horizontal Layout */
-        .diploma-layout { width: 2000px; height: 1414px; position: relative; overflow: hidden; color: #333; }
+
+        /* Diploma Styles */
         .dip-linea-unica-container { position: absolute; top: 595px; left: 50%; transform: translateX(-50%); width: 90%; text-align: center; white-space: nowrap; }
-        .dip-texto-formal { font-family: 'Roboto Slab', serif; font-weight: 900; color: #003399; text-transform: uppercase; font-size: 80px; letter-spacing: 1px; text-shadow: 2px 2px 0px rgba(255,255,255,1); }
+        .dip-texto-formal { font-family: 'Roboto Slab', serif; font-weight: 900; color: var(--diploma-blue); text-transform: uppercase; font-size: 80px; letter-spacing: 1px; text-shadow: 2px 2px 0px rgba(255,255,255,1); }
         .dip-qr { position: absolute; top: 284px; right: 176px; width: 233px; height: 233px; background: white; padding: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .dip-info-extra { position: absolute; bottom: 1348px; left: 50%; transform: translateX(-50%); text-align: center; font-family: 'Roboto', sans-serif; font-size: 18px; font-weight: 700; color: #222; background: rgba(255,255,255,0.9); padding: 4px 25px; border-radius: 50px; border: 1px solid rgba(0,0,0,0.1); z-index: 20; }
+        .dip-sello { position: absolute; bottom: 914px; left: 1445px; width: 180px; height: 180px; z-index: 15; background-repeat: no-repeat; background-size: contain; background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpath id='textPath' d='M 25,100 A 75,75 0 1,1 175,100 A 75,75 0 1,1 25,100' /%3E%3C/defs%3E%3Ccircle cx='100' cy='100' r='90' fill='none' stroke='%23B8860B' stroke-width='2' /%3E%3Ccircle cx='100' cy='100' r='85' fill='none' stroke='%23B8860B' stroke-width='1' /%3E%3Ccircle cx='100' cy='100' r='65' fill='none' stroke='%23B8860B' stroke-width='1' stroke-dasharray='2,2' /%3E%3Ctext fill='%23B8860B' font-family='Times New Roman, serif' font-weight='bold' font-size='14' letter-spacing='3'%3E%3CtextPath href='%23textPath' startOffset='0' text-anchor='middle'%3E* CERTIFICACIÓN OFICIAL * VALIDADA *%3C/textPath%3E%3C/text%3E%3Cpath d='M100,45 L100,155 M45,100 L155,100' stroke='%23B8860B' stroke-width='0.5' opacity='0.3'/%3E%3Cpath d='M100,55 L120,80 L100,145 L80,80 Z' fill='none' stroke='%23B8860B' stroke-width='1.5' /%3E%3C/svg%3E"); filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2)); opacity: 0.9; }
+
+        /* --- ESTILOS ANALÍTICO (MODIFICADO: Una sola línea en posición correcta) --- */
+        .ana-foto { position: absolute; top: 150px; right: 80px; width: 180px; height: 220px; object-fit: cover; border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.3); background: #ddd; z-index: 25; }
+        
+        /* Contenedor de datos alineado al renglón */
+        .ana-datos-linea { 
+            position: absolute; 
+            top: 325px; /* Ajustado para caer en el renglón */
+            left: 100px; 
+            width: 65%; /* Limitar ancho para no chocar con la foto */
+            text-align: left; 
+            z-index: 20; 
+            white-space: nowrap; /* Forzar una sola línea */
+        }
+        /* Estilo del texto de una sola línea */
+        .ana-texto-unico { 
+            font-family: 'Roboto Slab', serif; 
+            font-size: 36px; /* Tamaño ajustado para una línea */
+            font-weight: 900; 
+            color: #333; 
+            text-transform: uppercase; 
+        }
 
     </style>
 </head>
 <body>
 
     <div class="controls">
-        <h2 style="text-align:center; color:#fff; margin-bottom: 15px;">🎓 Generador V12 - Diseño Final</h2>
+        <h2 style="text-align:center; color:#fff; margin-bottom: 15px;">🎓 Credencial y PDF V13</h2>
         <div class="input-group">
             <input type="text" id="input-dni-search" class="input-dni" placeholder="Ingrese DNI del Alumno">
             <button class="btn-generate" onclick="window.generarCarnet()">⚙️ GENERAR</button>
@@ -146,21 +129,15 @@
             <div class="front-left" id="panel-izq-bg">
                 <img id="img-foto" class="student-photo" src="" style="display:none;" crossorigin="anonymous">
                 <div style="position:absolute; top:40%; width:100%; text-align:center; color:#555; font-weight:bold;" id="placeholder-foto">FOTO</div>
-                <div class="rect-banda" id="banda-color"></div>
                 <div class="qr-on-photo" id="qr-container"></div>
                 <div class="reg-sigla" id="txt-sigla">REGISTRO</div>
             </div>
             <div class="front-right" id="bg-panel">
+                <div class="holo-layer"></div>
                 <div class="front-content">
-                    <div class="header"><span class="header-text" id="txt-anio-titulo">CARNET 2026</span></div>
-                    
-                    <div class="course-container" id="contenedor-titulos">
-                        <span class="titulo-bloque" id="txt-titulo-main">CURSO</span>
-                        <span class="titulo-bloque" id="txt-titulo-sub">PROFESIONAL</span>
-                    </div>
-                    
+                    <div class="header"><span class="header-text">CARNET</span><span class="header-text" id="txt-anio">2026</span></div>
+                    <div class="course-container"><div class="course-title-main" id="txt-titulo-main">CURSO</div><div class="course-title-sub" id="txt-titulo-sub">PROFESIONAL</div></div>
                     <div class="student-name" id="txt-nombre">---</div>
-                    
                     <div class="data-grid">
                         <div class="icon-box">✱</div><div class="data-box"><span class="label-text">DNI:</span><span class="value-text" id="txt-dni">---</span></div>
                         <div class="icon-box">#</div><div class="data-box"><span class="label-text">MATRÍCULA:</span><span class="value-text" id="txt-matricula">---</span></div>
@@ -175,15 +152,19 @@
     </div>
 
     <div id="hidden-canvas-container">
+        
         <div class="diploma-layout" id="diploma-final">
             <img id="dip-bg-img" class="diploma-bg" src="" crossorigin="anonymous">
             <div class="diploma-overlay">
                 <div class="dip-linea-unica-container" id="dip-texto-container"><span class="dip-texto-formal" id="dip-texto-completo">NOMBRE ALUMNO - DNI</span></div>
                 <div class="dip-qr" id="dip-qr-code"></div>
                 <div class="dip-info-extra" id="dip-fecha-registro">DATOS REGISTRO</div>
+                <div class="dip-sello"></div>
             </div>
         </div>
+
         <div id="pdf-page-container"></div>
+
     </div>
 
     <script>
@@ -192,27 +173,19 @@
         const URL_WEB = 'https://instructormap.github.io/registro-de-matriculas';
         let db; let alumnoActual = null; let cursoActualData = null;
 
-        function resetUI() { 
-            document.getElementById('msg-error').style.display = 'none'; 
-            document.getElementById('panel-acciones').style.display = 'none'; 
-            document.getElementById('selector-cursos').style.display = 'none'; 
-            document.getElementById('vista-previa').classList.remove('active'); 
-            document.getElementById('btn-descargar-diploma').style.display = 'none'; 
-            document.getElementById('btn-descargar-analitico').style.display = 'none'; 
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
             db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
             document.getElementById('input-dni-search').addEventListener('keypress', function(e) { if (e.key === 'Enter') window.generarCarnet(); });
         });
 
+        // --- BÚSQUEDA ---
         window.generarCarnet = async function() {
             const dni = String(document.getElementById('input-dni-search').value).trim();
             resetUI();
             if(!dni) { alert("Ingrese DNI."); return; }
             document.getElementById('msg-error').innerText = "⏳ Buscando..."; document.getElementById('msg-error').style.display = 'block';
             
-            const { data } = await db.from('matriculas').select('*').eq('dni_alumno', dni);
+            const { data, error } = await db.from('matriculas').select('*').eq('dni_alumno', dni);
             if (!data || data.length === 0) { document.getElementById('msg-error').innerText = "❌ No encontrado."; return; }
             
             if (data.length === 1) { document.getElementById('msg-error').style.display='none'; procesarDatos(data[0]); }
@@ -237,64 +210,51 @@
             verificarDocumentos(alumno.curso);
         }
 
+        // --- VERIFICAR DOCS (DIPLOMA Y ANALÍTICO) ---
         async function verificarDocumentos(nombreCurso) {
             const btnDip = document.getElementById('btn-descargar-diploma');
             const btnAna = document.getElementById('btn-descargar-analitico');
             btnDip.style.display = 'none'; btnAna.style.display = 'none'; 
             document.getElementById('dip-bg-img').src = "";
-
+            
             const { data } = await db.from('cursos_oficiales').select('*').eq('nombre', nombreCurso).single();
             if (data) {
-                cursoActualData = data;
-                if (data.diploma_bg_url) { 
-                    btnDip.style.display = 'block'; 
-                    const img = document.getElementById('dip-bg-img');
-                    img.crossOrigin = "anonymous"; 
-                    img.src = data.diploma_bg_url + "?t=" + Date.now(); 
+                cursoActualData = data; // Guardamos los datos del curso
+                if (data.diploma_bg_url) {
+                    btnDip.style.display = 'block';
+                    const img = document.getElementById('dip-bg-img'); img.crossOrigin = "anonymous"; img.src = data.diploma_bg_url + "?t=" + Date.now();
                 }
-                if (data.analitico_bg_url) { btnAna.style.display = 'block'; }
+                if (data.analitico_bg_url) {
+                    btnAna.style.display = 'block';
+                    // No cargamos imagen aquí, se carga al generar el PDF
+                }
             }
         }
 
-        // --- DESCARGAR CARNET (V7 SIMPLE) ---
-        window.descargarCarnet = async function() {
-            const btn = document.querySelector('.btn-download');
-            const originalText = btn.innerText; btn.innerText = "⏳"; btn.disabled = true;
-
+        // --- DESCARGAR DIPLOMA ---
+        window.descargarDiploma = async function() {
+            const btn = document.getElementById('btn-descargar-diploma');
+            const originalText = btn.innerText; btn.innerText = "⏳ Generando..."; btn.disabled = true;
             try {
-                const imgFoto = document.getElementById('img-foto');
-                if(imgFoto.src && imgFoto.style.display !== 'none') {
-                    imgFoto.crossOrigin = "anonymous";
-                    const currentSrc = imgFoto.src.split('?')[0];
-                    imgFoto.src = currentSrc + "?t=" + Date.now();
-                    await new Promise(resolve => imgFoto.onload = resolve);
-                }
-
-                const cf = await html2canvas(document.getElementById('card-front'), {scale: 2, useCORS: true, allowTaint: true, backgroundColor: null});
-                const cb = await html2canvas(document.getElementById('card-back'), {scale: 2, useCORS: true, allowTaint: true, backgroundColor: null});
-
-                const fin = document.createElement('canvas');
-                fin.width = 1011; fin.height = 1316;
-                const ctx = fin.getContext('2d');
-                ctx.drawImage(cf, 0, 0, 1011, 638);
-                ctx.drawImage(cb, 0, 678, 1011, 638);
-
-                const link = document.createElement('a');
-                link.download = `Carnet_${document.getElementById('txt-dni').innerText}.png`;
-                link.href = fin.toDataURL("image/png");
-                link.click();
-
-            } catch(e) { alert("Error descarga: " + e.message); } 
-            finally { btn.innerText = originalText; btn.disabled = false; }
+                document.getElementById('dip-texto-completo').innerText = `${alumnoActual.nombre} ${alumnoActual.apellido} • DNI ${alumnoActual.dni_alumno}`;
+                ajustarTexto('dip-texto-completo', 'dip-texto-container', 80);
+                const fechaStr = new Date(alumnoActual.fecha_inicio || new Date()).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+                document.getElementById('dip-fecha-registro').innerHTML = `REGISTRO: <b>${(alumnoActual.registro_id || 'OFICIAL').toUpperCase()}</b> • Fecha de emisión: ${fechaStr}`;
+                const qrDipDiv = document.getElementById('dip-qr-code'); qrDipDiv.innerHTML = "";
+                new QRCode(qrDipDiv, { text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, width: 223, height: 223 });
+                await new Promise(r => setTimeout(r, 1000));
+                const canvas = await html2canvas(document.getElementById('diploma-final'), { scale: 2, useCORS: true, backgroundColor: null });
+                const link = document.createElement('a'); link.download = `Diploma_${alumnoActual.dni_alumno}.png`; link.href = canvas.toDataURL('image/png'); link.click();
+            } catch (err) { alert("Error: " + err.message); } finally { btn.innerText = originalText; btn.disabled = false; }
         };
 
-        // --- ANALÍTICO PDF (jsPDF) ---
+        // --- DESCARGAR ANALÍTICO (PDF MULTIPÁGINA - DATOS EN UNA LÍNEA) ---
         window.descargarAnaliticoPDF = async function() {
             const btn = document.getElementById('btn-descargar-analitico');
-            const originalText = btn.innerText; btn.innerText = "⏳ PDF..."; btn.disabled = true;
+            const originalText = btn.innerText; btn.innerText = "⏳ Generando PDF..."; btn.disabled = true;
             
             try {
-                if(!cursoActualData || !cursoActualData.analitico_bg_url) throw new Error("No hay analítico.");
+                if(!cursoActualData || !cursoActualData.analitico_bg_url) throw new Error("No hay analítico disponible.");
                 
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF('p', 'mm', 'a4'); // A4 Vertical
@@ -307,33 +267,34 @@
                 } catch(e) { paginas = [cursoActualData.analitico_bg_url]; }
 
                 for (let i = 0; i < paginas.length; i++) {
-                    container.innerHTML = ""; 
+                    container.innerHTML = ""; // Limpiar contenedor
                     const url = paginas[i] + '?t=' + Date.now();
                     const esPrimera = (i === 0);
                     
+                    // Construir la página. Si es la primera, lleva datos en UNA SOLA LÍNEA y foto.
                     const overlay = esPrimera ? `
                         <div class="diploma-overlay">
-                            <div class="ana-datos">
-                                <div class="ana-nombre">${alumnoActual.nombre} ${alumnoActual.apellido}</div>
-                                <div class="ana-dni">DNI ${alumnoActual.dni_alumno}</div>
+                            <div class="ana-datos-linea">
+                                <span class="ana-texto-unico">${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${alumnoActual.dni_alumno}</span>
                             </div>
                             <img class="ana-foto" src="${alumnoActual.foto_url ? alumnoActual.foto_url + '?t=' + Date.now() : ''}" style="display:${alumnoActual.foto_url ? 'block' : 'none'}" crossorigin="anonymous">
                         </div>` : '';
                     
-                    container.innerHTML = `<img class="diploma-bg" src="${url}" crossorigin="anonymous" onload="this.setAttribute('loaded','true')">${overlay}`;
+                    container.innerHTML = `<img class="diploma-bg" src="${url}" crossorigin="anonymous">${overlay}`;
                     
-                    const bgImg = container.querySelector('.diploma-bg');
-                    await new Promise(r => { if(bgImg.complete) r(); else bgImg.onload = r; });
-                    if(esPrimera && alumnoActual.foto_url) {
-                        const fotoAlumno = container.querySelector('.ana-foto');
-                        await new Promise(r => { if(fotoAlumno.complete) r(); else fotoAlumno.onload = r; });
+                    // Esperar carga de imágenes (fondo y foto alumno)
+                    const images = container.getElementsByTagName('img');
+                    for(let img of images) {
+                        if(img.src && !img.complete) await new Promise(r => img.onload = r);
                     }
+                    if(esPrimera) await new Promise(r => setTimeout(r, 500)); // Espera extra para asegurar renderizado de fuentes
 
+                    // Renderizar página a canvas y luego al PDF
                     const canvas = await html2canvas(container, { scale: 1.5, useCORS: true, allowTaint: true });
                     const imgData = canvas.toDataURL('image/jpeg', 0.9);
                     
                     if (i > 0) pdf.addPage();
-                    pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297); 
+                    pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297); // Ajustar a A4
                 }
 
                 pdf.save(`Analitico_${alumnoActual.dni_alumno}.pdf`);
@@ -342,80 +303,38 @@
             finally { btn.innerText = originalText; btn.disabled = false; }
         };
 
-        window.descargarDiploma = async function() {
-            const btn = document.getElementById('btn-descargar-diploma');
-            const originalText = btn.innerText; btn.innerText = "⏳"; btn.disabled=true; 
-            try {
-                if(!cursoActualData || !cursoActualData.diploma_bg_url) throw new Error("No hay diploma.");
-                document.getElementById('dip-texto-completo').innerText=`${alumnoActual.nombre} ${alumnoActual.apellido} • DNI ${alumnoActual.dni_alumno}`;
-                ajustarTexto('dip-texto-completo','dip-texto-container',80);
-                const f=new Date(alumnoActual.fecha_inicio||new Date()).toLocaleDateString('es-ES',{year:'numeric',month:'long',day:'numeric'});
-                document.getElementById('dip-fecha-registro').innerHTML=`REGISTRO: <b>${(alumnoActual.registro_id||'OFICIAL').toUpperCase()}</b> • Fecha: ${f}`;
-                new QRCode(document.getElementById('dip-qr-code'),{text:`${URL_WEB}/validador.html?id=${alumnoActual.id}`,width:223,height:223});
-                await new Promise(r=>setTimeout(r,1000));
-                const c=await html2canvas(document.getElementById('diploma-final'),{scale:2, useCORS:true, allowTaint: true});
-                const l=document.createElement('a'); l.download=`Diploma_${alumnoActual.dni_alumno}.png`; l.href=c.toDataURL('image/png'); l.click();
-            } catch(e){ alert("Error: " + e.message); } 
-            finally { btn.innerText = originalText; btn.disabled=false; } 
-        };
-
+        // --- HELPERS ---
+        function ajustarTexto(elId, conId, size) { const el = document.getElementById(elId); const con = document.getElementById(conId); el.style.fontSize = size+'px'; while (el.scrollWidth > con.clientWidth && size > 40) { size-=2; el.style.fontSize = size+'px'; } }
+        function resetUI() { document.getElementById('msg-error').style.display = 'none'; document.getElementById('panel-acciones').style.display = 'none'; document.getElementById('selector-cursos').style.display = 'none'; document.getElementById('vista-previa').classList.remove('active'); document.getElementById('btn-descargar-diploma').style.display = 'none'; document.getElementById('btn-descargar-analitico').style.display = 'none'; }
+        
         function llenarDatosCarnet(alumno) {
             document.getElementById('txt-nombre').innerText = `${alumno.nombre} ${alumno.apellido}`;
             document.getElementById('txt-dni').innerText = alumno.dni_alumno;
             document.getElementById('txt-matricula').innerText = generarHashMatricula(String(alumno.dni_alumno));
             const fecha = new Date(alumno.fecha_inicio || new Date());
-            const anio = fecha.getFullYear();
-            document.getElementById('txt-anio-titulo').innerText = `CARNET ${anio}`;
+            document.getElementById('txt-anio').innerText = fecha.getFullYear();
             const vence = new Date(fecha); vence.setFullYear(vence.getFullYear() + 1);
             document.getElementById('txt-vence').innerText = vence.toLocaleDateString('es-AR');
-            
-            separarTituloInteligente(alumno.curso || "CURSO PROFESIONAL");
+            separarTitulo(alumno.curso || "CURSO");
             aplicarLogicaRegistro(alumno.registro_id || 'remaep');
-            
             const img = document.getElementById('img-foto'); const ph = document.getElementById('placeholder-foto');
-            if (alumno.foto_url) { 
-                img.crossOrigin = "anonymous"; 
-                img.src = alumno.foto_url + "?t=" + new Date().getTime(); 
-                img.style.display = 'block'; ph.style.display = 'none'; 
-            } else { img.style.display = 'none'; ph.style.display = 'block'; }
-            
+            if (alumno.foto_url) { img.crossOrigin = "anonymous"; img.src = alumno.foto_url + "?t=" + new Date().getTime(); img.style.display = 'block'; ph.style.display = 'none'; } 
+            else { img.style.display = 'none'; ph.style.display = 'block'; }
             const c = document.getElementById('qr-container'); c.innerHTML = ""; 
-            new QRCode(c, { text: `${URL_WEB}/validador.html?id=${alumno.id}`, width: 150, height: 150, correctLevel: QRCode.CorrectLevel.L });
+            new QRCode(c, { text: `${URL_WEB}/validador.html?id=${alumno.id}`, width: 144, height: 144, correctLevel: QRCode.CorrectLevel.L });
         }
 
-        function separarTituloInteligente(t) {
-            const texto = String(t).toUpperCase().trim();
-            const palabras = texto.split(/\s+/);
-            const el1 = document.getElementById('txt-titulo-main');
-            const el2 = document.getElementById('txt-titulo-sub');
-            if (palabras.length === 1) {
-                el1.innerText = texto; el2.innerText = "";
-            } else {
-                let centro = texto.length / 2; let mejorCorte = 0; let menorDif = Infinity; let contador = 0;
-                for (let i = 0; i < palabras.length - 1; i++) {
-                    contador += palabras[i].length + 1; 
-                    let diff = Math.abs(contador - centro);
-                    if (diff < menorDif) { menorDif = diff; mejorCorte = i; }
-                }
-                el1.innerText = palabras.slice(0, mejorCorte + 1).join(' ');
-                el2.innerText = palabras.slice(mejorCorte + 1).join(' ');
-            }
-        }
-
-        function aplicarLogicaRegistro(rid) { 
-            const configs = { 'remaep': { c: '#0033cc', sigla: 'R.E.M.A.E.P' }, 'rniue': { c: '#b8860b', sigla: 'R.N.I.U.E' }, 'rubra': { c: '#cc0000', sigla: 'R.U.B.R.A' }, 'rmts': { c: '#2f4f4f', sigla: 'R.M.T.S' }, 'rce': { c: '#ffcc00', sigla: 'R.C.E' }, 'rpde': { c: '#0099ff', sigla: 'R.P.D.E' }, 'asarin': { c: '#800000', sigla: 'ASARIN' } }; 
-            const cfg = configs[String(rid).toLowerCase()] || configs['remaep']; 
-            
-            const panel = document.getElementById('bg-panel'); panel.style.backgroundColor = cfg.c;
-            document.getElementById('banda-color').style.backgroundColor = cfg.c;
-            document.getElementById('panel-izq-bg').style.backgroundColor = cfg.c;
-            const sigla = document.getElementById('txt-sigla'); sigla.innerText = cfg.sigla; sigla.style.color = cfg.c;
-            if(rid === 'rce') { panel.style.color='black'; } else { panel.style.color='white'; }
-        }
-        
         window.subirFotoNube = async function(input) { if (!input.files || !input.files[0]) return; const file = input.files[0]; const dni = document.getElementById('txt-dni').innerText; const status = document.getElementById('upload-status'); const imgLocal = document.getElementById('img-foto'); status.style.display = 'block'; status.innerText = "☁️ Subiendo..."; try { const fileName = `${dni}.png`; await db.storage.from('fotos-alumnos').upload(fileName, file, { upsert: true }); const { data } = db.storage.from('fotos-alumnos').getPublicUrl(fileName); await db.from('matriculas').update({ foto_url: data.publicUrl }).eq('dni_alumno', dni); status.innerText = "✅ Listo"; const reader = new FileReader(); reader.onload = (e) => { imgLocal.src = e.target.result; imgLocal.style.display = 'block'; document.getElementById('placeholder-foto').style.display = 'none'; }; reader.readAsDataURL(file); } catch (err) { alert(err.message); } };
         function generarHashMatricula(dni) { let hash = 0; for (let i = 0; i < dni.length; i++) { hash = ((hash << 5) - hash) + dni.charCodeAt(i); hash |= 0; } return String(Math.abs(hash)).substring(0, 6).padStart(6, '9'); }
-        function ajustarTexto(elId, conId, size) { const el = document.getElementById(elId); const con = document.getElementById(conId); el.style.fontSize = size+'px'; while (el.scrollWidth > con.clientWidth && size > 40) { size-=2; el.style.fontSize = size+'px'; } }
+        // Lógica de registro modificada: ya no intenta colorear el triángulo SVG que fue eliminado.
+        function aplicarLogicaRegistro(rid) { const configs = { 'remaep': { c1: '#001f7a', c2: '#0033cc', c3: '#005ce6', sigla: 'R.E.M.A.E.P', txt: 'white' }, 'rniue': { c1: '#8a6e2f', c2: '#b8860b', c3: '#ffd700', sigla: 'R.N.I.U.E', txt: 'white' }, 'rubra': { c1: '#800000', c2: '#cc0000', c3: '#ff3333', sigla: 'R.U.B.R.A', txt: 'white' }, 'rmts': { c1: '#1a2f1a', c2: '#2f4f4f', c3: '#4d704d', sigla: 'R.M.T.S', txt: 'white' }, 'rce': { c1: '#cc9900', c2: '#ffcc00', c3: '#ffe066', sigla: 'R.C.E', txt: 'black' }, 'rpde': { c1: '#005c99', c2: '#0099ff', c3: '#66c2ff', sigla: 'R.P.D.E', txt: 'white' }, 'asarin': { c1: '#800000', c2: '#cc0000', c3: '#ff3333', sigla: 'ASARIN', txt: 'white' } }; const cfg = configs[String(rid).toLowerCase()] || configs['remaep']; const panel = document.getElementById('bg-panel'); panel.style.background = cfg.c2; panel.style.color = cfg.txt; document.getElementById('card-front').style.borderColor = cfg.c2; document.getElementById('txt-sigla').innerText = cfg.sigla; document.getElementById('panel-izq-bg').style.backgroundColor = cfg.c2; }
+        function separarTitulo(t) { const p = String(t).split(' '); if(p.length > 1) { document.getElementById('txt-titulo-main').innerText = p[0]; document.getElementById('txt-titulo-sub').innerText = p.slice(1).join(' '); } else { document.getElementById('txt-titulo-main').innerText = t; document.getElementById('txt-titulo-sub').innerText = ""; } }
+        
+        // --- DESCARGA CARNET (V7 ORIGINAL) ---
+        window.descargarCarnet = async function() { const f = document.getElementById('card-front'); const b = document.getElementById('card-back'); const box = document.createElement('div'); box.style.position='fixed'; box.style.top='-9999px'; document.body.appendChild(box); const cf = f.cloneNode(true); const cb = b.cloneNode(true); [cf, cb].forEach(c => { c.style.margin='0'; c.style.boxShadow='none'; c.style.transform='none'; }); const sf = document.getElementById('img-foto').src; if(sf && document.getElementById('img-foto').style.display!=='none') { const imgClon = cf.querySelector('#img-foto'); imgClon.crossOrigin = "anonymous"; imgClon.src = sf; } cf.querySelector('#qr-container').innerHTML = document.getElementById('qr-container').innerHTML; box.appendChild(cf); box.appendChild(cb); 
+        const cv1 = await html2canvas(cf, {scale:1, width:1011, height:638, backgroundColor:null, useCORS:true}); 
+        const cv2 = await html2canvas(cb, {scale:1, width:1011, height:638, backgroundColor:null, useCORS:true}); 
+        const fin = document.createElement('canvas'); fin.width = 1011; fin.height = 1316; const ctx = fin.getContext('2d'); ctx.drawImage(cv1, 0, 0); ctx.drawImage(cv2, 0, 678); const link = document.createElement('a'); link.download = `Carnet_${document.getElementById('txt-dni').innerText}.png`; link.href = fin.toDataURL("image/png"); link.click(); document.body.removeChild(box); };
     </script>
 </body>
 </html>
