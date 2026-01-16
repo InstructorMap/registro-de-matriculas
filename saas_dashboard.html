@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control - ASARI V2.4 (Edición Total)</title>
+    <title>Panel de Control - ASARI V2.5 (Fixed)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -276,7 +276,6 @@
                 }
             }
 
-            console.log("Perfil:", currentProfile.rol, "Inst ID:", currentProfile.institucion_id);
             await cargarCursosDB(); 
             await cargarAlumnos(); 
             await contarAlumnos(); 
@@ -322,7 +321,7 @@
             document.getElementById('stat-total').innerText = count || 0;
         }
 
-        // --- CORRECCIÓN PERMISIVA: Permitir edición si es mío O si es huérfano ---
+        // --- CORRECCIÓN 1: Filtro de Cursos más permisivo ---
         async function cargarCursosDB() {
             const lista = document.getElementById('lista-cursos-config');
             const { data, error } = await db.from('cursos_oficiales').select('*').order('created_at', { ascending: false });
@@ -338,7 +337,7 @@
                     // BLINDAJE DE ID: Revisa ambas columnas por si acaso
                     const myId = currentProfile.institucion_id;
                     cursosCache = data.filter(c => {
-                        const cursoInstId = c.institution_id || c.institucion_id; // Check both
+                        const cursoInstId = c.institution_id || c.institucion_id; // Check both English/Spanish
                         return cursoInstId === myId || !cursoInstId; // Es mío o es Global
                     });
                 } else {
@@ -359,9 +358,9 @@
             cursosCache.forEach(c => { 
                 const cl = {'remaep':'bg-blue-600','asarin':'bg-red-900'}[c.registro_id] || 'bg-slate-500';
                 
-                // LÓGICA DE EDICIÓN FORZADA (PATCH)
-                // Si el curso no tiene ID, lo tratamos como "Global" pero permitimos editarlo
-                // para que el dueño actual (Colbert) pueda tomar posesión de él al guardar.
+                // LÓGICA DE EDICIÓN: PERMITIR SIEMPRE SI ESTÁ EN LISTA
+                // Si el curso aparece aquí, es porque o es mío o es global.
+                // En ambos casos, queremos poder editarlo (para apropiárnoslo si es global).
                 const btnAcciones = `<button onclick="abrirModalCurso('${c.id}')" class="text-blue-500 text-xs hover:underline flex items-center gap-1"><i data-lucide="pencil" size="12"></i> Editar</button>`;
 
                 l.innerHTML += `<div class="p-4 border border-slate-200 rounded-xl bg-white hover:shadow-md transition"><div class="flex justify-between items-start mb-2"><div class="flex gap-2"><span class="text-[9px] text-white px-2 py-0.5 rounded ${cl} uppercase font-bold">${c.registro_id}</span></div></div><p class="font-bold text-slate-700 text-sm truncate mb-3" title="${c.nombre}">${c.nombre}</p><div class="flex justify-between items-center border-t border-slate-50 pt-2">${btnAcciones}</div></div>`; 
@@ -514,8 +513,8 @@
             let updates = { 
                 nombre, 
                 registro_id: registro, 
-                institution_id: currentProfile.rol === 'superadmin' ? null : currentProfile.institucion_id,
-                // CORRECCION CRITICA: Asegurar formato JSON correcto para el generador
+                // CORRECCION CRITICA: Nombre de columna en español para la DB
+                institucion_id: currentProfile.rol === 'superadmin' ? null : currentProfile.institucion_id,
                 analitico_bg_url: analiticoPaginas.length > 0 ? JSON.stringify(analiticoPaginas) : null 
             };
 
