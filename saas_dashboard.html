@@ -328,18 +328,38 @@
             document.getElementById('stat-total').innerText = count || 0;
         }
 
-        // --- LÓGICA DE CURSOS (VISIBILIDAD HÍBRIDA) ---
+// --- LÓGICA DE CURSOS CORREGIDA (FILTRADO LOCAL) ---
         async function cargarCursosDB() {
-            let query = db.from('cursos_oficiales').select('*').order('created_at', { ascending: false });
+            // Referencia al contenedor visual
+            const lista = document.getElementById('lista-cursos-config');
             
-            // LOGICA MEJORADA:
-            // Si soy SuperAdmin -> Veo TODO.
-            // Si soy Instituto -> Veo mis cursos (institution_id = mi_id) O los cursos globales (institution_id es NULL)
-            if (currentProfile && currentProfile.rol !== 'superadmin') {
-                // Sintaxis Supabase para "OR": (institution_id.eq.ID, institution_id.is.null)
-                query = query.or(`institution_id.eq.${currentProfile.institucion_id},institution_id.is.null`);
+            // 1. Traer TODOS los cursos (sin filtros complejos de base de datos)
+            const { data, error } = await db.from('cursos_oficiales').select('*').order('created_at', { ascending: false });
+            
+            if(error) { 
+                console.error("Error cargando cursos:", error);
+                // Mostrar error visual si falla la conexión
+                if(lista) lista.innerHTML = `<p class="text-red-500 text-sm col-span-3 text-center py-4">Error de conexión: ${error.message}</p>`;
+                return;
             }
+            
+            if(data) { 
+                // 2. Filtrar en Javascript (Mucho más seguro y rápido)
+                if (currentProfile && currentProfile.rol !== 'superadmin') {
+                    // Lógica: Me quedo con los que son MÍOS (coincide ID) o los GLOBALES (ID es null)
+                    cursosCache = data.filter(c => c.institution_id === currentProfile.institucion_id || c.institution_id === null);
+                } else {
+                    // Si soy SuperAdmin: Me quedo con todo
+                    cursosCache = data;
+                }
 
+                // 3. Actualizar la interfaz
+                actualizarSelectModal(); 
+                renderizarPanelCursos(); 
+            } else {
+                if(lista) lista.innerHTML = `<p class="text-slate-400 text-sm col-span-3 text-center py-4">No se encontraron datos.</p>`;
+            }
+        }
             const { data, error } = await query;
             if(error) console.error("Error cursos:", error);
             
