@@ -2,238 +2,90 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Calibrador Horizontal ASARI</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&family=Roboto+Slab:wght@700;900&display=swap" rel="stylesheet">
+    <title>Calibración Analítico A4</title>
     <style>
-        body { font-family: sans-serif; background: #222; margin: 0; display: flex; height: 100vh; overflow: hidden; color: white; }
+        body { background: #333; display: flex; justify-content: center; padding: 20px; font-family: sans-serif; }
         
-        /* SIDEBAR */
-        #sidebar { width: 300px; background: #1a1a1a; padding: 20px; overflow-y: auto; border-right: 1px solid #444; flex-shrink: 0; z-index: 100; }
-        .control-group { margin-bottom: 20px; background: #333; padding: 10px; border-radius: 8px; }
-        label { display: block; font-size: 11px; color: #aaa; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
-        input[type="range"] { width: 100%; cursor: pointer; }
-        .coord-display { font-family: monospace; font-size: 14px; color: #4ade80; margin-top: 5px; background: black; padding: 8px; border-radius: 4px; border: 1px solid #444; }
+        /* HOJA A4 REAL (VERTICAL) */
+        .hoja-a4 {
+            width: 210mm;
+            height: 297mm;
+            background-color: white;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            /* AQUÍ VA TU IMAGEN DE FONDO */
+            background-image: url('TU_IMAGEN_DE_FONDO_AQUI.jpg'); 
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* --- CAJAS DE REFERENCIA (SHADOW BOXES) --- */
         
-        /* WORKSPACE (Área Gris) */
-        #workspace { 
-            flex: 1; 
-            background: #444; 
-            position: relative; 
-            overflow: auto; /* Permite scroll si es muy grande */
+        /* CAJA DE DATOS (TEXTO) */
+        .ref-box-datos {
+            position: absolute;
+            /* COORDENADAS A CALIBRAR */
+            top: 118mm;  /* <--- MUEVE ESTO SI NO CAE EN EL RENGLÓN */
+            left: 50%;
+            transform: translateX(-50%);
+            
+            /* ESTILO VISUAL DE REFERENCIA (BORRAR AL FINAL) */
+            border: 2px dashed red;
+            background-color: rgba(255, 0, 0, 0.2); /* Rojo transparente */
+            color: red;
+            
+            /* ESTILO DE TEXTO REAL */
+            font-family: 'Times New Roman', serif;
+            font-weight: 900;
+            font-size: 16pt; /* Tamaño real de impresión */
+            white-space: nowrap;
+            padding: 0 10px;
+            z-index: 10;
+        }
+
+        /* CAJA DE FOTO */
+        .ref-box-foto {
+            position: absolute;
+            /* COORDENADAS A CALIBRAR */
+            top: 128mm; /* <--- MUEVE ESTO SI LA FOTO ESTÁ MAL */
+            right: 25mm;
+            
+            width: 35mm;
+            height: 45mm;
+            
+            /* ESTILO VISUAL DE REFERENCIA */
+            border: 2px dashed blue;
+            background-color: rgba(0, 0, 255, 0.2); /* Azul transparente */
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-        
-        /* EL DIPLOMA (Lienzo Blanco) */
-        #diploma-stage {
-            /* DIMENSIONES FIJAS HORIZONTALES */
-            width: 2000px; 
-            height: 1414px; 
-            background-color: white; 
-            box-shadow: 0 0 100px rgba(0,0,0,0.5);
-            position: relative;
-            flex-shrink: 0; /* Evita que se aplaste */
-            
-            /* TRUCO DE ZOOM: Escalamos desde el centro */
-            transform-origin: center center;
-            transition: transform 0.1s;
+            color: blue;
+            font-size: 10px;
+            font-weight: bold;
         }
 
-        /* ELEMENTOS MOVILES */
-        .draggable {
-            position: absolute; cursor: grab; user-select: none;
-            border: 1px dashed rgba(0,0,255,0.3); /* Guía visual azul suave */
-        }
-        .draggable:active { cursor: grabbing; border-color: #facc15; }
-
-        /* ESTILOS REALES */
-        .dip-texto-formal {
-            font-family: 'Roboto Slab', serif; font-weight: 900; color: #003399; text-transform: uppercase;
-            text-align: center; white-space: nowrap; width: 100%; text-shadow: 1px 1px 0px rgba(255,255,255,1);
-        }
-        .dip-qr-box { background: white; border: 2px solid #ccc; display: flex; align-items: center; justify-content: center; color: #aaa; font-size: 10px; width: 100%; height: 100%; }
-        .dip-info-extra {
-            font-family: 'Roboto', sans-serif; font-weight: 700; color: #444; background: rgba(255,255,255,0.9);
-            padding: 5px 20px; border-radius: 50px; border: 1px solid #eee; text-align: center; white-space: nowrap;
-        }
-        .dip-sello {
-            border-radius: 50%; width: 100%; height: 100%;
-            background: radial-gradient(ellipse at center, rgba(245,201,99,0.3) 0%,rgba(180,136,17,0.5) 100%);
-            border: 4px double rgba(180,136,17,0.6); box-shadow: 0 0 15px rgba(245,201,99,0.5);
+        /* Puntos guía para centro de hoja (Opcional) */
+        .guia-centro {
+            position: absolute;
+            left: 50%; top: 0; bottom: 0;
+            border-left: 1px dotted gray;
+            z-index: 0;
         }
     </style>
 </head>
 <body>
 
-    <div id="sidebar">
-        <h2 style="margin-top:0; color:#60a5fa;">📐 Calibrador V2</h2>
-        <p style="font-size:11px; color:#888; margin-bottom:20px;">Ajusta para Diploma Horizontal (2000x1414)</p>
+    <div class="hoja-a4">
+        <div class="guia-centro"></div>
 
-        <div class="control-group">
-            <label>1. Cargar Fondo (JPG)</label>
-            <input type="file" id="bg-uploader" accept="image/*">
+        <div class="ref-box-datos">
+            MARCELO ALEJANDRO PATRI - DNI 33656107
         </div>
 
-        <div class="control-group">
-            <label>🔍 ZOOM PANTALLA</label>
-            <input type="range" min="0.1" max="0.8" step="0.01" value="0.35" oninput="cambiarZoom(this.value)">
-        </div>
-
-        <hr style="border-color:#444; margin: 20px 0;">
-
-        <div class="control-group">
-            <label style="color:#facc15;">A. TEXTO CENTRAL</label>
-            <label>Tamaño Letra (px)</label>
-            <input type="range" min="40" max="150" value="80" oninput="updateStyle('el-nombre', 'fontSize', this.value + 'px')">
-            <div class="coord-display" id="val-nombre">TOP: 450px</div>
-        </div>
-
-        <div class="control-group">
-            <label style="color:#facc15;">B. CÓDIGO QR</label>
-            <label>Tamaño (px)</label>
-            <input type="range" min="50" max="300" value="155" oninput="resizeElement('el-qr', this.value)">
-            <div class="coord-display" id="val-qr">TOP: 130px | RIGHT: 65px</div>
-        </div>
-
-        <div class="control-group">
-            <label style="color:#facc15;">C. FECHA Y REGISTRO</label>
-            <div class="coord-display" id="val-fecha">BOTTOM: 300px</div>
-        </div>
-
-        <div class="control-group">
-            <label style="color:#facc15;">D. SELLO</label>
-            <label>Tamaño (px)</label>
-            <input type="range" min="100" max="300" value="180" oninput="resizeElement('el-sello', this.value)">
-            <div class="coord-display" id="val-sello">BOTTOM: 60px | LEFT: 60px</div>
+        <div class="ref-box-foto">
+            FOTO 4x4
         </div>
     </div>
 
-    <div id="workspace">
-        <div id="diploma-stage" style="transform: scale(0.35);">
-            <img id="diploma-bg" src="" style="width:100%; height:100%; object-fit:fill; position:absolute; top:0; left:0; z-index:0; opacity:0.3;">
-            
-            <div id="el-nombre" class="draggable" style="top: 450px; left: 0; width: 100%; text-align: center; border:none;" data-axis="y">
-                <div class="dip-texto-formal" style="font-size: 80px;">MARCELO ALEJANDRO PATRI • DNI 33656107</div>
-            </div>
-
-            <div id="el-qr" class="draggable" style="top: 130px; right: 65px; width: 155px; height: 155px;" data-axis="xy">
-                <div class="dip-qr-box">QR</div>
-            </div>
-
-            <div id="el-fecha" class="draggable" style="bottom: 300px; left: 0; width: 100%; text-align: center; border:none;" data-axis="y">
-                <div class="dip-info-extra" style="display:inline-block;">REGISTRO: REMAEP • Fecha: 13/01/2026</div>
-            </div>
-
-            <div id="el-sello" class="draggable" style="bottom: 60px; left: 60px; width: 180px; height: 180px;" data-axis="xy">
-                <div class="dip-sello"></div>
-            </div>
-
-        </div>
-    </div>
-
-    <script>
-        // CARGAR IMAGEN
-        document.getElementById('bg-uploader').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if(file) {
-                const reader = new FileReader();
-                reader.onload = (evt) => {
-                    const img = document.getElementById('diploma-bg');
-                    img.src = evt.target.result;
-                    img.style.opacity = "1";
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        // ZOOM
-        function cambiarZoom(val) {
-            document.getElementById('diploma-stage').style.transform = `scale(${val})`;
-        }
-
-        // DRAG & DROP LOGIC
-        let activeEl = null;
-        let startX, startY, startTop, startBottom, startRight, startLeft;
-
-        document.querySelectorAll('.draggable').forEach(el => {
-            el.addEventListener('mousedown', (e) => {
-                activeEl = el;
-                e.preventDefault();
-                startX = e.clientX;
-                startY = e.clientY;
-                
-                const style = window.getComputedStyle(el);
-                // Leemos las posiciones actuales
-                startTop = style.top !== 'auto' ? parseFloat(style.top) : null;
-                startBottom = style.bottom !== 'auto' ? parseFloat(style.bottom) : null;
-                startRight = style.right !== 'auto' ? parseFloat(style.right) : null;
-                startLeft = style.left !== 'auto' ? parseFloat(style.left) : null;
-
-                document.addEventListener('mousemove', onDrag);
-                document.addEventListener('mouseup', stopDrag);
-            });
-        });
-
-        function onDrag(e) {
-            if (!activeEl) return;
-            
-            // Calculamos el desplazamiento compensando el Zoom
-            const zoom = parseFloat(document.getElementById('diploma-stage').style.transform.replace('scale(', '').replace(')', '')) || 1;
-            const dy = (e.clientY - startY) / zoom;
-            const dx = (e.clientX - startX) / zoom;
-            const axis = activeEl.dataset.axis || 'xy';
-
-            // MOVIMIENTO VERTICAL (Todos)
-            if (startTop !== null) activeEl.style.top = (startTop + dy) + 'px';
-            if (startBottom !== null) activeEl.style.bottom = (startBottom - dy) + 'px';
-
-            // MOVIMIENTO HORIZONTAL (Solo QR y Sello)
-            if (axis === 'xy') {
-                if (startRight !== null) activeEl.style.right = (startRight - dx) + 'px'; // Right invierte X
-                if (startLeft !== null) activeEl.style.left = (startLeft + dx) + 'px';
-            }
-
-            updateData();
-        }
-
-        function stopDrag() {
-            activeEl = null;
-            document.removeEventListener('mousemove', onDrag);
-            document.removeEventListener('mouseup', stopDrag);
-        }
-
-        // ACTUALIZAR DATOS VISUALES
-        function updateData() {
-            const s = (id) => document.getElementById(id).style;
-            const txt = (id) => document.querySelector(`#${id} div`).style;
-
-            // NOMBRE
-            document.getElementById('val-nombre').innerText = `TOP: ${parseInt(s('el-nombre').top)}px | FONT: ${parseInt(txt('el-nombre').fontSize)}px`;
-            
-            // QR
-            const qr = s('el-qr');
-            document.getElementById('val-qr').innerText = `TOP: ${parseInt(qr.top)}px | RIGHT: ${parseInt(qr.right)}px | SIZE: ${parseInt(qr.width)}px`;
-
-            // FECHA
-            document.getElementById('val-fecha').innerText = `BOTTOM: ${parseInt(s('el-fecha').bottom)}px`;
-
-            // SELLO
-            const sello = s('el-sello');
-            document.getElementById('val-sello').innerText = `BOTTOM: ${parseInt(sello.bottom)}px | LEFT: ${parseInt(sello.left)}px | SIZE: ${parseInt(sello.width)}px`;
-        }
-
-        // HELPERS SLIDERS
-        function updateStyle(id, prop, val) {
-            document.querySelector(`#${id} div`).style[prop] = val;
-            updateData();
-        }
-        function resizeElement(id, val) {
-            const el = document.getElementById(id);
-            el.style.width = val + 'px';
-            el.style.height = val + 'px';
-            updateData();
-        }
-    </script>
 </body>
 </html>
