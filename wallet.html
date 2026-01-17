@@ -369,8 +369,16 @@
 
             const t = (alumno.curso || "CURSO PROFESIONAL").trim().toUpperCase().split(/\s+/);
             const e1 = el('#txt-titulo-main'); const e2 = el('#txt-titulo-sub');
-            if(t.length < 2) { e1.innerText = t.join(' '); e2.innerText = ""; } 
-            else { const c = Math.ceil(t.length / 2); e1.innerText = t.slice(0, c).join(' '); e2.innerText = t.slice(c).join(' '); }
+            
+            // --- CORRECCIÓN SOLICITADA: SIEMPRE 1 PALABRA ARRIBA ---
+            if(t.length < 2) { 
+                e1.innerText = t.join(' '); 
+                e2.innerText = ""; 
+            } else { 
+                e1.innerText = t[0];               // 1ra Palabra
+                e2.innerText = t.slice(1).join(' '); // Resto abajo
+            }
+            // -------------------------------------------------------
 
             ajustarTextoAlAncho(nombreEl, 34); 
         }
