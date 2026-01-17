@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0033cc" id="meta-theme-color">
-    <title>Billetera Educativa - ASARI</title>
+    <title>Billetera Educativa</title>
     
     <link rel="manifest" href="manifest.json">
     
@@ -12,12 +12,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&family=Roboto+Slab:wght@700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&family=Roboto+Slab:wght@700;900&display=swap" rel="stylesheet">
 
     <style>
-        /* ESTILOS APP BASE */
-        :root { --primary: #0033cc; --bg-app: #f4f6f9; --text-dark: #222; }
+        /* ESTILOS BASE */
+        :root { --primary: #0033cc; --bg-app: #f4f6f9; --text-dark: #222; --diploma-blue: #003399; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; padding: 0; font-family: 'Roboto', sans-serif; background-color: var(--bg-app); color: #333; height: 100vh; display: flex; flex-direction: column; }
 
@@ -30,7 +29,7 @@
         .screen.active { display: flex; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* LOGIN & UPLOAD */
+        /* LOGIN */
         .login-container { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
         .login-title { font-size: 22px; font-weight: 900; margin-bottom: 10px; color: #222; }
         .login-desc { font-size: 14px; color: #666; margin-bottom: 30px; max-width: 280px; }
@@ -41,114 +40,148 @@
         .btn-main { width: 100%; max-width: 320px; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: transform 0.2s; }
         .btn-main:active { transform: scale(0.98); }
 
+        /* UPLOAD */
         .upload-area { border: 2px dashed #ccc; padding: 30px; border-radius: 15px; background: white; margin-bottom: 20px; cursor: pointer; width: 100%; max-width: 320px; }
+        .upload-icon { font-size: 40px; color: #ccc; margin-bottom: 10px; }
         #preview-upload { max-width: 100%; max-height: 200px; border-radius: 10px; display: none; margin-top: 10px; object-fit: cover; }
 
-        /* WALLET */
+        /* WALLET UI */
         .wallet-welcome { margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .welcome-sub { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
         .welcome-name { font-size: 20px; font-weight: 900; color: var(--text-dark); }
         .user-avatar-mini { width: 40px; height: 40px; border-radius: 50%; background: #ddd; object-fit: cover; border: 2px solid var(--primary); }
-
         .card-viewport { width: 100%; overflow: hidden; background: transparent; position: relative; margin-bottom: 20px; height: 220px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); transition: height 0.3s; }
         #carnet-render { width: 1011px; height: 638px; background: white; position: absolute; top: 0; left: 0; transform-origin: top left; }
 
-        /* CARNET (ESTILOS INTERNOS) */
+        /* =========================================
+           ESTILOS EXACTOS CARNET V19
+           ========================================= */
         .card-base { width: 100%; height: 100%; display: flex; position: relative; border: 5px solid; border-radius: 40px; overflow: hidden; background: white; }
+        
+        /* IZQUIERDA */
         .front-left { width: 380px; height: 100%; position: relative; background: #d4d4d4; z-index: 1; border-top-left-radius: 35px; border-bottom-left-radius: 35px; overflow: hidden; }
-        .student-photo { width: 100%; height: 100%; object-fit: cover; }
-        .rect-banda { position: absolute; bottom: 0; left: 0; width: 100%; height: 160px; z-index: 2; }
-        .reg-sigla { position: absolute; bottom: 15px; left: 0; width: 100%; text-align: center; color: white; font-size: 22px; font-weight: 900; z-index: 6; text-shadow: 2px 2px 4px rgba(0,0,0,0.9); }
-        .qr-container { position: absolute; bottom: 45px; left: 50%; transform: translateX(-50%); width: 160px; height: 160px; background: white; padding: 8px; border-radius: 12px; z-index: 5; display: flex; justify-content: center; align-items: center; }
-        .front-right { flex: 1; padding: 20px 35px; display: flex; flex-direction: column; justify-content: space-between; color: white; position: relative; }
-        .holo-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(45deg, rgba(255,255,255,0.08) 0px, rgba(255,255,255,0.08) 1px, transparent 1px, transparent 4px); mix-blend-mode: overlay; pointer-events: none; }
+        .student-photo { width: 100%; height: 100%; object-fit: cover; position: relative; z-index: 1; }
+        .rect-banda { position: absolute; bottom: 0; left: 0; width: 100%; height: 160px; background-color: var(--primary); z-index: 2; }
+        .reg-sigla { position: absolute; bottom: 15px; left: 0; width: 100%; text-align: center; color: white; font-size: 22px; font-weight: 900; z-index: 6; text-shadow: 2px 2px 4px rgba(0,0,0,0.9); letter-spacing: 2px; }
+        .qr-container { position: absolute; bottom: 45px; left: 50%; transform: translateX(-50%); width: 160px; height: 160px; background: white; padding: 8px; border-radius: 12px; z-index: 5; box-shadow: 0 6px 20px rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; }
+
+        /* DERECHA */
+        .front-right { flex: 1; position: relative; color: white; padding: 20px 35px; display: flex; flex-direction: column; justify-content: space-between; background-color: var(--primary); }
+        .holo-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(45deg, rgba(255,255,255,0.08) 0px, rgba(255,255,255,0.08) 1px, transparent 1px, transparent 4px), linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.2) 45%, rgba(200,255,255,0.4) 50%, rgba(255,255,255,0.2) 55%, transparent 70%); mix-blend-mode: overlay; pointer-events: none; }
         .front-content { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 6px solid rgba(255,255,255,0.9); padding-bottom: 2px; }
-        .header-text { font-size: 85px; font-weight: 900; text-transform: uppercase; line-height: 0.9; }
-        .course-container { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 10px 0; background: rgba(0,0,0,0.1); border-radius: 12px; padding: 0 10px; }
-        .course-title-main, .course-title-sub { font-size: 54px; font-weight: 900; text-transform: uppercase; line-height: 1; text-align: center; white-space: nowrap; }
+        .header-text { font-size: 85px; font-weight: 900; text-transform: uppercase; line-height: 0.9; text-shadow: 3px 3px 0px rgba(0,0,0,0.2); }
         
-        /* CORRECCIÓN: Nombre una sola línea en carnet */
-        .student-name { font-size: 34px; font-weight: 700; text-transform: uppercase; text-align: center; margin-bottom: 15px; width: 100%; white-space: nowrap; overflow: hidden; display: block; }
+        .course-container { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 10px 0; background: linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.3)); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 0 10px; }
+        .course-title-main, .course-title-sub { font-size: 42px; font-weight: 900; text-transform: uppercase; line-height: 1.1; text-align: center; text-shadow: 0 4px 8px rgba(0,0,0,0.4); display: inline-block; white-space: nowrap; }
         
+        .student-name { font-size: 34px; font-weight: 700; text-transform: uppercase; background: transparent; padding: 10px; text-align: center; border-radius: 8px; margin-bottom: 15px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); width: 100%; overflow: hidden; }
         .data-grid { display: grid; grid-template-columns: 65px 1fr; row-gap: 10px; align-items: center; }
         .icon-box { font-size: 55px; text-align: center; }
-        .data-box { background: rgba(0,0,0,0.2); padding: 6px 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.15); height: 55px; }
+        .data-box { background: linear-gradient(90deg, rgba(0,0,0,0.2), rgba(0,0,0,0.3)); padding: 6px 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.15); height: 55px; }
         .label-text { font-size: 32px; font-weight: 700; opacity: 0.9; }
         .value-text { font-size: 36px; font-weight: 900; text-align: right; }
 
-        /* REVERSO */
+        /* REVERSO (Imagen) */
         .carnet-back-img { width: 1011px; height: 638px; object-fit: cover; border-radius: 40px; border: 5px solid var(--primary); }
 
-        /* DIPLOMA CORRECCIONES */
-        .diploma-container { width: 2000px; height: 1414px; position: relative; background-size: cover; background-position: center; color: #0033cc; font-family: 'Playfair Display', serif; }
+        /* =========================================
+           ESTILOS EXACTOS DIPLOMA V19
+           ========================================= */
+        .diploma-layout { width: 2000px; height: 1414px; position: relative; overflow: hidden; color: #333; }
+        .diploma-bg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
+        .diploma-overlay { position: relative; z-index: 10; width: 100%; height: 100%; }
         
-        .dip-nombre-box { 
+        /* Contenedor Línea Única (Nombre - DNI) */
+        .dip-linea-unica-container { 
             position: absolute; 
-            top: 42%; 
+            top: 595px; /* Altura exacta V19 */
             left: 50%; 
-            transform: translate(-50%, -50%); 
-            width: 1500px; 
-            text-align: center;
-            overflow: visible;
+            transform: translateX(-50%); 
+            width: 85%; /* Margen de seguridad */
+            text-align: center; 
+            white-space: nowrap; 
         }
-        .dip-nombre { 
-            font-size: 90px; 
+        
+        .dip-texto-formal { 
+            font-family: 'Roboto Slab', serif; 
             font-weight: 900; 
+            color: var(--diploma-blue); 
             text-transform: uppercase; 
-            color: #0033cc; 
-            display: inline-block; 
-            white-space: nowrap;
-            overflow: visible;
-            max-width: 100%;
+            font-size: 80px; /* Tamaño base */
+            letter-spacing: 1px; 
+            text-shadow: 2px 2px 0px rgba(255,255,255,1); 
         }
 
-        .dip-dni-box {
+        /* QR y Datos Extra */
+        .dip-qr { 
             position: absolute; 
-            top: 48%; 
-            left: 50%; 
-            transform: translateX(-50%);
-            width: 1400px; 
-            text-align: center;
-            overflow: visible;
-        }
-        .dip-dni { 
-            font-size: 35px; 
-            font-weight: 900; 
-            color: #0033cc; 
-            display: inline-block; 
-            white-space: nowrap;
-            overflow: visible;
-            max-width: 100%;
+            top: 284px; /* Posición exacta V19 */
+            right: 176px; 
+            width: 233px; height: 233px; 
+            background: white; padding: 5px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
         }
         
-        .dip-qr { position: absolute; top: 360px; right: 80px; width: 180px; height: 180px; background: white; padding: 10px; border: 2px solid #eee; }
+        .dip-info-extra { 
+            position: absolute; 
+            bottom: 1348px; /* Posición exacta V19 */
+            left: 50%; 
+            transform: translateX(-50%); 
+            text-align: center; 
+            font-family: 'Roboto', sans-serif; 
+            font-size: 18px; font-weight: 700; 
+            color: #222; 
+            background: rgba(255,255,255,0.9); 
+            padding: 4px 25px; 
+            border-radius: 50px; 
+            border: 1px solid rgba(0,0,0,0.1); 
+            z-index: 20; 
+        }
+        
+        /* SELLO DORADO SVG (V19) */
+        .dip-sello { 
+            position: absolute; 
+            bottom: 914px; 
+            left: 1445px; 
+            width: 180px; height: 180px; 
+            z-index: 15; 
+            background-repeat: no-repeat; 
+            background-size: contain; 
+            background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpath id='textPath' d='M 25,100 A 75,75 0 1,1 175,100 A 75,75 0 1,1 25,100' /%3E%3C/defs%3E%3Ccircle cx='100' cy='100' r='90' fill='none' stroke='%23B8860B' stroke-width='2' /%3E%3Ccircle cx='100' cy='100' r='85' fill='none' stroke='%23B8860B' stroke-width='1' /%3E%3Ccircle cx='100' cy='100' r='65' fill='none' stroke='%23B8860B' stroke-width='1' stroke-dasharray='2,2' /%3E%3Ctext fill='%23B8860B' font-family='Times New Roman, serif' font-weight='bold' font-size='14' letter-spacing='3'%3E%3CtextPath href='%23textPath' startOffset='0' text-anchor='middle'%3E* CERTIFICACIÓN OFICIAL * VALIDADA *%3C/textPath%3E%3C/text%3E%3Cpath d='M100,45 L100,155 M45,100 L155,100' stroke='%23B8860B' stroke-width='0.5' opacity='0.3'/%3E%3Cpath d='M100,55 L120,80 L100,145 L80,80 Z' fill='none' stroke='%23B8860B' stroke-width='1.5' /%3E%3C/svg%3E"); 
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2)); 
+            opacity: 0.9; 
+        }
 
-        /* ACCIONES */
+        /* ACTIONS */
         .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
         .action-card { background: white; padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-decoration: none; color: #333; cursor: pointer; }
         .action-icon { font-size: 24px; color: var(--primary); margin-bottom: 8px; display: block; }
         .action-title { font-size: 14px; font-weight: 700; }
-        
-        #ghost-container { position: fixed; top: -9999px; left: -9999px; }
+        .footer-brand { margin-top: auto; text-align: center; padding: 20px; font-size: 11px; color: #999; }
+        #msg-error { color: #d32f2f; margin-top: 15px; font-weight: bold; display: none; }
         .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: none; margin: 0 auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .curso-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border-left: 5px solid var(--primary); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .curso-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid var(--primary); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+
+        #ghost-container { position: fixed; top: -9999px; left: -9999px; }
     </style>
 </head>
 <body>
 
     <header class="app-header">
-        <img src="" id="app-logo" class="app-logo" alt="Logo">
+        <img src="https://vxggatcfrywyodovjwxj.supabase.co/storage/v1/object/public/logos-instituciones/Asari%20Logo.jpg" id="app-logo" class="app-logo" alt="Logo">
     </header>
 
     <div id="screen-login" class="screen active">
         <div class="login-container">
             <h1 class="login-title">Acceso Alumnos</h1>
             <p class="login-desc">Ingresa tu DNI para acceder.</p>
-            <div class="input-group"><i class="fas fa-id-card input-icon"></i><input type="tel" id="input-dni" class="input-dni" placeholder="DNI sin puntos"></div>
+            <div class="input-group"><i class="fas fa-id-card input-icon"></i><input type="tel" id="input-dni" class="input-dni" placeholder="Número de DNI" autocomplete="off"></div>
             <button class="btn-main" onclick="ingresar()"><span id="btn-text">INGRESAR</span><div id="loader" class="loader"></div></button>
-            <div id="msg-error" style="color:red; margin-top:10px; display:none;"></div>
+            <div id="msg-error"></div>
         </div>
+        <div class="footer-brand">POWERED BY <strong>ASARI PLATFORM</strong></div>
     </div>
 
     <div id="screen-upload" class="screen">
@@ -156,7 +189,7 @@
             <h1 class="login-title">Foto de Perfil</h1>
             <p class="login-desc">Sube una foto clara para tu credencial.</p>
             <label class="upload-area">
-                <i class="fas fa-camera" style="font-size:40px; color:#ccc;"></i><br>
+                <div class="upload-icon"><i class="fas fa-camera"></i></div>
                 <div id="txt-upload">Tocar para subir</div>
                 <input type="file" id="input-foto-alumno" accept="image/*" style="display:none;" onchange="previsualizarFoto()">
                 <img id="preview-upload" src="">
@@ -170,20 +203,22 @@
         <div class="wallet-welcome"><div class="welcome-name">Mis Cursos</div></div>
         <div id="lista-cursos-container"></div>
         <div class="action-card" onclick="cerrarSesion()" style="margin-top:20px; background: #fff0f0;"><span class="action-title" style="color: #d32f2f;">Salir</span></div>
+        <div class="footer-brand">Validado por <strong>ASARI</strong></div>
     </div>
 
     <div id="screen-wallet" class="screen">
         <div class="wallet-welcome">
-            <div><div class="welcome-name" id="user-name">...</div></div>
+            <div><div class="welcome-sub">Bienvenido/a</div><div class="welcome-name" id="user-name">...</div></div>
             <img src="" id="user-avatar-wallet" class="user-avatar-mini" style="display:none;">
         </div>
         <div class="card-viewport" id="card-viewport"><div id="carnet-render"></div></div>
         <div class="actions-grid">
-            <div class="action-card" onclick="descargarCarnetCompleto()"><span class="action-icon"><i class="fas fa-id-card"></i></span><span class="action-title">Carnet</span></div>
-            <div class="action-card" id="btn-descargar-diploma" style="display:none;" onclick="descargarDiploma()"><span class="action-icon"><i class="fas fa-certificate"></i></span><span class="action-title">Diploma</span></div>
-            <div class="action-card" id="btn-cambiar-curso" style="display:none;" onclick="volverAlSelector()"><span class="action-icon"><i class="fas fa-exchange-alt"></i></span><span class="action-title">Cambiar</span></div>
-            <div class="action-card" onclick="cerrarSesion()"><span class="action-icon"><i class="fas fa-sign-out-alt"></i></span><span class="action-title">Salir</span></div>
+            <div class="action-card" onclick="descargarCarnetCompleto()"><span class="action-icon"><i class="fas fa-id-card"></i></span><span class="action-title">Descargar Carnet</span></div>
+            <div class="action-card" id="btn-descargar-diploma" style="display:none;" onclick="descargarDiploma()"><span class="action-icon"><i class="fas fa-certificate"></i></span><span class="action-title">Descargar Diploma</span></div>
+            <div class="action-card" id="btn-cambiar-curso" style="display:none;" onclick="volverAlSelector()"><span class="action-icon" style="color:#666"><i class="fas fa-exchange-alt"></i></span><span class="action-title">Cambiar</span></div>
+            <div class="action-card" onclick="cerrarSesion()"><span class="action-icon"><i class="fas fa-sign-out-alt" style="color:#d32f2f;"></i></span><span class="action-title">Salir</span></div>
         </div>
+        <div class="footer-brand">Soporte y Seguridad<br><strong>ASARI PLATFORM</strong></div>
     </div>
 
     <div id="ghost-container"></div>
@@ -197,17 +232,21 @@
         const LOGO_ASARI_DEFAULT = "https://vxggatcfrywyodovjwxj.supabase.co/storage/v1/object/public/logos-instituciones/Asari%20Logo.jpg"; 
         const URL_REVERSO = "./reverso.jpg"; 
 
-        const COLORES_REGISTRO = { 'remaep': '#0033cc', 'rniue': '#b8860b', 'rubra': '#cc0000', 'rmts': '#2f4f4f', 'asarin': '#800000', 'rpde': '#0099ff', 'rce': '#ffcc00', 'colbert': '#2f4f4f', 'default': '#0033cc' };
-
+        const COLOR_DEFAULT = "#b8860b"; 
         let globalMatriculas = [];
         let alumnoActual = null; 
         let cursoActualData = null;
 
         document.getElementById('app-logo').src = LOGO_ASARI_DEFAULT;
+        document.documentElement.style.setProperty('--primary', COLOR_DEFAULT);
+        window.addEventListener('resize', ajustarCarnetResponsivo);
 
+        const COLORES_REGISTRO = { 'remaep': '#0033cc', 'rniue': '#b8860b', 'rubra': '#cc0000', 'rmts': '#2f4f4f', 'asarin': '#800000', 'rpde': '#0099ff', 'rce': '#ffcc00', 'colbert': '#2f4f4f', 'default': '#0033cc' };
+
+        // HTML FRENTE V19 EXACTO
         const CARNET_HTML = `
             <div class="card-base" id="card-base-el">
-                <div class="front-left">
+                <div class="front-left" id="panel-izq-bg">
                     <img id="img-foto" class="student-photo" src="">
                     <div class="rect-banda" id="banda-color"></div>
                     <div class="qr-container" id="qr-container"></div>
@@ -217,98 +256,56 @@
                     <div class="holo-layer"></div>
                     <div class="front-content">
                         <div class="header"><span class="header-text" id="txt-anio-header">CARNET</span></div>
-                        <div class="course-container"><div class="course-title-main" id="txt-titulo-main"></div><div class="course-title-sub" id="txt-titulo-sub"></div></div>
-                        <div class="student-name" id="txt-nombre"></div>
+                        <div class="course-container"><div class="course-title-main" id="txt-titulo-main">CURSO</div><div class="course-title-sub" id="txt-titulo-sub">PROFESIONAL</div></div>
+                        <div class="student-name" id="txt-nombre" style="white-space: nowrap;">---</div>
                         <div class="data-grid">
-                            <div class="icon-box">✱</div><div class="data-box"><span class="label-text">DNI:</span><span class="value-text" id="txt-dni"></span></div>
-                            <div class="icon-box">#</div><div class="data-box"><span class="label-text">MATRÍCULA:</span><span class="value-text" id="txt-matricula"></span></div>
-                            <div class="icon-box">🚨</div><div class="data-box"><span class="label-text">VENCE:</span><span class="value-text" id="txt-vence"></span></div>
+                            <div class="icon-box">✱</div><div class="data-box"><span class="label-text">DNI:</span><span class="value-text" id="txt-dni">---</span></div>
+                            <div class="icon-box">#</div><div class="data-box"><span class="label-text">MATRÍCULA:</span><span class="value-text" id="txt-matricula">---</span></div>
+                            <div class="icon-box">🚨</div><div class="data-box"><span class="label-text">VENCE:</span><span class="value-text" id="txt-vence">---</span></div>
                         </div>
                     </div>
                 </div>
             </div>`;
 
-        // --- FUNCIONES CORE ---
+        // HTML REVERSO
+        const CARNET_BACK_HTML = `<img src="${URL_REVERSO}" class="carnet-back-img" id="carnet-back-img">`;
 
-        function ajustarTextoAlAncho(element, startSize, maxWidth, minSize = 20) {
-            if (!element) return;
-            
-            // Configuración inicial crítica
-            element.style.display = 'inline-block';
-            element.style.whiteSpace = 'nowrap';
-            element.style.overflow = 'visible';
-            element.style.textOverflow = 'clip';
-            element.style.maxWidth = 'none';
-            element.style.width = 'auto';
-            element.style.letterSpacing = '0px';
-            element.style.fontSize = startSize + 'px';
-            
-            // Forzar renderizado completo
-            void element.offsetWidth;
-            
-            let size = startSize;
-            let iterations = 0;
-            const maxIterations = 200;
-            
-            // Función para obtener ancho real
-            function getActualWidth() {
-                void element.offsetWidth; // Forzar reflow
-                return element.getBoundingClientRect().width;
-            }
-            
-            // Reducción de tamaño de fuente
-            while (getActualWidth() > maxWidth && size > minSize && iterations < maxIterations) {
-                size -= 0.3;
-                element.style.fontSize = size + 'px';
-                iterations++;
-            }
-            
-            // Si todavía no cabe, aplicar letter-spacing negativo gradualmente
-            if (getActualWidth() > maxWidth && size <= minSize) {
-                let spacing = 0;
-                iterations = 0;
-                while (getActualWidth() > maxWidth && spacing > -4 && iterations < maxIterations) {
-                    spacing -= 0.1;
-                    element.style.letterSpacing = spacing + 'px';
-                    iterations++;
-                }
-            }
-            
-            // Última verificación y ajuste fino
-            if (getActualWidth() > maxWidth) {
-                const scaleFactor = maxWidth / getActualWidth();
-                const newSize = size * scaleFactor * 0.98; // 98% para margen de seguridad
-                if (newSize >= minSize) {
-                    element.style.fontSize = newSize + 'px';
-                }
-            }
-        }
-
+        // --- LÓGICA GENERAL ---
         async function ingresar() {
             const dni = document.getElementById('input-dni').value.trim();
+            const btnText = document.getElementById('btn-text');
+            const loader = document.getElementById('loader');
+            const errorMsg = document.getElementById('msg-error');
             if(!dni) return;
-            
-            document.getElementById('btn-text').style.display = 'none';
-            document.getElementById('loader').style.display = 'block';
-
+            btnText.style.display = 'none'; loader.style.display = 'block'; errorMsg.style.display = 'none';
             try {
                 const { data: matriculas, error } = await db.from('matriculas').select('*').eq('dni_alumno', dni);
                 if (!matriculas || matriculas.length === 0) throw new Error("No encontrado");
-                
                 globalMatriculas = matriculas;
-                alumnoActual = matriculas[0];
-
-                // Cargar Logo Institución
-                const idReg = (alumnoActual.registro_id || '').toLowerCase();
-                const { data: inst } = await db.from('instituciones').select('logo_url, color_tema').ilike('nombre', `%${idReg}%`).maybeSingle();
                 
-                cambiarIdentidadVisual(inst?.logo_url || LOGO_ASARI_DEFAULT, inst?.color_tema || '#0033cc');
+                const idRegistro = (matriculas[0].registro_id || '').toLowerCase().trim();
+                let instData = null;
+                try {
+                    const { data: dataInst } = await db.from('instituciones').select('logo_url, color_tema').ilike('nombre', `%${idRegistro}%`).maybeSingle();
+                    if(dataInst) instData = dataInst;
+                    else {
+                        const { data: dataCurso } = await db.from('cursos_oficiales').select('logo_url, color_tema').eq('nombre', matriculas[0].curso).maybeSingle();
+                        instData = dataCurso;
+                    }
+                } catch(e) {}
 
-                if (!alumnoActual.foto_url) {
+                if (instData && instData.logo_url) {
+                    cambiarIdentidadVisual(instData.logo_url, instData.color_tema || '#0033cc');
+                } else {
+                    cambiarIdentidadVisual(LOGO_ASARI_DEFAULT, COLOR_DEFAULT);
+                }
+
+                if (!matriculas[0].foto_url) {
+                    alumnoActual = matriculas[0];
                     mostrarPantalla('screen-upload');
                 } else {
                     if (matriculas.length === 1) {
-                        cargarWallet(alumnoActual);
+                        cargarWallet(matriculas[0]);
                         mostrarPantalla('screen-wallet');
                     } else {
                         generarListaCursos(matriculas);
@@ -316,214 +313,168 @@
                     }
                 }
             } catch (err) {
-                const e = document.getElementById('msg-error'); e.style.display='block'; e.innerText="DNI no encontrado.";
+                errorMsg.style.display = 'block'; errorMsg.innerText = "DNI no encontrado.";
             } finally {
-                document.getElementById('btn-text').style.display = 'block';
-                document.getElementById('loader').style.display = 'none';
+                btnText.style.display = 'block'; loader.style.display = 'none';
             }
         }
 
+        function previsualizarFoto() { const file = document.getElementById('input-foto-alumno').files[0]; if(file) { const reader = new FileReader(); reader.onload = function(e) { document.getElementById('preview-upload').src = e.target.result; document.getElementById('preview-upload').style.display = 'block'; document.getElementById('txt-upload').style.display = 'none'; document.getElementById('btn-subir').style.display = 'block'; }; reader.readAsDataURL(file); } }
+        async function subirFoto() { const file = document.getElementById('input-foto-alumno').files[0]; if (!file) return; const btn = document.getElementById('btn-subir'); const loader = document.getElementById('upload-loader'); btn.style.display = 'none'; loader.style.display = 'block'; try { const fileName = `${alumnoActual.dni_alumno}_${Date.now()}.${file.name.split('.').pop()}`; const { data, error } = await db.storage.from('fotos-alumnos').upload(fileName, file); if (error) throw error; const { data: urlData } = db.storage.from('fotos-alumnos').getPublicUrl(fileName); await db.from('matriculas').update({ foto_url: urlData.publicUrl }).eq('dni_alumno', alumnoActual.dni_alumno); alumnoActual.foto_url = urlData.publicUrl; globalMatriculas.forEach(m => m.foto_url = urlData.publicUrl); alert("¡Foto guardada!"); if (globalMatriculas.length === 1) { cargarWallet(alumnoActual); mostrarPantalla('screen-wallet'); } else { generarListaCursos(globalMatriculas); mostrarPantalla('screen-selector'); } } catch (err) { alert("Error: " + err.message); btn.style.display = 'block'; } finally { loader.style.display = 'none'; } }
+        function cambiarIdentidadVisual(logo, color) { const img = document.getElementById('app-logo'); img.src = ""; img.src = logo; document.documentElement.style.setProperty('--primary', color); }
+        function generarListaCursos(matriculas) { const container = document.getElementById('lista-cursos-container'); container.innerHTML = ''; matriculas.forEach((m) => { const card = document.createElement('div'); card.className = 'curso-card'; const color = COLORES_REGISTRO[(m.registro_id || 'default').toLowerCase()] || COLORES_REGISTRO['default']; card.style.borderLeftColor = color; card.innerHTML = `<div class="curso-info"><h4>${m.curso}</h4><p>${(m.registro_id || '').toUpperCase()} • ${new Date(m.fecha_inicio).getFullYear()}</p></div><div><i class="fas fa-chevron-right" style="color:#ccc"></i></div>`; card.onclick = () => { cargarWallet(m); mostrarPantalla('screen-wallet'); }; container.appendChild(card); }); }
+        
         async function cargarWallet(alumno) {
             alumnoActual = alumno; 
             document.getElementById('user-name').innerText = alumno.nombre.split(' ')[0];
             const av = document.getElementById('user-avatar-wallet');
             if(alumno.foto_url) { av.src = alumno.foto_url; av.style.display = 'block'; }
-            
             document.getElementById('btn-cambiar-curso').style.display = globalMatriculas.length > 1 ? 'flex' : 'none';
 
             const container = document.getElementById('carnet-render');
             container.innerHTML = CARNET_HTML; 
-            await llenarDatosCarnet(container, alumno);
+            llenarDatosCarnet(container, alumno);
             
-            const { data } = await db.from('cursos_oficiales').select('*').eq('nombre', alumno.curso).maybeSingle();
+            const { data } = await db.from('cursos_oficiales').select('*').eq('nombre', alumno.curso).single();
             cursoActualData = data;
-            document.getElementById('btn-descargar-diploma').style.display = data?.diploma_bg_url ? 'block' : 'none';
+            document.getElementById('btn-descargar-diploma').style.display = (data && data.diploma_bg_url) ? 'block' : 'none';
 
             setTimeout(ajustarCarnetResponsivo, 100);
         }
 
-        async function llenarDatosCarnet(container, alumno) {
+        function llenarDatosCarnet(container, alumno) {
             const el = (sel) => container.querySelector(sel);
-            
-            const nombreCompleto = `${alumno.nombre} ${alumno.apellido}`;
-            const nomEl = el('#txt-nombre');
-            nomEl.innerText = nombreCompleto;
-            
+            const nombreEl = el('#txt-nombre');
+            nombreEl.innerText = `${alumno.nombre} ${alumno.apellido}`;
             el('#txt-dni').innerText = alumno.dni_alumno;
             el('#txt-matricula').innerText = generarHashMatricula(String(alumno.dni_alumno));
-            
             const fecha = new Date(alumno.fecha_inicio || new Date());
             el('#txt-anio-header').innerText = `CARNET ${fecha.getFullYear()}`;
-            
             const vence = new Date(fecha); vence.setFullYear(vence.getFullYear() + 1);
             el('#txt-vence').innerText = vence.toLocaleDateString('es-AR');
-
-            if (alumno.foto_url) { 
-                const img = el('#img-foto'); 
-                img.crossOrigin = "anonymous"; 
-                img.src = alumno.foto_url + "?t=" + Date.now(); 
-            }
-
+            if (alumno.foto_url) { const img = el('#img-foto'); img.crossOrigin = "anonymous"; img.src = alumno.foto_url + "?t=" + Date.now(); }
             el('#qr-container').innerHTML = ""; 
             new QRCode(el('#qr-container'), { text: `${URL_WEB}/validador.html?id=${alumno.id}`, width: 144, height: 144 });
 
-            const regId = (alumno.registro_id || 'default').toLowerCase();
-            const color = COLORES_REGISTRO[regId] || COLORES_REGISTRO['default'];
-            
-            el('#card-base-el').style.borderColor = color;
-            el('#bg-panel').style.backgroundColor = color;
-            el('#banda-color').style.backgroundColor = color;
-            el('#txt-sigla').innerText = regId.toUpperCase();
-            el('#txt-sigla').style.color = color;
+            const registroId = (alumno.registro_id || 'default').toLowerCase();
+            const colorCarnet = COLORES_REGISTRO[registroId] || COLORES_REGISTRO['default'];
+            const nombreRegistro = (alumno.registro_id || 'OFICIAL').toUpperCase();
 
-            // Títulos Curso
-            const t = (alumno.curso || "CURSO").trim().toUpperCase().split(/\s+/);
-            const mid = Math.ceil(t.length / 2);
-            el('#txt-titulo-main').innerText = t.slice(0, mid).join(' ');
-            el('#txt-titulo-sub').innerText = t.slice(mid).join(' ');
+            el('#card-base-el').style.borderColor = colorCarnet;
+            el('#bg-panel').style.backgroundColor = colorCarnet;
+            el('#banda-color').style.backgroundColor = colorCarnet;
+            const sigla = el('#txt-sigla');
+            sigla.innerText = nombreRegistro;
+            sigla.style.color = colorCarnet;
+            if(registroId === 'rce') el('#bg-panel').style.color = 'black'; else el('#bg-panel').style.color = 'white';
 
-            // AJUSTE NOMBRE CARNET (Ancho máximo del panel derecho aprox 550px, mínimo 16px)
-            await new Promise(r => setTimeout(r, 50));
-            ajustarTextoAlAncho(nomEl, 34, 550, 16);
+            const t = (alumno.curso || "CURSO PROFESIONAL").trim().toUpperCase().split(/\s+/);
+            const e1 = el('#txt-titulo-main'); const e2 = el('#txt-titulo-sub');
+            if(t.length < 2) { e1.innerText = t.join(' '); e2.innerText = ""; } 
+            else { const c = Math.ceil(t.length / 2); e1.innerText = t.slice(0, c).join(' '); e2.innerText = t.slice(c).join(' '); }
+
+            ajustarTextoAlAncho(nombreEl, 34); 
         }
 
+        // FUNCION AJUSTE EXACTA V19
+        function ajustarTextoAlAncho(element, startSize, maxWidth) {
+            let size = startSize;
+            element.style.fontSize = size + 'px';
+            // Mientras el contenido sea más ancho que su caja... reduce
+            while (element.scrollWidth > (maxWidth || element.clientWidth) && size > 10) {
+                size -= 2;
+                element.style.fontSize = size + 'px';
+            }
+        }
+
+        async function descargarCarnetCompleto() {
+            if(!alumnoActual) return;
+            const btn = document.querySelector('.action-card'); const txt = btn.innerHTML; btn.innerHTML = '⏳';
+            try {
+                const ghost = document.getElementById('ghost-container'); ghost.innerHTML = "";
+                const wrapper = document.createElement('div');
+                wrapper.style.display = "flex"; wrapper.style.flexDirection = "column"; wrapper.style.gap = "20px"; wrapper.style.padding = "20px"; wrapper.style.backgroundColor = "white";
+                
+                wrapper.insertAdjacentHTML('beforeend', CARNET_HTML);
+                wrapper.insertAdjacentHTML('beforeend', CARNET_BACK_HTML);
+                ghost.appendChild(wrapper);
+                
+                llenarDatosCarnet(ghost, alumnoActual);
+                const cards = ghost.querySelectorAll('.card-base, .carnet-back-img');
+                cards.forEach(c => { c.style.width = "1011px"; c.style.height = "638px"; });
+                
+                const backImg = ghost.querySelector('#carnet-back-img');
+                backImg.style.borderColor = ghost.querySelector('.card-base').style.borderColor;
+
+                const images = ghost.getElementsByTagName('img');
+                for(let img of images) { if(img.src && !img.complete) await new Promise(r => img.onload = r); }
+                await new Promise(r => setTimeout(r, 500)); 
+
+                const canvas = await html2canvas(wrapper, { scale: 1.5, useCORS: true });
+                const link = document.createElement('a');
+                link.download = `Carnet_${alumnoActual.dni_alumno}.png`;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+                ghost.innerHTML = '';
+            } catch(e) { alert("Error: " + e.message); } finally { btn.innerHTML = txt; }
+        }
+
+        // --- DIPLOMA EXACTO V19 ---
         async function descargarDiploma() {
-            if(!cursoActualData?.diploma_bg_url) return;
-            const btn = document.getElementById('btn-descargar-diploma');
-            btn.innerHTML = '⏳...';
+            if(!cursoActualData || !cursoActualData.diploma_bg_url) return alert("Diploma no disponible.");
+            const btn = document.getElementById('btn-descargar-diploma'); const txt = btn.innerHTML; btn.innerHTML = '⏳';
 
             try {
                 const ghost = document.getElementById('ghost-container');
+                
+                // LAYOUT V19 EXACTO (COPIADO DEL GENERADOR)
                 ghost.innerHTML = `
-                    <div class="diploma-container" id="diploma-box">
-                        <div class="dip-nombre-box"><span class="dip-nombre" id="dip-nombre"></span></div>
-                        <div class="dip-dni-box"><span class="dip-dni" id="dip-dni-val"></span></div>
-                        <div class="dip-qr" id="dip-qr"></div>
-                    </div>`;
+                <div class="diploma-layout" id="diploma-final">
+                    <img id="dip-bg-img" class="diploma-bg" src="" crossorigin="anonymous">
+                    <div class="diploma-overlay">
+                        <div class="dip-linea-unica-container" id="dip-texto-container">
+                            <span class="dip-texto-formal" id="dip-texto-completo"></span>
+                        </div>
+                        <div class="dip-qr" id="dip-qr-code"></div>
+                        <div class="dip-info-extra" id="dip-fecha-registro"></div>
+                        <div class="dip-sello"></div>
+                    </div>
+                </div>`;
 
-                const box = ghost.querySelector('#diploma-box');
-                const bgImg = new Image();
-                bgImg.crossOrigin = "anonymous";
+                const bgImg = ghost.querySelector('#dip-bg-img');
                 bgImg.src = cursoActualData.diploma_bg_url + "?t=" + Date.now();
                 await new Promise(r => bgImg.onload = r);
-                box.style.backgroundImage = `url('${bgImg.src}')`;
 
+                // TEXTO UNA LÍNEA
+                const txtElem = ghost.querySelector('#dip-texto-completo');
+                txtElem.innerText = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${alumnoActual.dni_alumno}`;
+                
+                // QR
+                new QRCode(ghost.querySelector('#dip-qr-code'), { text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, width: 223, height: 223 });
+
+                // FECHA
+                const f = new Date(alumnoActual.fecha_inicio || new Date()).toLocaleDateString('es-ES', {year:'numeric', month:'long', day:'numeric'});
+                ghost.querySelector('#dip-fecha-registro').innerHTML = `REGISTRO: <b>${(alumnoActual.registro_id||'OFICIAL').toUpperCase()}</b> • Fecha: ${f}`;
+
+                // AUTO AJUSTE V19 (ESPERAMOS FUENTES)
                 await document.fonts.ready;
+                ajustarTextoAlAncho(txtElem, 80, 1800); // 1800px ancho maximo
 
-                // Esperar a que la imagen de fondo cargue completamente
-                await new Promise(r => setTimeout(r, 300));
-
-                // AJUSTE NOMBRE DIPLOMA - Con tamaño mínimo legible de 35px
-                const nEl = ghost.querySelector('#dip-nombre');
-                const nombreCompleto = `${alumnoActual.nombre} ${alumnoActual.apellido}`.trim().toUpperCase();
-                nEl.innerText = nombreCompleto;
-                nEl.style.lineHeight = '1.1';
-                nEl.style.fontWeight = '900';
-                
-                // Esperar render
-                await new Promise(r => setTimeout(r, 100));
-                ajustarTextoAlAncho(nEl, 90, 1480, 35); 
-
-                // AJUSTE DNI DIPLOMA - Con tamaño mínimo legible de 22px
-                const dEl = ghost.querySelector('#dip-dni-val');
-                dEl.innerText = `D.N.I: ${alumnoActual.dni_alumno}`;
-                dEl.style.lineHeight = '1.1';
-                dEl.style.fontWeight = '900';
-                
-                // Esperar render
-                await new Promise(r => setTimeout(r, 100));
-                ajustarTextoAlAncho(dEl, 35, 1380, 22);
-
-                new QRCode(ghost.querySelector('#dip-qr'), { text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, width: 160, height: 160 });
-
-                // Esperar más tiempo para asegurar que todo esté renderizado
-                await new Promise(r => setTimeout(r, 1000)); 
-                
-                const canvas = await html2canvas(box, { scale: 1, useCORS: true });
+                await new Promise(r => setTimeout(r, 500)); 
+                const canvas = await html2canvas(ghost.querySelector('#diploma-final'), { scale: 1, useCORS: true });
                 const link = document.createElement('a');
                 link.download = `Diploma_${alumnoActual.dni_alumno}.png`;
                 link.href = canvas.toDataURL("image/png");
                 link.click();
-            } catch(e) { alert("Error: " + e.message); }
-            finally { btn.innerHTML = '<span class="action-icon"><i class="fas fa-certificate"></i></span><span class="action-title">Diploma</span>'; }
+                ghost.innerHTML = '';
+            } catch(e) { alert("Error diploma: " + e.message); } finally { btn.innerHTML = txt; }
         }
 
-        async function descargarCarnetCompleto() {
-            const ghost = document.getElementById('ghost-container');
-            ghost.innerHTML = `<div id="wrap-desc" style="display:flex; flex-direction:column; gap:20px; padding:20px; background:white;"></div>`;
-            const wrap = ghost.querySelector('#wrap-desc');
-            
-            wrap.insertAdjacentHTML('beforeend', CARNET_HTML);
-            wrap.insertAdjacentHTML('beforeend', `<img src="${URL_REVERSO}" class="carnet-back-img" id="back-desc">`);
-            
-            await llenarDatosCarnet(wrap, alumnoActual);
-            const b = wrap.querySelector('#back-desc');
-            b.style.borderColor = wrap.querySelector('.card-base').style.borderColor;
-
-            const images = wrap.getElementsByTagName('img');
-            for(let img of images) { if(img.src && !img.complete) await new Promise(r => img.onload = r); }
-            
-            await new Promise(r => setTimeout(r, 500));
-            const canvas = await html2canvas(wrap, { scale: 1.5, useCORS: true });
-            const link = document.createElement('a');
-            link.download = `Carnet_${alumnoActual.dni_alumno}.png`;
-            link.href = canvas.toDataURL("image/png");
-            link.click();
-            ghost.innerHTML = "";
-        }
-
-        // --- UTILIDADES ---
         function mostrarPantalla(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
-        function cambiarIdentidadVisual(logo, color) { document.getElementById('app-logo').src = logo; document.documentElement.style.setProperty('--primary', color); }
         function volverAlSelector() { mostrarPantalla('screen-selector'); }
         function cerrarSesion() { location.reload(); }
-        function ajustarCarnetResponsivo() { 
-            const v = document.getElementById('card-viewport'); 
-            const c = document.getElementById('carnet-render'); 
-            if(v && c) { const s = v.offsetWidth / 1011; c.style.transform = `scale(${s})`; v.style.height = `${638 * s}px`; } 
-        }
+        function ajustarCarnetResponsivo() { const v = document.getElementById('card-viewport'); const c = document.getElementById('carnet-render'); if(v && c) { const s = v.offsetWidth / 1011; c.style.transform = `scale(${s})`; v.style.height = `${638 * s}px`; } }
         function generarHashMatricula(d) { let h = 0; for (let i = 0; i < d.length; i++) { h = ((h << 5) - h) + d.charCodeAt(i); h |= 0; } return String(Math.abs(h)).substring(0, 6).padStart(6, '9'); }
-        function previsualizarFoto() { 
-            const file = document.getElementById('input-foto-alumno').files[0]; 
-            if(file) { 
-                const reader = new FileReader(); 
-                reader.onload = (e) => { 
-                    document.getElementById('preview-upload').src = e.target.result; 
-                    document.getElementById('preview-upload').style.display = 'block'; 
-                    document.getElementById('txt-upload').style.display = 'none'; 
-                    document.getElementById('btn-subir').style.display = 'block'; 
-                }; 
-                reader.readAsDataURL(file); 
-            } 
-        }
-        async function subirFoto() {
-            const file = document.getElementById('input-foto-alumno').files[0];
-            const loader = document.getElementById('upload-loader');
-            document.getElementById('btn-subir').style.display = 'none';
-            loader.style.display = 'block';
-            try {
-                const fileName = `${alumnoActual.dni_alumno}_${Date.now()}.jpg`;
-                await db.storage.from('fotos-alumnos').upload(fileName, file);
-                const { data: urlData } = db.storage.from('fotos-alumnos').getPublicUrl(fileName);
-                await db.from('matriculas').update({ foto_url: urlData.publicUrl }).eq('dni_alumno', alumnoActual.dni_alumno);
-                alumnoActual.foto_url = urlData.publicUrl;
-                globalMatriculas.forEach(m => m.foto_url = urlData.publicUrl);
-                cargarWallet(alumnoActual);
-                mostrarPantalla('screen-wallet');
-            } catch(e) { alert("Error al subir"); document.getElementById('btn-subir').style.display = 'block'; }
-            finally { loader.style.display = 'none'; }
-        }
-        function generarListaCursos(matriculas) {
-            const container = document.getElementById('lista-cursos-container');
-            container.innerHTML = '';
-            matriculas.forEach(m => {
-                const card = document.createElement('div'); card.className = 'curso-card';
-                card.innerHTML = `<div><b>${m.curso}</b><br><small>${m.registro_id || 'OFICIAL'}</small></div><i class="fas fa-chevron-right"></i>`;
-                card.onclick = () => { cargarWallet(m); mostrarPantalla('screen-wallet'); };
-                container.appendChild(card);
-            });
-        }
-        window.onresize = ajustarCarnetResponsivo;
     </script>
 </body>
 </html>
