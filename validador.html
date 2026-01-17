@@ -135,7 +135,19 @@
         function renderData(alumno) {
             const rid = alumno.registro_id || 'remaep';
             const hash = String(Math.abs(alumno.dni_alumno.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a|0},0))).substring(0,6).padStart(6,'9');
-            const vence = new Date(alumno.fecha_inicio); vence.setFullYear(vence.getFullYear() + 1);
+            
+            // --- CORRECCIÓN LÓGICA VENCIMIENTO (V22) ---
+            let vence;
+            if (alumno.fecha_vencimiento) {
+                // Si existe fecha específica en BD (ej: 31/12/2026), úsala.
+                const partes = alumno.fecha_vencimiento.split('-'); 
+                vence = new Date(partes[0], partes[1] - 1, partes[2]); 
+            } else {
+                // Fallback: Si no hay fecha fija, calcula 1 año desde inicio.
+                vence = new Date(alumno.fecha_inicio); 
+                vence.setFullYear(vence.getFullYear() + 1);
+            }
+            // ---------------------------------------------
 
             aplicarTema(rid);
 
