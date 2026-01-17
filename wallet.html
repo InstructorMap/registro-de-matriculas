@@ -348,10 +348,22 @@
             nombreEl.innerText = `${alumno.nombre} ${alumno.apellido}`;
             el('#txt-dni').innerText = alumno.dni_alumno;
             el('#txt-matricula').innerText = generarHashMatricula(String(alumno.dni_alumno));
-            const fecha = new Date(alumno.fecha_inicio || new Date());
-            el('#txt-anio-header').innerText = `CARNET ${fecha.getFullYear()}`;
-            const vence = new Date(fecha); vence.setFullYear(vence.getFullYear() + 1);
-            el('#txt-vence').innerText = vence.toLocaleDateString('es-AR');
+    // ESTO ES LO NUEVO (Lógica Inteligente)
+const fecha = new Date(alumno.fecha_inicio || new Date());
+el('#txt-anio-header').innerText = `CARNET ${fecha.getFullYear()}`;
+
+// Aquí revisamos si en Supabase (SQL) ya le pusiste una fecha fija
+let vence;
+if (alumno.fecha_vencimiento) {
+    // Si existe el dato en la base de datos (ej: 2026-12-31), úsalo.
+    vence = new Date(alumno.fecha_vencimiento + 'T00:00:00');
+} else {
+    // Si no, calcúlalo automático (1 año)
+    vence = new Date(fecha); 
+    vence.setFullYear(vence.getFullYear() + 1);
+}
+
+el('#txt-vence').innerText = vence.toLocaleDateString('es-AR');
             if (alumno.foto_url) { const img = el('#img-foto'); img.crossOrigin = "anonymous"; img.src = alumno.foto_url + "?t=" + Date.now(); }
             el('#qr-container').innerHTML = ""; 
             new QRCode(el('#qr-container'), { text: `${URL_WEB}/validador.html?id=${alumno.id}`, width: 144, height: 144 });
