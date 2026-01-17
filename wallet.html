@@ -108,7 +108,7 @@
             font-weight: 900; 
             color: var(--diploma-blue); 
             text-transform: uppercase; 
-            font-size: 80px; /* Tamaño base */
+            font-size: 60px; /* Tamaño base */
             letter-spacing: 1px; 
             text-shadow: 2px 2px 0px rgba(255,255,255,1); 
         }
@@ -142,7 +142,7 @@
         /* SELLO DORADO SVG (V19) */
         .dip-sello { 
             position: absolute; 
-            bottom: 914px; 
+            bottom: 614px; 
             left: 1445px; 
             width: 180px; height: 180px; 
             z-index: 15; 
@@ -458,7 +458,7 @@
 
                 // AUTO AJUSTE V19 (ESPERAMOS FUENTES)
                 await document.fonts.ready;
-                ajustarTextoAlAncho(txtElem, 80, 1800); // 1800px ancho maximo
+                ajustarTextoAlAncho(txtElem, 60, 1800); // 1800px ancho maximo
 
                 await new Promise(r => setTimeout(r, 500)); 
                 const canvas = await html2canvas(ghost.querySelector('#diploma-final'), { scale: 1, useCORS: true });
