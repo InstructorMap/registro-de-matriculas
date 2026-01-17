@@ -325,7 +325,11 @@
             const el = (sel) => container.querySelector(sel);
             const nombreEl = el('#txt-nombre');
             nombreEl.innerText = `${alumno.nombre} ${alumno.apellido}`;
-            el('#txt-dni').innerText = alumno.dni_alumno;
+            
+            // --- MODIFICACIÓN DNI CON PUNTOS (CARNET) ---
+            el('#txt-dni').innerText = new Intl.NumberFormat('es-AR').format(alumno.dni_alumno);
+            // --------------------------------------------
+
             el('#txt-matricula').innerText = generarHashMatricula(String(alumno.dni_alumno));
             
             // --- CÁLCULO DE FECHAS AUTOMÁTICO (V22) ---
@@ -448,7 +452,11 @@
                 await new Promise(r => bgImg.onload = r);
 
                 const txtElem = ghost.querySelector('#dip-texto-completo');
-                txtElem.innerText = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${alumnoActual.dni_alumno}`;
+                
+                // --- MODIFICACIÓN DNI CON PUNTOS (DIPLOMA) ---
+                const dniFormateado = new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno);
+                txtElem.innerText = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${dniFormateado}`;
+                // ---------------------------------------------
                 
                 new QRCode(ghost.querySelector('#dip-qr-code'), { text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, width: 223, height: 223 });
 
