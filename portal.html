@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plataforma ASARI</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;900&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
@@ -27,16 +28,15 @@
             transition: transform 0.2s, box-shadow 0.2s; 
             border-left: 6px solid transparent;
             cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
+            -webkit-tap-highlight-color: transparent; 
         }
         
         .card-link:active { transform: scale(0.98); background: #fafafa; }
         
-        /* Estilo Alumnos (Dorado) */
+        /* Estilos Visuales */
         .card-alumno { border-left-color: #b8860b; }
         .icon-alumno { font-size: 30px; color: #b8860b; margin-right: 20px; width: 40px; text-align: center; }
         
-        /* Estilo Administrativo (Azul) */
         .card-admin { border-left-color: #0033cc; }
         .icon-admin { font-size: 30px; color: #0033cc; margin-right: 20px; width: 40px; text-align: center; }
 
@@ -62,7 +62,7 @@
             <div style="margin-left:auto; color:#ccc;"><i class="fas fa-chevron-right"></i></div>
         </a>
 
-        <div onclick="accesoAdmin()" class="card-link card-admin">
+        <div onclick="accesoInstitucion()" class="card-link card-admin">
             <div class="icon-admin"><i class="fas fa-user-cog"></i></div>
             <div class="text-group">
                 <h3>Acceso Institución</h3>
@@ -78,13 +78,42 @@
     </div>
 
     <script>
-        function accesoAdmin() {
-            const pin = prompt("🔐 Ingrese Clave de Institución:");
-            if (pin === "1234") { // CLAVE SIMPLE
-                // AQUI ESTA EL CAMBIO QUE PEDISTE:
-                window.location.href = "saas_dashboard.html"; 
-            } else if (pin !== null) {
-                alert("⛔ Clave incorrecta.");
+        // TU CONFIGURACIÓN EXACTA
+        const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
+        const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
+        const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
+
+        async function accesoInstitucion() {
+            // 1. Pedir Clave
+            const claveIngresada = prompt("🔐 Ingrese su Clave de Institución:");
+            if (!claveIngresada) return; 
+
+            // 2. Feedback visual (cursor de espera)
+            document.body.style.cursor = 'wait';
+
+            try {
+                // 3. Consultar DB: ¿Existe una institución con esta 'clave'?
+                const { data, error } = await db
+                    .from('instituciones')
+                    .select('*')
+                    .eq('clave', claveIngresada.trim()) 
+                    .single();
+
+                if (error || !data) {
+                    alert("⛔ Acceso Denegado: Clave incorrecta.");
+                } else {
+                    // 4. ÉXITO: Guardar quién entró y redirigir
+                    // Guardamos el objeto institución en el navegador para que el Dashboard sepa qué logo cargar
+                    localStorage.setItem('admin_institucion', JSON.stringify(data));
+                    
+                    // Redirigir al panel correcto
+                    window.location.href = "saas_dashboard.html"; 
+                }
+
+            } catch (err) {
+                alert("Error de conexión: " + err.message);
+            } finally {
+                document.body.style.cursor = 'default';
             }
         }
     </script>
