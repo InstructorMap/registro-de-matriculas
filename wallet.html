@@ -102,7 +102,7 @@
             top: 595px; 
             left: 46%; /* TUS AJUSTES MANUALES SE MANTIENEN */
             transform: translateX(-50%); 
-            width: 83%; /* TUS AJUSTES MANUALES SE MANTIENEN */
+            width: 80%; /* TUS AJUSTES MANUALES SE MANTIENEN */
             text-align: center; 
             white-space: nowrap; 
         }
@@ -469,7 +469,7 @@
                 await document.fonts.ready;
                 
                 // --- MODIFICACIÓN TAMAÑO DE TEXTO (TU AJUSTE MANUAL) ---
-                ajustarTextoAlAncho(txtElem, 83, 1800); 
+                ajustarTextoAlAncho(txtElem, 80, 1800); 
 
                 await new Promise(r => setTimeout(r, 500)); 
                 const canvas = await html2canvas(ghost.querySelector('#diploma-final'), { scale: 1, useCORS: true });
