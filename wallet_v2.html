@@ -211,7 +211,7 @@
         document.documentElement.style.setProperty('--primary', COLOR_DEFAULT);
         window.addEventListener('resize', ajustarCarnetResponsivo);
 
-        // --- DEFINICIÓN DE HTML (IMPORTANTE: Esto debe estar AQUÍ, antes de las funciones) ---
+        // --- DEFINICIÓN DE HTML ---
         const CARNET_HTML = `
             <div class="card-base" id="card-base-el">
                 <div class="front-left" id="panel-izq-bg">
@@ -271,7 +271,7 @@
                             .maybeSingle();
                         
                         if(dataInst && dataInst.logo_url) {
-                            cambiarIdentidadVisual(dataInst.logo_url, null); // Solo cambia logo, el color lo maneja llenarDatosCarnet
+                            cambiarIdentidadVisual(dataInst.logo_url, null); 
                         }
                     } catch(e) { console.log("No se pudo cargar logo instituto"); }
                 }
@@ -419,27 +419,32 @@
             const colorCarnet = COLORES_REGISTRO[registroId] || COLORES_REGISTRO['default'];
             const nombreRegistro = (alumno.registro_id || 'OFICIAL').toUpperCase();
             
-            globalColorTema = colorCarnet; // Actualizamos para diploma
+            globalColorTema = colorCarnet; 
 
-            // --- GESTOR DE TEXTURAS ---
+            // --- GESTOR DE TEXTURAS CORREGIDO PARA DESCARGA ---
             const panel = el('#bg-panel');
-            panel.style.background = colorCarnet; 
-            panel.style.backgroundImage = "none";
+            
+            // 1. Limpieza y Aplicación de Fondo Base Sólido (CRÍTICO)
+            panel.style.background = ''; // Limpia el shorthand
+            panel.style.backgroundColor = colorCarnet; // Fondo Sólido de Seguridad
+            panel.style.backgroundImage = 'none'; // Por defecto sin imagen
             panel.style.color = 'white';
 
             if (registroId === 'rce') {
                 // Rayas de seguridad para RCE
-                panel.style.background = `repeating-linear-gradient(45deg, ${colorCarnet}, ${colorCarnet} 20px, #222 20px, #222 25px)`;
+                // Usamos una imagen de gradiente con TRANSPARENCIA para que se vea el fondo naranja base
+                panel.style.backgroundImage = `repeating-linear-gradient(45deg, transparent, transparent 20px, #222 20px, #222 25px)`;
                 panel.style.color = '#fff';
                 el('#card-base-el').style.borderColor = "#222";
             } 
             else if (registroId === 'remets' || registroId === 'rmts') {
                 // Malla táctica para REMETS
-                panel.style.backgroundColor = colorCarnet;
+                // Mismo principio: Fondo base color + Gradiente transparente encima
                 panel.style.backgroundImage = `linear-gradient(0deg, rgba(0,0,0,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.3) 1px, transparent 1px)`;
                 panel.style.backgroundSize = "20px 20px";
             } 
             else {
+                // Estándar (Solo base, ya seteado arriba)
                 el('#card-base-el').style.borderColor = colorCarnet;
             }
 
