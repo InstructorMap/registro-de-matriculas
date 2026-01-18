@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control - ASARI V3.0 (Superadmin)</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; }
+        .label-form { display: block; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #64748b; margin-bottom: 6px; letter-spacing: 0.5px; }
+        .input-form { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 14px; outline: none; transition: all 0.2s; background: #fff; }
+        .input-form:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        /* Badge especial para Superadmin */
+        .super-badge { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden text-slate-800">
+
+    <aside id="sidebar" class="w-64 bg-slate-900 text-white flex flex-col shadow-2xl z-20 transition-colors duration-500">
+        <div class="p-6 border-b border-white/10 flex items-center justify-center h-24 relative">
+            <img id="brand-logo" src="" class="h-14 object-contain hidden">
+            <h1 id="brand-text" class="text-2xl font-black tracking-tighter text-white">ASARI <span class="opacity-40 font-normal">SaaS</span></h1>
+            <div id="super-indicator" class="hidden absolute top-2 right-2 super-badge">SUPER</div>
+        </div>
+
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+            <button onclick="mostrarSeccion('panel-inicio')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl bg-white/10 hover:bg-white/20 transition-all">
+                <i data-lucide="layout-dashboard" size="18"></i> Inicio
+            </button>
+            
+            <p class="px-4 pt-4 pb-2 text-[10px] uppercase text-white/40 font-bold tracking-wider">Gestión Académica</p>
+            <button onclick="mostrarSeccion('panel-alumnos')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all">
+                <i data-lucide="users" size="18"></i> Alumnos
+            </button>
+            <button onclick="mostrarSeccion('panel-cursos')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all">
+                <i data-lucide="book-open" size="18"></i> Cursos
+            </button>
+            <button onclick="mostrarSeccion('panel-carga')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all">
+                <i data-lucide="upload-cloud" size="18"></i> Carga Masiva
+            </button>
+            
+            <div id="menu-superadmin" class="hidden pt-4 mt-2 border-t border-white/10">
+                <p class="px-4 text-[10px] uppercase text-yellow-500/80 font-bold mb-2 tracking-wider">Zona Super Admin</p>
+                <button onclick="mostrarSeccion('panel-entidades')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-yellow-300 bg-yellow-900/20 hover:bg-yellow-900/40 border border-yellow-500/20 transition-all">
+                    <i data-lucide="building" size="18"></i> Institutos & Avales
+                </button>
+            </div>
+        </nav>
+
+        <div class="p-4 border-t border-white/10 bg-black/20">
+            <div class="px-2 py-2 mb-2">
+                <p class="text-[10px] text-white/40 font-bold uppercase">Sesión Actual</p>
+                <p class="text-sm font-bold text-white truncate" id="sidebar-inst-name">...</p>
+            </div>
+            <button onclick="logout()" class="w-full flex items-center gap-2 px-4 py-3 text-sm font-bold text-red-300 hover:bg-red-900/30 rounded-lg transition-all">
+                <i data-lucide="log-out" size="16"></i> Salir
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto relative bg-slate-50">
+        <header class="bg-white h-16 border-b border-slate-200 flex items-center justify-between px-8 sticky top-0 z-30 shadow-sm">
+            <h2 class="text-lg font-bold text-slate-700" id="titulo-seccion">Tablero Principal</h2>
+            <div class="flex items-center gap-3">
+                <span class="text-xs font-bold text-slate-500" id="user-email">...</span>
+                <div class="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600"><i data-lucide="user"></i></div>
+            </div>
+        </header>
+
+        <div class="p-8 max-w-7xl mx-auto space-y-8">
+
+            <div id="panel-inicio" class="seccion-activa animate-fade-in">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                        <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Total Alumnos</p>
+                        <p class="text-4xl font-black text-slate-800 mt-2" id="stat-total">0</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-5">
+                        <div id="dashboard-logo-container" class="w-16 h-16 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden shrink-0">
+                            <i data-lucide="building-2" class="text-slate-300" size="24"></i>
+                        </div>
+                        <div>
+                            <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Tu Institución</p>
+                            <p class="text-lg font-bold text-slate-800 mt-1 leading-tight" id="dash-inst-name">...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="panel-alumnos" class="hidden animate-fade-in">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 min-h-[500px] flex flex-col">
+                    <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                        <div class="relative w-full md:w-96">
+                            <i data-lucide="search" class="absolute left-3 top-3 text-slate-400" size="18"></i>
+                            <input type="text" id="input-busqueda" placeholder="Buscar por DNI o Apellido..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm font-bold text-slate-700" onkeyup="if(event.key === 'Enter') buscarAlumnos()">
+                        </div>
+                        <button onclick="abrirModalAlumno()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg transition">
+                            <i data-lucide="user-plus" size="18"></i> Nuevo Alumno
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto flex-1">
+                        <table class="w-full text-sm text-left"><tbody id="tabla-alumnos" class="divide-y divide-slate-100"></tbody></table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="panel-entidades" class="hidden animate-fade-in">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-white rounded-2xl shadow-sm border border-yellow-200 p-8 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-yellow-400 text-yellow-950 text-[10px] font-black px-4 py-1.5 uppercase rounded-bl-xl tracking-wider">Super Admin</div>
+                        <h3 class="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">Nueva Entidad</h3>
+                        
+                        <div class="space-y-4">
+                            <div><label class="label-form">Tipo de Entidad</label>
+                                <select id="new-ent-tipo" class="input-form font-bold">
+                                    <option value="instituto">INSTITUTO (Cliente / Sede)</option>
+                                    <option value="registro">REGISTRO (Aval / Color)</option>
+                                </select>
+                            </div>
+                            
+                            <div><label class="label-form">Nombre Comercial</label><input type="text" id="new-inst-name" class="input-form"></div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="label-form">Sigla / ID</label><input type="text" id="new-inst-sigla" class="input-form" placeholder="Ej: isf o remaep"></div>
+                                <div><label class="label-form">Color Marca</label><input type="color" id="new-inst-color" class="w-full h-[46px] p-1 rounded-lg cursor-pointer bg-white border border-slate-200" value="#0033cc"></div>
+                            </div>
+                            
+                            <div><label class="label-form">Logo (URL o Archivo)</label><input type="file" id="new-inst-logo" accept="image/*" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:bg-slate-100 file:text-slate-700"></div>
+
+                            <div class="h-px bg-slate-100 my-2"></div>
+                            <p class="text-xs font-bold text-slate-400 uppercase">Crear usuario administrador (Opcional)</p>
+                            <div><label class="label-form">Email</label><input type="email" id="new-admin-email" class="input-form"></div>
+                            <div><label class="label-form">Contraseña</label><input type="text" id="new-admin-pass" class="input-form" value="123456"></div>
+                            
+                            <button onclick="crearEntidadCompleta()" class="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl hover:bg-black transition shadow-lg mt-2">GUARDAR ENTIDAD</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col">
+                        <h3 class="font-bold text-slate-700 mb-4">Entidades Activas</h3>
+                        <div id="lista-instituciones" class="space-y-3 overflow-y-auto pr-2 flex-1 max-h-[600px]"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="panel-cursos" class="hidden animate-fade-in">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+                    <div class="flex justify-between items-center mb-8">
+                        <h3 class="text-2xl font-black text-slate-800">Cursos</h3>
+                        <button onclick="abrirModalCurso()" class="bg-slate-900 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2"><i data-lucide="plus-circle" size="18"></i> Nuevo</button>
+                    </div>
+                    <div id="lista-cursos-config" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+                </div>
+            </div>
+
+            <div id="panel-carga" class="hidden animate-fade-in">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-10 text-center max-w-2xl mx-auto">
+                    <h3 class="text-2xl font-black text-slate-800">Carga Masiva</h3>
+                    <p class="text-slate-500 mt-2 mb-6">Excel (.xlsx): <b>DNI, NOMBRE, APELLIDO, CURSO</b></p>
+                    
+                    <div id="div-carga-inst-select" class="hidden mb-6 text-left bg-yellow-50 p-4 rounded-xl border border-yellow-200">
+                        <label class="label-form text-yellow-700">¿A qué instituto cargar estos alumnos?</label>
+                        <select id="carga-instituto-select" class="input-form font-bold border-yellow-300"></select>
+                    </div>
+
+                    <input type="file" id="input-excel" accept=".xlsx, .xls" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" onchange="procesarExcel()">
+                    
+                    <div id="preview-area" class="hidden mt-6 text-left">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-bold">Vista Previa (<span id="count-preview">0</span>)</span>
+                            <button onclick="confirmarCarga()" class="bg-green-600 text-white px-4 py-1 rounded font-bold text-xs">SUBIR</button>
+                        </div>
+                        <div class="max-h-40 overflow-y-auto border rounded bg-white"><table class="w-full text-xs"><tbody id="tabla-preview"></tbody></table></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="modal-alumno" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 relative">
+            <button onclick="cerrarModalAlumno()" class="absolute top-4 right-4 text-slate-300 hover:text-slate-600"><i data-lucide="x"></i></button>
+            <h3 class="text-xl font-black text-slate-800 mb-6">Nuevo Alumno</h3>
+            <div class="space-y-4">
+                
+                <div id="div-modal-inst-select" class="hidden bg-yellow-50 p-3 rounded-xl border border-yellow-200">
+                    <label class="label-form text-yellow-700">Asignar a Instituto:</label>
+                    <select id="modal-instituto-select" class="input-form font-bold border-yellow-300 bg-white">
+                        <option value="">Cargando...</option>
+                    </select>
+                </div>
+
+                <div><label class="label-form">DNI</label><input type="text" id="m-dni" class="input-form font-mono"></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="label-form">Nombre</label><input type="text" id="m-nombre" class="input-form"></div>
+                    <div><label class="label-form">Apellido</label><input type="text" id="m-apellido" class="input-form"></div>
+                </div>
+                <div><label class="label-form">Curso</label><select id="m-curso-select" class="input-form bg-blue-50 border-blue-200 font-bold"></select></div>
+                <button onclick="guardarAlumnoManual()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg mt-4">CONFIRMAR</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-curso" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl p-8 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="document.getElementById('modal-curso').classList.add('hidden')" class="absolute top-4 right-4 text-slate-300"><i data-lucide="x"></i></button>
+            <h3 class="text-xl font-black text-slate-800 mb-6">Curso Oficial</h3>
+            <div class="space-y-4">
+                <input type="hidden" id="c-id-edit">
+                <div><label class="label-form">Nombre del Curso</label><input type="text" id="c-nombre" class="input-form"></div>
+                <div><label class="label-form">Avalado Por (Registro)</label><select id="c-registro" class="input-form font-bold bg-blue-50"></select></div>
+                
+                <div class="bg-slate-50 p-3 rounded border border-slate-200">
+                    <label class="label-form">Fondo Diploma</label>
+                    <input type="file" id="c-diploma" accept="image/*" class="w-full text-xs">
+                </div>
+                
+                <button onclick="guardarCurso()" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl mt-4">GUARDAR</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
+        const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
+        const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
+        
+        let currentUser, currentProfile, cursosCache = [], datosExcelCargados = [];
+
+        // INICIALIZACION
+        document.addEventListener('DOMContentLoaded', async () => {
+            const { data: { session } } = await db.auth.getSession();
+            if (!session) return window.location.href = 'saas_login.html';
+            
+            currentUser = session.user;
+            document.getElementById('user-email').innerText = currentUser.email;
+
+            const { data: perfil } = await db.from('perfiles').select('*, instituciones(*)').eq('id', currentUser.id).single();
+            currentProfile = perfil;
+
+            // SUPERADMIN CHECK
+            if (perfil.rol === 'superadmin') {
+                document.getElementById('menu-superadmin').classList.remove('hidden');
+                document.getElementById('super-indicator').classList.remove('hidden');
+                document.getElementById('div-modal-inst-select').classList.remove('hidden'); // Mostrar selector en modal alumno
+                document.getElementById('div-carga-inst-select').classList.remove('hidden'); // Mostrar selector en carga excel
+                
+                await cargarListaInstitutosEnSelects(); // Llenar los selects de superadmin
+                cargarEntidadesTabla();
+            }
+
+            aplicarEstilosInstitucion(perfil.instituciones);
+            await cargarOpcionesRegistros();
+            await cargarCursos(); 
+            await cargarAlumnos(); 
+            await contarTotal();
+            lucide.createIcons();
+        });
+
+        // --- LÓGICA V3.0 ---
+
+        // 1. CARGAR SELECTS DE INSTITUTOS (Solo para Superadmin)
+        async function cargarListaInstitutosEnSelects() {
+            // Buscamos solo Institutos (aquellos que NO tienen sigla de registro o tienen logo)
+            // Simplificación: Traemos todo lo activo
+            const { data } = await db.from('instituciones').select('id, nombre').eq('activo', true);
+            const selModal = document.getElementById('modal-instituto-select');
+            const selCarga = document.getElementById('carga-instituto-select');
+            
+            let html = '<option value="">-- Seleccionar Instituto --</option>';
+            data.forEach(i => html += `<option value="${i.id}">${i.nombre}</option>`);
+            
+            selModal.innerHTML = html;
+            selCarga.innerHTML = html;
+        }
+
+        // 2. CARGAR ALUMNOS (INTELIGENTE)
+        async function cargarAlumnos(filtro='') {
+            const tb = document.getElementById('tabla-alumnos');
+            tb.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-xs">Cargando...</td></tr>';
+
+            let query = db.from('matriculas').select('*, instituciones(nombre, logo_url)').order('created_at', {ascending:false}).limit(50);
+            
+            // Si NO es superadmin, filtrar solo sus alumnos
+            if(currentProfile.rol !== 'superadmin') {
+                query = query.eq('institution_id', currentProfile.institucion_id);
+            }
+
+            if(filtro) query = query.or(`dni_alumno.ilike.%${filtro}%,apellido.ilike.%${filtro}%`);
+            
+            const { data } = await query;
+            tb.innerHTML = "";
+            
+            if(data && data.length > 0) {
+                data.forEach(a => {
+                    const logoInst = a.instituciones?.logo_url ? `<img src="${a.instituciones.logo_url}" class="w-5 h-5 object-contain rounded-full border">` : '';
+                    const nombreInst = a.instituciones?.nombre || 'Desconocido';
+                    
+                    tb.innerHTML += `
+                    <tr class="border-b hover:bg-slate-50">
+                        <td class="p-3 text-xs font-mono text-slate-500">${a.dni_alumno}</td>
+                        <td class="p-3 text-sm font-bold text-slate-700">${a.apellido || ''}, ${a.nombre}</td>
+                        <td class="p-3 text-xs text-slate-500 flex items-center gap-2">${logoInst} ${nombreInst}</td>
+                        <td class="p-3 text-xs text-slate-600">${a.curso}</td>
+                        <td class="p-3"><span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-bold uppercase">${a.registro_id || '-'}</span></td>
+                        <td class="p-3"><button onclick="borrar('matriculas', '${a.id}')" class="text-slate-300 hover:text-red-500"><i data-lucide="trash-2" size="14"></i></button></td>
+                    </tr>`;
+                });
+                lucide.createIcons();
+            } else {
+                tb.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-xs text-slate-400">Sin datos</td></tr>';
+            }
+        }
+
+        // 3. GUARDAR ALUMNO MANUAL (LÓGICA SUPERADMIN V3)
+        async function guardarAlumnoManual() {
+            const dni = document.getElementById('m-dni').value;
+            const nombre = document.getElementById('m-nombre').value;
+            const apellido = document.getElementById('m-apellido').value;
+            const cursoId = document.getElementById('m-curso-select').value;
+            
+            // Determinar Institución ID
+            let instId = currentProfile.institucion_id; // Por defecto, el mío
+            if(currentProfile.rol === 'superadmin') {
+                instId = document.getElementById('modal-instituto-select').value; // Si soy super, el que elegí
+                if(!instId) return alert("Superadmin: Debes seleccionar un Instituto.");
+            }
+
+            if(!dni || !nombre || !cursoId) return alert("Faltan datos");
+
+            const cursoObj = cursosCache.find(c => c.id === cursoId);
+
+            const { error } = await db.from('matriculas').insert({
+                dni_alumno: dni,
+                nombre: nombre,
+                apellido: apellido,
+                curso: cursoObj.nombre,
+                registro_id: cursoObj.registro_id,
+                institution_id: instId, // AQUI SE GUARDA LA VINCULACIÓN CORRECTA
+                fecha_inicio: new Date().toISOString()
+            });
+
+            if(error) alert("Error: " + error.message);
+            else {
+                alert("Alumno inscripto correctamente");
+                cerrarModalAlumno();
+                cargarAlumnos();
+                contarTotal();
+            }
+        }
+
+        // --- GESTIÓN ENTIDADES (SUPERADMIN) ---
+        async function crearEntidadCompleta() {
+            const tipo = document.getElementById('new-ent-tipo').value; // instituto o registro
+            const nombre = document.getElementById('new-inst-name').value;
+            const sigla = document.getElementById('new-inst-sigla').value;
+            const color = document.getElementById('new-inst-color').value;
+            const email = document.getElementById('new-admin-email').value;
+            const pass = document.getElementById('new-admin-pass').value;
+            const logoInput = document.getElementById('new-inst-logo');
+
+            if(!nombre) return alert("Falta nombre");
+
+            try {
+                // 1. Subir Logo si hay
+                let logoUrl = null;
+                if(logoInput.files.length > 0) {
+                    const file = logoInput.files[0];
+                    const fileName = `logo_${Date.now()}`;
+                    await db.storage.from('logos-instituciones').upload(fileName, file);
+                    const { data } = db.storage.from('logos-instituciones').getPublicUrl(fileName);
+                    logoUrl = data.publicUrl;
+                }
+
+                // 2. Crear Registro en 'instituciones'
+                // Si es 'instituto', la sigla puede ser null o interna. Si es 'registro', la sigla es CLAVE para el color.
+                const { data: inst, error: e1 } = await db.from('instituciones').insert({
+                    nombre: nombre,
+                    sigla: sigla ? sigla.toLowerCase() : null,
+                    color_primario: color, // Para el dashboard
+                    color_tema: color,     // Para la wallet (si es registro)
+                    logo_url: logoUrl,
+                    activo: true
+                }).select().single();
+
+                if(e1) throw e1;
+
+                // 3. Crear Usuario Admin (Solo si puso email)
+                if(email && pass) {
+                    const { data: auth, error: e2 } = await db.auth.signUp({ email, password: pass });
+                    if(e2) throw e2;
+                    if(auth.user) {
+                        await db.from('perfiles').insert({
+                            id: auth.user.id,
+                            email: email,
+                            rol: 'admin', // Admin de instituto normal
+                            institucion_id: inst.id,
+                            nombre_completo: 'Admin ' + nombre
+                        });
+                    }
+                }
+
+                alert("Entidad Creada OK");
+                cargarEntidadesTabla();
+                if(currentProfile.rol==='superadmin') cargarListaInstitutosEnSelects(); // Refrescar selects
+
+            } catch(e) { alert(e.message); }
+        }
+
+        async function cargarEntidadesTabla() {
+            const div = document.getElementById('lista-instituciones');
+            const { data } = await db.from('instituciones').select('*').order('created_at', {ascending:false});
+            div.innerHTML = "";
+            data.forEach(i => {
+                const tipo = i.sigla ? 'REGISTRO/AVAL' : 'INSTITUTO'; // Lógica simple
+                const colorBadge = i.sigla ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800';
+                
+                div.innerHTML += `
+                <div class="flex justify-between items-center p-3 border rounded mb-2 hover:bg-slate-50">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded bg-slate-200 overflow-hidden"><img src="${i.logo_url || ''}" class="w-full h-full object-cover"></div>
+                        <div>
+                            <p class="font-bold text-sm text-slate-700">${i.nombre}</p>
+                            <span class="text-[10px] px-1.5 py-0.5 rounded ${colorBadge} font-bold">${tipo}</span>
+                            <span class="text-[10px] text-slate-400 ml-1">ID: ${i.sigla || '-'}</span>
+                        </div>
+                    </div>
+                    <button onclick="borrar('instituciones', '${i.id}', cargarEntidadesTabla)" class="text-slate-300 hover:text-red-500"><i data-lucide="trash-2" size="14"></i></button>
+                </div>`;
+            });
+            lucide.createIcons();
+        }
+
+        // --- HELPERS ---
+        async function cargarOpcionesRegistros() {
+             const { data } = await db.from('instituciones').select('sigla, nombre').not('sigla', 'is', null);
+             const s = document.getElementById('c-registro'); s.innerHTML = "";
+             data.forEach(r => s.innerHTML += `<option value="${r.sigla}">${r.nombre} (${r.sigla})</option>`);
+        }
+
+        async function cargarCursos() {
+            const { data } = await db.from('cursos_oficiales').select('*').order('nombre');
+            const div = document.getElementById('lista-cursos-config');
+            const sel = document.getElementById('m-curso-select');
+            
+            div.innerHTML = ""; sel.innerHTML = "<option>Seleccionar</option>";
+            cursosCache = data;
+
+            data.forEach(c => {
+                sel.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
+                div.innerHTML += `
+                <div class="p-4 border rounded-xl bg-white hover:shadow-md transition relative">
+                    <span class="text-[10px] bg-slate-100 px-2 py-1 rounded uppercase font-bold text-slate-500 mb-2 block w-max">${c.registro_id}</span>
+                    <p class="font-bold text-slate-700 text-sm">${c.nombre}</p>
+                    <button onclick="borrar('cursos_oficiales', '${c.id}', cargarCursos)" class="absolute top-4 right-4 text-slate-300 hover:text-red-500"><i data-lucide="trash-2" size="14"></i></button>
+                </div>`;
+            });
+            lucide.createIcons();
+        }
+
+        function mostrarSeccion(id) {
+            ['panel-inicio','panel-alumnos','panel-entidades','panel-cursos','panel-carga'].forEach(x => {
+                const el = document.getElementById(x);
+                if(el) el.classList.add('hidden');
+            });
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        async function contarTotal() {
+            let q = db.from('matriculas').select('*', { count: 'exact', head: true });
+            if(currentProfile.rol !== 'superadmin') q = q.eq('institution_id', currentProfile.institucion_id);
+            const { count } = await q;
+            document.getElementById('stat-total').innerText = count;
+        }
+
+        function aplicarEstilosInstitucion(inst) {
+            if(inst?.nombre) {
+                document.getElementById('sidebar-inst-name').innerText = inst.nombre;
+                document.getElementById('dash-inst-name').innerText = inst.nombre;
+            }
+            if(inst?.logo_url) {
+                document.getElementById('brand-logo').src = inst.logo_url;
+                document.getElementById('brand-logo').classList.remove('hidden');
+                document.getElementById('dashboard-logo-container').innerHTML = `<img src="${inst.logo_url}" class="w-full h-full object-contain">`;
+            }
+        }
+        
+        async function borrar(tabla, id, cb) {
+            if(confirm("¿Borrar definitivamente?")) {
+                await db.from(tabla).delete().eq('id', id);
+                if(cb) cb();
+            }
+        }
+
+        // --- CARGA EXCEL ---
+        function procesarExcel() {
+            const input = document.getElementById('input-excel');
+            if(!input.files.length) return;
+            const r = new FileReader();
+            r.onload = e => {
+                const d = new Uint8Array(e.target.result);
+                const w = XLSX.read(d, {type:'array'});
+                const j = XLSX.utils.sheet_to_json(w.Sheets[w.SheetNames[0]]);
+                
+                // Determinamos ID instituto para excel
+                let instIdExcel = currentProfile.institucion_id;
+                if(currentProfile.rol === 'superadmin') {
+                    instIdExcel = document.getElementById('carga-instituto-select').value;
+                }
+
+                if(!instIdExcel) { alert("Selecciona un instituto para cargar."); return; }
+
+                datosExcelCargados = j.map(row => ({
+                    dni_alumno: row['DNI'] || row['dni'],
+                    nombre: row['NOMBRE'] || row['nombre'],
+                    apellido: row['APELLIDO'] || row['apellido'],
+                    curso: row['CURSO'] || row['curso'],
+                    registro_id: 'remaep', // Default o buscar lógica compleja
+                    institution_id: instIdExcel, // ID Seleccionado
+                    fecha_inicio: new Date().toISOString()
+                })).filter(x => x.dni_alumno);
+
+                document.getElementById('count-preview').innerText = datosExcelCargados.length;
+                document.getElementById('preview-area').classList.remove('hidden');
+                
+                const tb = document.getElementById('tabla-preview');
+                tb.innerHTML = "";
+                datosExcelCargados.slice(0,5).forEach(d => tb.innerHTML += `<tr><td>${d.dni_alumno}</td><td>${d.nombre}</td><td>${d.curso}</td></tr>`);
+            };
+            r.readAsArrayBuffer(input.files[0]);
+        }
+        
+        async function confirmarCarga() {
+            if(!datosExcelCargados.length) return;
+            const { error } = await db.from('matriculas').insert(datosExcelCargados);
+            if(error) alert(error.message);
+            else { alert("Carga OK"); location.reload(); }
+        }
+
+        function abrirModalAlumno() { document.getElementById('modal-alumno').classList.remove('hidden'); }
+        function cerrarModalAlumno() { document.getElementById('modal-alumno').classList.add('hidden'); }
+        function abrirModalCurso() { document.getElementById('modal-curso').classList.remove('hidden'); }
+        async function logout() { await db.auth.signOut(); window.location.href = 'saas_login.html'; }
+    </script>
+</body>
+</html>
