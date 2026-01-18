@@ -57,7 +57,7 @@
         .card-base { width: 100%; height: 100%; display: flex; position: relative; border: 5px solid; border-radius: 40px; overflow: hidden; background: white; transition: border-color 0.3s; }
         .front-left { width: 380px; height: 100%; position: relative; background: #d4d4d4; z-index: 1; border-top-left-radius: 35px; border-bottom-left-radius: 35px; overflow: hidden; }
         .student-photo { width: 100%; height: 100%; object-fit: cover; position: relative; z-index: 1; }
-        .rect-band { position: absolute; bottom: 0; left: 0; width: 120%; height: 120px; background-color: var(--primary); z-index: 2; transition: background-color 0.3s; }
+        .rect-banda { position: absolute; bottom: 0; left: 0; width: 120%; height: 120px; background-color: var(--primary); z-index: 2; transition: background-color 0.3s; }
         .reg-sigla { position: absolute; bottom: 15px; left: 0; width: 100%; text-align: center; color: white; font-size: 22px; font-weight: 900; z-index: 6; text-shadow: 2px 2px 4px rgba(0,0,0,0.9); letter-spacing: 2px; }
         .qr-container { position: absolute; bottom: 45px; left: 50%; transform: translateX(-50%); width: 160px; height: 160px; background: white; padding: 8px; border-radius: 12px; z-index: 5; box-shadow: 0 6px 20px rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; }
         .front-right { flex: 1; position: relative; color: white; padding: 20px 35px; display: flex; flex-direction: column; justify-content: space-between; background-color: var(--primary); transition: background 0.3s; }
@@ -75,7 +75,7 @@
         .value-text { font-size: 36px; font-weight: 900; text-align: right; }
         .carnet-back-img { width: 1011px; height: 638px; object-fit: cover; border-radius: 40px; border: 5px solid var(--primary); transition: border-color 0.3s; }
 
-        /* LIVE SHIMMER */
+        /* LIVE SHIMMER (ANTI-SCREENSHOT) */
         .live-shimmer {
             position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
             background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
@@ -99,10 +99,10 @@
         .diploma-layout { width: 2000px; height: 1414px; position: relative; overflow: hidden; color: #333; }
         .diploma-bg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
         .diploma-overlay { position: relative; z-index: 10; width: 100%; height: 100%; }
-        .dip-line-container { position: absolute; top: 595px; left: 46%; transform: translateX(-50%); width: 76%; text-align: center; white-space: nowrap; }
+        .dip-linea-unica-container { position: absolute; top: 595px; left: 46%; transform: translateX(-50%); width: 76%; text-align: center; white-space: nowrap; }
         .dip-texto-formal { font-family: 'Roboto Slab', serif; font-weight: 900; text-transform: uppercase; font-size: 80px; letter-spacing: 1px; text-shadow: 2px 2px 0px rgba(255,255,255,1); }
         .dip-qr { position: absolute; top: 284px; right: 176px; width: 233px; height: 233px; background: white; padding: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .dip-info { position: absolute; bottom: 1348px; left: 50%; transform: translateX(-50%); text-align: center; font-family: 'Roboto', sans-serif; font-size: 18px; font-weight: 700; color: #222; background: rgba(255,255,255,0.9); padding: 4px 25px; border-radius: 50px; border: 1px solid rgba(0,0,0,0.1); z-index: 20; }
+        .dip-info-extra { position: absolute; bottom: 1348px; left: 50%; transform: translateX(-50%); text-align: center; font-family: 'Roboto', sans-serif; font-size: 18px; font-weight: 700; color: #222; background: rgba(255,255,255,0.9); padding: 4px 25px; border-radius: 50px; border: 1px solid rgba(0,0,0,0.1); z-index: 20; }
         .dip-sello { position: absolute; bottom: 614px; left: 1445px; width: 180px; height: 180px; z-index: 15; background-repeat: no-repeat; background-size: contain; background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpath id='textPath' d='M 25,100 A 75,75 0 1,1 175,100 A 75,75 0 1,1 25,100' /%3E%3C/defs%3E%3Ccircle cx='100' cy='100' r='90' fill='none' stroke='%23B8860B' stroke-width='2' /%3E%3Ccircle cx='100' cy='100' r='85' fill='none' stroke='%23B8860B' stroke-width='1' /%3E%3Ccircle cx='100' cy='100' r='65' fill='none' stroke='%23B8860B' stroke-width='1' stroke-dasharray='2,2' /%3E%3Ctext fill='%23B8860B' font-family='Times New Roman, serif' font-weight='bold' font-size='14' letter-spacing='3'%3E%3CtextPath href='%23textPath' startOffset='0' text-anchor='middle'%3E* CERTIFICACIÓN OFICIAL * VALIDADA *%3C/textPath%3E%3C/text%3E%3Cpath d='M100,45 L100,155 M45,100 L155,100' stroke='%23B8860B' stroke-width='0.5' opacity='0.3'/%3E%3Cpath d='M100,55 L120,80 L100,145 L80,80 Z' fill='none' stroke='%23B8860B' stroke-width='1.5' /%3E%3C/svg%3E"); filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2)); opacity: 0.9; }
 
         /* ACTIONS */
@@ -184,11 +184,11 @@
         const LOGO_ASARI_DEFAULT = "https://vxggatcfrywyodovjwxj.supabase.co/storage/v1/object/public/logos-instituciones/Asari%20Logo.jpg"; 
         const URL_REVERSO = "./reverso.jpg"; 
 
-        const COLOR_DEFAULT = "#0033cc"; // AZUL POR DEFECTO
+        const COLOR_DEFAULT = "#0033cc"; // Azul por defecto (Fallo seguro)
         
+        // VARIABLES GLOBALES
         let globalColorTema = COLOR_DEFAULT; 
         let globalColorTexto = '#0033cc'; 
-        
         let globalMatriculas = [];
         let alumnoActual = null; 
         let cursoActualData = null;
@@ -197,37 +197,7 @@
         document.documentElement.style.setProperty('--primary', COLOR_DEFAULT);
         window.addEventListener('resize', ajustarCarnetResponsivo);
 
-        // HTML CARNET
-        const CARNET_HTML = `
-            <div class="card-base" id="card-base-el">
-                <div class="front-left" id="panel-izq-bg">
-                    <img id="img-foto" class="student-photo" src="">
-                    <div class="rect-band" id="banda-color"></div>
-                    <div class="qr-container" id="qr-container"></div>
-                    <div class="reg-sigla" id="txt-sigla">REGISTRO</div>
-                </div>
-                <div class="front-right" id="bg-panel">
-                    <div class="holo-layer"></div>
-                    <div class="live-shimmer"></div>
-                    <div id="vencido-overlay" class="overlay-vencido" style="display:none;">
-                        <div class="texto-vencido">VENCIDO</div>
-                        <div style="font-size: 20px; font-weight: bold; margin-top: 10px;">EXPIRÓ SU VIGENCIA</div>
-                    </div>
-                    <div class="front-content">
-                        <div class="header"><span class="header-text" id="txt-anio-header">CARNET</span></div>
-                        <div class="course-container"><div class="course-title-main" id="txt-titulo-main">CURSO</div><div class="course-title-sub" id="txt-titulo-sub">PROFESIONAL</div></div>
-                        <div class="student-name" id="txt-nombre" style="white-space: nowrap;">---</div>
-                        <div class="data-grid">
-                            <div class="icon-box">✱</div><div class="data-box"><span class="label-text">DNI:</span><span class="value-text" id="txt-dni">---</span></div>
-                            <div class="icon-box">#</div><div class="data-box"><span class="label-text">MATRÍCULA:</span><span class="value-text" id="txt-matricula">---</span></div>
-                            <div class="icon-box">🚨</div><div class="data-box"><span class="label-text">VENCE:</span><span class="value-text" id="txt-vence">---</span></div>
-                        </div>
-                    </div>
-                </div>
-            </div>`;
-
-        const CARNET_BACK_HTML = `<img src="${URL_REVERSO}" class="carnet-back-img" id="carnet-back-img">`;
-
+        // FUNCION INGRESAR AUDITADA (LÓGICA HÍBRIDA)
         async function ingresar() {
             const dni = document.getElementById('input-dni').value.trim();
             const btnText = document.getElementById('btn-text');
@@ -241,7 +211,7 @@
                 const { data: matriculas, error } = await db.from('matriculas').select('*').eq('dni_alumno', dni);
                 if (!matriculas || matriculas.length === 0) throw new Error("No encontrado");
                 
-                // 2. Foto compartida
+                // 2. Corrección Foto Compartida
                 const fotoEncontrada = matriculas.find(m => m.foto_url && m.foto_url.length > 5)?.foto_url;
                 if (fotoEncontrada) {
                     matriculas.forEach(m => m.foto_url = fotoEncontrada);
@@ -250,45 +220,45 @@
                 globalMatriculas = matriculas;
                 const alumno = matriculas[0]; 
 
-                // --- 3. LÓGICA SAAS HÍBRIDA (ESTRICTA) ---
+                // --- 3. CEREBRO SAAS V5.0 (AUDITADO) ---
                 
-                let colorFinal = '#0033cc'; // Azul por defecto
+                let colorFinal = '#0033cc'; // Azul REMAEP por defecto
                 let colorTextoFinal = '#0033cc';
                 let logoFinal = LOGO_ASARI_DEFAULT;
 
-                // A. COLOR (Desde Registro)
+                // A. OBTENER ID DEL REGISTRO (Origen Color)
                 let idRegistro = (alumno.registro_id || '').toLowerCase().trim();
 
-                // Si está vacío, buscamos por CURSO
+                // Fallback: Si no tiene registro, buscar por Curso
                 if (idRegistro.length < 2 && alumno.curso) {
                     try {
                         const { data: cursoOficial } = await db.from('cursos_oficiales')
                             .select('registro_id')
                             .ilike('nombre', alumno.curso)
                             .maybeSingle();
-                        
                         if (cursoOficial && cursoOficial.registro_id) {
                             idRegistro = cursoOficial.registro_id.toLowerCase().trim();
                         }
                     } catch(e) { }
                 }
 
+                // B. BUSCAR COLOR (Solo si hay ID válido)
                 if (idRegistro.length > 1) {
                     try {
-                        // USO DE .eq() PARA BÚSQUEDA EXACTA (ESTRICTO)
+                        // USO DE .eq() PARA PRECISIÓN (Evita "Todo Rojo")
                         const { data: dataReg } = await db.from('instituciones')
                             .select('color_tema, color_texto')
-                            .eq('sigla', idRegistro)
+                            .eq('sigla', idRegistro) 
                             .maybeSingle();
                         
                         if(dataReg) {
                             if(dataReg.color_tema) colorFinal = dataReg.color_tema;
                             if(dataReg.color_texto) colorTextoFinal = dataReg.color_texto;
                         }
-                    } catch(e) { console.log("Error color"); }
+                    } catch(e) { console.log("Error color registro"); }
                 }
 
-                // B. LOGO (Desde Instituto)
+                // C. BUSCAR LOGO DEL INSTITUTO (Origen Logo)
                 if(alumno.institution_id) {
                     try {
                         const { data: dataInst } = await db.from('instituciones')
@@ -296,13 +266,14 @@
                             .eq('id', alumno.institution_id)
                             .maybeSingle();
                         
+                        // IMPORTANTE: Aquí aseguramos que el logo del instituto pise al genérico
                         if(dataInst && dataInst.logo_url) {
                             logoFinal = dataInst.logo_url;
                         }
-                    } catch(e) { console.log("Error logo"); }
+                    } catch(e) { console.log("Error logo instituto"); }
                 }
 
-                // C. APLICAR
+                // D. APLICAR RESULTADO FINAL
                 globalColorTema = colorFinal;
                 globalColorTexto = colorTextoFinal;
                 cambiarIdentidadVisual(logoFinal, colorFinal);
@@ -532,11 +503,11 @@
                 <div class="diploma-layout" id="diploma-final">
                     <img id="dip-bg-img" class="diploma-bg" src="" crossorigin="anonymous">
                     <div class="diploma-overlay">
-                        <div class="dip-line-container">
+                        <div class="dip-linea-unica-container" id="dip-texto-container">
                             <span class="dip-texto-formal" id="dip-texto-completo" style="color: ${colorTexto} !important;"></span>
                         </div>
                         <div class="dip-qr" id="dip-qr-code"></div>
-                        <div class="dip-info" id="dip-fecha-registro" style="color: ${colorTexto} !important; border-color: ${colorTexto}33;"></div>
+                        <div class="dip-info-extra" id="dip-fecha-registro" style="color: ${colorTexto} !important; border-color: ${colorTexto}33;"></div>
                         <div class="dip-sello"></div>
                     </div>
                 </div>`;
