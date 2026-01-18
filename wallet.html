@@ -16,7 +16,7 @@
 
     <style>
         /* ESTILOS BASE */
-        :root { --primary: #0033cc; --bg-app: #f4f6f9; --text-dark: #222; --diploma-blue: #003399; }
+        :root { --primary: #0033cc; --bg-app: #f4f6f9; --text-dark: #222; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; padding: 0; font-family: 'Roboto', sans-serif; background-color: var(--bg-app); color: #333; height: 100vh; display: flex; flex-direction: column; }
 
@@ -77,7 +77,6 @@
         
         .course-container { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 10px 0; background: linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.3)); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 0 10px; }
         
-        /* TÍTULOS CURSO AUMENTADOS A 55px */
         .course-title-main, .course-title-sub { font-size: 55px; font-weight: 900; text-transform: uppercase; line-height: 1.1; text-align: center; text-shadow: 0 4px 8px rgba(0,0,0,0.4); display: inline-block; white-space: nowrap; }
         
         .student-name { font-size: 34px; font-weight: 700; text-transform: uppercase; background: transparent; padding: 10px; text-align: center; border-radius: 8px; margin-bottom: 15px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); width: 100%; overflow: hidden; }
@@ -111,7 +110,7 @@
         .dip-texto-formal { 
             font-family: 'Roboto Slab', serif; 
             font-weight: 900; 
-            color: var(--diploma-blue); 
+            /* El color se definirá dinámicamente */
             text-transform: uppercase; 
             font-size: 60px; /* Tamaño base V19 */
             letter-spacing: 1px; 
@@ -119,6 +118,8 @@
         }
 
         .dip-qr { position: absolute; top: 284px; right: 176px; width: 233px; height: 233px; background: white; padding: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        
+        /* Info Extra Color también dinámico */
         .dip-info-extra { position: absolute; bottom: 1348px; left: 50%; transform: translateX(-50%); text-align: center; font-family: 'Roboto', sans-serif; font-size: 18px; font-weight: 700; color: #222; background: rgba(255,255,255,0.9); padding: 4px 25px; border-radius: 50px; border: 1px solid rgba(0,0,0,0.1); z-index: 20; }
         
         .dip-sello { 
@@ -214,6 +215,10 @@
         const URL_REVERSO = "./reverso.jpg"; 
 
         const COLOR_DEFAULT = "#b8860b"; 
+        
+        // --- VARIABLE GLOBAL PARA EL COLOR DEL INSTITUTO ---
+        let globalColorTema = COLOR_DEFAULT; 
+        
         let globalMatriculas = [];
         let alumnoActual = null; 
         let cursoActualData = null;
@@ -273,10 +278,13 @@
                     }
                 } catch(e) {}
 
-                if (instData && instData.logo_url) {
-                    cambiarIdentidadVisual(instData.logo_url, instData.color_tema || '#0033cc');
+                if (instData) {
+                    // --- AQUÍ CAPTURAMOS EL COLOR Y EL LOGO ---
+                    if(instData.logo_url) cambiarIdentidadVisual(instData.logo_url, instData.color_tema || '#0033cc');
+                    if(instData.color_tema) globalColorTema = instData.color_tema;
                 } else {
                     cambiarIdentidadVisual(LOGO_ASARI_DEFAULT, COLOR_DEFAULT);
+                    globalColorTema = COLOR_DEFAULT;
                 }
 
                 if (!matriculas[0].foto_url) {
@@ -325,23 +333,15 @@
             const el = (sel) => container.querySelector(sel);
             const nombreEl = el('#txt-nombre');
             nombreEl.innerText = `${alumno.nombre} ${alumno.apellido}`;
-            
-            // --- MODIFICACIÓN DNI CON PUNTOS (CARNET) ---
             el('#txt-dni').innerText = new Intl.NumberFormat('es-AR').format(alumno.dni_alumno);
-            // --------------------------------------------
-
             el('#txt-matricula').innerText = generarHashMatricula(String(alumno.dni_alumno));
             
-            // --- CÁLCULO DE FECHAS AUTOMÁTICO (V22) ---
             const fechaInicio = new Date(alumno.fecha_inicio || new Date());
-            
-            // 1. EL TÍTULO TOMA EL AÑO DE INICIO DE LA BD (2026, 2027, etc.)
             el('#txt-anio-header').innerText = `CARNET ${fechaInicio.getFullYear()}`;
 
-            // 2. VENCIMIENTO: Si hay fecha fija en BD, úsala. Si no, calcula 1 año.
             let vence;
             if (alumno.fecha_vencimiento) {
-                const partes = alumno.fecha_vencimiento.split('-'); // 2026-12-31
+                const partes = alumno.fecha_vencimiento.split('-'); 
                 vence = new Date(partes[0], partes[1] - 1, partes[2]); 
             } else {
                 vence = new Date(fechaInicio); 
@@ -349,7 +349,6 @@
             }
             
             el('#txt-vence').innerText = vence.toLocaleDateString('es-AR');
-            // -------------------------------------------
             
             if (alumno.foto_url) { const img = el('#img-foto'); img.crossOrigin = "anonymous"; img.src = alumno.foto_url + "?t=" + Date.now(); }
             el('#qr-container').innerHTML = ""; 
@@ -364,26 +363,20 @@
             el('#banda-color').style.backgroundColor = colorCarnet;
             const sigla = el('#txt-sigla');
             sigla.innerText = nombreRegistro;
-            
-            // --- CORRECCIÓN IMPORTANTE: FORZAR COLOR BLANCO ---
             sigla.style.color = 'white'; 
-            // --------------------------------------------------
 
             if(registroId === 'rce') el('#bg-panel').style.color = 'black'; else el('#bg-panel').style.color = 'white';
 
             const t = (alumno.curso || "CURSO PROFESIONAL").trim().toUpperCase().split(/\s+/);
             const e1 = el('#txt-titulo-main'); const e2 = el('#txt-titulo-sub');
             
-            // --- CORRECCIÓN SOLICITADA: SIEMPRE 1 PALABRA ARRIBA ---
             if(t.length < 2) { 
                 e1.innerText = t.join(' '); 
                 e2.innerText = ""; 
             } else { 
-                e1.innerText = t[0];               // 1ra Palabra
-                e2.innerText = t.slice(1).join(' '); // Resto abajo
+                e1.innerText = t[0]; 
+                e2.innerText = t.slice(1).join(' ');
             }
-            // -------------------------------------------------------
-
             ajustarTextoAlAncho(nombreEl, 34); 
         }
 
@@ -434,15 +427,21 @@
 
             try {
                 const ghost = document.getElementById('ghost-container');
+                
+                // --- APLICAMOS EL COLOR DEL INSTITUTO AL TEXTO ---
+                const colorTexto = globalColorTema || '#003399';
+                
                 ghost.innerHTML = `
                 <div class="diploma-layout" id="diploma-final">
                     <img id="dip-bg-img" class="diploma-bg" src="" crossorigin="anonymous">
                     <div class="diploma-overlay">
                         <div class="dip-linea-unica-container" id="dip-texto-container">
-                            <span class="dip-texto-formal" id="dip-texto-completo"></span>
+                            <span class="dip-texto-formal" id="dip-texto-completo" style="color: ${colorTexto} !important;"></span>
                         </div>
                         <div class="dip-qr" id="dip-qr-code"></div>
-                        <div class="dip-info-extra" id="dip-fecha-registro"></div>
+                        
+                        <div class="dip-info-extra" id="dip-fecha-registro" style="color: ${colorTexto} !important; border-color: ${colorTexto}33;"></div>
+                        
                         <div class="dip-sello"></div>
                     </div>
                 </div>`;
@@ -452,11 +451,8 @@
                 await new Promise(r => bgImg.onload = r);
 
                 const txtElem = ghost.querySelector('#dip-texto-completo');
-                
-                // --- MODIFICACIÓN DNI CON PUNTOS (DIPLOMA) ---
                 const dniFormateado = new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno);
                 txtElem.innerText = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${dniFormateado}`;
-                // ---------------------------------------------
                 
                 new QRCode(ghost.querySelector('#dip-qr-code'), { text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, width: 223, height: 223 });
 
