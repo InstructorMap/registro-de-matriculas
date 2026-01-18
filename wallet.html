@@ -112,7 +112,7 @@
             font-weight: 900; 
             /* El color se definirá dinámicamente */
             text-transform: uppercase; 
-            font-size: 110px; /* <--- MODIFICADO A 110px PARA QUE SEA MÁS GRANDE */
+            font-size: 80px; /* <--- MODIFICADO A 110px PARA QUE SEA MÁS GRANDE */
             letter-spacing: 1px; 
             text-shadow: 2px 2px 0px rgba(255,255,255,1); 
         }
@@ -462,7 +462,7 @@
                 await document.fonts.ready;
                 
                 // --- MODIFICACIÓN TAMAÑO DE TEXTO ---
-                ajustarTextoAlAncho(txtElem, 110, 1800); // Antes era 60, ahora empieza en 110px
+                ajustarTextoAlAncho(txtElem, 80, 1800); // Antes era 60, ahora empieza en 110px
 
                 await new Promise(r => setTimeout(r, 500)); 
                 const canvas = await html2canvas(ghost.querySelector('#diploma-final'), { scale: 1, useCORS: true });
