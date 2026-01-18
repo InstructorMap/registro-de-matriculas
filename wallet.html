@@ -102,7 +102,7 @@
             top: 595px; 
             left: 46%; 
             transform: translateX(-50%); 
-            width: 85%; 
+            width: 83%; 
             text-align: center; 
             white-space: nowrap; 
         }
@@ -462,7 +462,7 @@
                 await document.fonts.ready;
                 
                 // --- MODIFICACIÓN TAMAÑO DE TEXTO ---
-                ajustarTextoAlAncho(txtElem, 80, 1800); // Antes era 60, ahora empieza en 110px
+                ajustarTextoAlAncho(txtElem, 83, 1800); // Antes era 60, ahora empieza en 110px
 
                 await new Promise(r => setTimeout(r, 500)); 
                 const canvas = await html2canvas(ghost.querySelector('#diploma-final'), { scale: 1, useCORS: true });
