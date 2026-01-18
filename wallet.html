@@ -100,9 +100,9 @@
         .dip-linea-unica-container { 
             position: absolute; 
             top: 595px; 
-            left: 46%; 
+            left: 46%; /* TUS AJUSTES MANUALES SE MANTIENEN */
             transform: translateX(-50%); 
-            width: 83%; 
+            width: 83%; /* TUS AJUSTES MANUALES SE MANTIENEN */
             text-align: center; 
             white-space: nowrap; 
         }
@@ -112,7 +112,7 @@
             font-weight: 900; 
             /* El color se definirá dinámicamente */
             text-transform: uppercase; 
-            font-size: 80px; /* <--- MODIFICADO A 110px PARA QUE SEA MÁS GRANDE */
+            font-size: 80px; /* TUS AJUSTES MANUALES SE MANTIENEN */
             letter-spacing: 1px; 
             text-shadow: 2px 2px 0px rgba(255,255,255,1); 
         }
@@ -211,6 +211,7 @@
         const URL_WEB = 'https://instructormap.github.io/registro-de-matriculas';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
         
+        // CÓDIGO CORRECTO: El fallback es la Plataforma (Asari)
         const LOGO_ASARI_DEFAULT = "https://vxggatcfrywyodovjwxj.supabase.co/storage/v1/object/public/logos-instituciones/Asari%20Logo.jpg"; 
         const URL_REVERSO = "./reverso.jpg"; 
 
@@ -218,6 +219,7 @@
         
         // --- VARIABLE GLOBAL PARA EL COLOR DEL INSTITUTO ---
         let globalColorTema = COLOR_DEFAULT; 
+        let globalColorTexto = '#0033cc'; // NUEVA VARIABLE: Color de texto por defecto (Azul)
         
         let globalMatriculas = [];
         let alumnoActual = null; 
@@ -270,10 +272,11 @@
                 const idRegistro = (matriculas[0].registro_id || '').toLowerCase().trim();
                 let instData = null;
                 try {
-                    const { data: dataInst } = await db.from('instituciones').select('logo_url, color_tema').ilike('nombre', `%${idRegistro}%`).maybeSingle();
+                    // CAMBIO AQUÍ: Agregamos 'color_texto' a la selección
+                    const { data: dataInst } = await db.from('instituciones').select('logo_url, color_tema, color_texto').ilike('nombre', `%${idRegistro}%`).maybeSingle();
                     if(dataInst) instData = dataInst;
                     else {
-                        const { data: dataCurso } = await db.from('cursos_oficiales').select('logo_url, color_tema').eq('nombre', matriculas[0].curso).maybeSingle();
+                        const { data: dataCurso } = await db.from('cursos_oficiales').select('logo_url, color_tema, color_texto').eq('nombre', matriculas[0].curso).maybeSingle();
                         instData = dataCurso;
                     }
                 } catch(e) {}
@@ -282,9 +285,12 @@
                     // --- AQUÍ CAPTURAMOS EL COLOR Y EL LOGO ---
                     if(instData.logo_url) cambiarIdentidadVisual(instData.logo_url, instData.color_tema || '#0033cc');
                     if(instData.color_tema) globalColorTema = instData.color_tema;
+                    // NUEVO: Capturamos el color de texto si existe en la DB
+                    if(instData.color_texto) globalColorTexto = instData.color_texto;
                 } else {
                     cambiarIdentidadVisual(LOGO_ASARI_DEFAULT, COLOR_DEFAULT);
                     globalColorTema = COLOR_DEFAULT;
+                    globalColorTexto = '#0033cc'; // Fallback por defecto
                 }
 
                 if (!matriculas[0].foto_url) {
@@ -429,7 +435,8 @@
                 const ghost = document.getElementById('ghost-container');
                 
                 // --- APLICAMOS EL COLOR DEL INSTITUTO AL TEXTO ---
-                const colorTexto = globalColorTema || '#003399';
+                // CAMBIO AQUÍ: Usamos la variable global globalColorTexto en lugar de fixed
+                const colorTexto = globalColorTexto || '#0033cc';
                 
                 ghost.innerHTML = `
                 <div class="diploma-layout" id="diploma-final">
@@ -461,8 +468,8 @@
 
                 await document.fonts.ready;
                 
-                // --- MODIFICACIÓN TAMAÑO DE TEXTO ---
-                ajustarTextoAlAncho(txtElem, 83, 1800); // Antes era 60, ahora empieza en 110px
+                // --- MODIFICACIÓN TAMAÑO DE TEXTO (TU AJUSTE MANUAL) ---
+                ajustarTextoAlAncho(txtElem, 83, 1800); 
 
                 await new Promise(r => setTimeout(r, 500)); 
                 const canvas = await html2canvas(ghost.querySelector('#diploma-final'), { scale: 1, useCORS: true });
