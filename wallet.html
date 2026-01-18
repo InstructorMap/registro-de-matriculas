@@ -543,9 +543,7 @@
                             <span class="dip-texto-formal" id="dip-texto-completo" style="color: ${colorTexto} !important;"></span>
                         </div>
                         <div class="dip-qr" id="dip-qr-code"></div>
-                        
                         <div class="dip-info-extra" id="dip-fecha-registro" style="color: ${colorTexto} !important; border-color: ${colorTexto}33;"></div>
-                        
                         <div class="dip-sello"></div>
                     </div>
                 </div>`;
@@ -565,8 +563,9 @@
 
                 await document.fonts.ready;
                 
-                // --- MODIFICACIÓN TAMAÑO DE TEXTO AJUSTADO (1300px) ---
-                ajustarTextoAlAncho(txtElem, 83, 1300); 
+                // --- CORRECCIÓN FINAL: Límite más estricto (1150px) para evitar cortes ---
+                // Empieza en 76px, pero si supera 1150px de ancho, se achica automáticamente.
+                ajustarTextoAlAncho(txtElem, 76, 1150); 
 
                 await new Promise(r => setTimeout(r, 500)); 
                 const canvas = await html2canvas(ghost.querySelector('#diploma-final'), { scale: 1, useCORS: true });
@@ -577,7 +576,6 @@
                 ghost.innerHTML = '';
             } catch(e) { alert("Error diploma: " + e.message); } finally { btn.innerHTML = txt; }
         }
-
         function mostrarPantalla(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
         function volverAlSelector() { mostrarPantalla('screen-selector'); }
         function cerrarSesion() { location.reload(); }
