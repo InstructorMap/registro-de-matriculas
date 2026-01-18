@@ -229,7 +229,7 @@
 
         const CARNET_BACK_HTML = `<img src="${URL_REVERSO}" class="carnet-back-img" id="carnet-back-img">`;
 
-        async function ingresar() {
+async function ingresar() {
             const dni = document.getElementById('input-dni').value.trim();
             const btnText = document.getElementById('btn-text');
             const loader = document.getElementById('loader');
@@ -251,27 +251,47 @@
                 globalMatriculas = matriculas;
                 const alumno = matriculas[0]; 
 
-                // --- 3. LÓGICA SAAS HÍBRIDA (CEREBRO) ---
+                // --- 3. CEREBRO SAAS V5.0 (VINCULACIÓN INTELIGENTE) ---
                 
-                let colorFinal = COLOR_DEFAULT;
+                let colorFinal = '#0033cc'; // Azul por defecto (si falla todo)
                 let colorTextoFinal = '#0033cc';
                 let logoFinal = LOGO_ASARI_DEFAULT;
 
-                // A. OBTENER COLOR DEL REGISTRO (Usando 'sigla')
-                const idRegistro = (alumno.registro_id || '').toLowerCase().trim();
-                try {
-                    const { data: dataReg } = await db.from('instituciones')
-                        .select('color_tema, color_texto')
-                        .ilike('sigla', `%${idRegistro}%`)
-                        .maybeSingle();
-                    
-                    if(dataReg) {
-                        if(dataReg.color_tema) colorFinal = dataReg.color_tema;
-                        if(dataReg.color_texto) colorTextoFinal = dataReg.color_texto;
-                    }
-                } catch(e) { console.log("Error color registro"); }
+                // PASO A: DETERMINAR EL ID DEL REGISTRO
+                // Primero miramos si el alumno ya lo tiene asignado directamente
+                let idRegistro = (alumno.registro_id || '').toLowerCase().trim();
 
-                // B. OBTENER LOGO DEL INSTITUTO (Usando ID Institución)
+                // SI ESTÁ VACÍO -> Lo buscamos a través del CURSO (Tu mejora clave)
+                if (idRegistro.length < 2 && alumno.curso) {
+                    try {
+                        const { data: cursoOficial } = await db.from('cursos_oficiales')
+                            .select('registro_id')
+                            .ilike('nombre', alumno.curso) // Busca el curso sin importar mayúsculas
+                            .maybeSingle();
+                        
+                        if (cursoOficial && cursoOficial.registro_id) {
+                            idRegistro = cursoOficial.registro_id.toLowerCase().trim();
+                            console.log("Registro detectado por Curso:", idRegistro);
+                        }
+                    } catch(e) { console.log("No se pudo vincular por curso"); }
+                }
+
+                // PASO B: BUSCAR COLOR DEL REGISTRO DETECTADO
+                if (idRegistro.length > 1) {
+                    try {
+                        const { data: dataReg } = await db.from('instituciones')
+                            .select('color_tema, color_texto')
+                            .ilike('sigla', `%${idRegistro}%`)
+                            .maybeSingle();
+                        
+                        if(dataReg) {
+                            if(dataReg.color_tema) colorFinal = dataReg.color_tema;
+                            if(dataReg.color_texto) colorTextoFinal = dataReg.color_texto;
+                        }
+                    } catch(e) { console.log("Error color registro"); }
+                }
+
+                // PASO C: BUSCAR LOGO DEL INSTITUTO (Colbert, etc)
                 if(alumno.institution_id) {
                     try {
                         const { data: dataInst } = await db.from('instituciones')
@@ -285,6 +305,31 @@
                     } catch(e) { console.log("Error logo instituto"); }
                 }
 
+                // PASO D: APLICAR TODO
+                globalColorTema = colorFinal;
+                globalColorTexto = colorTextoFinal;
+                cambiarIdentidadVisual(logoFinal, colorFinal);
+
+                // --- FIN LÓGICA ---
+
+                if (!matriculas[0].foto_url) {
+                    alumnoActual = matriculas[0];
+                    mostrarPantalla('screen-upload');
+                } else {
+                    if (matriculas.length === 1) {
+                        cargarWallet(matriculas[0]);
+                        mostrarPantalla('screen-wallet');
+                    } else {
+                        generarListaCursos(matriculas);
+                        mostrarPantalla('screen-selector');
+                    }
+                }
+            } catch (err) {
+                errorMsg.style.display = 'block'; errorMsg.innerText = "DNI no encontrado.";
+            } finally {
+                btnText.style.display = 'block'; loader.style.display = 'none';
+            }
+        }
                 // C. APLICAR CONFIGURACIÓN
                 globalColorTema = colorFinal;
                 globalColorTexto = colorTextoFinal;
