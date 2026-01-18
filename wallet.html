@@ -164,12 +164,18 @@
             <img src="" id="user-avatar-wallet" class="user-avatar-mini" style="display:none;">
         </div>
         <div class="card-viewport" id="card-viewport"><div id="carnet-render"></div></div>
+        
         <div class="actions-grid">
             <div class="action-card" onclick="descargarCarnetCompleto()"><span class="action-icon"><i class="fas fa-id-card"></i></span><span class="action-title">Descargar Carnet</span></div>
             <div class="action-card" id="btn-descargar-diploma" style="display:none;" onclick="descargarDiploma()"><span class="action-icon"><i class="fas fa-certificate"></i></span><span class="action-title">Descargar Diploma</span></div>
+            
+            <div class="action-card" onclick="abrirSoporte()"><span class="action-icon"><i class="fab fa-whatsapp" style="color:#25D366;"></i></span><span class="action-title">Soporte Alumno</span></div>
+            <div id="btn-install-app" class="action-card" onclick="instalarApp()"><span class="action-icon"><i class="fas fa-mobile-alt" style="color:#333;"></i></span><span class="action-title">Instalar App</span></div>
+
             <div class="action-card" id="btn-cambiar-curso" style="display:none;" onclick="volverAlSelector()"><span class="action-icon" style="color:#666"><i class="fas fa-exchange-alt"></i></span><span class="action-title">Cambiar</span></div>
             <div class="action-card" onclick="cerrarSesion()"><span class="action-icon"><i class="fas fa-sign-out-alt" style="color:#d32f2f;"></i></span><span class="action-title">Salir</span></div>
         </div>
+        
         <div class="footer-brand">Soporte y Seguridad<br><strong>ASARI PLATFORM</strong></div>
     </div>
 
@@ -181,18 +187,22 @@
         const URL_WEB = 'https://instructormap.github.io/registro-de-matriculas';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
         
+        // --- CONFIGURACIÓN SOPORTE (ACTUALIZADO) ---
+        const WHATSAPP_NUMERO = '5492245602445';
+        
         const LOGO_ASARI_DEFAULT = "https://vxggatcfrywyodovjwxj.supabase.co/storage/v1/object/public/logos-instituciones/Asari%20Logo.jpg"; 
         const URL_REVERSO = "./reverso.jpg"; 
 
         const COLOR_DEFAULT = "#b8860b"; 
         
-        // --- COLORES MANUALES (TU LÓGICA QUE SÍ FUNCIONA) ---
         const COLORES_REGISTRO = { 
             'remaep': '#0033cc', 
             'rubra': '#cc0000', 
             'rniue': '#b8860b', 
-            'remets': '#1b4f4b', 
-            'rmts': '#1b4f4b',
+            // CAMBIO: Negro Táctico para Medicina Táctica
+            'remets': '#1a1a1a', 
+            'rmts': '#1a1a1a',
+            // ------------------------------------
             'rpdye': '#0099ff', 
             'rpde': '#0099ff',
             'rce': '#ff6600',
@@ -206,12 +216,38 @@
         let globalMatriculas = [];
         let alumnoActual = null; 
         let cursoActualData = null;
+        let deferredPrompt; 
 
         document.getElementById('app-logo').src = LOGO_ASARI_DEFAULT;
         document.documentElement.style.setProperty('--primary', COLOR_DEFAULT);
         window.addEventListener('resize', ajustarCarnetResponsivo);
 
-        // --- DEFINICIÓN DE HTML (IMPORTANTE: Esto debe estar AQUÍ, antes de las funciones) ---
+        // --- PWA INSTALL LOGIC ---
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+        });
+
+        function instalarApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the A2HS prompt');
+                    }
+                    deferredPrompt = null;
+                });
+            } else {
+                alert("Para instalar en iPhone:\n1. Toca el botón 'Compartir' (cuadrado con flecha)\n2. Selecciona 'Agregar a Inicio'");
+            }
+        }
+
+        function abrirSoporte() {
+            const msg = `Hola, soy alumno (DNI: ${alumnoActual?.dni_alumno || ''}). Tengo una consulta sobre mi credencial.`;
+            window.open(`https://wa.me/${WHATSAPP_NUMERO}?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        // --- DEFINICIÓN DE HTML ---
         const CARNET_HTML = `
             <div class="card-base" id="card-base-el">
                 <div class="front-left" id="panel-izq-bg">
@@ -262,7 +298,6 @@
                 globalMatriculas = matriculas;
                 const alumno = matriculas[0]; 
 
-                // 3. --- LÓGICA LOGO INSTITUTO ---
                 if(alumno.institution_id) {
                     try {
                         const { data: dataInst } = await db.from('instituciones')
@@ -271,7 +306,7 @@
                             .maybeSingle();
                         
                         if(dataInst && dataInst.logo_url) {
-                            cambiarIdentidadVisual(dataInst.logo_url, null); // Solo cambia logo, el color lo maneja llenarDatosCarnet
+                            cambiarIdentidadVisual(dataInst.logo_url, null); 
                         }
                     } catch(e) { console.log("No se pudo cargar logo instituto"); }
                 }
@@ -419,27 +454,36 @@
             const colorCarnet = COLORES_REGISTRO[registroId] || COLORES_REGISTRO['default'];
             const nombreRegistro = (alumno.registro_id || 'OFICIAL').toUpperCase();
             
-            globalColorTema = colorCarnet; // Actualizamos para diploma
+            globalColorTema = colorCarnet; 
 
-            // --- GESTOR DE TEXTURAS ---
+            // --- GESTOR DE TEXTURAS CORREGIDO PARA DESCARGA ---
             const panel = el('#bg-panel');
-            panel.style.background = colorCarnet; 
-            panel.style.backgroundImage = "none";
+            
+            // 1. Limpieza y Aplicación de Fondo Base Sólido (CRÍTICO)
+            panel.style.background = ''; // Limpia el shorthand
+            panel.style.backgroundColor = colorCarnet; // Fondo Sólido de Seguridad
+            panel.style.backgroundImage = 'none'; // Por defecto sin imagen
             panel.style.color = 'white';
 
             if (registroId === 'rce') {
                 // Rayas de seguridad para RCE
-                panel.style.background = `repeating-linear-gradient(45deg, ${colorCarnet}, ${colorCarnet} 20px, #222 20px, #222 25px)`;
+                panel.style.backgroundImage = `repeating-linear-gradient(45deg, transparent, transparent 20px, #222 20px, #222 25px)`;
                 panel.style.color = '#fff';
                 el('#card-base-el').style.borderColor = "#222";
             } 
             else if (registroId === 'remets' || registroId === 'rmts') {
-                // Malla táctica para REMETS
-                panel.style.backgroundColor = colorCarnet;
-                panel.style.backgroundImage = `linear-gradient(0deg, rgba(0,0,0,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.3) 1px, transparent 1px)`;
+                // Malla táctica para REMETS / RMTS
+                // Fondo Negro Táctico + Textura de Carbono/Malla
+                panel.style.backgroundColor = "#1a1a1a"; // Base oscura
+                panel.style.backgroundImage = `
+                    linear-gradient(0deg, rgba(255,255,255,0.05) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)
+                `;
                 panel.style.backgroundSize = "20px 20px";
+                el('#card-base-el').style.borderColor = "#333";
             } 
             else {
+                // Estándar (Solo base, ya seteado arriba)
                 el('#card-base-el').style.borderColor = colorCarnet;
             }
 
