@@ -102,7 +102,7 @@
             top: 595px; 
             left: 46%; /* TUS AJUSTES MANUALES SE MANTIENEN */
             transform: translateX(-50%); 
-            width: 76%; /* TUS AJUSTES MANUALES SE MANTIENEN */
+            width: 83%; /* TUS AJUSTES MANUALES SE MANTIENEN */
             text-align: center; 
             white-space: nowrap; 
         }
@@ -211,7 +211,7 @@
         const URL_WEB = 'https://instructormap.github.io/registro-de-matriculas';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
         
-        // CÓDIGO CORRECTO: El fallback es la Plataforma (Asari)
+        // LOGO POR DEFECTO NEUTRO (ASARI)
         const LOGO_ASARI_DEFAULT = "https://vxggatcfrywyodovjwxj.supabase.co/storage/v1/object/public/logos-instituciones/Asari%20Logo.jpg"; 
         const URL_REVERSO = "./reverso.jpg"; 
 
@@ -267,12 +267,19 @@
             try {
                 const { data: matriculas, error } = await db.from('matriculas').select('*').eq('dni_alumno', dni);
                 if (!matriculas || matriculas.length === 0) throw new Error("No encontrado");
+                
+                // --- CORRECCIÓN FOTO MÚLTIPLE (COMPARTE LA FOTO SI YA EXISTE) ---
+                const fotoEncontrada = matriculas.find(m => m.foto_url && m.foto_url.length > 5)?.foto_url;
+                if (fotoEncontrada) {
+                    matriculas.forEach(m => m.foto_url = fotoEncontrada);
+                }
+                
                 globalMatriculas = matriculas;
                 
                 const idRegistro = (matriculas[0].registro_id || '').toLowerCase().trim();
                 let instData = null;
                 try {
-                    // CAMBIO AQUÍ: Agregamos 'color_texto' a la selección
+                    // SELECCIONA TAMBIÉN color_texto
                     const { data: dataInst } = await db.from('instituciones').select('logo_url, color_tema, color_texto').ilike('nombre', `%${idRegistro}%`).maybeSingle();
                     if(dataInst) instData = dataInst;
                     else {
@@ -282,15 +289,14 @@
                 } catch(e) {}
 
                 if (instData) {
-                    // --- AQUÍ CAPTURAMOS EL COLOR Y EL LOGO ---
                     if(instData.logo_url) cambiarIdentidadVisual(instData.logo_url, instData.color_tema || '#0033cc');
                     if(instData.color_tema) globalColorTema = instData.color_tema;
-                    // NUEVO: Capturamos el color de texto si existe en la DB
+                    // CAPTURA EL COLOR DEL TEXTO DEL DIPLOMA
                     if(instData.color_texto) globalColorTexto = instData.color_texto;
                 } else {
                     cambiarIdentidadVisual(LOGO_ASARI_DEFAULT, COLOR_DEFAULT);
                     globalColorTema = COLOR_DEFAULT;
-                    globalColorTexto = '#0033cc'; // Fallback por defecto
+                    globalColorTexto = '#0033cc';
                 }
 
                 if (!matriculas[0].foto_url) {
@@ -435,7 +441,7 @@
                 const ghost = document.getElementById('ghost-container');
                 
                 // --- APLICAMOS EL COLOR DEL INSTITUTO AL TEXTO ---
-                // CAMBIO AQUÍ: Usamos la variable global globalColorTexto en lugar de fixed
+                // CAMBIO: Usamos la variable global globalColorTexto en lugar de fixed
                 const colorTexto = globalColorTexto || '#0033cc';
                 
                 ghost.innerHTML = `
@@ -469,7 +475,7 @@
                 await document.fonts.ready;
                 
                 // --- MODIFICACIÓN TAMAÑO DE TEXTO (TU AJUSTE MANUAL) ---
-                ajustarTextoAlAncho(txtElem, 76, 1800); 
+                ajustarTextoAlAncho(txtElem, 83, 1800); 
 
                 await new Promise(r => setTimeout(r, 500)); 
                 const canvas = await html2canvas(ghost.querySelector('#diploma-final'), { scale: 1, useCORS: true });
