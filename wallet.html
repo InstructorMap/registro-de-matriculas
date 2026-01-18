@@ -264,16 +264,80 @@
             const errorMsg = document.getElementById('msg-error');
             if(!dni) return;
             btnText.style.display = 'none'; loader.style.display = 'block'; errorMsg.style.display = 'none';
+            
             try {
+                // 1. Buscamos al alumno
                 const { data: matriculas, error } = await db.from('matriculas').select('*').eq('dni_alumno', dni);
                 if (!matriculas || matriculas.length === 0) throw new Error("No encontrado");
                 
-                // --- CORRECCIÓN FOTO MÚLTIPLE (COMPARTE LA FOTO SI YA EXISTE) ---
+                // 2. CORRECCIÓN FOTO (Aquí está lo que mencionas: Si uno tiene foto, todos la tienen)
                 const fotoEncontrada = matriculas.find(m => m.foto_url && m.foto_url.length > 5)?.foto_url;
                 if (fotoEncontrada) {
                     matriculas.forEach(m => m.foto_url = fotoEncontrada);
                 }
                 
+                globalMatriculas = matriculas;
+                const alumno = matriculas[0]; // Tomamos el primero para datos generales
+
+                // --- 3. LÓGICA SAAS HÍBRIDA (MEZCLA DE LOGO Y COLOR) ---
+                
+                let colorFinal = COLOR_DEFAULT;
+                let colorTextoFinal = '#0033cc';
+                let logoFinal = LOGO_ASARI_DEFAULT;
+
+                // A. Buscamos el COLOR en el Registro (usando 'sigla' que es el ID clave)
+                const idRegistro = (alumno.registro_id || '').toLowerCase().trim();
+                try {
+                    const { data: dataReg } = await db.from('instituciones')
+                        .select('color_tema, color_texto')
+                        .ilike('sigla', `%${idRegistro}%`) // IMPORTANTE: Ahora busca por 'sigla'
+                        .maybeSingle();
+                    
+                    if(dataReg) {
+                        if(dataReg.color_tema) colorFinal = dataReg.color_tema;
+                        if(dataReg.color_texto) colorTextoFinal = dataReg.color_texto;
+                    }
+                } catch(e) { console.log("Error color registro"); }
+
+                // B. Buscamos el LOGO en el Instituto (usando el ID único del instituto)
+                if(alumno.institution_id) {
+                    try {
+                        const { data: dataInst } = await db.from('instituciones')
+                            .select('logo_url')
+                            .eq('id', alumno.institution_id)
+                            .maybeSingle();
+                        
+                        if(dataInst && dataInst.logo_url) {
+                            logoFinal = dataInst.logo_url;
+                        }
+                    } catch(e) { console.log("Error logo instituto"); }
+                }
+
+                // C. Aplicamos la mezcla a las variables globales
+                globalColorTema = colorFinal;
+                globalColorTexto = colorTextoFinal;
+                cambiarIdentidadVisual(logoFinal, colorFinal);
+
+                // --- FIN LÓGICA ---
+
+                if (!matriculas[0].foto_url) {
+                    alumnoActual = matriculas[0];
+                    mostrarPantalla('screen-upload');
+                } else {
+                    if (matriculas.length === 1) {
+                        cargarWallet(matriculas[0]);
+                        mostrarPantalla('screen-wallet');
+                    } else {
+                        generarListaCursos(matriculas);
+                        mostrarPantalla('screen-selector');
+                    }
+                }
+            } catch (err) {
+                errorMsg.style.display = 'block'; errorMsg.innerText = "DNI no encontrado.";
+            } finally {
+                btnText.style.display = 'block'; loader.style.display = 'none';
+            }
+        }                
                 globalMatriculas = matriculas;
                 
                 const idRegistro = (matriculas[0].registro_id || '').toLowerCase().trim();
