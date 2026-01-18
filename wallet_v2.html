@@ -186,26 +186,23 @@
 
         const COLOR_DEFAULT = "#b8860b"; 
         
-        // --- 1. AQUÍ ESTÁ TU LISTA MANUAL DE COLORES (Original y Funcional) ---
-        // Esto asegura que los colores sean los que tú quieres, sin depender de la DB para esto.
+        // --- COLORES MANUALES (TU LÓGICA QUE SÍ FUNCIONA) ---
         const COLORES_REGISTRO = { 
             'remaep': '#0033cc', 
             'rubra': '#cc0000', 
             'rniue': '#b8860b', 
-            'remets': '#1b4f4b', // Verde Táctico
-            'rmts': '#1b4f4b',   // Compatibilidad
+            'remets': '#1b4f4b', 
+            'rmts': '#1b4f4b',
             'rpdye': '#0099ff', 
-            'rpde': '#0099ff',   // Compatibilidad
-            'rce': '#ff6600',    // Naranja Vial
+            'rpde': '#0099ff',
+            'rce': '#ff6600',
             'asarin': '#800000', 
             'colbert': '#2f4f4f', 
             'default': '#0033cc' 
         };
 
-        // VARIABLES GLOBALES
         let globalColorTema = COLOR_DEFAULT; 
         let globalColorTexto = '#0033cc'; 
-        
         let globalMatriculas = [];
         let alumnoActual = null; 
         let cursoActualData = null;
@@ -213,6 +210,37 @@
         document.getElementById('app-logo').src = LOGO_ASARI_DEFAULT;
         document.documentElement.style.setProperty('--primary', COLOR_DEFAULT);
         window.addEventListener('resize', ajustarCarnetResponsivo);
+
+        // --- DEFINICIÓN DE HTML (IMPORTANTE: Esto debe estar AQUÍ, antes de las funciones) ---
+        const CARNET_HTML = `
+            <div class="card-base" id="card-base-el">
+                <div class="front-left" id="panel-izq-bg">
+                    <img id="img-foto" class="student-photo" src="">
+                    <div class="rect-banda" id="banda-color"></div>
+                    <div class="qr-container" id="qr-container"></div>
+                    <div class="reg-sigla" id="txt-sigla">REGISTRO</div>
+                </div>
+                <div class="front-right" id="bg-panel">
+                    <div class="holo-layer"></div>
+                    <div class="live-shimmer"></div>
+                    <div id="vencido-overlay" class="overlay-vencido" style="display:none;">
+                        <div class="texto-vencido">VENCIDO</div>
+                        <div style="font-size: 20px; font-weight: bold; margin-top: 10px;">EXPIRÓ SU VIGENCIA</div>
+                    </div>
+                    <div class="front-content">
+                        <div class="header"><span class="header-text" id="txt-anio-header">CARNET</span></div>
+                        <div class="course-container"><div class="course-title-main" id="txt-titulo-main">CURSO</div><div class="course-title-sub" id="txt-titulo-sub">PROFESIONAL</div></div>
+                        <div class="student-name" id="txt-nombre" style="white-space: nowrap;">---</div>
+                        <div class="data-grid">
+                            <div class="icon-box">✱</div><div class="data-box"><span class="label-text">DNI:</span><span class="value-text" id="txt-dni">---</span></div>
+                            <div class="icon-box">#</div><div class="data-box"><span class="label-text">MATRÍCULA:</span><span class="value-text" id="txt-matricula">---</span></div>
+                            <div class="icon-box">🚨</div><div class="data-box"><span class="label-text">VENCE:</span><span class="value-text" id="txt-vence">---</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+
+        const CARNET_BACK_HTML = `<img src="${URL_REVERSO}" class="carnet-back-img" id="carnet-back-img">`;
 
         async function ingresar() {
             const dni = document.getElementById('input-dni').value.trim();
@@ -223,11 +251,9 @@
             btnText.style.display = 'none'; loader.style.display = 'block'; errorMsg.style.display = 'none';
             
             try {
-                // 1. Buscar al alumno
                 const { data: matriculas, error } = await db.from('matriculas').select('*').eq('dni_alumno', dni);
                 if (!matriculas || matriculas.length === 0) throw new Error("No encontrado");
                 
-                // 2. Corrección Foto
                 const fotoEncontrada = matriculas.find(m => m.foto_url && m.foto_url.length > 5)?.foto_url;
                 if (fotoEncontrada) {
                     matriculas.forEach(m => m.foto_url = fotoEncontrada);
@@ -237,7 +263,6 @@
                 const alumno = matriculas[0]; 
 
                 // 3. --- LÓGICA LOGO INSTITUTO ---
-                // Aquí buscamos específicamente el logo del Instituto (Colbert) usando su ID
                 if(alumno.institution_id) {
                     try {
                         const { data: dataInst } = await db.from('instituciones')
@@ -246,13 +271,11 @@
                             .maybeSingle();
                         
                         if(dataInst && dataInst.logo_url) {
-                            // Aplicamos el logo del instituto
-                            cambiarIdentidadVisual(dataInst.logo_url, globalColorTema);
+                            cambiarIdentidadVisual(dataInst.logo_url, null); // Solo cambia logo, el color lo maneja llenarDatosCarnet
                         }
                     } catch(e) { console.log("No se pudo cargar logo instituto"); }
                 }
 
-                // 4. Continuar flujo normal
                 if (!matriculas[0].foto_url) {
                     alumnoActual = matriculas[0];
                     mostrarPantalla('screen-upload');
