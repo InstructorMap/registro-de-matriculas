@@ -2,146 +2,104 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Validación Oficial - Credencial Digital</title>
     
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
-    
+
     <style>
-        body { font-family: 'Roboto', sans-serif; background-color: #f8fafc; }
-        :root { --brand-color: #0f172a; --accent-color: #22c55e; }
-
-        .cert-card {
-            background: white; max-width: 480px; margin: 40px auto;
-            border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
-            overflow: hidden; position: relative;
-            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        /* CABECERA INSTITUCIONAL */
-        .header-brand {
-            background: var(--brand-color);
-            padding: 30px 20px 40px;
-            text-align: center;
-            position: relative;
-        }
+        :root { --success: #2e7d32; --error: #c62828; --bg: #f5f7fa; --card-bg: #ffffff; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Roboto', sans-serif; }
         
-        .inst-logo {
-            height: 70px; width: auto; object-fit: contain;
-            margin: 0 auto 15px; 
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
-            background: white; padding: 5px; border-radius: 8px; /* Marco blanco para que el logo resalte */
-        }
+        body { background-color: var(--bg); color: #333; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; }
 
-        .verified-badge {
-            background: #ffffff; color: var(--brand-color);
-            display: inline-flex; align-items: center; gap: 8px;
-            padding: 6px 16px; border-radius: 50px;
-            font-size: 11px; font-weight: 900; letter-spacing: 1px;
-            text-transform: uppercase; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
+        /* CABECERA CON LOGO DINÁMICO */
+        .header-validador { margin-bottom: 25px; text-align: center; width: 100%; max-width: 400px; }
+        .org-logo { height: 80px; width: auto; object-fit: contain; margin-bottom: 10px; }
+        .system-badge { background: #e0e0e0; color: #555; padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: 1px; display: inline-block; }
 
-        /* ZONA FOTO Y DATOS */
-        .content-body { padding: 0 30px 40px; margin-top: -30px; position: relative; z-index: 10; }
+        /* TARJETA PRINCIPAL */
+        .validation-card { background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); overflow: hidden; position: relative; padding-bottom: 30px; }
 
-        .photo-frame {
-            width: 130px; height: 130px; margin: 0 auto 20px;
-            border-radius: 50%; border: 5px solid white;
-            background: #e2e8f0; overflow: hidden;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        }
-        .student-photo { width: 100%; height: 100%; object-fit: cover; }
+        /* ESTADO (VERDE/ROJO) */
+        .status-banner { padding: 20px; text-align: center; color: white; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; font-size: 18px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .status-ok { background-color: var(--success); }
+        .status-fail { background-color: var(--error); }
 
-        .info-row { border-bottom: 1px solid #f1f5f9; padding: 12px 0; display: flex; justify-content: space-between; align-items: center; }
+        /* PERFIL */
+        .profile-section { display: flex; flex-direction: column; align-items: center; margin-top: -30px; padding: 0 20px; }
+        .student-img { width: 140px; height: 140px; border-radius: 50%; border: 6px solid white; object-fit: cover; box-shadow: 0 5px 15px rgba(0,0,0,0.15); background: #eee; }
+        
+        .student-name { font-size: 22px; font-weight: 900; margin-top: 15px; text-align: center; color: #222; text-transform: uppercase; line-height: 1.2; }
+        .student-dni { font-size: 14px; color: #666; margin-top: 5px; font-weight: 500; }
+
+        /* DATOS DEL CURSO */
+        .info-grid { margin-top: 25px; width: 100%; padding: 0 25px; }
+        .info-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 15px 0; }
         .info-row:last-child { border-bottom: none; }
-        .label { font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-        .value { font-size: 15px; color: #1e293b; font-weight: 700; text-align: right; }
-
-        .status-active { color: var(--accent-color); display: flex; align-items: center; gap: 6px; }
-
-        .footer-watermark {
-            text-align: center; padding: 20px; background: #f8fafc;
-            border-top: 1px dashed #e2e8f0;
-        }
-
-        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 50px auto; }
+        .label { font-size: 12px; color: #888; font-weight: 700; text-transform: uppercase; }
+        .value { font-size: 16px; font-weight: 700; color: #333; text-align: right; max-width: 60%; }
+        
+        /* FOOTER */
+        .footer-secure { margin-top: auto; text-align: center; font-size: 11px; color: #aaa; padding: 30px 0; max-width: 300px; line-height: 1.5; }
+        
+        /* LOADING */
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: flex; justify-content: center; align-items: center; z-index: 1000; flex-direction: column; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #333; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+
+        .hidden { display: none !important; }
     </style>
 </head>
-<body class="flex flex-col min-h-screen justify-center items-center">
+<body>
 
-    <div class="cert-card w-full mx-4">
+    <div id="loader">
+        <div class="spinner"></div>
+        <div style="font-weight: bold; color: #555;">VERIFICANDO...</div>
+    </div>
+
+    <div class="header-validador" id="main-content" class="hidden">
+        <img src="https://vxggatcfrywyodovjwxj.supabase.co/storage/v1/object/public/logos-instituciones/Asari%20Logo.jpg" id="org-logo" class="org-logo">
+        <div><span class="system-badge">SISTEMA NACIONAL DE VALIDACIÓN</span></div>
+    </div>
+
+    <div class="validation-card hidden" id="card-content">
         
-        <div id="loading" class="py-20 text-center">
-            <div class="loader"></div>
-            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mt-4">Verificando en Blockchain...</p>
+        <div id="status-bar" class="status-banner">
+            <i class="fas fa-check-circle"></i> <span>VALIDANDO...</span>
         </div>
 
-        <div id="content" class="hidden">
-            <div class="header-brand" id="header-bg">
-                <img id="inst-logo" src="" class="inst-logo" alt="Institución">
-                <div>
-                    <div class="verified-badge">
-                        <i class="fas fa-certificate text-blue-600"></i>
-                        <span>Certificación Oficial</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="content-body">
-                <div class="photo-frame">
-                    <img id="student-photo-img" src="" class="student-photo">
-                </div>
-
-                <div class="text-center mb-6">
-                    <h1 id="student-name" class="text-2xl font-black text-slate-800 uppercase leading-tight mb-1"></h1>
-                    <p id="student-dni" class="text-sm font-bold text-slate-400"></p>
-                </div>
-
-                <div class="bg-slate-50 rounded-xl p-5 border border-slate-100">
-                    
-                    <div class="mb-4 pb-4 border-b border-slate-200">
-                        <p class="label mb-1">Certificación / Título</p>
-                        <p id="student-curso" class="text-lg font-black text-blue-900 leading-tight"></p>
-                    </div>
-
-                    <div class="info-row">
-                        <span class="label">Registro Oficial</span>
-                        <span id="student-registro" class="value text-blue-700"></span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">Matrícula ID</span>
-                        <span id="student-matricula" class="value font-mono text-slate-500"></span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">Estado Actual</span>
-                        <span class="value status-active">
-                            <i class="fas fa-check-circle"></i> VIGENTE
-                        </span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">Vencimiento</span>
-                        <span id="student-vence" class="value text-red-500"></span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="footer-watermark">
-                <img src="https://vxggatcfrywyodovjwxj.supabase.co/storage/v1/object/public/logos-instituciones/Asari%20Logo.jpg" style="height: 20px; opacity: 0.5; margin: 0 auto 5px;" alt="Asari Security">
-                <p class="text-[10px] text-slate-400 font-bold uppercase">Validación Digital Segura • ID Único</p>
-                <p class="text-[9px] text-slate-300 mt-1" id="scan-date"></p>
-            </div>
+        <div class="profile-section">
+            <img src="" id="st-photo" class="student-img">
+            <div class="student-name" id="st-name">---</div>
+            <div class="student-dni">DNI: <span id="st-dni">---</span></div>
         </div>
 
-        <div id="error-screen" class="hidden p-10 text-center pb-12 bg-red-50">
-            <div class="text-5xl mb-4 text-red-500"><i class="fas fa-times-circle"></i></div>
-            <h2 class="text-xl font-black text-red-700 uppercase mb-2">Documento No Válido</h2>
-            <p class="text-sm text-red-400">El código QR escaneado no existe o ha sido revocado.</p>
+        <div class="info-grid">
+            <div class="info-row">
+                <span class="label">Certificación</span>
+                <span class="value" id="st-curso">---</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Matrícula</span>
+                <span class="value" id="st-matricula">---</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Registro</span>
+                <span class="value" id="st-registro">---</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Estado</span>
+                <span class="value" id="st-vigencia" style="color: var(--success);">VIGENTE</span>
+            </div>
         </div>
+    </div>
+
+    <div class="footer-secure">
+        <strong>Verificación Segura con Tecnología Blockchain</strong><br>
+        Los datos mostrados provienen directamente de los registros oficiales de la institución emisora.
     </div>
 
     <script>
@@ -149,119 +107,115 @@
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
-        // LOGO POR DEFECTO (ASARI) SI FALLA TODO
-        const LOGO_DEFAULT = "https://vxggatcfrywyodovjwxj.supabase.co/storage/v1/object/public/logos-instituciones/Asari%20Logo.jpg";
-
-        // CONFIGURACIÓN VISUAL DE RESPALDO (SI NO HAY DB)
-        const COLORES_REGISTRO = { 
-            'remaep': '#0033cc', 'rniue': '#b8860b', 'rubra': '#cc0000', 
-            'rmts': '#2f4f4f', 'rce': '#ffcc00', 'rpde': '#0099ff', 
-            'asarin': '#800000', 'default': '#0f172a' 
-        };
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            document.getElementById('scan-date').textContent = "Escaneado: " + new Date().toLocaleString();
-            
+        async function initValidator() {
             const params = new URLSearchParams(window.location.search);
-            const idBuscado = params.get('id');
+            const idAlumno = params.get('id');
 
-            if (!idBuscado) { showError(); return; }
-            
+            if (!idAlumno) {
+                mostrarError("ID Inválido o inexistente.");
+                return;
+            }
+
             try {
-                // 1. OBTENER DATOS DEL ALUMNO
-                const { data: alumno, error } = await db.from('matriculas').select('*').eq('id', idBuscado).single();
-                if (error || !alumno) { showError(); return; }
+                // 1. BUSCAR ALUMNO
+                const { data: alumno, error } = await db
+                    .from('matriculas')
+                    .select('*')
+                    .eq('id', idAlumno)
+                    .single();
 
-                // 2. BUSCAR BRANDING (LOGO Y COLOR) DE LA INSTITUCIÓN
-                // Intentamos buscar datos de la institución o curso para "personalizar" el validador
-                let logoUrl = LOGO_DEFAULT;
-                let themeColor = COLORES_REGISTRO['default'];
+                if (error || !alumno) throw new Error("Credencial no encontrada en el registro oficial.");
 
-                try {
-                    const registroId = (alumno.registro_id || '').toLowerCase();
-                    
-                    // A. Intentar buscar en tabla 'instituciones' por nombre parecido al registro
-                    const { data: instData } = await db.from('instituciones')
-                        .select('logo_url, color_tema')
-                        .ilike('nombre', `%${registroId}%`)
-                        .maybeSingle();
-
-                    if (instData) {
-                        if(instData.logo_url) logoUrl = instData.logo_url;
-                        if(instData.color_tema) themeColor = instData.color_tema;
-                    } else {
-                        // B. Si no, buscar en 'cursos_oficiales'
-                        const { data: cursoData } = await db.from('cursos_oficiales')
-                            .select('logo_url, color_tema')
-                            .eq('nombre', alumno.curso)
+                // 2. BUSCAR LOGO DEL INSTITUTO (Lógica de prioridad SaaS)
+                if (alumno.institution_id) {
+                    try {
+                        const { data: inst } = await db
+                            .from('instituciones')
+                            .select('logo_url')
+                            .eq('id', alumno.institution_id)
                             .maybeSingle();
                         
-                        if (cursoData) {
-                            // En cursos, a veces el logo_url es el diploma, cuidado. 
-                            // Aquí asumimos que si hay logo_url es el logo del curso/institución
-                             if(cursoData.color_tema) themeColor = cursoData.color_tema;
-                             // Usamos color del registro manual como fallback si el curso no tiene
-                             if(!cursoData.color_tema && COLORES_REGISTRO[registroId]) themeColor = COLORES_REGISTRO[registroId];
-                        } else {
-                            // C. Fallback total al mapa de colores estático
-                            if(COLORES_REGISTRO[registroId]) themeColor = COLORES_REGISTRO[registroId];
+                        if (inst && inst.logo_url) {
+                            document.getElementById('org-logo').src = inst.logo_url;
                         }
-                    }
-                } catch(e) { console.log("Usando branding por defecto"); }
+                    } catch (e) { console.log("Usando logo por defecto"); }
+                }
 
-                // 3. RENDERIZAR
-                renderData(alumno, logoUrl, themeColor);
+                // 3. RENDERIZAR DATOS
+                renderData(alumno);
 
-            } catch (err) { console.error(err); showError(); }
-        });
-
-        function renderData(alumno, logoUrl, themeColor) {
-            // Aplicar Branding Dinámico
-            document.getElementById('inst-logo').src = logoUrl;
-            document.documentElement.style.setProperty('--brand-color', themeColor);
-            
-            // Datos Alumno
-            document.getElementById('student-name').textContent = `${alumno.nombre} ${alumno.apellido}`;
-            
-            // Formatear DNI con puntos
-            const dniFormat = new Intl.NumberFormat('es-AR').format(alumno.dni_alumno);
-            document.getElementById('student-dni').textContent = `DNI: ${dniFormat}`;
-            
-            document.getElementById('student-curso').textContent = alumno.curso || "Curso Profesional";
-            
-            // Matrícula Hash
-            const hash = String(Math.abs(alumno.dni_alumno.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a|0},0))).substring(0,6).padStart(6,'9');
-            document.getElementById('student-matricula').textContent = hash;
-
-            // Registro
-            const regName = (alumno.registro_id || 'OFICIAL').toUpperCase();
-            const elReg = document.getElementById('student-registro');
-            elReg.textContent = regName;
-            
-            // Vencimiento (Lógica V22)
-            let vence;
-            if (alumno.fecha_vencimiento) {
-                const partes = alumno.fecha_vencimiento.split('-'); 
-                vence = new Date(partes[0], partes[1] - 1, partes[2]); 
-            } else {
-                vence = new Date(alumno.fecha_inicio); 
-                vence.setFullYear(vence.getFullYear() + 1);
+            } catch (err) {
+                mostrarError(err.message);
             }
-            document.getElementById('student-vence').textContent = vence.toLocaleDateString('es-AR');
+        }
 
+        function renderData(alumno) {
+            const el = (id) => document.getElementById(id);
+            
             // Foto
-            const imgEl = document.getElementById('student-photo-img');
-            imgEl.src = alumno.foto_url || "https://cdn-icons-png.flaticon.com/512/847/847969.png";
+            if (alumno.foto_url) el('st-photo').src = alumno.foto_url;
+            else el('st-photo').src = "https://via.placeholder.com/150?text=SIN+FOTO";
 
-            // Mostrar
-            document.getElementById('loading').classList.add('hidden');
-            document.getElementById('content').classList.remove('hidden');
+            // Textos básicos
+            el('st-name').innerText = `${alumno.nombre} ${alumno.apellido}`;
+            el('st-dni').innerText = new Intl.NumberFormat('es-AR').format(alumno.dni_alumno);
+            el('st-curso').innerText = alumno.curso;
+            el('st-matricula').innerText = generarHashMatricula(String(alumno.dni_alumno));
+            el('st-registro').innerText = (alumno.registro_id || "OFICIAL").toUpperCase();
+
+            // Lógica de Vencimiento
+            const fechaInicio = new Date(alumno.fecha_inicio || new Date());
+            let fechaVencimiento;
+            
+            if (alumno.fecha_vencimiento) {
+                const partes = alumno.fecha_vencimiento.split('-');
+                fechaVencimiento = new Date(partes[0], partes[1] - 1, partes[2]);
+            } else {
+                // Si no hay fecha explicita, calculamos 1 año
+                fechaVencimiento = new Date(fechaInicio);
+                fechaVencimiento.setFullYear(fechaVencimiento.getFullYear() + 1);
+            }
+
+            const hoy = new Date();
+            const bar = el('status-bar');
+            const vigenciaTxt = el('st-vigencia');
+
+            if (hoy > fechaVencimiento) {
+                // VENCIDO
+                bar.className = 'status-banner status-fail';
+                bar.innerHTML = '<i class="fas fa-times-circle"></i> <span>CREDENCIAL VENCIDA</span>';
+                vigenciaTxt.innerText = `EXPIRÓ: ${fechaVencimiento.toLocaleDateString('es-AR')}`;
+                vigenciaTxt.style.color = 'var(--error)';
+            } else {
+                // HABILITADO
+                bar.className = 'status-banner status-ok';
+                bar.innerHTML = '<i class="fas fa-check-circle"></i> <span>HABILITADO OFICIAL</span>';
+                vigenciaTxt.innerText = `VENCE: ${fechaVencimiento.toLocaleDateString('es-AR')}`;
+                vigenciaTxt.style.color = 'var(--success)';
+            }
+
+            // Mostrar todo
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('card-content').classList.remove('hidden');
         }
 
-        function showError() {
-            document.getElementById('loading').classList.add('hidden');
-            document.getElementById('error-screen').classList.remove('hidden');
+        function mostrarError(msg) {
+            document.getElementById('loader').innerHTML = `
+                <div style="text-align:center; color: #c62828; padding: 20px;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 50px; margin-bottom: 20px;"></i><br>
+                    <strong>ERROR DE VALIDACIÓN</strong><br><br>
+                    ${msg}
+                </div>
+            `;
         }
+
+        function generarHashMatricula(d) {
+            let h = 0; for (let i = 0; i < d.length; i++) { h = ((h << 5) - h) + d.charCodeAt(i); h |= 0; }
+            return String(Math.abs(h)).substring(0, 6).padStart(6, '9');
+        }
+
+        // Iniciar al cargar
+        window.addEventListener('load', initValidator);
     </script>
 </body>
 </html>
