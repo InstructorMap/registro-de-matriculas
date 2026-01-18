@@ -184,11 +184,28 @@
         const LOGO_ASARI_DEFAULT = "https://vxggatcfrywyodovjwxj.supabase.co/storage/v1/object/public/logos-instituciones/Asari%20Logo.jpg"; 
         const URL_REVERSO = "./reverso.jpg"; 
 
-        const COLOR_DEFAULT = "#0033cc"; // Azul por defecto (Fallo seguro)
+        const COLOR_DEFAULT = "#b8860b"; 
         
+        // --- 1. AQUÍ ESTÁ TU LISTA MANUAL DE COLORES (Original y Funcional) ---
+        // Esto asegura que los colores sean los que tú quieres, sin depender de la DB para esto.
+        const COLORES_REGISTRO = { 
+            'remaep': '#0033cc', 
+            'rubra': '#cc0000', 
+            'rniue': '#b8860b', 
+            'remets': '#1b4f4b', // Verde Táctico
+            'rmts': '#1b4f4b',   // Compatibilidad
+            'rpdye': '#0099ff', 
+            'rpde': '#0099ff',   // Compatibilidad
+            'rce': '#ff6600',    // Naranja Vial
+            'asarin': '#800000', 
+            'colbert': '#2f4f4f', 
+            'default': '#0033cc' 
+        };
+
         // VARIABLES GLOBALES
         let globalColorTema = COLOR_DEFAULT; 
         let globalColorTexto = '#0033cc'; 
+        
         let globalMatriculas = [];
         let alumnoActual = null; 
         let cursoActualData = null;
@@ -197,7 +214,6 @@
         document.documentElement.style.setProperty('--primary', COLOR_DEFAULT);
         window.addEventListener('resize', ajustarCarnetResponsivo);
 
-        // FUNCION INGRESAR AUDITADA (LÓGICA HÍBRIDA)
         async function ingresar() {
             const dni = document.getElementById('input-dni').value.trim();
             const btnText = document.getElementById('btn-text');
@@ -207,11 +223,11 @@
             btnText.style.display = 'none'; loader.style.display = 'block'; errorMsg.style.display = 'none';
             
             try {
-                // 1. Buscamos al alumno
+                // 1. Buscar al alumno
                 const { data: matriculas, error } = await db.from('matriculas').select('*').eq('dni_alumno', dni);
                 if (!matriculas || matriculas.length === 0) throw new Error("No encontrado");
                 
-                // 2. Corrección Foto Compartida
+                // 2. Corrección Foto
                 const fotoEncontrada = matriculas.find(m => m.foto_url && m.foto_url.length > 5)?.foto_url;
                 if (fotoEncontrada) {
                     matriculas.forEach(m => m.foto_url = fotoEncontrada);
@@ -220,45 +236,8 @@
                 globalMatriculas = matriculas;
                 const alumno = matriculas[0]; 
 
-                // --- 3. CEREBRO SAAS V5.0 (AUDITADO) ---
-                
-                let colorFinal = '#0033cc'; // Azul REMAEP por defecto
-                let colorTextoFinal = '#0033cc';
-                let logoFinal = LOGO_ASARI_DEFAULT;
-
-                // A. OBTENER ID DEL REGISTRO (Origen Color)
-                let idRegistro = (alumno.registro_id || '').toLowerCase().trim();
-
-                // Fallback: Si no tiene registro, buscar por Curso
-                if (idRegistro.length < 2 && alumno.curso) {
-                    try {
-                        const { data: cursoOficial } = await db.from('cursos_oficiales')
-                            .select('registro_id')
-                            .ilike('nombre', alumno.curso)
-                            .maybeSingle();
-                        if (cursoOficial && cursoOficial.registro_id) {
-                            idRegistro = cursoOficial.registro_id.toLowerCase().trim();
-                        }
-                    } catch(e) { }
-                }
-
-                // B. BUSCAR COLOR (Solo si hay ID válido)
-                if (idRegistro.length > 1) {
-                    try {
-                        // USO DE .eq() PARA PRECISIÓN (Evita "Todo Rojo")
-                        const { data: dataReg } = await db.from('instituciones')
-                            .select('color_tema, color_texto')
-                            .eq('sigla', idRegistro) 
-                            .maybeSingle();
-                        
-                        if(dataReg) {
-                            if(dataReg.color_tema) colorFinal = dataReg.color_tema;
-                            if(dataReg.color_texto) colorTextoFinal = dataReg.color_texto;
-                        }
-                    } catch(e) { console.log("Error color registro"); }
-                }
-
-                // C. BUSCAR LOGO DEL INSTITUTO (Origen Logo)
+                // 3. --- LÓGICA LOGO INSTITUTO ---
+                // Aquí buscamos específicamente el logo del Instituto (Colbert) usando su ID
                 if(alumno.institution_id) {
                     try {
                         const { data: dataInst } = await db.from('instituciones')
@@ -266,20 +245,14 @@
                             .eq('id', alumno.institution_id)
                             .maybeSingle();
                         
-                        // IMPORTANTE: Aquí aseguramos que el logo del instituto pise al genérico
                         if(dataInst && dataInst.logo_url) {
-                            logoFinal = dataInst.logo_url;
+                            // Aplicamos el logo del instituto
+                            cambiarIdentidadVisual(dataInst.logo_url, globalColorTema);
                         }
-                    } catch(e) { console.log("Error logo instituto"); }
+                    } catch(e) { console.log("No se pudo cargar logo instituto"); }
                 }
 
-                // D. APLICAR RESULTADO FINAL
-                globalColorTema = colorFinal;
-                globalColorTexto = colorTextoFinal;
-                cambiarIdentidadVisual(logoFinal, colorFinal);
-
-                // --- FIN LÓGICA ---
-
+                // 4. Continuar flujo normal
                 if (!matriculas[0].foto_url) {
                     alumnoActual = matriculas[0];
                     mostrarPantalla('screen-upload');
@@ -343,13 +316,19 @@
             } catch (err) { alert("Error: " + err.message); btn.style.display = 'block'; } finally { loader.style.display = 'none'; } 
         }
 
-        function cambiarIdentidadVisual(logo, color) { const img = document.getElementById('app-logo'); img.src = ""; img.src = logo; document.documentElement.style.setProperty('--primary', color); }
+        function cambiarIdentidadVisual(logo, color) { 
+            const img = document.getElementById('app-logo'); 
+            if(logo) img.src = logo; 
+            if(color) document.documentElement.style.setProperty('--primary', color); 
+        }
         
         function generarListaCursos(matriculas) { 
             const container = document.getElementById('lista-cursos-container'); container.innerHTML = ''; 
             matriculas.forEach((m) => { 
                 const card = document.createElement('div'); card.className = 'curso-card'; 
-                const color = globalColorTema; 
+                // Color manual
+                const idReg = (m.registro_id || 'default').toLowerCase();
+                const color = COLORES_REGISTRO[idReg] || COLORES_REGISTRO['default'];
                 card.style.borderLeftColor = color; 
                 card.innerHTML = `<div class="curso-info"><h4>${m.curso}</h4><p>${(m.registro_id || '').toUpperCase()} • ${new Date(m.fecha_inicio).getFullYear()}</p></div><div><i class="fas fa-chevron-right" style="color:#ccc"></i></div>`; 
                 card.onclick = () => { cargarWallet(m); mostrarPantalla('screen-wallet'); }; 
@@ -412,22 +391,27 @@
             el('#qr-container').innerHTML = ""; 
             new QRCode(el('#qr-container'), { text: `${URL_WEB}/validador.html?id=${alumno.id}`, width: 144, height: 144 });
 
-            const colorCarnet = globalColorTema; 
+            // COLORES MANUALES (Tu lógica original)
+            const registroId = (alumno.registro_id || 'default').toLowerCase();
+            const colorCarnet = COLORES_REGISTRO[registroId] || COLORES_REGISTRO['default'];
             const nombreRegistro = (alumno.registro_id || 'OFICIAL').toUpperCase();
             
-            // --- GESTOR DE TEXTURAS (RCE/REMETS) ---
-            const registroId = (alumno.registro_id || '').toLowerCase();
+            globalColorTema = colorCarnet; // Actualizamos para diploma
+
+            // --- GESTOR DE TEXTURAS ---
             const panel = el('#bg-panel');
             panel.style.background = colorCarnet; 
             panel.style.backgroundImage = "none";
             panel.style.color = 'white';
 
             if (registroId === 'rce') {
+                // Rayas de seguridad para RCE
                 panel.style.background = `repeating-linear-gradient(45deg, ${colorCarnet}, ${colorCarnet} 20px, #222 20px, #222 25px)`;
                 panel.style.color = '#fff';
                 el('#card-base-el').style.borderColor = "#222";
             } 
-            else if (registroId === 'remets') {
+            else if (registroId === 'remets' || registroId === 'rmts') {
+                // Malla táctica para REMETS
                 panel.style.backgroundColor = colorCarnet;
                 panel.style.backgroundImage = `linear-gradient(0deg, rgba(0,0,0,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.3) 1px, transparent 1px)`;
                 panel.style.backgroundSize = "20px 20px";
