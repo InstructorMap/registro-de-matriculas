@@ -86,7 +86,7 @@
         .label-text { font-size: 32px; font-weight: 700; opacity: 0.9; }
         .value-text { font-size: 36px; font-weight: 900; text-align: right; }
 
-        /* EFECTO ANTI-SCREENSHOT (ANIMACIÓN DE BRILLO) */
+        /* --- NUEVO: EFECTO ANTI-SCREENSHOT (ANIMACIÓN DE BRILLO) --- */
         .live-shimmer {
             position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
             background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
@@ -96,7 +96,7 @@
         }
         @keyframes shimmerMove { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
 
-        /* ESTADO VENCIDO */
+        /* --- NUEVO: ESTADO VENCIDO --- */
         .overlay-vencido {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(180, 0, 0, 0.75); z-index: 20;
@@ -236,7 +236,8 @@
 
         const COLOR_DEFAULT = "#b8860b"; 
         
-        // --- CENTRALIZACIÓN DE ESTILOS (SaaS) ---
+        // --- 1. CENTRALIZACIÓN DE ESTILOS (SaaS) ---
+        // Se elimina COLORES_REGISTRO y se usan variables globales alimentadas por la BD
         let globalColorTema = COLOR_DEFAULT; 
         let globalColorTexto = '#0033cc'; 
         
@@ -248,7 +249,6 @@
         document.documentElement.style.setProperty('--primary', COLOR_DEFAULT);
         window.addEventListener('resize', ajustarCarnetResponsivo);
 
-        // --- HTML CARNET CON PROTECCIÓN SCREENSHOT ---
         const CARNET_HTML = `
             <div class="card-base" id="card-base-el">
                 <div class="front-left" id="panel-izq-bg">
@@ -445,7 +445,7 @@
                 vence.setFullYear(vence.getFullYear() + 1);
             }
             
-            // --- VENCIMIENTO REAL ---
+            // --- 2. SISTEMA DE VENCIMIENTO REAL ---
             el('#txt-vence').innerText = vence.toLocaleDateString('es-AR');
             if(new Date() > vence) {
                 el('#vencido-overlay').style.display = 'flex'; // Activa el overlay rojo
@@ -543,7 +543,9 @@
                             <span class="dip-texto-formal" id="dip-texto-completo" style="color: ${colorTexto} !important;"></span>
                         </div>
                         <div class="dip-qr" id="dip-qr-code"></div>
+                        
                         <div class="dip-info-extra" id="dip-fecha-registro" style="color: ${colorTexto} !important; border-color: ${colorTexto}33;"></div>
+                        
                         <div class="dip-sello"></div>
                     </div>
                 </div>`;
@@ -563,8 +565,7 @@
 
                 await document.fonts.ready;
                 
-                // --- CORRECCIÓN FINAL: Límite más estricto (1150px) para evitar cortes ---
-                // Empieza en 76px, pero si supera 1150px de ancho, se achica automáticamente.
+                // --- MODIFICACIÓN TAMAÑO DE TEXTO AJUSTADO (76px inicio, 1150px límite) ---
                 ajustarTextoAlAncho(txtElem, 76, 1150); 
 
                 await new Promise(r => setTimeout(r, 500)); 
@@ -576,6 +577,7 @@
                 ghost.innerHTML = '';
             } catch(e) { alert("Error diploma: " + e.message); } finally { btn.innerHTML = txt; }
         }
+
         function mostrarPantalla(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
         function volverAlSelector() { mostrarPantalla('screen-selector'); }
         function cerrarSesion() { location.reload(); }
