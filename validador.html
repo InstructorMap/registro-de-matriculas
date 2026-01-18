@@ -10,7 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
 
     <style>
-        :root { --success: #2e7d32; --error: #c62828; --bg: #f5f7fa; --card-bg: #ffffff; }
+        /* VARIABLE DINÁMICA --primary SE LLENARÁ CON JS */
+        :root { --primary: #0033cc; --success: #2e7d32; --error: #c62828; --bg: #f5f7fa; --card-bg: #ffffff; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Roboto', sans-serif; }
         
         body { background-color: var(--bg); color: #333; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; }
@@ -18,12 +19,14 @@
         /* CABECERA CON LOGO DINÁMICO */
         .header-validador { margin-bottom: 25px; text-align: center; width: 100%; max-width: 400px; }
         .org-logo { height: 80px; width: auto; object-fit: contain; margin-bottom: 10px; }
-        .system-badge { background: #e0e0e0; color: #555; padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: 1px; display: inline-block; }
+        
+        /* ETIQUETA DEL SISTEMA (TOMA COLOR DEL REGISTRO) */
+        .system-badge { background: var(--primary); color: white; padding: 6px 15px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 1px; display: inline-block; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
 
-        /* TARJETA PRINCIPAL */
-        .validation-card { background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); overflow: hidden; position: relative; padding-bottom: 30px; }
+        /* TARJETA PRINCIPAL (BORDE DEL COLOR DEL REGISTRO) */
+        .validation-card { background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); overflow: hidden; position: relative; padding-bottom: 30px; border-top: 5px solid var(--primary); }
 
-        /* ESTADO (VERDE/ROJO) */
+        /* ESTADO (VERDE/ROJO - SEGURIDAD) */
         .status-banner { padding: 20px; text-align: center; color: white; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; font-size: 18px; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .status-ok { background-color: var(--success); }
         .status-fail { background-color: var(--error); }
@@ -42,12 +45,15 @@
         .label { font-size: 12px; color: #888; font-weight: 700; text-transform: uppercase; }
         .value { font-size: 16px; font-weight: 700; color: #333; text-align: right; max-width: 60%; }
         
+        /* ÍCONOS CON COLOR DE REGISTRO */
+        .icon-reg { color: var(--primary); margin-right: 8px; font-size: 14px; }
+
         /* FOOTER */
         .footer-secure { margin-top: auto; text-align: center; font-size: 11px; color: #aaa; padding: 30px 0; max-width: 300px; line-height: 1.5; }
         
         /* LOADING */
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: flex; justify-content: center; align-items: center; z-index: 1000; flex-direction: column; }
-        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #333; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         .hidden { display: none !important; }
@@ -60,9 +66,9 @@
         <div style="font-weight: bold; color: #555;">VERIFICANDO...</div>
     </div>
 
-    <div class="header-validador" id="main-content" class="hidden">
+    <div class="header-validador hidden" id="main-content">
         <img src="https://vxggatcfrywyodovjwxj.supabase.co/storage/v1/object/public/logos-instituciones/Asari%20Logo.jpg" id="org-logo" class="org-logo">
-        <div><span class="system-badge">SISTEMA NACIONAL DE VALIDACIÓN</span></div>
+        <div><span class="system-badge" id="badge-registro">SISTEMA NACIONAL DE VALIDACIÓN</span></div>
     </div>
 
     <div class="validation-card hidden" id="card-content">
@@ -79,19 +85,19 @@
 
         <div class="info-grid">
             <div class="info-row">
-                <span class="label">Certificación</span>
+                <span class="label"><i class="fas fa-graduation-cap icon-reg"></i> Certificación</span>
                 <span class="value" id="st-curso">---</span>
             </div>
             <div class="info-row">
-                <span class="label">Matrícula</span>
+                <span class="label"><i class="fas fa-hashtag icon-reg"></i> Matrícula</span>
                 <span class="value" id="st-matricula">---</span>
             </div>
             <div class="info-row">
-                <span class="label">Registro</span>
+                <span class="label"><i class="fas fa-building icon-reg"></i> Registro</span>
                 <span class="value" id="st-registro">---</span>
             </div>
             <div class="info-row">
-                <span class="label">Estado</span>
+                <span class="label"><i class="fas fa-calendar-check icon-reg"></i> Estado</span>
                 <span class="value" id="st-vigencia" style="color: var(--success);">VIGENTE</span>
             </div>
         </div>
@@ -106,6 +112,21 @@
         const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
+
+        // --- TU LISTA DE COLORES MANUAL ---
+        const COLORES_REGISTRO = { 
+            'remaep': '#0033cc', 
+            'rubra': '#cc0000', 
+            'rniue': '#b8860b', 
+            'remets': '#1b4f4b', 
+            'rmts': '#1b4f4b',
+            'rpdye': '#0099ff', 
+            'rpde': '#0099ff',
+            'rce': '#ff6600',
+            'asarin': '#800000', 
+            'colbert': '#2f4f4f', 
+            'default': '#0033cc' 
+        };
 
         async function initValidator() {
             const params = new URLSearchParams(window.location.search);
@@ -126,7 +147,14 @@
 
                 if (error || !alumno) throw new Error("Credencial no encontrada en el registro oficial.");
 
-                // 2. BUSCAR LOGO DEL INSTITUTO (Lógica de prioridad SaaS)
+                // 2. APLICAR COLOR DEL REGISTRO (Lógica Manual)
+                const idRegistro = (alumno.registro_id || 'default').toLowerCase();
+                const colorTema = COLORES_REGISTRO[idRegistro] || COLORES_REGISTRO['default'];
+                
+                // Inyectar color en CSS
+                document.documentElement.style.setProperty('--primary', colorTema);
+
+                // 3. BUSCAR LOGO DEL INSTITUTO (Colbert)
                 if (alumno.institution_id) {
                     try {
                         const { data: inst } = await db
@@ -141,7 +169,7 @@
                     } catch (e) { console.log("Usando logo por defecto"); }
                 }
 
-                // 3. RENDERIZAR DATOS
+                // 4. RENDERIZAR DATOS
                 renderData(alumno);
 
             } catch (err) {
@@ -161,7 +189,10 @@
             el('st-dni').innerText = new Intl.NumberFormat('es-AR').format(alumno.dni_alumno);
             el('st-curso').innerText = alumno.curso;
             el('st-matricula').innerText = generarHashMatricula(String(alumno.dni_alumno));
-            el('st-registro').innerText = (alumno.registro_id || "OFICIAL").toUpperCase();
+            
+            const nombreReg = (alumno.registro_id || "OFICIAL").toUpperCase();
+            el('st-registro').innerText = nombreReg;
+            el('badge-registro').innerText = `VALIDACIÓN OFICIAL ${nombreReg}`; // Badge con nombre del registro
 
             // Lógica de Vencimiento
             const fechaInicio = new Date(alumno.fecha_inicio || new Date());
@@ -196,6 +227,7 @@
 
             // Mostrar todo
             document.getElementById('loader').classList.add('hidden');
+            document.getElementById('main-content').classList.remove('hidden');
             document.getElementById('card-content').classList.remove('hidden');
         }
 
