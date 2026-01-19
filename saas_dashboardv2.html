@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control - ASARI V4.1 (Color Fix)</title>
+    <title>Panel de Control - ASARI V4.2 (Full SaaS)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -27,7 +27,7 @@
     <aside id="sidebar" class="w-64 bg-slate-900 text-white flex flex-col shadow-2xl z-20 transition-colors duration-500">
         <div class="p-6 border-b border-white/10 flex items-center justify-center h-24 relative">
             <img id="brand-logo" src="" class="h-14 object-contain hidden">
-            <h1 id="brand-text" class="text-2xl font-black tracking-tighter text-white">ASARI <span class="opacity-40 font-normal">SaaS</span></h1>
+            <h1 id="brand-text" class="text-2xl font-black tracking-tighter text-white text-center leading-none">ASARI <span class="opacity-40 font-normal text-sm block">SaaS</span></h1>
             <div id="super-indicator" class="hidden absolute top-2 right-2 super-badge">SUPER</div>
         </div>
 
@@ -97,14 +97,12 @@
 
             <div id="panel-alumnos" class="hidden animate-fade-in">
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 min-h-[500px] flex flex-col">
-                    
                     <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
                         <h3 class="text-lg font-bold text-slate-700">Directorio de Alumnos</h3>
                         <button onclick="abrirModalAlumno()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg transition">
                             <i data-lucide="user-plus" size="18"></i> Nuevo Alumno
                         </button>
                     </div>
-
                     <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4 grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div class="relative">
                             <i data-lucide="search" class="absolute left-3 top-2.5 text-slate-400" size="16"></i>
@@ -126,45 +124,10 @@
                             </select>
                         </div>
                     </div>
-
                     <div class="overflow-x-auto flex-1">
                         <table class="w-full text-sm text-left"><tbody id="tabla-alumnos" class="divide-y divide-slate-100"></tbody></table>
                     </div>
                     <div class="mt-4 text-xs text-slate-400 text-center" id="contador-resultados">Mostrando resultados...</div>
-                </div>
-            </div>
-
-            <div id="panel-entidades" class="hidden animate-fade-in">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div class="bg-white rounded-2xl shadow-sm border border-yellow-200 p-8 relative overflow-hidden">
-                        <div class="absolute top-0 right-0 bg-yellow-400 text-yellow-950 text-[10px] font-black px-4 py-1.5 uppercase rounded-bl-xl tracking-wider">Super Admin</div>
-                        <h3 class="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">Nueva Entidad</h3>
-                        
-                        <div class="space-y-4">
-                            <div><label class="label-form">Tipo de Entidad</label>
-                                <select id="new-ent-tipo" class="input-form font-bold">
-                                    <option value="instituto">INSTITUTO (Cliente / Sede)</option>
-                                    <option value="registro">REGISTRO (Aval / Color)</option>
-                                </select>
-                            </div>
-                            <div><label class="label-form">Nombre Comercial</label><input type="text" id="new-inst-name" class="input-form"></div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div><label class="label-form">Sigla / ID</label><input type="text" id="new-inst-sigla" class="input-form" placeholder="Ej: isf o remaep"></div>
-                                <div><label class="label-form">Color Marca</label><input type="color" id="new-inst-color" class="w-full h-[46px] p-1 rounded-lg cursor-pointer bg-white border border-slate-200" value="#0033cc"></div>
-                            </div>
-                            <div><label class="label-form">Logo (URL o Archivo)</label><input type="file" id="new-inst-logo" accept="image/*" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:bg-slate-100 file:text-slate-700"></div>
-                            <div class="h-px bg-slate-100 my-2"></div>
-                            <p class="text-xs font-bold text-slate-400 uppercase">Crear usuario administrador (Opcional)</p>
-                            <div><label class="label-form">Email</label><input type="email" id="new-admin-email" class="input-form"></div>
-                            <div><label class="label-form">Contraseña</label><input type="text" id="new-admin-pass" class="input-form" value="123456"></div>
-                            <button onclick="crearEntidadCompleta()" class="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl hover:bg-black transition shadow-lg mt-2">GUARDAR ENTIDAD</button>
-                        </div>
-                    </div>
-
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col">
-                        <h3 class="font-bold text-slate-700 mb-4">Entidades Activas</h3>
-                        <div id="lista-instituciones" class="space-y-3 overflow-y-auto pr-2 flex-1 max-h-[600px]"></div>
-                    </div>
                 </div>
             </div>
 
@@ -197,6 +160,33 @@
                 </div>
             </div>
 
+            <div id="panel-entidades" class="hidden animate-fade-in">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-white rounded-2xl shadow-sm border border-yellow-200 p-8 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-yellow-400 text-yellow-950 text-[10px] font-black px-4 py-1.5 uppercase rounded-bl-xl tracking-wider">Super Admin</div>
+                        <h3 class="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">Nueva Entidad</h3>
+                        <div class="space-y-4">
+                            <div><label class="label-form">Tipo</label><select id="new-ent-tipo" class="input-form font-bold"><option value="instituto">INSTITUTO</option><option value="registro">REGISTRO</option></select></div>
+                            <div><label class="label-form">Nombre Comercial</label><input type="text" id="new-inst-name" class="input-form"></div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="label-form">Sigla / ID</label><input type="text" id="new-inst-sigla" class="input-form" placeholder="Ej: isf o remaep"></div>
+                                <div><label class="label-form">Color Marca</label><input type="color" id="new-inst-color" class="w-full h-[46px] p-1 rounded-lg cursor-pointer bg-white border border-slate-200" value="#0033cc"></div>
+                            </div>
+                            <div><label class="label-form">Logo</label><input type="file" id="new-inst-logo" accept="image/*" class="block w-full text-xs text-slate-500"></div>
+                            <div class="h-px bg-slate-100 my-2"></div>
+                            <p class="text-xs font-bold text-slate-400 uppercase">Admin (Opcional)</p>
+                            <div><label class="label-form">Email</label><input type="email" id="new-admin-email" class="input-form"></div>
+                            <div><label class="label-form">Contraseña</label><input type="text" id="new-admin-pass" class="input-form" value="123456"></div>
+                            <button onclick="crearEntidadCompleta()" class="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl hover:bg-black transition shadow-lg mt-2">GUARDAR ENTIDAD</button>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col">
+                        <h3 class="font-bold text-slate-700 mb-4">Entidades Activas</h3>
+                        <div id="lista-instituciones" class="space-y-3 overflow-y-auto pr-2 flex-1 max-h-[600px]"></div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </main>
 
@@ -223,16 +213,29 @@
     <div id="modal-curso" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl p-8 relative max-h-[90vh] overflow-y-auto">
             <button onclick="document.getElementById('modal-curso').classList.add('hidden')" class="absolute top-4 right-4 text-slate-300"><i data-lucide="x"></i></button>
-            <h3 class="text-xl font-black text-slate-800 mb-6">Curso Oficial</h3>
+            <h3 class="text-xl font-black text-slate-800 mb-6">Gestión de Curso</h3>
             <div class="space-y-4">
                 <input type="hidden" id="c-id-edit">
                 <div><label class="label-form">Nombre del Curso</label><input type="text" id="c-nombre" class="input-form"></div>
                 <div><label class="label-form">Avalado Por (Registro)</label><select id="c-registro" class="input-form font-bold bg-blue-50"></select></div>
+                
                 <div class="bg-slate-50 p-3 rounded border border-slate-200">
-                    <label class="label-form">Fondo Diploma</label>
-                    <input type="file" id="c-diploma" accept="image/*" class="w-full text-xs">
+                    <label class="label-form">Fondo Diploma (Imagen)</label>
+                    <input type="file" id="c-diploma" accept="image/*" class="w-full text-xs text-slate-500">
+                    <img id="preview-diploma-img" class="h-10 mt-2 object-cover rounded hidden">
                 </div>
-                <button onclick="guardarCurso()" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl mt-4">GUARDAR</button>
+
+                <div class="bg-slate-50 p-3 rounded border border-slate-200">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="label-form mb-0">Analítico (Páginas)</label>
+                        <button onclick="document.getElementById('c-analitico-multi').click()" class="text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded font-bold">+ Agregar</button>
+                        <input type="file" id="c-analitico-multi" accept="image/*" multiple class="hidden" onchange="agregarPaginaAnalitico(this)">
+                    </div>
+                    <div id="galeria-analitico" class="grid grid-cols-4 gap-2"></div>
+                </div>
+                
+                <div id="status-curso" class="text-center text-xs font-bold h-4 text-blue-600"></div>
+                <button onclick="guardarCurso()" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl mt-4 hover:bg-black transition">GUARDAR CAMBIOS</button>
             </div>
         </div>
     </div>
@@ -243,7 +246,8 @@
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
         
         let currentUser, currentProfile, cursosCache = [], datosExcelCargados = [];
-        let registroColors = {}; // DICCIONARIO DE COLORES
+        let registroColors = {}; 
+        let analiticoPaginas = []; // ARRAY GLOBAL PARA ANALITICOS
 
         document.addEventListener('DOMContentLoaded', async () => {
             const { data: { session } } = await db.auth.getSession();
@@ -255,6 +259,7 @@
             const { data: perfil } = await db.from('perfiles').select('*, instituciones(*)').eq('id', currentUser.id).single();
             currentProfile = perfil;
 
+            // BLOQUEO POR PAGO
             if (perfil.instituciones && perfil.instituciones.activo === false && perfil.rol !== 'superadmin') {
                 alert("⛔ SU CUENTA ESTÁ SUSPENDIDA. Contacte a soporte.");
                 await db.auth.signOut();
@@ -262,6 +267,7 @@
                 return;
             }
 
+            // SUPERADMIN
             if (perfil.rol === 'superadmin') {
                 document.getElementById('menu-superadmin').classList.remove('hidden');
                 document.getElementById('super-indicator').classList.remove('hidden');
@@ -274,7 +280,7 @@
             }
 
             aplicarEstilosInstitucion(perfil.instituciones);
-            await cargarOpcionesRegistros(); // CARGA Y GUARDA COLORES
+            await cargarOpcionesRegistros();
             await cargarCursos(); 
             await llenarFiltros(); 
             await filtrarAlumnos(); 
@@ -282,11 +288,183 @@
             lucide.createIcons();
         });
 
+        // --- SISTEMA DE MARCA Y ESTILO ---
+        function aplicarEstilosInstitucion(inst) {
+            if(inst?.nombre) {
+                // CAMBIO VISUAL CRÍTICO: Reemplaza "ASARI SaaS" por el nombre del instituto
+                document.getElementById('brand-text').innerHTML = `${inst.nombre} <span class="opacity-40 font-normal text-sm block">Panel</span>`;
+                document.getElementById('sidebar-inst-name').innerText = inst.nombre;
+                document.getElementById('dash-inst-name').innerText = inst.nombre;
+            }
+            if(inst?.logo_url) {
+                document.getElementById('brand-logo').src = inst.logo_url;
+                document.getElementById('brand-logo').classList.remove('hidden');
+                document.getElementById('dashboard-logo-container').innerHTML = `<img src="${inst.logo_url}" class="w-full h-full object-contain">`;
+            }
+            if(inst?.color_primario) {
+                document.getElementById('sidebar').style.backgroundColor = inst.color_primario;
+            }
+        }
+
+        // --- GESTIÓN DE CURSOS (MEJORADA CON FORKING) ---
+        async function cargarCursos() {
+            const { data } = await db.from('cursos_oficiales').select('*').order('nombre');
+            const div = document.getElementById('lista-cursos-config');
+            const sel = document.getElementById('m-curso-select');
+            div.innerHTML = ""; sel.innerHTML = "<option>Seleccionar</option>";
+            
+            // FILTRO DE CURSOS: Superadmin ve todos. Instituto ve los suyos + los globales (donde institucion_id es null)
+            if (currentProfile.rol !== 'superadmin') {
+                const myId = currentProfile.institucion_id;
+                cursosCache = data.filter(c => {
+                    const cInst = c.institution_id || c.institucion_id; // Check legacy naming
+                    return cInst === myId || cInst === null; 
+                });
+            } else {
+                cursosCache = data;
+            }
+
+            cursosCache.forEach(c => {
+                sel.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
+                const bg = registroColors[c.registro_id.toLowerCase()] || '#94a3b8';
+                
+                // BOTÓN EDITAR AGREGADO
+                div.innerHTML += `
+                <div class="p-4 border rounded-xl bg-white hover:shadow-md transition relative group">
+                    <span class="text-[10px] text-white px-2 py-1 rounded uppercase font-bold mb-2 block w-max shadow-sm" style="background-color: ${bg}">
+                        ${c.registro_id}
+                    </span>
+                    <p class="font-bold text-slate-700 text-sm mb-4">${c.nombre}</p>
+                    <div class="flex gap-2 border-t pt-2 mt-2">
+                        <button onclick="abrirModalCurso('${c.id}')" class="text-blue-500 text-xs font-bold hover:underline flex items-center gap-1"><i data-lucide="pencil" size="12"></i> Editar</button>
+                        <button onclick="borrar('cursos_oficiales', '${c.id}', cargarCursos)" class="text-slate-400 text-xs font-bold hover:text-red-500 flex items-center gap-1 ml-auto"><i data-lucide="trash-2" size="12"></i></button>
+                    </div>
+                </div>`;
+            });
+            lucide.createIcons();
+        }
+
+        async function guardarCurso() {
+            const idEdit = document.getElementById('c-id-edit').value;
+            const nombre = document.getElementById('c-nombre').value.toUpperCase();
+            const registro = document.getElementById('c-registro').value;
+            const status = document.getElementById('status-curso');
+            
+            status.innerText = "Procesando...";
+            
+            // Datos base
+            let cursoData = { 
+                nombre, 
+                registro_id: registro, 
+                analitico_bg_url: analiticoPaginas.length > 0 ? JSON.stringify(analiticoPaginas) : null 
+            };
+
+            // Diploma Upload
+            const inputDip = document.getElementById('c-diploma');
+            if(inputDip.files.length > 0) {
+                const file = inputDip.files[0];
+                const fileName = `diploma_${Date.now()}`;
+                await db.storage.from('plantillas-diplomas').upload(fileName, file);
+                const { data } = db.storage.from('plantillas-diplomas').getPublicUrl(fileName);
+                cursoData.diploma_bg_url = data.publicUrl;
+            }
+
+            try {
+                // LÓGICA DE FORKING (COPIA SI NO ES MÍO)
+                let esNuevo = true;
+                
+                if(idEdit) {
+                    const cursoOriginal = cursosCache.find(c => c.id === idEdit);
+                    const originalInstId = cursoOriginal.institution_id || cursoOriginal.institucion_id;
+                    const miInstId = currentProfile.rol === 'superadmin' ? null : currentProfile.institucion_id;
+
+                    // Si soy superadmin, O si el curso es mío -> Actualizo (UPDATE)
+                    if(currentProfile.rol === 'superadmin' || originalInstId === miInstId) {
+                        await db.from('cursos_oficiales').update(cursoData).eq('id', idEdit);
+                        esNuevo = false;
+                    } 
+                    // Si NO es mío (es Global) -> Creo uno nuevo (INSERT)
+                    else {
+                        // Asigno mi ID al nuevo curso para apropiármelo
+                        cursoData.institution_id = miInstId;
+                        // Mantenemos el diploma original si no subí uno nuevo
+                        if(!cursoData.diploma_bg_url) cursoData.diploma_bg_url = cursoOriginal.diploma_bg_url;
+                        await db.from('cursos_oficiales').insert([cursoData]);
+                        alert("⚠️ Se ha creado una copia personalizada de este curso para tu instituto.");
+                    }
+                } else {
+                    // Creación desde cero
+                    cursoData.institution_id = currentProfile.rol === 'superadmin' ? null : currentProfile.institucion_id;
+                    await db.from('cursos_oficiales').insert([cursoData]);
+                }
+                
+                status.innerText = "✅ Guardado";
+                setTimeout(() => { document.getElementById('modal-curso').classList.add('hidden'); cargarCursos(); }, 1000);
+            } catch(e) { status.innerText = "Error: " + e.message; }
+        }
+
+        function abrirModalCurso(idEdicion = null) {
+            document.getElementById('modal-curso').classList.remove('hidden');
+            document.getElementById('status-curso').innerText = "";
+            analiticoPaginas = [];
+            
+            if(idEdicion) {
+                const curso = cursosCache.find(c => c.id === idEdicion);
+                document.getElementById('c-id-edit').value = idEdicion;
+                document.getElementById('c-nombre').value = curso.nombre;
+                document.getElementById('c-registro').value = curso.registro_id;
+                
+                if(curso.diploma_bg_url) {
+                    document.getElementById('preview-diploma-img').src = curso.diploma_bg_url;
+                    document.getElementById('preview-diploma-img').classList.remove('hidden');
+                }
+
+                if(curso.analitico_bg_url) {
+                    try {
+                        const parsed = JSON.parse(curso.analitico_bg_url);
+                        if(Array.isArray(parsed)) analiticoPaginas = parsed;
+                        else analiticoPaginas = [curso.analitico_bg_url];
+                    } catch(e) { analiticoPaginas = []; }
+                    renderizarGaleriaAnalitico();
+                } else { renderizarGaleriaAnalitico(); }
+            } else {
+                document.getElementById('c-id-edit').value = "";
+                document.getElementById('c-nombre').value = "";
+                document.getElementById('preview-diploma-img').classList.add('hidden');
+                renderizarGaleriaAnalitico();
+            }
+        }
+
+        async function agregarPaginaAnalitico(input) {
+            if(!input.files || input.files.length === 0) return;
+            document.getElementById('status-curso').innerText = "Subiendo páginas...";
+            
+            for(let i=0; i<input.files.length; i++) {
+                const file = input.files[i];
+                const fileName = `analitico_pag_${Date.now()}_${i}`;
+                await db.storage.from('plantillas-diplomas').upload(fileName, file);
+                const { data } = db.storage.from('plantillas-diplomas').getPublicUrl(fileName);
+                analiticoPaginas.push(data.publicUrl);
+            }
+            renderizarGaleriaAnalitico();
+            document.getElementById('status-curso').innerText = "";
+        }
+
+        function renderizarGaleriaAnalitico() {
+            const div = document.getElementById('galeria-analitico');
+            div.innerHTML = "";
+            analiticoPaginas.forEach((url, index) => {
+                div.innerHTML += `<div class="relative group w-12 h-16 bg-slate-200 rounded border border-slate-300 overflow-hidden"><img src="${url}" class="w-full h-full object-cover"><button onclick="analiticoPaginas.splice(${index},1); renderizarGaleriaAnalitico();" class="absolute top-0 right-0 bg-red-500 text-white p-0.5"><i data-lucide="x" size="10"></i></button></div>`;
+            });
+            lucide.createIcons();
+        }
+
         // --- SISTEMA DE FILTRADO ---
         async function llenarFiltros() {
             const { data: cursos } = await db.from('cursos_oficiales').select('nombre').order('nombre');
             const selCur = document.getElementById('filtro-curso');
-            if(cursos) cursos.forEach(c => selCur.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`);
+            const used = new Set();
+            if(cursos) cursos.forEach(c => { if(!used.has(c.nombre)) { used.add(c.nombre); selCur.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`; }});
 
             const { data: registros } = await db.from('instituciones').select('sigla, nombre').not('sigla', 'is', null);
             const selReg = document.getElementById('filtro-registro');
@@ -320,7 +498,7 @@
             if(filtroReg) query = query.eq('registro_id', filtroReg);
             if(filtroTxt) query = query.or(`dni_alumno.ilike.%${filtroTxt}%,apellido.ilike.%${filtroTxt}%`);
 
-            const { data, count } = await query;
+            const { data } = await query;
             
             tb.innerHTML = "";
             if(data && data.length > 0) {
@@ -328,7 +506,6 @@
                 data.forEach(a => {
                     const logoInst = a.instituciones?.logo_url ? `<img src="${a.instituciones.logo_url}" class="w-5 h-5 object-contain rounded-full border">` : '';
                     const nombreInst = a.instituciones?.nombre || 'Desconocido';
-                    
                     tb.innerHTML += `
                     <tr class="border-b hover:bg-slate-50 transition">
                         <td class="p-3 text-xs font-mono text-slate-500">${a.dni_alumno}</td>
@@ -346,89 +523,17 @@
             }
         }
 
-        // --- GESTIÓN DE ENTIDADES Y SUSPENSIÓN ---
-        async function cargarEntidadesTabla() {
-            const div = document.getElementById('lista-instituciones');
-            const { data } = await db.from('instituciones').select('*').order('created_at', {ascending:false});
-            div.innerHTML = "";
-            data.forEach(i => {
-                const tipo = i.sigla ? 'REGISTRO' : 'INSTITUTO';
-                const colorBadge = i.sigla ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800';
-                
-                const estaActivo = i.activo !== false;
-                const btnStatusIcon = estaActivo ? 'pause-circle' : 'play-circle';
-                const btnStatusColor = estaActivo ? 'text-amber-500 hover:text-amber-700' : 'text-green-500 hover:text-green-700';
-                const estadoTexto = estaActivo ? '<span class="text-[10px] text-green-600 font-bold ml-2">ACTIVO</span>' : '<span class="text-[10px] text-red-600 font-bold ml-2">SUSPENDIDO</span>';
-                const opacidad = estaActivo ? 'opacity-100' : 'opacity-60 bg-red-50';
-
-                div.innerHTML += `
-                <div class="flex justify-between items-center p-3 border rounded mb-2 hover:bg-slate-50 ${opacidad}">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded bg-slate-200 overflow-hidden"><img src="${i.logo_url || ''}" class="w-full h-full object-cover"></div>
-                        <div>
-                            <p class="font-bold text-sm text-slate-700">${i.nombre} ${estadoTexto}</p>
-                            <span class="text-[10px] px-1.5 py-0.5 rounded ${colorBadge} font-bold">${tipo}</span>
-                            <span class="text-[10px] text-slate-400 ml-1">ID: ${i.sigla || '-'}</span>
-                        </div>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="toggleSuspension('${i.id}', ${estaActivo})" class="${btnStatusColor}" title="${estaActivo ? 'Suspender Pagos' : 'Reactivar'}"><i data-lucide="${btnStatusIcon}" size="18"></i></button>
-                        <button onclick="borrar('instituciones', '${i.id}', cargarEntidadesTabla)" class="text-slate-300 hover:text-red-500"><i data-lucide="trash-2" size="18"></i></button>
-                    </div>
-                </div>`;
-            });
-            lucide.createIcons();
+        // --- HELPERS ---
+        async function cargarOpcionesRegistros() {
+             const { data } = await db.from('instituciones').select('sigla, nombre, color_tema').not('sigla', 'is', null);
+             const s = document.getElementById('c-registro'); s.innerHTML = "";
+             registroColors = {}; 
+             data.forEach(r => {
+                 s.innerHTML += `<option value="${r.sigla}">${r.nombre} (${r.sigla})</option>`;
+                 if(r.sigla) registroColors[r.sigla.toLowerCase()] = r.color_tema || '#94a3b8';
+             });
         }
 
-        async function toggleSuspension(id, estadoActual) {
-            const accion = estadoActual ? "SUSPENDER" : "REACTIVAR";
-            if(!confirm(`¿Estás seguro de ${accion} el acceso a esta entidad?`)) return;
-            const { error } = await db.from('instituciones').update({ activo: !estadoActual }).eq('id', id);
-            if(error) alert("Error: " + error.message); else cargarEntidadesTabla();
-        }
-
-        async function crearEntidadCompleta() {
-            const nombre = document.getElementById('new-inst-name').value;
-            const sigla = document.getElementById('new-inst-sigla').value;
-            const color = document.getElementById('new-inst-color').value;
-            const email = document.getElementById('new-admin-email').value;
-            const pass = document.getElementById('new-admin-pass').value;
-            const logoInput = document.getElementById('new-inst-logo');
-
-            if(!nombre) return alert("Falta nombre");
-
-            try {
-                let logoUrl = null;
-                if(logoInput.files.length > 0) {
-                    const file = logoInput.files[0];
-                    const fileName = `logo_${Date.now()}`;
-                    await db.storage.from('logos-instituciones').upload(fileName, file);
-                    const { data } = db.storage.from('logos-instituciones').getPublicUrl(fileName);
-                    logoUrl = data.publicUrl;
-                }
-
-                const { data: inst, error: e1 } = await db.from('instituciones').insert({
-                    nombre: nombre, sigla: sigla ? sigla.toLowerCase() : null, color_primario: color, color_tema: color,
-                    logo_url: logoUrl, activo: true
-                }).select().single();
-
-                if(e1) throw e1;
-
-                if(email && pass) {
-                    const { data: auth, error: e2 } = await db.auth.signUp({ email, password: pass });
-                    if(e2) throw e2;
-                    if(auth.user) {
-                        await db.from('perfiles').insert({
-                            id: auth.user.id, email: email, rol: 'admin', institucion_id: inst.id, nombre_completo: 'Admin ' + nombre
-                        });
-                    }
-                }
-                alert("Entidad Creada OK"); cargarEntidadesTabla();
-                if(currentProfile.rol==='superadmin') cargarListaInstitutosEnSelects();
-            } catch(e) { alert(e.message); }
-        }
-
-        // --- RESTO DE FUNCIONES ---
         async function cargarListaInstitutosEnSelects() {
             const { data } = await db.from('instituciones').select('id, nombre').eq('activo', true);
             const selModal = document.getElementById('modal-instituto-select');
@@ -443,59 +548,89 @@
             const nombre = document.getElementById('m-nombre').value;
             const apellido = document.getElementById('m-apellido').value;
             const cursoId = document.getElementById('m-curso-select').value;
-            
             let instId = currentProfile.institucion_id;
             if(currentProfile.rol === 'superadmin') {
                 instId = document.getElementById('modal-instituto-select').value;
                 if(!instId) return alert("Superadmin: Debes seleccionar un Instituto.");
             }
-
             if(!dni || !nombre || !cursoId) return alert("Faltan datos");
             const cursoObj = cursosCache.find(c => c.id === cursoId);
-
             const { error } = await db.from('matriculas').insert({
                 dni_alumno: dni, nombre: nombre, apellido: apellido, curso: cursoObj.nombre,
                 registro_id: cursoObj.registro_id, institution_id: instId, fecha_inicio: new Date().toISOString()
             });
-
             if(error) alert("Error: " + error.message);
             else { alert("Alumno inscripto correctamente"); cerrarModalAlumno(); filtrarAlumnos(); contarTotal(); }
         }
 
-        // NUEVO: SE OBTIENE TAMBIÉN EL COLOR
-        async function cargarOpcionesRegistros() {
-             const { data } = await db.from('instituciones').select('sigla, nombre, color_tema').not('sigla', 'is', null);
-             const s = document.getElementById('c-registro'); s.innerHTML = "";
-             registroColors = {}; // Reset diccionario
-             data.forEach(r => {
-                 s.innerHTML += `<option value="${r.sigla}">${r.nombre} (${r.sigla})</option>`;
-                 // Guardamos el color en memoria
-                 if(r.sigla) registroColors[r.sigla.toLowerCase()] = r.color_tema || '#94a3b8';
-             });
-        }
-
-        async function cargarCursos() {
-            const { data } = await db.from('cursos_oficiales').select('*').order('nombre');
-            const div = document.getElementById('lista-cursos-config');
-            const sel = document.getElementById('m-curso-select');
-            div.innerHTML = ""; sel.innerHTML = "<option>Seleccionar</option>";
-            cursosCache = data;
-            data.forEach(c => {
-                sel.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
-                
-                // COLOR DINÁMICO
-                const bg = registroColors[c.registro_id.toLowerCase()] || '#94a3b8';
-                
+        async function cargarEntidadesTabla() {
+            const div = document.getElementById('lista-instituciones');
+            const { data } = await db.from('instituciones').select('*').order('created_at', {ascending:false});
+            div.innerHTML = "";
+            data.forEach(i => {
+                const tipo = i.sigla ? 'REGISTRO' : 'INSTITUTO';
+                const colorBadge = i.sigla ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800';
+                const estaActivo = i.activo !== false;
+                const btnStatusIcon = estaActivo ? 'pause-circle' : 'play-circle';
+                const btnStatusColor = estaActivo ? 'text-amber-500 hover:text-amber-700' : 'text-green-500 hover:text-green-700';
+                const estadoTexto = estaActivo ? '<span class="text-[10px] text-green-600 font-bold ml-2">ACTIVO</span>' : '<span class="text-[10px] text-red-600 font-bold ml-2">SUSPENDIDO</span>';
+                const opacidad = estaActivo ? 'opacity-100' : 'opacity-60 bg-red-50';
                 div.innerHTML += `
-                <div class="p-4 border rounded-xl bg-white hover:shadow-md transition relative">
-                    <span class="text-[10px] text-white px-2 py-1 rounded uppercase font-bold mb-2 block w-max shadow-sm" style="background-color: ${bg}">
-                        ${c.registro_id}
-                    </span>
-                    <p class="font-bold text-slate-700 text-sm">${c.nombre}</p>
-                    <button onclick="borrar('cursos_oficiales', '${c.id}', cargarCursos)" class="absolute top-4 right-4 text-slate-300 hover:text-red-500"><i data-lucide="trash-2" size="14"></i></button>
+                <div class="flex justify-between items-center p-3 border rounded mb-2 hover:bg-slate-50 ${opacidad}">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded bg-slate-200 overflow-hidden"><img src="${i.logo_url || ''}" class="w-full h-full object-cover"></div>
+                        <div><p class="font-bold text-sm text-slate-700">${i.nombre} ${estadoTexto}</p><span class="text-[10px] px-1.5 py-0.5 rounded ${colorBadge} font-bold">${tipo}</span></div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="toggleSuspension('${i.id}', ${estaActivo})" class="${btnStatusColor}"><i data-lucide="${btnStatusIcon}" size="18"></i></button>
+                        <button onclick="borrar('instituciones', '${i.id}', cargarEntidadesTabla)" class="text-slate-300 hover:text-red-500"><i data-lucide="trash-2" size="18"></i></button>
+                    </div>
                 </div>`;
             });
             lucide.createIcons();
+        }
+
+        async function toggleSuspension(id, estadoActual) {
+            const accion = estadoActual ? "SUSPENDER" : "REACTIVAR";
+            if(!confirm(`¿Estás seguro de ${accion}?`)) return;
+            const { error } = await db.from('instituciones').update({ activo: !estadoActual }).eq('id', id);
+            if(error) alert("Error: " + error.message); else cargarEntidadesTabla();
+        }
+
+        async function crearEntidadCompleta() {
+            const nombre = document.getElementById('new-inst-name').value;
+            const sigla = document.getElementById('new-inst-sigla').value;
+            const color = document.getElementById('new-inst-color').value;
+            const email = document.getElementById('new-admin-email').value;
+            const pass = document.getElementById('new-admin-pass').value;
+            const logoInput = document.getElementById('new-inst-logo');
+            if(!nombre) return alert("Falta nombre");
+            try {
+                let logoUrl = null;
+                if(logoInput.files.length > 0) {
+                    const file = logoInput.files[0];
+                    const fileName = `logo_${Date.now()}`;
+                    await db.storage.from('logos-instituciones').upload(fileName, file);
+                    const { data } = db.storage.from('logos-instituciones').getPublicUrl(fileName);
+                    logoUrl = data.publicUrl;
+                }
+                const { data: inst, error: e1 } = await db.from('instituciones').insert({
+                    nombre: nombre, sigla: sigla ? sigla.toLowerCase() : null, color_primario: color, color_tema: color,
+                    logo_url: logoUrl, activo: true
+                }).select().single();
+                if(e1) throw e1;
+                if(email && pass) {
+                    const { data: auth, error: e2 } = await db.auth.signUp({ email, password: pass });
+                    if(e2) throw e2;
+                    if(auth.user) {
+                        await db.from('perfiles').insert({
+                            id: auth.user.id, email: email, rol: 'admin', institucion_id: inst.id, nombre_completo: 'Admin ' + nombre
+                        });
+                    }
+                }
+                alert("Entidad Creada OK"); cargarEntidadesTabla();
+                if(currentProfile.rol==='superadmin') cargarListaInstitutosEnSelects();
+            } catch(e) { alert(e.message); }
         }
 
         function mostrarSeccion(id) {
@@ -512,18 +647,6 @@
             document.getElementById('stat-total').innerText = count;
         }
 
-        function aplicarEstilosInstitucion(inst) {
-            if(inst?.nombre) {
-                document.getElementById('sidebar-inst-name').innerText = inst.nombre;
-                document.getElementById('dash-inst-name').innerText = inst.nombre;
-            }
-            if(inst?.logo_url) {
-                document.getElementById('brand-logo').src = inst.logo_url;
-                document.getElementById('brand-logo').classList.remove('hidden');
-                document.getElementById('dashboard-logo-container').innerHTML = `<img src="${inst.logo_url}" class="w-full h-full object-contain">`;
-            }
-        }
-        
         async function borrar(tabla, id, cb) {
             if(confirm("¿Borrar definitivamente?")) {
                 await db.from(tabla).delete().eq('id', id);
@@ -539,27 +662,19 @@
                 const d = new Uint8Array(e.target.result);
                 const w = XLSX.read(d, {type:'array'});
                 const j = XLSX.utils.sheet_to_json(w.Sheets[w.SheetNames[0]]);
-                
                 let instIdExcel = currentProfile.institucion_id;
                 if(currentProfile.rol === 'superadmin') {
                     instIdExcel = document.getElementById('carga-instituto-select').value;
                 }
                 if(!instIdExcel) { alert("Selecciona un instituto para cargar."); return; }
-
                 datosExcelCargados = j.map(row => ({
-                    dni_alumno: row['DNI'] || row['dni'],
-                    nombre: row['NOMBRE'] || row['nombre'],
-                    apellido: row['APELLIDO'] || row['apellido'],
-                    curso: row['CURSO'] || row['curso'],
-                    registro_id: 'remaep', 
-                    institution_id: instIdExcel, 
-                    fecha_inicio: new Date().toISOString()
+                    dni_alumno: row['DNI'] || row['dni'], nombre: row['NOMBRE'] || row['nombre'],
+                    apellido: row['APELLIDO'] || row['apellido'], curso: row['CURSO'] || row['curso'],
+                    registro_id: 'remaep', institution_id: instIdExcel, fecha_inicio: new Date().toISOString()
                 })).filter(x => x.dni_alumno);
-
                 document.getElementById('count-preview').innerText = datosExcelCargados.length;
                 document.getElementById('preview-area').classList.remove('hidden');
-                const tb = document.getElementById('tabla-preview');
-                tb.innerHTML = "";
+                const tb = document.getElementById('tabla-preview'); tb.innerHTML = "";
                 datosExcelCargados.slice(0,5).forEach(d => tb.innerHTML += `<tr><td>${d.dni_alumno}</td><td>${d.nombre}</td><td>${d.curso}</td></tr>`);
             };
             r.readAsArrayBuffer(input.files[0]);
@@ -573,7 +688,6 @@
 
         function abrirModalAlumno() { document.getElementById('modal-alumno').classList.remove('hidden'); }
         function cerrarModalAlumno() { document.getElementById('modal-alumno').classList.add('hidden'); }
-        function abrirModalCurso() { document.getElementById('modal-curso').classList.remove('hidden'); }
         async function logout() { await db.auth.signOut(); window.location.href = 'saas_login.html'; }
     </script>
 </body>
