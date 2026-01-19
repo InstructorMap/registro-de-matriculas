@@ -55,18 +55,24 @@
 
         /* CARNET STYLES */
         .card-base { width: 100%; height: 100%; display: flex; position: relative; border: 5px solid; border-radius: 40px; overflow: hidden; background: white; transition: border-color 0.3s; }
-        .front-left { width: 380px; height: 100%; position: relative; background: #d4d4d4; z-index: 1; border-top-left-radius: 35px; border-bottom-left-radius: 35px; overflow: hidden; }
+        
+        /* FIX: flex-shrink: 0 evita que la foto se aplaste */
+        .front-left { width: 380px; height: 100%; position: relative; background: #d4d4d4; z-index: 1; border-top-left-radius: 35px; border-bottom-left-radius: 35px; overflow: hidden; flex-shrink: 0; }
+        
         .student-photo { width: 100%; height: 100%; object-fit: cover; position: relative; z-index: 1; }
         .rect-banda { position: absolute; bottom: 0; left: 0; width: 120%; height: 120px; background-color: var(--primary); z-index: 2; transition: background-color 0.3s; }
         .reg-sigla { position: absolute; bottom: 15px; left: 0; width: 100%; text-align: center; color: white; font-size: 22px; font-weight: 900; z-index: 6; text-shadow: 2px 2px 4px rgba(0,0,0,0.9); letter-spacing: 2px; }
         .qr-container { position: absolute; bottom: 45px; left: 50%; transform: translateX(-50%); width: 160px; height: 160px; background: white; padding: 8px; border-radius: 12px; z-index: 5; box-shadow: 0 6px 20px rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; }
-        .front-right { flex: 1; position: relative; color: white; padding: 20px 35px; display: flex; flex-direction: column; justify-content: space-between; background-color: var(--primary); transition: background 0.3s; }
+        
+        /* FIX: min-width: 0 ayuda al texto a entender sus limites */
+        .front-right { flex: 1; position: relative; color: white; padding: 20px 35px; display: flex; flex-direction: column; justify-content: space-between; background-color: var(--primary); transition: background 0.3s; min-width: 0; }
+        
         .holo-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(45deg, rgba(255,255,255,0.08) 0px, rgba(255,255,255,0.08) 1px, transparent 1px, transparent 4px), linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.2) 45%, rgba(200,255,255,0.4) 50%, rgba(255,255,255,0.2) 55%, transparent 70%); mix-blend-mode: overlay; pointer-events: none; }
         .front-content { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 6px solid rgba(255,255,255,0.9); padding-bottom: 2px; }
         .header-text { font-size: 85px; font-weight: 900; text-transform: uppercase; line-height: 0.9; text-shadow: 3px 3px 0px rgba(0,0,0,0.2); }
-        .course-container { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 10px 0; background: linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.3)); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 0 10px; }
-        .course-title-main, .course-title-sub { font-size: 55px; font-weight: 900; text-transform: uppercase; line-height: 1.1; text-align: center; text-shadow: 0 4px 8px rgba(0,0,0,0.4); display: inline-block; white-space: nowrap; }
+        .course-container { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 10px 0; background: linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.3)); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 0 10px; overflow: hidden; }
+        .course-title-main, .course-title-sub { font-size: 55px; font-weight: 900; text-transform: uppercase; line-height: 1.1; text-align: center; text-shadow: 0 4px 8px rgba(0,0,0,0.4); display: inline-block; white-space: nowrap; max-width: 100%; }
         .student-name { font-size: 34px; font-weight: 700; text-transform: uppercase; background: transparent; padding: 10px; text-align: center; border-radius: 8px; margin-bottom: 15px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); width: 100%; overflow: hidden; }
         .data-grid { display: grid; grid-template-columns: 65px 1fr; row-gap: 10px; align-items: center; }
         .icon-box { font-size: 55px; text-align: center; }
@@ -393,20 +399,27 @@
             if(alumno.foto_url) { av.src = alumno.foto_url; av.style.display = 'block'; }
             document.getElementById('btn-cambiar-curso').style.display = globalMatriculas.length > 1 ? 'flex' : 'none';
 
+            let colorDinamico = null;
+            if(alumno.registro_id) {
+                try {
+                    const { data: regData } = await db.from('instituciones')
+                        .select('color_tema')
+                        .ilike('sigla', alumno.registro_id)
+                        .maybeSingle();
+                    if(regData && regData.color_tema) colorDinamico = regData.color_tema;
+                } catch(e) {}
+            }
+
             const container = document.getElementById('carnet-render');
             container.innerHTML = CARNET_HTML; 
-            llenarDatosCarnet(container, alumno);
+            llenarDatosCarnet(container, alumno, colorDinamico); 
             registrarAcceso(alumno);
 
-            // FIX: BÚSQUEDA INTELIGENTE DE CURSOS (SaaS)
             const { data: cursosEncontrados } = await db.from('cursos_oficiales').select('*').eq('nombre', alumno.curso);
             
             if (cursosEncontrados && cursosEncontrados.length > 0) {
-                // 1. Prioridad: Curso del instituto
                 cursoActualData = cursosEncontrados.find(c => c.institution_id === alumno.institution_id);
-                // 2. Fallback: Curso global
                 if (!cursoActualData) cursoActualData = cursosEncontrados.find(c => !c.institution_id);
-                // 3. Fallback final
                 if (!cursoActualData) cursoActualData = cursosEncontrados[0];
             } else {
                 cursoActualData = null;
@@ -426,7 +439,7 @@
             } catch(e) { }
         }
 
-        function llenarDatosCarnet(container, alumno) {
+        function llenarDatosCarnet(container, alumno, colorOverride) {
             const el = (sel) => container.querySelector(sel);
             const nombreEl = el('#txt-nombre');
             nombreEl.innerText = `${alumno.nombre} ${alumno.apellido}`;
@@ -453,7 +466,7 @@
             new QRCode(el('#qr-container'), { text: `${URL_WEB}/validador.html?id=${alumno.id}`, width: 144, height: 144 });
 
             const registroId = (alumno.registro_id || 'default').toLowerCase();
-            const colorCarnet = COLORES_REGISTRO[registroId] || COLORES_REGISTRO['default'];
+            const colorCarnet = colorOverride || COLORES_REGISTRO[registroId] || COLORES_REGISTRO['default'];
             const nombreRegistro = (alumno.registro_id || 'OFICIAL').toUpperCase();
             
             globalColorTema = colorCarnet; 
@@ -488,13 +501,17 @@
             const e1 = el('#txt-titulo-main'); const e2 = el('#txt-titulo-sub');
             if(t.length < 2) { e1.innerText = t.join(' '); e2.innerText = ""; } 
             else { e1.innerText = t[0]; e2.innerText = t.slice(1).join(' '); }
+            
             ajustarTextoAlAncho(nombreEl, 34); 
+            ajustarTextoAlAncho(e1, 55, 600); 
+            ajustarTextoAlAncho(e2, 55, 600); 
         }
 
         function ajustarTextoAlAncho(element, startSize, maxWidth) {
             let size = startSize;
             element.style.fontSize = size + 'px';
-            while (element.scrollWidth > (maxWidth || element.clientWidth) && size > 10) {
+            const limit = maxWidth || element.parentElement.clientWidth;
+            while (element.scrollWidth > limit && size > 10) {
                 size -= 2;
                 element.style.fontSize = size + 'px';
             }
@@ -514,7 +531,8 @@
                 wrapper.querySelector('.live-shimmer').style.display = 'none'; 
                 ghost.appendChild(wrapper);
                 
-                llenarDatosCarnet(ghost, alumnoActual);
+                llenarDatosCarnet(ghost, alumnoActual, globalColorTema);
+                
                 const cards = ghost.querySelectorAll('.card-base, .carnet-back-img');
                 cards.forEach(c => { c.style.width = "1011px"; c.style.height = "638px"; });
                 
@@ -569,7 +587,7 @@
                 ghost.querySelector('#dip-fecha-registro').innerHTML = `REGISTRO: <b>${(alumnoActual.registro_id||'OFICIAL').toUpperCase()}</b> • Fecha: ${f}`;
 
                 await document.fonts.ready;
-                ajustarTextoAlAncho(txtElem, 76, 1150); 
+                ajustarTextoAlAncho(txtElem, 80, 1150); // FIX: APLICA AJUSTE AL DIPLOMA
 
                 await new Promise(r => setTimeout(r, 500)); 
                 const canvas = await html2canvas(ghost.querySelector('#diploma-final'), { scale: 1, useCORS: true });
