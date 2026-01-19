@@ -101,7 +101,7 @@
         .diploma-layout { width: 2000px; height: 1414px; position: relative; overflow: hidden; color: #333; }
         .diploma-bg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
         .diploma-overlay { position: relative; z-index: 10; width: 100%; height: 100%; }
-        .dip-linea-unica-container { position: absolute; top: 595px; left: 46%; transform: translateX(-50%); width: 76%; text-align: center; white-space: nowrap; }
+        .dip-linea-unica-container { position: absolute; top: 595px; left: 46%; transform: translateX(-50%); width: 100%; text-align: center; white-space: nowrap; }
         .dip-texto-formal { font-family: 'Roboto Slab', serif; font-weight: 900; text-transform: uppercase; font-size: 80px; letter-spacing: 1px; text-shadow: 2px 2px 0px rgba(255,255,255,1); }
         .dip-qr { position: absolute; top: 284px; right: 176px; width: 233px; height: 233px; background: white; padding: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .dip-info-extra { position: absolute; bottom: 1348px; left: 50%; transform: translateX(-50%); text-align: center; font-family: 'Roboto', sans-serif; font-size: 18px; font-weight: 700; color: #222; background: rgba(255,255,255,0.9); padding: 4px 25px; border-radius: 50px; border: 1px solid rgba(0,0,0,0.1); z-index: 20; }
@@ -516,7 +516,7 @@
             
             ajustarTextoAlAncho(nombreEl, 34); 
             ajustarTextoAlAncho(e1, 55, 600); 
-            ajustarTextoAlAncho(e2, 55, 600); 
+            ajustarTextoAlAncho(e2, 55, 500); 
         }
 
         function ajustarTextoAlAncho(element, startSize, maxWidth) {
@@ -605,7 +605,7 @@
                 txtElem.style.whiteSpace = 'nowrap'; // Prohibir salto de línea
                 
                 await new Promise(r => setTimeout(r, 100)); // Esperar que el navegador pinte el texto largo
-                ajustarTextoAlAncho(txtElem, 76, 1100); // Medir y achicar (Base 76px)
+                ajustarTextoAlAncho(txtElem, 100, 1100); // Medir y achicar (Base 76px)
                 await new Promise(r => setTimeout(r, 500)); // Esperar que el navegador repinte el texto chico
                 // ---------------------------------------------------
 
