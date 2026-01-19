@@ -126,14 +126,13 @@
         }
         .value { font-size: 13px; font-weight: 700; color: var(--text-main); text-align: right; max-width: 65%; }
         
-        /* CAMBIO: TIPOGRAFÍA UNIFICADA "INTER" (Quitamos monospace) */
         .hash-font { 
-            font-family: 'Inter', sans-serif; /* Unificada */
-            font-size: 14px; /* Un poco más grande para legibilidad */
+            font-family: 'Inter', sans-serif; 
+            font-size: 11px; /* Letra un poco más chica para que entre el UUID */
             background: #f1f5f9;
-            padding: 3px 8px; border-radius: 6px; 
-            color: #334155; font-weight: 800; /* Extra bold */
-            letter-spacing: 1px;
+            padding: 4px 8px; border-radius: 6px; 
+            color: #334155; font-weight: 800;
+            letter-spacing: 0.5px; word-break: break-all; /* Romper si es muy largo */
         }
 
         .icon-box { 
@@ -205,7 +204,7 @@
             </div>
             
             <div class="info-item">
-                <span class="label"><div class="icon-box"><i class="fas fa-hashtag"></i></div> Matrícula</span>
+                <span class="label"><div class="icon-box" id="icon-matricula"><i class="fas fa-hashtag"></i></div> <span id="label-matricula">Matrícula</span></span>
                 <span class="value hash-font" id="st-matricula">---</span>
             </div>
             
@@ -246,8 +245,21 @@
             if (!idAlumno) return mostrarError("Hash de bloque inválido."); 
 
             try {
+                // 1. Obtener datos del alumno
                 const { data: alumno, error } = await db.from('matriculas').select('*').eq('id', idAlumno).single();
                 if (error || !alumno) throw new Error("Registro no encontrado en el ledger.");
+
+                // 2. BUSCAR EN BLOCKCHAIN (LEDGER) --- NUEVO ---
+                let ledgerHash = null;
+                try {
+                    const { data: ledger } = await db.from('ledger_transacciones')
+                        .select('id')
+                        .eq('matricula_id', alumno.id)
+                        .maybeSingle(); 
+                    
+                    if(ledger) ledgerHash = ledger.id;
+                } catch(e) { console.log("Sin ledger"); }
+                // ------------------------------------------------
 
                 aplicarColorRegistro(alumno.registro_id);
 
@@ -271,7 +283,8 @@
                     } catch(e) {}
                 }
 
-                renderData(alumno);
+                // Renderizamos pasando el hash real (si existe)
+                renderData(alumno, ledgerHash);
 
             } catch (err) {
                 mostrarError(err.message);
@@ -285,7 +298,7 @@
             document.body.style.background = `linear-gradient(135deg, #f8fafc 0%, ${color}22 100%)`; 
         }
 
-        function renderData(alumno) {
+        function renderData(alumno, realHash) {
             const el = (id) => document.getElementById(id);
             const imgEl = el('st-photo');
             if (alumno.foto_url && alumno.foto_url.length > 5) {
@@ -297,8 +310,18 @@
             el('st-dni').innerText = new Intl.NumberFormat('es-AR').format(alumno.dni_alumno);
             el('st-curso').innerText = alumno.curso;
             
-            // MATRÍCULA NORMAL
-            el('st-matricula').innerText = generarMatriculaNumerica(String(alumno.dni_alumno));
+            // --- LÓGICA DE VISUALIZACIÓN DE MATRÍCULA VS HASH ---
+            if (realHash) {
+                // Si hay hash real, lo mostramos
+                el('st-matricula').innerText = realHash;
+                el('icon-matricula').innerHTML = '<i class="fas fa-lock"></i>'; // Icono de candado
+                el('label-matricula').innerText = "TXID BLOCKCHAIN"; // Etiqueta técnica
+                el('st-matricula').style.fontSize = "9px"; // Letra más chica para que entre
+            } else {
+                // Si no hay hash, mostramos la matrícula numérica simulada
+                el('st-matricula').innerText = generarMatriculaNumerica(String(alumno.dni_alumno));
+            }
+            // ---------------------------------------------------
             
             const nombreReg = (alumno.registro_id || "OFICIAL").toUpperCase();
             el('st-registro').innerText = nombreReg;
@@ -345,7 +368,6 @@
             `;
         }
 
-        // GENERADOR NUMÉRICO CLÁSICO
         function generarMatriculaNumerica(d) { 
             let h = 0; for(let i=0;i<d.length;i++){h=((h<<5)-h)+d.charCodeAt(i);h|=0;} 
             return String(Math.abs(h)).substring(0, 6).padStart(6, '9'); 
