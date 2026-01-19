@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control - ASARI V4.0 (Gestión Total)</title>
+    <title>Panel de Control - ASARI V4.1 (Color Fix)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -243,6 +243,7 @@
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
         
         let currentUser, currentProfile, cursosCache = [], datosExcelCargados = [];
+        let registroColors = {}; // DICCIONARIO DE COLORES
 
         document.addEventListener('DOMContentLoaded', async () => {
             const { data: { session } } = await db.auth.getSession();
@@ -273,7 +274,7 @@
             }
 
             aplicarEstilosInstitucion(perfil.instituciones);
-            await cargarOpcionesRegistros();
+            await cargarOpcionesRegistros(); // CARGA Y GUARDA COLORES
             await cargarCursos(); 
             await llenarFiltros(); 
             await filtrarAlumnos(); 
@@ -354,7 +355,6 @@
                 const tipo = i.sigla ? 'REGISTRO' : 'INSTITUTO';
                 const colorBadge = i.sigla ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800';
                 
-                // Lógica de Suspensión Visual
                 const estaActivo = i.activo !== false;
                 const btnStatusIcon = estaActivo ? 'pause-circle' : 'play-circle';
                 const btnStatusColor = estaActivo ? 'text-amber-500 hover:text-amber-700' : 'text-green-500 hover:text-green-700';
@@ -383,10 +383,8 @@
         async function toggleSuspension(id, estadoActual) {
             const accion = estadoActual ? "SUSPENDER" : "REACTIVAR";
             if(!confirm(`¿Estás seguro de ${accion} el acceso a esta entidad?`)) return;
-            
             const { error } = await db.from('instituciones').update({ activo: !estadoActual }).eq('id', id);
-            if(error) alert("Error: " + error.message);
-            else cargarEntidadesTabla();
+            if(error) alert("Error: " + error.message); else cargarEntidadesTabla();
         }
 
         async function crearEntidadCompleta() {
@@ -464,10 +462,16 @@
             else { alert("Alumno inscripto correctamente"); cerrarModalAlumno(); filtrarAlumnos(); contarTotal(); }
         }
 
+        // NUEVO: SE OBTIENE TAMBIÉN EL COLOR
         async function cargarOpcionesRegistros() {
-             const { data } = await db.from('instituciones').select('sigla, nombre').not('sigla', 'is', null);
+             const { data } = await db.from('instituciones').select('sigla, nombre, color_tema').not('sigla', 'is', null);
              const s = document.getElementById('c-registro'); s.innerHTML = "";
-             data.forEach(r => s.innerHTML += `<option value="${r.sigla}">${r.nombre} (${r.sigla})</option>`);
+             registroColors = {}; // Reset diccionario
+             data.forEach(r => {
+                 s.innerHTML += `<option value="${r.sigla}">${r.nombre} (${r.sigla})</option>`;
+                 // Guardamos el color en memoria
+                 if(r.sigla) registroColors[r.sigla.toLowerCase()] = r.color_tema || '#94a3b8';
+             });
         }
 
         async function cargarCursos() {
@@ -478,9 +482,15 @@
             cursosCache = data;
             data.forEach(c => {
                 sel.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
+                
+                // COLOR DINÁMICO
+                const bg = registroColors[c.registro_id.toLowerCase()] || '#94a3b8';
+                
                 div.innerHTML += `
                 <div class="p-4 border rounded-xl bg-white hover:shadow-md transition relative">
-                    <span class="text-[10px] bg-slate-100 px-2 py-1 rounded uppercase font-bold text-slate-500 mb-2 block w-max">${c.registro_id}</span>
+                    <span class="text-[10px] text-white px-2 py-1 rounded uppercase font-bold mb-2 block w-max shadow-sm" style="background-color: ${bg}">
+                        ${c.registro_id}
+                    </span>
                     <p class="font-bold text-slate-700 text-sm">${c.nombre}</p>
                     <button onclick="borrar('cursos_oficiales', '${c.id}', cargarCursos)" class="absolute top-4 right-4 text-slate-300 hover:text-red-500"><i data-lucide="trash-2" size="14"></i></button>
                 </div>`;
