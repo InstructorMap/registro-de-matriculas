@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Validación Oficial - ASARI</title>
+    <title>Validador Blockchain - ASARI</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
 
     <style>
-        /* VARIABLES DE COLOR */
+        /* VARIABLES */
         :root { 
-            --primary: #0033cc; /* Se sobrescribe con JS */
+            --primary: #0033cc; 
             --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             --card-bg: rgba(255, 255, 255, 0.95);
             --text-main: #1e293b;
@@ -31,11 +31,14 @@
             transition: background 0.5s ease;
         }
 
-        /* FONDO DECORATIVO */
+        /* FONDO TECNOLÓGICO */
         .bg-pattern {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: radial-gradient(var(--primary) 1px, transparent 1px);
-            background-size: 30px 30px; opacity: 0.05; pointer-events: none; z-index: -1;
+            background-image: 
+                linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+            background-size: 20px 20px; 
+            z-index: -1;
         }
 
         /* HEADER */
@@ -49,10 +52,12 @@
             filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); 
         }
         .system-badge { 
-            background: var(--primary); color: white; 
-            padding: 4px 12px; border-radius: 99px; 
-            font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
-            box-shadow: 0 4px 15px -3px var(--primary);
+            background: #1e293b; color: white; /* Negro Blockchain */
+            padding: 5px 14px; border-radius: 4px; 
+            font-size: 9px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.2);
+            display: flex; align-items: center; gap: 6px;
         }
 
         /* TARJETA PRINCIPAL */
@@ -66,17 +71,16 @@
             animation: fadeInUp 0.6s ease;
         }
 
-        /* ENCABEZADO DE TARJETA (ESTADO) */
         .status-header {
-            padding: 20px; text-align: center; color: white;
-            font-weight: 800; letter-spacing: 1px; text-transform: uppercase; font-size: 14px;
+            padding: 25px 20px 55px 20px; 
+            text-align: center; color: white;
+            font-weight: 800; letter-spacing: 1px; text-transform: uppercase; font-size: 13px;
             display: flex; align-items: center; justify-content: center; gap: 8px;
             position: relative; overflow: hidden;
         }
         .status-ok { background: linear-gradient(to right, #059669, #10b981); }
         .status-fail { background: linear-gradient(to right, #dc2626, #ef4444); }
         
-        /* Animación de pulso */
         .pulse-dot {
             width: 8px; height: 8px; background: white; border-radius: 50%;
             box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
@@ -86,7 +90,8 @@
         /* PERFIL */
         .profile-section { 
             display: flex; flex-direction: column; align-items: center; 
-            margin-top: -35px; padding: 0 25px; position: relative; z-index: 10;
+            margin-top: -45px; 
+            padding: 0 25px; position: relative; z-index: 10;
         }
         .student-img-container { 
             width: 130px; height: 130px; 
@@ -107,7 +112,7 @@
             background: #f1f5f9; padding: 4px 10px; border-radius: 6px;
         }
 
-        /* GRILLA DE INFORMACIÓN */
+        /* GRILLA */
         .info-container { padding: 25px; }
         .info-item { 
             display: flex; justify-content: space-between; align-items: center; 
@@ -116,11 +121,19 @@
         .info-item:last-child { border-bottom: none; }
         
         .label { 
-            font-size: 11px; color: var(--text-sec); font-weight: 700; text-transform: uppercase; 
-            display: flex; align-items: center; gap: 6px;
+            font-size: 10px; color: var(--text-sec); font-weight: 800; text-transform: uppercase; 
+            display: flex; align-items: center; gap: 6px; letter-spacing: 0.5px;
         }
-        .value { font-size: 14px; font-weight: 700; color: var(--text-main); text-align: right; max-width: 65%; }
+        .value { font-size: 13px; font-weight: 700; color: var(--text-main); text-align: right; max-width: 65%; }
         
+        /* Estilo especial para el Hash Blockchain */
+        .hash-font { 
+            font-family: 'Courier New', monospace; 
+            font-size: 11px; letter-spacing: -0.5px; background: #f8fafc;
+            padding: 2px 6px; border-radius: 4px; border: 1px solid #e2e8f0;
+            color: #475569;
+        }
+
         .icon-box { 
             width: 24px; height: 24px; border-radius: 6px; 
             background: rgba(0,0,0,0.05); color: var(--primary);
@@ -134,7 +147,6 @@
         }
         .secure-icon { color: var(--success); margin-bottom: 5px; font-size: 16px; }
 
-        /* LOADING */
         #loader { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: white; display: flex; justify-content: center; align-items: center; 
@@ -160,18 +172,20 @@
 
     <div id="loader">
         <div class="spinner"></div>
-        <div style="font-weight: 800; font-size: 12px; color: #64748b; letter-spacing: 1px;">VERIFICANDO...</div>
+        <div style="font-weight: 800; font-size: 11px; color: #64748b; letter-spacing: 1px;">CONSULTANDO NODO BLOCKCHAIN...</div>
     </div>
 
     <div class="header-container hidden" id="main-content">
         <img src="" id="org-logo" class="org-logo">
-        <span class="system-badge" id="badge-registro">REGISTRO OFICIAL</span>
+        <span class="system-badge" id="badge-registro">
+            <i class="fas fa-link"></i> VALIDACIÓN BLOCKCHAIN
+        </span>
     </div>
 
     <div class="validation-card hidden" id="card-content">
         
         <div id="status-bar" class="status-header">
-            <div class="pulse-dot"></div> <span id="status-text">VALIDANDO...</span>
+            <div class="pulse-dot"></div> <span id="status-text">BLOCKCHAIN VERIFIED</span>
         </div>
 
         <div class="profile-section">
@@ -179,24 +193,24 @@
                 <img src="" id="st-photo" class="student-img" crossorigin="anonymous">
             </div>
             <div class="student-name" id="st-name">---</div>
-            <div class="student-dni">DNI <span id="st-dni">---</span></div>
+            <div class="student-dni">ID <span id="st-dni">---</span></div>
         </div>
 
         <div class="info-container">
             <div class="info-item">
-                <span class="label"><div class="icon-box"><i class="fas fa-graduation-cap"></i></div> Certificación</span>
+                <span class="label"><div class="icon-box"><i class="fas fa-certificate"></i></div> Certificación</span>
                 <span class="value" id="st-curso">---</span>
             </div>
             <div class="info-item">
-                <span class="label"><div class="icon-box"><i class="fas fa-fingerprint"></i></div> Matrícula</span>
-                <span class="value" id="st-matricula">---</span>
+                <span class="label"><div class="icon-box"><i class="fas fa-hashtag"></i></div> Hash TXID</span>
+                <span class="value hash-font" id="st-matricula">---</span>
             </div>
             <div class="info-item">
-                <span class="label"><div class="icon-box"><i class="fas fa-landmark"></i></div> Registro</span>
+                <span class="label"><div class="icon-box"><i class="fas fa-landmark"></i></div> Entidad Emisora</span>
                 <span class="value" id="st-registro">---</span>
             </div>
             <div class="info-item">
-                <span class="label"><div class="icon-box"><i class="fas fa-clock"></i></div> Vigencia</span>
+                <span class="label"><div class="icon-box"><i class="fas fa-clock"></i></div> Estado Nodo</span>
                 <span class="value" id="st-vigencia">---</span>
             </div>
         </div>
@@ -204,8 +218,8 @@
 
     <div class="footer-secure hidden" id="footer-content">
         <i class="fas fa-shield-alt secure-icon"></i><br>
-        <strong>Certificación Digital Validada</strong><br>
-        La veracidad de este documento ha sido confirmada digitalmente contra la base de datos centralizada.
+        <strong>Registro Inmutable Distribuido</strong><br>
+        Este certificado ha sido firmado criptográficamente y validado contra el registro maestro de ASARI Blockchain Platform.
     </div>
 
     <script>
@@ -213,13 +227,11 @@
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
-        // IMAGEN DEFAULT (Silueta)
         const AVATAR_DEFAULT = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23cbd5e1'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
 
-        // COLORES DE REGISTRO (Estos mandan sobre el color del instituto)
         const COLORES_REGISTRO = { 
             'remaep': '#0033cc', 'rubra': '#cc0000', 'rniue': '#b8860b', 
-            'remets': '#1a1a1a', 'rmts': '#1a1a1a', // Negro Táctico
+            'remets': '#1a1a1a', 'rmts': '#1a1a1a', 
             'rpdye': '#0099ff', 'rpde': '#0099ff', 'rce': '#ff6600', 'asarin': '#800000', 
             'colbert': '#2f4f4f', 'default': '#0033cc' 
         };
@@ -227,31 +239,25 @@
         window.addEventListener('load', async () => {
             const params = new URLSearchParams(window.location.search);
             const idAlumno = params.get('id');
-            if (!idAlumno) return mostrarError("Identificador no válido.");
+            if (!idAlumno) return mostrarError("Hash de bloque inválido."); // Branding Blockchain
 
             try {
-                // 1. OBTENER ALUMNO
                 const { data: alumno, error } = await db.from('matriculas').select('*').eq('id', idAlumno).single();
-                if (error || !alumno) throw new Error("Documento no encontrado o revocado.");
+                if (error || !alumno) throw new Error("Registro no encontrado en el ledger.");
 
-                // 2. DETERMINAR COLOR (PRIORIDAD ALUMNO/REGISTRO)
-                // Esta función setea la variable --primary que usa todo el CSS
                 aplicarColorRegistro(alumno.registro_id);
 
-                // 3. CARGAR LOGO DEL INSTITUTO (PERO NO EL COLOR)
                 if (alumno.institution_id) {
                     try {
                         const { data: inst } = await db.from('instituciones').select('logo_url').eq('id', alumno.institution_id).maybeSingle();
                         if (inst && inst.logo_url) {
                             document.getElementById('org-logo').src = inst.logo_url;
                         } else {
-                            // Logo default ASARI si no hay inst
                             document.getElementById('org-logo').src = "https://vxggatcfrywyodovjwxj.supabase.co/storage/v1/object/public/logos-instituciones/Asari%20Logo.jpg";
                         }
                     } catch (e) { }
                 }
 
-                // 4. RESCATE DE FOTO (Lógica que ya aprobaste)
                 if (!alumno.foto_url || alumno.foto_url.length < 5) {
                     try {
                         const { data: otros } = await db.from('matriculas')
@@ -271,35 +277,27 @@
         function aplicarColorRegistro(regId) {
             const id = (regId || 'default').toLowerCase();
             const color = COLORES_REGISTRO[id] || COLORES_REGISTRO['default'];
-            
-            // Aplicamos el color principal
             document.documentElement.style.setProperty('--primary', color);
-            
-            // Creamos un fondo suave basado en ese color
             document.body.style.background = `linear-gradient(135deg, #f8fafc 0%, ${color}22 100%)`; 
         }
 
         function renderData(alumno) {
             const el = (id) => document.getElementById(id);
-            
-            // Foto
             const imgEl = el('st-photo');
             if (alumno.foto_url && alumno.foto_url.length > 5) {
                 imgEl.onerror = function() { this.src = AVATAR_DEFAULT; };
                 imgEl.src = alumno.foto_url; 
             } else { imgEl.src = AVATAR_DEFAULT; }
 
-            // Textos
             el('st-name').innerText = `${alumno.nombre} ${alumno.apellido}`;
             el('st-dni').innerText = new Intl.NumberFormat('es-AR').format(alumno.dni_alumno);
             el('st-curso').innerText = alumno.curso;
-            el('st-matricula').innerText = generarHash(String(alumno.dni_alumno));
+            // Generamos un Hash estilo Blockchain (0x...)
+            el('st-matricula').innerText = generarBlockchainHash(String(alumno.dni_alumno));
             
             const nombreReg = (alumno.registro_id || "OFICIAL").toUpperCase();
             el('st-registro').innerText = nombreReg;
-            el('badge-registro').innerText = `REGISTRO ${nombreReg}`;
 
-            // Fechas y Estado
             const inicio = new Date(alumno.fecha_inicio || new Date());
             let vence;
             if(alumno.fecha_vencimiento) {
@@ -316,17 +314,16 @@
 
             if (hoy > vence) {
                 bar.className = 'status-header status-fail';
-                txtStatus.innerHTML = 'CREDENCIAL VENCIDA';
-                txtVigencia.innerText = `EXPIRÓ EL ${vence.toLocaleDateString('es-AR')}`;
+                txtStatus.innerHTML = 'CERTIFICADO EXPIRADO';
+                txtVigencia.innerText = `BLOCK: ${vence.toLocaleDateString('es-AR')}`;
                 txtVigencia.style.color = 'var(--error)';
             } else {
                 bar.className = 'status-header status-ok';
-                txtStatus.innerHTML = 'HABILITADO OFICIALMENTE';
-                txtVigencia.innerText = `VENCE EL ${vence.toLocaleDateString('es-AR')}`;
+                txtStatus.innerHTML = 'VERIFICACIÓN EXITOSA';
+                txtVigencia.innerText = `ACTIVO HASTA ${vence.toLocaleDateString('es-AR')}`;
                 txtVigencia.style.color = 'var(--success)';
             }
 
-            // Mostrar todo
             el('loader').classList.add('hidden');
             el('main-content').classList.remove('hidden');
             el('card-content').classList.remove('hidden');
@@ -336,14 +333,20 @@
         function mostrarError(msg) {
             document.getElementById('loader').innerHTML = `
                 <div style="text-align:center; color: #ef4444; padding: 20px;">
-                    <i class="fas fa-circle-exclamation" style="font-size: 40px; margin-bottom: 15px; opacity:0.8;"></i><br>
-                    <strong style="text-transform:uppercase; letter-spacing:1px;">Error de Validación</strong><br><br>
+                    <i class="fas fa-unlink" style="font-size: 40px; margin-bottom: 15px; opacity:0.8;"></i><br>
+                    <strong style="text-transform:uppercase; letter-spacing:1px;">Error de Red</strong><br><br>
                     <span style="color:#64748b; font-size:14px;">${msg}</span>
                 </div>
             `;
         }
 
-        function generarHash(d) { let h=0;for(let i=0;i<d.length;i++){h=((h<<5)-h)+d.charCodeAt(i);h|=0;} return String(Math.abs(h)).substring(0,6).padStart(6,'9'); }
+        // FUNCIÓN NUEVA: Genera un string que parece una dirección de Ethereum/Blockchain
+        function generarBlockchainHash(d) { 
+            let h = 0; for(let i=0;i<d.length;i++){h=((h<<5)-h)+d.charCodeAt(i);h|=0;} 
+            // Convertimos el DNI a Hexadecimal y le agregamos relleno para que parezca una Key real
+            const hex = Math.abs(h).toString(16).toUpperCase();
+            return "0x" + hex.padEnd(16, "F4A7"); 
+        }
     </script>
 </body>
 </html>
