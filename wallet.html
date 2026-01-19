@@ -504,7 +504,7 @@
             
             ajustarTextoAlAncho(nombreEl, 34); 
             ajustarTextoAlAncho(e1, 55, 600); 
-            ajustarTextoAlAncho(e2, 55, 600); 
+            ajustarTextoAlAncho(e2, 55, 500); 
         }
 
         function ajustarTextoAlAncho(element, startSize, maxWidth) {
@@ -587,7 +587,7 @@
                 ghost.querySelector('#dip-fecha-registro').innerHTML = `REGISTRO: <b>${(alumnoActual.registro_id||'OFICIAL').toUpperCase()}</b> • Fecha: ${f}`;
 
                 await document.fonts.ready;
-                ajustarTextoAlAncho(txtElem, 80, 1150); // FIX: APLICA AJUSTE AL DIPLOMA
+                ajustarTextoAlAncho(txtElem, 76, 1150); // FIX: APLICA AJUSTE AL DIPLOMA
 
                 await new Promise(r => setTimeout(r, 500)); 
                 const canvas = await html2canvas(ghost.querySelector('#diploma-final'), { scale: 1, useCORS: true });
