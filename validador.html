@@ -20,32 +20,40 @@
         .header-validador { margin-bottom: 25px; text-align: center; width: 100%; max-width: 400px; }
         .org-logo { height: 80px; width: auto; object-fit: contain; margin-bottom: 10px; }
         
-        /* ETIQUETA DEL SISTEMA (TOMA COLOR DEL REGISTRO) */
+        /* ETIQUETA DEL SISTEMA */
         .system-badge { background: var(--primary); color: white; padding: 6px 15px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 1px; display: inline-block; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
 
-        /* TARJETA PRINCIPAL (BORDE DEL COLOR DEL REGISTRO) */
+        /* TARJETA PRINCIPAL */
         .validation-card { background: var(--card-bg); width: 100%; max-width: 400px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); overflow: hidden; position: relative; padding-bottom: 30px; border-top: 5px solid var(--primary); }
 
-        /* ESTADO (VERDE/ROJO - SEGURIDAD) */
+        /* ESTADO */
         .status-banner { padding: 20px; text-align: center; color: white; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; font-size: 18px; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .status-ok { background-color: var(--success); }
         .status-fail { background-color: var(--error); }
 
-        /* PERFIL */
+        /* PERFIL - FIX DE IMAGEN */
         .profile-section { display: flex; flex-direction: column; align-items: center; margin-top: -30px; padding: 0 20px; }
-        .student-img { width: 140px; height: 140px; border-radius: 50%; border: 6px solid white; object-fit: cover; box-shadow: 0 5px 15px rgba(0,0,0,0.15); background: #eee; }
+        .student-img-container { 
+            width: 140px; height: 140px; 
+            border-radius: 50%; 
+            border: 6px solid white; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15); 
+            background: #eee; 
+            overflow: hidden;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .student-img { width: 100%; height: 100%; object-fit: cover; }
         
         .student-name { font-size: 22px; font-weight: 900; margin-top: 15px; text-align: center; color: #222; text-transform: uppercase; line-height: 1.2; }
         .student-dni { font-size: 14px; color: #666; margin-top: 5px; font-weight: 500; }
 
-        /* DATOS DEL CURSO */
+        /* DETALLES */
         .info-grid { margin-top: 25px; width: 100%; padding: 0 25px; }
         .info-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 15px 0; }
         .info-row:last-child { border-bottom: none; }
         .label { font-size: 12px; color: #888; font-weight: 700; text-transform: uppercase; }
         .value { font-size: 16px; font-weight: 700; color: #333; text-align: right; max-width: 60%; }
         
-        /* ÍCONOS CON COLOR DE REGISTRO */
         .icon-reg { color: var(--primary); margin-right: 8px; font-size: 14px; }
 
         /* FOOTER */
@@ -78,7 +86,9 @@
         </div>
 
         <div class="profile-section">
-            <img src="" id="st-photo" class="student-img">
+            <div class="student-img-container">
+                <img src="" id="st-photo" class="student-img" crossorigin="anonymous" onerror="this.src='https://via.placeholder.com/150?text=SIN+FOTO'">
+            </div>
             <div class="student-name" id="st-name">---</div>
             <div class="student-dni">DNI: <span id="st-dni">---</span></div>
         </div>
@@ -113,13 +123,13 @@
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
-        // --- TU LISTA DE COLORES MANUAL ---
+        // MAPA DE COLORES
         const COLORES_REGISTRO = { 
             'remaep': '#0033cc', 
             'rubra': '#cc0000', 
             'rniue': '#b8860b', 
-            'remets': '#1b4f4b', 
-            'rmts': '#1b4f4b',
+            'remets': '#1a1a1a', 
+            'rmts': '#1a1a1a',
             'rpdye': '#0099ff', 
             'rpde': '#0099ff',
             'rce': '#ff6600',
@@ -138,7 +148,6 @@
             }
 
             try {
-                // 1. BUSCAR ALUMNO
                 const { data: alumno, error } = await db
                     .from('matriculas')
                     .select('*')
@@ -147,14 +156,12 @@
 
                 if (error || !alumno) throw new Error("Credencial no encontrada en el registro oficial.");
 
-                // 2. APLICAR COLOR DEL REGISTRO (Lógica Manual)
+                // COLOR
                 const idRegistro = (alumno.registro_id || 'default').toLowerCase();
                 const colorTema = COLORES_REGISTRO[idRegistro] || COLORES_REGISTRO['default'];
-                
-                // Inyectar color en CSS
                 document.documentElement.style.setProperty('--primary', colorTema);
 
-                // 3. BUSCAR LOGO DEL INSTITUTO (Colbert)
+                // LOGO
                 if (alumno.institution_id) {
                     try {
                         const { data: inst } = await db
@@ -162,14 +169,10 @@
                             .select('logo_url')
                             .eq('id', alumno.institution_id)
                             .maybeSingle();
-                        
-                        if (inst && inst.logo_url) {
-                            document.getElementById('org-logo').src = inst.logo_url;
-                        }
-                    } catch (e) { console.log("Usando logo por defecto"); }
+                        if (inst && inst.logo_url) document.getElementById('org-logo').src = inst.logo_url;
+                    } catch (e) { }
                 }
 
-                // 4. RENDERIZAR DATOS
                 renderData(alumno);
 
             } catch (err) {
@@ -180,11 +183,13 @@
         function renderData(alumno) {
             const el = (id) => document.getElementById(id);
             
-            // Foto
-            if (alumno.foto_url) el('st-photo').src = alumno.foto_url;
-            else el('st-photo').src = "https://via.placeholder.com/150?text=SIN+FOTO";
+            // FOTO CON FIX DE CACHÉ
+            if (alumno.foto_url && alumno.foto_url.length > 5) {
+                el('st-photo').src = alumno.foto_url + "?t=" + Date.now();
+            } else {
+                el('st-photo').src = "https://via.placeholder.com/150?text=SIN+FOTO";
+            }
 
-            // Textos básicos
             el('st-name').innerText = `${alumno.nombre} ${alumno.apellido}`;
             el('st-dni').innerText = new Intl.NumberFormat('es-AR').format(alumno.dni_alumno);
             el('st-curso').innerText = alumno.curso;
@@ -192,9 +197,9 @@
             
             const nombreReg = (alumno.registro_id || "OFICIAL").toUpperCase();
             el('st-registro').innerText = nombreReg;
-            el('badge-registro').innerText = `VALIDACIÓN OFICIAL ${nombreReg}`; // Badge con nombre del registro
+            el('badge-registro').innerText = `VALIDACIÓN OFICIAL ${nombreReg}`;
 
-            // Lógica de Vencimiento
+            // VIGENCIA
             const fechaInicio = new Date(alumno.fecha_inicio || new Date());
             let fechaVencimiento;
             
@@ -202,7 +207,6 @@
                 const partes = alumno.fecha_vencimiento.split('-');
                 fechaVencimiento = new Date(partes[0], partes[1] - 1, partes[2]);
             } else {
-                // Si no hay fecha explicita, calculamos 1 año
                 fechaVencimiento = new Date(fechaInicio);
                 fechaVencimiento.setFullYear(fechaVencimiento.getFullYear() + 1);
             }
@@ -212,20 +216,17 @@
             const vigenciaTxt = el('st-vigencia');
 
             if (hoy > fechaVencimiento) {
-                // VENCIDO
                 bar.className = 'status-banner status-fail';
                 bar.innerHTML = '<i class="fas fa-times-circle"></i> <span>CREDENCIAL VENCIDA</span>';
                 vigenciaTxt.innerText = `EXPIRÓ: ${fechaVencimiento.toLocaleDateString('es-AR')}`;
                 vigenciaTxt.style.color = 'var(--error)';
             } else {
-                // HABILITADO
                 bar.className = 'status-banner status-ok';
                 bar.innerHTML = '<i class="fas fa-check-circle"></i> <span>HABILITADO OFICIAL</span>';
                 vigenciaTxt.innerText = `VENCE: ${fechaVencimiento.toLocaleDateString('es-AR')}`;
                 vigenciaTxt.style.color = 'var(--success)';
             }
 
-            // Mostrar todo
             document.getElementById('loader').classList.add('hidden');
             document.getElementById('main-content').classList.remove('hidden');
             document.getElementById('card-content').classList.remove('hidden');
@@ -246,7 +247,6 @@
             return String(Math.abs(h)).substring(0, 6).padStart(6, '9');
         }
 
-        // Iniciar al cargar
         window.addEventListener('load', initValidator);
     </script>
 </body>
