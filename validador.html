@@ -80,7 +80,6 @@
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
-        // SILUETA GRIS (BASE64) - SE USA SI NO HAY FOTO O FALLA LA CARGA
         const AVATAR_DEFAULT = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
 
         const COLORES_REGISTRO = { 'remaep': '#0033cc', 'rubra': '#cc0000', 'rniue': '#b8860b', 'remets': '#1a1a1a', 'rmts': '#1a1a1a', 'rpdye': '#0099ff', 'rpde': '#0099ff', 'rce': '#ff6600', 'asarin': '#800000', 'colbert': '#2f4f4f', 'default': '#0033cc' };
@@ -91,9 +90,29 @@
             if (!idAlumno) return mostrarError("ID Inválido.");
 
             try {
-                // 1. CARGAR DATOS
+                // 1. CARGAR DATOS DEL CURSO ESPECÍFICO
                 const { data: alumno, error } = await db.from('matriculas').select('*').eq('id', idAlumno).single();
                 if (error || !alumno) throw new Error("Credencial no encontrada.");
+
+                // --- LÓGICA DE RESCATE DE FOTO ---
+                // Si este registro no tiene foto, buscamos otra del mismo alumno (DNI)
+                if (!alumno.foto_url || alumno.foto_url.length < 5) {
+                    try {
+                        const { data: otrosRegistros } = await db.from('matriculas')
+                            .select('foto_url')
+                            .eq('dni_alumno', alumno.dni_alumno)
+                            .neq('foto_url', null) // Que no sea nula
+                            .limit(5); // Traer unos cuantos para probar
+                        
+                        // Buscar el primero que tenga una foto válida
+                        const rescate = otrosRegistros.find(r => r.foto_url && r.foto_url.length > 10);
+                        if (rescate) {
+                            console.log("Foto rescatada de otro curso");
+                            alumno.foto_url = rescate.foto_url;
+                        }
+                    } catch(e) { console.log("No se pudo rescatar foto"); }
+                }
+                // -----------------------------------
 
                 // 2. CONFIGURAR APARIENCIA
                 if (alumno.institution_id) {
@@ -116,16 +135,12 @@
                 document.getElementById('st-registro').innerText = (alumno.registro_id || "OFICIAL").toUpperCase();
                 document.getElementById('badge-registro').innerText = `VALIDACIÓN ${ (alumno.registro_id || "OFICIAL").toUpperCase() }`;
 
-                // 4. GESTIÓN DE FOTO (EL PUNTO CLAVE)
+                // 4. GESTIÓN DE FOTO
                 const imgEl = document.getElementById('st-photo');
-                // Si hay URL, intentamos cargarla. Si falla, el evento 'error' pone el avatar default.
                 if (alumno.foto_url && alumno.foto_url.length > 5) {
                     imgEl.onload = function() { console.log("Foto cargada OK"); };
-                    imgEl.onerror = function() { 
-                        console.log("Error cargando foto, usando default"); 
-                        this.src = AVATAR_DEFAULT; 
-                    };
-                    imgEl.src = alumno.foto_url; // Directo de Supabase
+                    imgEl.onerror = function() { this.src = AVATAR_DEFAULT; };
+                    imgEl.src = alumno.foto_url; 
                 } else {
                     imgEl.src = AVATAR_DEFAULT;
                 }
