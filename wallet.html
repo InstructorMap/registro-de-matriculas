@@ -55,18 +55,14 @@
 
         /* CARNET STYLES */
         .card-base { width: 100%; height: 100%; display: flex; position: relative; border: 5px solid; border-radius: 40px; overflow: hidden; background: white; transition: border-color 0.3s; }
-        
-        /* FIX: flex-shrink: 0 evita que la foto se aplaste */
+        /* SEGURIDAD: flex-shrink: 0 impide que la foto se aplaste si el texto es largo */
         .front-left { width: 380px; height: 100%; position: relative; background: #d4d4d4; z-index: 1; border-top-left-radius: 35px; border-bottom-left-radius: 35px; overflow: hidden; flex-shrink: 0; }
-        
         .student-photo { width: 100%; height: 100%; object-fit: cover; position: relative; z-index: 1; }
         .rect-banda { position: absolute; bottom: 0; left: 0; width: 120%; height: 120px; background-color: var(--primary); z-index: 2; transition: background-color 0.3s; }
         .reg-sigla { position: absolute; bottom: 15px; left: 0; width: 100%; text-align: center; color: white; font-size: 22px; font-weight: 900; z-index: 6; text-shadow: 2px 2px 4px rgba(0,0,0,0.9); letter-spacing: 2px; }
         .qr-container { position: absolute; bottom: 45px; left: 50%; transform: translateX(-50%); width: 160px; height: 160px; background: white; padding: 8px; border-radius: 12px; z-index: 5; box-shadow: 0 6px 20px rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; }
-        
-        /* FIX: min-width: 0 ayuda al texto a entender sus limites */
+        /* SEGURIDAD: min-width: 0 ayuda a manejar el desbordamiento de texto */
         .front-right { flex: 1; position: relative; color: white; padding: 20px 35px; display: flex; flex-direction: column; justify-content: space-between; background-color: var(--primary); transition: background 0.3s; min-width: 0; }
-        
         .holo-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(45deg, rgba(255,255,255,0.08) 0px, rgba(255,255,255,0.08) 1px, transparent 1px, transparent 4px), linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.2) 45%, rgba(200,255,255,0.4) 50%, rgba(255,255,255,0.2) 55%, transparent 70%); mix-blend-mode: overlay; pointer-events: none; }
         .front-content { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 6px solid rgba(255,255,255,0.9); padding-bottom: 2px; }
@@ -399,6 +395,10 @@
             if(alumno.foto_url) { av.src = alumno.foto_url; av.style.display = 'block'; }
             document.getElementById('btn-cambiar-curso').style.display = globalMatriculas.length > 1 ? 'flex' : 'none';
 
+            // --- V4.6 FIX: LIMPIEZA DE VARIABLE CACHÉ ---
+            cursoActualData = null; 
+            // --------------------------------------------
+
             let colorDinamico = null;
             if(alumno.registro_id) {
                 try {
@@ -418,12 +418,24 @@
             const { data: cursosEncontrados } = await db.from('cursos_oficiales').select('*').eq('nombre', alumno.curso);
             
             if (cursosEncontrados && cursosEncontrados.length > 0) {
-                cursoActualData = cursosEncontrados.find(c => c.institution_id === alumno.institution_id);
-                if (!cursoActualData) cursoActualData = cursosEncontrados.find(c => !c.institution_id);
-                if (!cursoActualData) cursoActualData = cursosEncontrados[0];
-            } else {
-                cursoActualData = null;
-            }
+                // --- V4.6 FIX: LÓGICA HÍBRIDA (SaaS + Global Fallback) ---
+                let candidato = cursosEncontrados.find(c => c.institution_id === alumno.institution_id);
+                
+                // Si encontré el curso de Colbert pero NO tiene diploma, intento robar el diploma del Global
+                if (candidato && !candidato.diploma_bg_url) {
+                     const global = cursosEncontrados.find(c => !c.institution_id);
+                     if(global && global.diploma_bg_url) candidato.diploma_bg_url = global.diploma_bg_url;
+                }
+                
+                // Si no tengo curso de Colbert, uso el Global directo
+                if (!candidato) candidato = cursosEncontrados.find(c => !c.institution_id);
+                
+                // Si aún no tengo nada, uso el primero que encuentre (backup final)
+                if (!candidato) candidato = cursosEncontrados[0];
+
+                cursoActualData = candidato;
+                // ---------------------------------------------------------
+            } 
 
             document.getElementById('btn-descargar-diploma').style.display = (cursoActualData && cursoActualData.diploma_bg_url) ? 'block' : 'none';
             setTimeout(ajustarCarnetResponsivo, 100);
@@ -504,7 +516,7 @@
             
             ajustarTextoAlAncho(nombreEl, 34); 
             ajustarTextoAlAncho(e1, 55, 600); 
-            ajustarTextoAlAncho(e2, 55, 500); 
+            ajustarTextoAlAncho(e2, 55, 600); 
         }
 
         function ajustarTextoAlAncho(element, startSize, maxWidth) {
@@ -587,9 +599,16 @@
                 ghost.querySelector('#dip-fecha-registro').innerHTML = `REGISTRO: <b>${(alumnoActual.registro_id||'OFICIAL').toUpperCase()}</b> • Fecha: ${f}`;
 
                 await document.fonts.ready;
-                ajustarTextoAlAncho(txtElem, 76, 1150); // FIX: APLICA AJUSTE AL DIPLOMA
+                
+                // --- V4.6 FIX: ORDEN DE RENDERIZADO Y CSS INLINE ---
+                txtElem.style.display = 'inline-block'; // Obligar a comportarse como bloque para medir
+                txtElem.style.whiteSpace = 'nowrap'; // Prohibir salto de línea
+                
+                await new Promise(r => setTimeout(r, 100)); // Esperar que el navegador pinte el texto largo
+                ajustarTextoAlAncho(txtElem, 76, 1100); // Medir y achicar (Base 76px)
+                await new Promise(r => setTimeout(r, 500)); // Esperar que el navegador repinte el texto chico
+                // ---------------------------------------------------
 
-                await new Promise(r => setTimeout(r, 500)); 
                 const canvas = await html2canvas(ghost.querySelector('#diploma-final'), { scale: 1, useCORS: true });
                 const link = document.createElement('a');
                 link.download = `Diploma_${alumnoActual.dni_alumno}.png`;
