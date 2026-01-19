@@ -17,8 +17,9 @@
         body { background-color: var(--bg); color: #333; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; }
 
         /* CABECERA CON LOGO DINÁMICO */
-        .header-validador { margin-bottom: 25px; text-align: center; width: 100%; max-width: 400px; }
+        .header-validador { margin-bottom: 25px; text-align: center; width: 100%; max-width: 400px; display: flex; flex-direction: column; align-items: center; }
         .org-logo { height: 80px; width: auto; object-fit: contain; margin-bottom: 10px; }
+        .org-name-text { font-size: 14px; font-weight: 900; color: #555; text-transform: uppercase; margin-bottom: 5px; }
         
         /* ETIQUETA DEL SISTEMA */
         .system-badge { background: var(--primary); color: white; padding: 6px 15px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 1px; display: inline-block; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
@@ -31,7 +32,7 @@
         .status-ok { background-color: var(--success); }
         .status-fail { background-color: var(--error); }
 
-        /* PERFIL - FIX DE IMAGEN */
+        /* PERFIL */
         .profile-section { display: flex; flex-direction: column; align-items: center; margin-top: -30px; padding: 0 20px; }
         .student-img-container { 
             width: 140px; height: 140px; 
@@ -76,6 +77,7 @@
 
     <div class="header-validador hidden" id="main-content">
         <img src="https://vxggatcfrywyodovjwxj.supabase.co/storage/v1/object/public/logos-instituciones/Asari%20Logo.jpg" id="org-logo" class="org-logo">
+        <div id="org-name" class="org-name-text"></div>
         <div><span class="system-badge" id="badge-registro">SISTEMA NACIONAL DE VALIDACIÓN</span></div>
     </div>
 
@@ -123,19 +125,12 @@
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
-        // MAPA DE COLORES
+        // COLORES POR DEFECTO DEL SISTEMA (SI NO HAY INSTITUCIÓN)
         const COLORES_REGISTRO = { 
-            'remaep': '#0033cc', 
-            'rubra': '#cc0000', 
-            'rniue': '#b8860b', 
-            'remets': '#1a1a1a', 
-            'rmts': '#1a1a1a',
-            'rpdye': '#0099ff', 
-            'rpde': '#0099ff',
-            'rce': '#ff6600',
-            'asarin': '#800000', 
-            'colbert': '#2f4f4f', 
-            'default': '#0033cc' 
+            'remaep': '#0033cc', 'rubra': '#cc0000', 'rniue': '#b8860b', 
+            'remets': '#1a1a1a', 'rmts': '#1a1a1a', 'rpdye': '#0099ff', 
+            'rpde': '#0099ff', 'rce': '#ff6600', 'asarin': '#800000', 
+            'colbert': '#2f4f4f', 'default': '#0033cc' 
         };
 
         async function initValidator() {
@@ -148,29 +143,28 @@
             }
 
             try {
-                const { data: alumno, error } = await db
-                    .from('matriculas')
-                    .select('*')
-                    .eq('id', idAlumno)
-                    .single();
+                // 1. OBTENER ALUMNO
+                const { data: alumno, error } = await db.from('matriculas').select('*').eq('id', idAlumno).single();
 
                 if (error || !alumno) throw new Error("Credencial no encontrada en el registro oficial.");
 
-                // COLOR
-                const idRegistro = (alumno.registro_id || 'default').toLowerCase();
-                const colorTema = COLORES_REGISTRO[idRegistro] || COLORES_REGISTRO['default'];
-                document.documentElement.style.setProperty('--primary', colorTema);
-
-                // LOGO
+                // 2. INTENTAR OBTENER INSTITUCIÓN (PARA BRANDING)
                 if (alumno.institution_id) {
                     try {
-                        const { data: inst } = await db
-                            .from('instituciones')
-                            .select('logo_url')
-                            .eq('id', alumno.institution_id)
-                            .maybeSingle();
-                        if (inst && inst.logo_url) document.getElementById('org-logo').src = inst.logo_url;
-                    } catch (e) { }
+                        const { data: inst } = await db.from('instituciones').select('*').eq('id', alumno.institution_id).maybeSingle();
+                        if (inst) {
+                            // APLICAR BRANDING INSTITUCIONAL
+                            if (inst.logo_url) document.getElementById('org-logo').src = inst.logo_url;
+                            if (inst.nombre) document.getElementById('org-name').innerText = inst.nombre;
+                            // Si la institución tiene color primario, lo usamos. Si no, usamos el del registro.
+                            if (inst.color_primario) document.documentElement.style.setProperty('--primary', inst.color_primario);
+                            else aplicarColorPorRegistro(alumno.registro_id);
+                        } else {
+                            aplicarColorPorRegistro(alumno.registro_id);
+                        }
+                    } catch (e) { aplicarColorPorRegistro(alumno.registro_id); }
+                } else {
+                    aplicarColorPorRegistro(alumno.registro_id);
                 }
 
                 renderData(alumno);
@@ -180,10 +174,16 @@
             }
         }
 
+        function aplicarColorPorRegistro(regId) {
+            const id = (regId || 'default').toLowerCase();
+            const color = COLORES_REGISTRO[id] || COLORES_REGISTRO['default'];
+            document.documentElement.style.setProperty('--primary', color);
+        }
+
         function renderData(alumno) {
             const el = (id) => document.getElementById(id);
             
-            // FOTO CON FIX DE CACHÉ
+            // FOTO: FIX DE CACHÉ Y CROSSORIGIN
             if (alumno.foto_url && alumno.foto_url.length > 5) {
                 el('st-photo').src = alumno.foto_url + "?t=" + Date.now();
             } else {
@@ -199,10 +199,9 @@
             el('st-registro').innerText = nombreReg;
             el('badge-registro').innerText = `VALIDACIÓN OFICIAL ${nombreReg}`;
 
-            // VIGENCIA
+            // FECHAS
             const fechaInicio = new Date(alumno.fecha_inicio || new Date());
             let fechaVencimiento;
-            
             if (alumno.fecha_vencimiento) {
                 const partes = alumno.fecha_vencimiento.split('-');
                 fechaVencimiento = new Date(partes[0], partes[1] - 1, partes[2]);
@@ -237,7 +236,8 @@
                 <div style="text-align:center; color: #c62828; padding: 20px;">
                     <i class="fas fa-exclamation-triangle" style="font-size: 50px; margin-bottom: 20px;"></i><br>
                     <strong>ERROR DE VALIDACIÓN</strong><br><br>
-                    ${msg}
+                    ${msg}<br><br>
+                    <small style="color:#666">Verifique su conexión o contacte a la institución.</small>
                 </div>
             `;
         }
