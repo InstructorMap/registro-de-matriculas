@@ -55,13 +55,11 @@
 
         /* CARNET STYLES */
         .card-base { width: 100%; height: 100%; display: flex; position: relative; border: 5px solid; border-radius: 40px; overflow: hidden; background: white; transition: border-color 0.3s; }
-        /* SEGURIDAD: flex-shrink: 0 impide que la foto se aplaste si el texto es largo */
         .front-left { width: 380px; height: 100%; position: relative; background: #d4d4d4; z-index: 1; border-top-left-radius: 35px; border-bottom-left-radius: 35px; overflow: hidden; flex-shrink: 0; }
         .student-photo { width: 100%; height: 100%; object-fit: cover; position: relative; z-index: 1; }
         .rect-banda { position: absolute; bottom: 0; left: 0; width: 120%; height: 120px; background-color: var(--primary); z-index: 2; transition: background-color 0.3s; }
         .reg-sigla { position: absolute; bottom: 15px; left: 0; width: 100%; text-align: center; color: white; font-size: 22px; font-weight: 900; z-index: 6; text-shadow: 2px 2px 4px rgba(0,0,0,0.9); letter-spacing: 2px; }
         .qr-container { position: absolute; bottom: 45px; left: 50%; transform: translateX(-50%); width: 160px; height: 160px; background: white; padding: 8px; border-radius: 12px; z-index: 5; box-shadow: 0 6px 20px rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; }
-        /* SEGURIDAD: min-width: 0 ayuda a manejar el desbordamiento de texto */
         .front-right { flex: 1; position: relative; color: white; padding: 20px 35px; display: flex; flex-direction: column; justify-content: space-between; background-color: var(--primary); transition: background 0.3s; min-width: 0; }
         .holo-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(45deg, rgba(255,255,255,0.08) 0px, rgba(255,255,255,0.08) 1px, transparent 1px, transparent 4px), linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.2) 45%, rgba(200,255,255,0.4) 50%, rgba(255,255,255,0.2) 55%, transparent 70%); mix-blend-mode: overlay; pointer-events: none; }
         .front-content { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
@@ -101,7 +99,10 @@
         .diploma-layout { width: 2000px; height: 1414px; position: relative; overflow: hidden; color: #333; }
         .diploma-bg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
         .diploma-overlay { position: relative; z-index: 10; width: 100%; height: 100%; }
-        .dip-linea-unica-container { position: absolute; top: 595px; left: 46%; transform: translateX(-50%); width: 300%; text-align: center; white-space: nowrap; }
+        
+        /* CORRECCIÓN DE ANCHO: 90% para que use casi todo el espacio pero centrado */
+        .dip-linea-unica-container { position: absolute; top: 595px; left: 50%; transform: translateX(-50%); width: 90%; text-align: center; white-space: nowrap; }
+        
         .dip-texto-formal { font-family: 'Roboto Slab', serif; font-weight: 900; text-transform: uppercase; font-size: 80px; letter-spacing: 1px; text-shadow: 2px 2px 0px rgba(255,255,255,1); }
         .dip-qr { position: absolute; top: 284px; right: 176px; width: 233px; height: 233px; background: white; padding: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .dip-info-extra { position: absolute; bottom: 1348px; left: 50%; transform: translateX(-50%); text-align: center; font-family: 'Roboto', sans-serif; font-size: 18px; font-weight: 700; color: #222; background: rgba(255,255,255,0.9); padding: 4px 25px; border-radius: 50px; border: 1px solid rgba(0,0,0,0.1); z-index: 20; }
@@ -516,7 +517,7 @@
             
             ajustarTextoAlAncho(nombreEl, 34); 
             ajustarTextoAlAncho(e1, 55, 600); 
-            ajustarTextoAlAncho(e2, 55, 500); 
+            ajustarTextoAlAncho(e2, 55, 600); 
         }
 
         function ajustarTextoAlAncho(element, startSize, maxWidth) {
@@ -600,13 +601,13 @@
 
                 await document.fonts.ready;
                 
-                // --- V4.6 FIX: ORDEN DE RENDERIZADO Y CSS INLINE ---
-                txtElem.style.display = 'inline-block'; // Obligar a comportarse como bloque para medir
-                txtElem.style.whiteSpace = 'nowrap'; // Prohibir salto de línea
+                // --- V4.7 FIX: MÁRGENES AMPLIOS Y TAMAÑO BASE CORRECTO ---
+                txtElem.style.display = 'inline-block'; 
+                txtElem.style.whiteSpace = 'nowrap'; 
                 
-                await new Promise(r => setTimeout(r, 100)); // Esperar que el navegador pinte el texto largo
-                ajustarTextoAlAncho(txtElem, 300, 1100); // Medir y achicar (Base 300px)
-                await new Promise(r => setTimeout(r, 500)); // Esperar que el navegador repinte el texto chico
+                await new Promise(r => setTimeout(r, 100)); 
+                ajustarTextoAlAncho(txtElem, 100, 1600); // 100px base, hasta 1600px de ancho permitido
+                await new Promise(r => setTimeout(r, 500));
                 // ---------------------------------------------------
 
                 const canvas = await html2canvas(ghost.querySelector('#diploma-final'), { scale: 1, useCORS: true });
