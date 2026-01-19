@@ -52,7 +52,7 @@
             filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); 
         }
         .system-badge { 
-            background: #1e293b; color: white; /* Negro Blockchain */
+            background: #1e293b; color: white; 
             padding: 5px 14px; border-radius: 4px; 
             font-size: 9px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
@@ -126,12 +126,14 @@
         }
         .value { font-size: 13px; font-weight: 700; color: var(--text-main); text-align: right; max-width: 65%; }
         
-        /* Fuente técnica para la matrícula (número) */
+        /* CAMBIO: TIPOGRAFÍA UNIFICADA "INTER" (Quitamos monospace) */
         .hash-font { 
-            font-family: 'Courier New', monospace; 
-            font-size: 13px; letter-spacing: 0.5px; background: #f8fafc;
-            padding: 2px 6px; border-radius: 4px; border: 1px solid #e2e8f0;
-            color: #334155; font-weight: 900;
+            font-family: 'Inter', sans-serif; /* Unificada */
+            font-size: 14px; /* Un poco más grande para legibilidad */
+            background: #f1f5f9;
+            padding: 3px 8px; border-radius: 6px; 
+            color: #334155; font-weight: 800; /* Extra bold */
+            letter-spacing: 1px;
         }
 
         .icon-box { 
@@ -295,7 +297,7 @@
             el('st-dni').innerText = new Intl.NumberFormat('es-AR').format(alumno.dni_alumno);
             el('st-curso').innerText = alumno.curso;
             
-            // VOLVEMOS A GENERAR EL NÚMERO DE MATRÍCULA CLÁSICO
+            // MATRÍCULA NORMAL
             el('st-matricula').innerText = generarMatriculaNumerica(String(alumno.dni_alumno));
             
             const nombreReg = (alumno.registro_id || "OFICIAL").toUpperCase();
@@ -343,7 +345,7 @@
             `;
         }
 
-        // GENERADOR DE MATRÍCULA NUMÉRICA (CLÁSICO)
+        // GENERADOR NUMÉRICO CLÁSICO
         function generarMatriculaNumerica(d) { 
             let h = 0; for(let i=0;i<d.length;i++){h=((h<<5)-h)+d.charCodeAt(i);h|=0;} 
             return String(Math.abs(h)).substring(0, 6).padStart(6, '9'); 
