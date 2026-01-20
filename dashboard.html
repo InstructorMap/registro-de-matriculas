@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control - ASARI V5.0</title>
+    <title>Panel de Control - ASARI V5.1 (Gestión Total)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -315,7 +315,6 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
             const { data: { session } } = await db.auth.getSession();
-            // REDIRECCIÓN AJUSTADA A INDEX (LOGIN)
             if (!session) return window.location.href = 'index.html'; 
             
             currentUser = session.user;
@@ -508,7 +507,7 @@
             lucide.createIcons();
         }
 
-        // --- SISTEMA DE FILTRADO Y ALUMNOS ---
+        // --- SISTEMA DE FILTRADO Y ALUMNOS (CON SUSPENSIÓN) ---
         async function llenarFiltros() {
             const { data: cursos } = await db.from('cursos_oficiales').select('nombre').order('nombre');
             const selCur = document.getElementById('filtro-curso');
@@ -556,17 +555,26 @@
                 data.forEach(a => {
                     const logoInst = a.instituciones?.logo_url ? `<img src="${a.instituciones.logo_url}" class="w-5 h-5 object-contain rounded-full border">` : '';
                     const nombreInst = a.instituciones?.nombre || 'Desconocido';
-                    // AGREGADO BOTÓN LÁPIZ (EDITAR)
+                    
+                    // LÓGICA DE SUSPENSIÓN
+                    const esSuspendido = a.estado === 'SUSPENDIDO';
+                    const filaClase = esSuspendido ? 'bg-red-50 hover:bg-red-100 opacity-75' : 'border-b hover:bg-slate-50 transition';
+                    const badgeSusp = esSuspendido ? '<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded text-[10px] font-bold ml-2">SUSPENDIDO</span>' : '';
+                    const btnSuspIcon = esSuspendido ? 'user-check' : 'ban';
+                    const btnSuspColor = esSuspendido ? 'text-green-500 hover:text-green-700' : 'text-orange-400 hover:text-orange-600';
+                    const btnSuspTitle = esSuspendido ? 'Reactivar Alumno' : 'Suspender Alumno';
+
                     tb.innerHTML += `
-                    <tr class="border-b hover:bg-slate-50 transition">
+                    <tr class="${filaClase}">
                         <td class="p-3 text-xs font-mono text-slate-500">${a.dni_alumno}</td>
-                        <td class="p-3 text-sm font-bold text-slate-700">${a.apellido || ''}, ${a.nombre}</td>
+                        <td class="p-3 text-sm font-bold text-slate-700">${a.apellido || ''}, ${a.nombre} ${badgeSusp}</td>
                         <td class="p-3 text-xs text-slate-500 flex items-center gap-2">${logoInst} ${nombreInst}</td>
                         <td class="p-3 text-xs text-slate-600">${a.curso}</td>
                         <td class="p-3"><span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-bold uppercase">${a.registro_id || '-'}</span></td>
                         <td class="p-3 flex gap-2">
-                            <button onclick="editarAlumno('${a.id}')" class="text-blue-400 hover:text-blue-600"><i data-lucide="pencil" size="14"></i></button>
-                            <button onclick="borrar('matriculas', '${a.id}')" class="text-slate-300 hover:text-red-500"><i data-lucide="trash-2" size="14"></i></button>
+                            <button onclick="editarAlumno('${a.id}')" class="text-blue-400 hover:text-blue-600" title="Editar"><i data-lucide="pencil" size="14"></i></button>
+                            <button onclick="toggleSuspensionAlumno('${a.id}', '${a.estado}')" class="${btnSuspColor}" title="${btnSuspTitle}"><i data-lucide="${btnSuspIcon}" size="14"></i></button>
+                            <button onclick="borrar('matriculas', '${a.id}')" class="text-slate-300 hover:text-red-500" title="Borrar"><i data-lucide="trash-2" size="14"></i></button>
                         </td>
                     </tr>`;
                 });
@@ -574,6 +582,21 @@
             } else {
                 tb.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-xs text-slate-400">Sin resultados.</td></tr>';
                 document.getElementById('contador-resultados').innerText = `0 resultados`;
+            }
+        }
+
+        async function toggleSuspensionAlumno(id, estadoActual) {
+            const nuevoEstado = estadoActual === 'SUSPENDIDO' ? 'ACTIVO' : 'SUSPENDIDO';
+            const accion = nuevoEstado === 'SUSPENDIDO' ? 'SUSPENDER' : 'REACTIVAR';
+            
+            if(!confirm(`¿Seguro que deseas ${accion} a este alumno?`)) return;
+
+            const { error } = await db.from('matriculas').update({ estado: nuevoEstado }).eq('id', id);
+            
+            if(error) toast("Error: " + error.message, 'error');
+            else {
+                toast(`Alumno ${nuevoEstado.toLowerCase()} correctamente`);
+                filtrarAlumnos();
             }
         }
 
@@ -629,6 +652,8 @@
             } else {
                 // INSERT (SI NO HAY ID)
                 payload.fecha_inicio = new Date().toISOString();
+                // Por defecto nacen activos, pero podemos asegurarlo
+                payload.estado = 'ACTIVO'; 
                 const res = await db.from('matriculas').insert(payload);
                 error = res.error;
             }
