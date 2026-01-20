@@ -126,13 +126,26 @@
         }
         .value { font-size: 13px; font-weight: 700; color: var(--text-main); text-align: right; max-width: 65%; }
         
+        /* Estilo especial para el HASH largo */
         .hash-font { 
-            font-family: 'Inter', sans-serif; 
-            font-size: 11px; /* Letra un poco más chica para que entre el UUID */
+            font-family: 'Courier New', monospace; /* Fuente técnica */
+            font-size: 10px; 
             background: #f1f5f9;
             padding: 4px 8px; border-radius: 6px; 
-            color: #334155; font-weight: 800;
-            letter-spacing: 0.5px; word-break: break-all; /* Romper si es muy largo */
+            color: #334155; font-weight: 600;
+            letter-spacing: 0px; 
+            word-break: break-all; /* Para que baje de renglón si no entra */
+            max-width: 60%;
+            text-align: right;
+            line-height: 1.2;
+        }
+
+        /* Estilo normal para la Matrícula numérica */
+        .matricula-font {
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--text-main);
         }
 
         .icon-box { 
@@ -204,8 +217,8 @@
             </div>
             
             <div class="info-item">
-                <span class="label"><div class="icon-box" id="icon-matricula"><i class="fas fa-hashtag"></i></div> <span id="label-matricula">Matrícula</span></span>
-                <span class="value hash-font" id="st-matricula">---</span>
+                <span class="label"><div class="icon-box"><i class="fas fa-hashtag"></i></div> Matrícula</span>
+                <span class="value matricula-font" id="st-matricula">---</span>
             </div>
             
             <div class="info-item">
@@ -216,6 +229,12 @@
                 <span class="label"><div class="icon-box"><i class="fas fa-clock"></i></div> Estado Nodo</span>
                 <span class="value" id="st-vigencia">---</span>
             </div>
+
+            <div class="info-item hidden" id="row-blockchain" style="background: rgba(0,0,0,0.02);">
+                <span class="label"><div class="icon-box"><i class="fas fa-lock"></i></div> TXID Ledger</span>
+                <span class="value hash-font" id="st-hash">---</span>
+            </div>
+
         </div>
     </div>
 
@@ -249,7 +268,7 @@
                 const { data: alumno, error } = await db.from('matriculas').select('*').eq('id', idAlumno).single();
                 if (error || !alumno) throw new Error("Registro no encontrado en el ledger.");
 
-                // 2. BUSCAR EN BLOCKCHAIN (LEDGER) --- NUEVO ---
+                // 2. BUSCAR EN BLOCKCHAIN (LEDGER)
                 let ledgerHash = null;
                 try {
                     const { data: ledger } = await db.from('ledger_transacciones')
@@ -259,7 +278,6 @@
                     
                     if(ledger) ledgerHash = ledger.id;
                 } catch(e) { console.log("Sin ledger"); }
-                // ------------------------------------------------
 
                 aplicarColorRegistro(alumno.registro_id);
 
@@ -283,7 +301,6 @@
                     } catch(e) {}
                 }
 
-                // Renderizamos pasando el hash real (si existe)
                 renderData(alumno, ledgerHash);
 
             } catch (err) {
@@ -310,18 +327,16 @@
             el('st-dni').innerText = new Intl.NumberFormat('es-AR').format(alumno.dni_alumno);
             el('st-curso').innerText = alumno.curso;
             
-            // --- LÓGICA DE VISUALIZACIÓN DE MATRÍCULA VS HASH ---
+            // 1. Mostrar Matrícula SIEMPRE
+            el('st-matricula').innerText = generarMatriculaNumerica(String(alumno.dni_alumno));
+            
+            // 2. Mostrar Hash en fila aparte SI EXISTE
             if (realHash) {
-                // Si hay hash real, lo mostramos
-                el('st-matricula').innerText = realHash;
-                el('icon-matricula').innerHTML = '<i class="fas fa-lock"></i>'; // Icono de candado
-                el('label-matricula').innerText = "TXID BLOCKCHAIN"; // Etiqueta técnica
-                el('st-matricula').style.fontSize = "9px"; // Letra más chica para que entre
+                el('row-blockchain').classList.remove('hidden');
+                el('st-hash').innerText = realHash;
             } else {
-                // Si no hay hash, mostramos la matrícula numérica simulada
-                el('st-matricula').innerText = generarMatriculaNumerica(String(alumno.dni_alumno));
+                el('row-blockchain').classList.add('hidden');
             }
-            // ---------------------------------------------------
             
             const nombreReg = (alumno.registro_id || "OFICIAL").toUpperCase();
             el('st-registro').innerText = nombreReg;
