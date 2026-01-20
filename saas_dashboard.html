@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control - ASARI V4.2 (Full SaaS)</title>
+    <title>Panel de Control - ASARI V5.0 (Auditoría & Edición)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
         body { font-family: 'Inter', sans-serif; background: #f8fafc; }
@@ -20,9 +21,18 @@
         .animate-fade-in { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         .super-badge { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+        .hash-mono { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: -0.5px; }
+        
+        /* TOAST NOTIFICATIONS */
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: white; border-left: 4px solid #3b82f6; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 10px; animation: slideIn 0.3s ease-out; min-width: 300px; }
+        .toast-success { border-color: #10b981; } .toast-error { border-color: #ef4444; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden text-slate-800">
+
+    <div id="toast-container"></div>
 
     <aside id="sidebar" class="w-64 bg-slate-900 text-white flex flex-col shadow-2xl z-20 transition-colors duration-500">
         <div class="p-6 border-b border-white/10 flex items-center justify-center h-24 relative">
@@ -45,6 +55,11 @@
             </button>
             <button onclick="mostrarSeccion('panel-carga')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all">
                 <i data-lucide="upload-cloud" size="18"></i> Carga Masiva
+            </button>
+
+            <p class="px-4 pt-4 pb-2 text-[10px] uppercase text-white/40 font-bold tracking-wider">Blockchain</p>
+            <button onclick="mostrarSeccion('panel-auditoria')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-emerald-300 bg-emerald-900/20 hover:bg-emerald-900/40 border border-emerald-500/20 transition-all">
+                <i data-lucide="shield-check" size="18"></i> Auditoría Ledger
             </button>
             
             <div id="menu-superadmin" class="hidden pt-4 mt-2 border-t border-white/10">
@@ -131,6 +146,44 @@
                 </div>
             </div>
 
+            <div id="panel-auditoria" class="hidden animate-fade-in">
+                <div class="bg-white rounded-2xl shadow-sm border border-emerald-200 p-8">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600">
+                            <i data-lucide="shield-check" size="24"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-black text-slate-800">Libro Digital Blockchain</h3>
+                            <p class="text-sm text-slate-500">Consulte la inmutabilidad de los registros emitidos.</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 p-6 rounded-xl border border-slate-200 mb-6">
+                        <div class="flex gap-4">
+                            <input type="text" id="input-audit-search" placeholder="Ingrese Hash (TXID) o DNI del alumno..." class="input-form font-mono">
+                            <button onclick="buscarEnLedger()" class="bg-emerald-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-emerald-700 transition">BUSCAR</button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-slate-100 text-slate-500 font-bold uppercase text-xs">
+                                <tr>
+                                    <th class="p-3">Fecha Emisión</th>
+                                    <th class="p-3">Bloque Hash (TXID)</th>
+                                    <th class="p-3">Alumno</th>
+                                    <th class="p-3">Estado</th>
+                                    <th class="p-3">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-ledger" class="divide-y divide-slate-100 font-mono text-xs">
+                                <tr><td colspan="5" class="p-4 text-center text-slate-400">Ingrese un término de búsqueda para auditar el libro mayor.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <div id="panel-cursos" class="hidden animate-fade-in">
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
                     <div class="flex justify-between items-center mb-8">
@@ -193,9 +246,9 @@
     <div id="modal-alumno" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 relative">
             <button onclick="cerrarModalAlumno()" class="absolute top-4 right-4 text-slate-300 hover:text-slate-600"><i data-lucide="x"></i></button>
-            <h3 class="text-xl font-black text-slate-800 mb-6">Nuevo Alumno</h3>
+            <h3 class="text-xl font-black text-slate-800 mb-6" id="titulo-modal-alumno">Nuevo Alumno</h3>
             <div class="space-y-4">
-                <div id="div-modal-inst-select" class="hidden bg-yellow-50 p-3 rounded-xl border border-yellow-200">
+                <input type="hidden" id="m-id-edit"> <div id="div-modal-inst-select" class="hidden bg-yellow-50 p-3 rounded-xl border border-yellow-200">
                     <label class="label-form text-yellow-700">Asignar a Instituto:</label>
                     <select id="modal-instituto-select" class="input-form font-bold border-yellow-300 bg-white"><option value="">Cargando...</option></select>
                 </div>
@@ -247,7 +300,18 @@
         
         let currentUser, currentProfile, cursosCache = [], datosExcelCargados = [];
         let registroColors = {}; 
-        let analiticoPaginas = []; // ARRAY GLOBAL PARA ANALITICOS
+        let analiticoPaginas = []; 
+
+        // --- UX HELPERS ---
+        function toast(msg, type='success') {
+            const el = document.createElement('div');
+            el.className = `toast ${type === 'success' ? 'toast-success' : 'toast-error'}`;
+            el.innerHTML = type === 'success' ? `<i data-lucide="check-circle" class="text-green-500"></i>` : `<i data-lucide="alert-circle" class="text-red-500"></i>`;
+            el.innerHTML += `<span class="font-bold text-sm">${msg}</span>`;
+            document.getElementById('toast-container').appendChild(el);
+            lucide.createIcons();
+            setTimeout(() => el.remove(), 4000);
+        }
 
         document.addEventListener('DOMContentLoaded', async () => {
             const { data: { session } } = await db.auth.getSession();
@@ -259,7 +323,6 @@
             const { data: perfil } = await db.from('perfiles').select('*, instituciones(*)').eq('id', currentUser.id).single();
             currentProfile = perfil;
 
-            // BLOQUEO POR PAGO
             if (perfil.instituciones && perfil.instituciones.activo === false && perfil.rol !== 'superadmin') {
                 alert("⛔ SU CUENTA ESTÁ SUSPENDIDA. Contacte a soporte.");
                 await db.auth.signOut();
@@ -267,7 +330,6 @@
                 return;
             }
 
-            // SUPERADMIN
             if (perfil.rol === 'superadmin') {
                 document.getElementById('menu-superadmin').classList.remove('hidden');
                 document.getElementById('super-indicator').classList.remove('hidden');
@@ -288,10 +350,8 @@
             lucide.createIcons();
         });
 
-        // --- SISTEMA DE MARCA Y ESTILO ---
         function aplicarEstilosInstitucion(inst) {
             if(inst?.nombre) {
-                // CAMBIO VISUAL CRÍTICO: Reemplaza "ASARI SaaS" por el nombre del instituto
                 document.getElementById('brand-text').innerHTML = `${inst.nombre} <span class="opacity-40 font-normal text-sm block">Panel</span>`;
                 document.getElementById('sidebar-inst-name').innerText = inst.nombre;
                 document.getElementById('dash-inst-name').innerText = inst.nombre;
@@ -306,18 +366,17 @@
             }
         }
 
-        // --- GESTIÓN DE CURSOS (MEJORADA CON FORKING) ---
+        // --- GESTIÓN DE CURSOS ---
         async function cargarCursos() {
             const { data } = await db.from('cursos_oficiales').select('*').order('nombre');
             const div = document.getElementById('lista-cursos-config');
             const sel = document.getElementById('m-curso-select');
             div.innerHTML = ""; sel.innerHTML = "<option>Seleccionar</option>";
             
-            // FILTRO DE CURSOS: Superadmin ve todos. Instituto ve los suyos + los globales (donde institucion_id es null)
             if (currentProfile.rol !== 'superadmin') {
                 const myId = currentProfile.institucion_id;
                 cursosCache = data.filter(c => {
-                    const cInst = c.institution_id || c.institucion_id; // Check legacy naming
+                    const cInst = c.institution_id || c.institucion_id; 
                     return cInst === myId || cInst === null; 
                 });
             } else {
@@ -328,7 +387,6 @@
                 sel.innerHTML += `<option value="${c.id}">${c.nombre}</option>`;
                 const bg = registroColors[c.registro_id.toLowerCase()] || '#94a3b8';
                 
-                // BOTÓN EDITAR AGREGADO
                 div.innerHTML += `
                 <div class="p-4 border rounded-xl bg-white hover:shadow-md transition relative group">
                     <span class="text-[10px] text-white px-2 py-1 rounded uppercase font-bold mb-2 block w-max shadow-sm" style="background-color: ${bg}">
@@ -352,14 +410,12 @@
             
             status.innerText = "Procesando...";
             
-            // Datos base
             let cursoData = { 
                 nombre, 
                 registro_id: registro, 
                 analitico_bg_url: analiticoPaginas.length > 0 ? JSON.stringify(analiticoPaginas) : null 
             };
 
-            // Diploma Upload
             const inputDip = document.getElementById('c-diploma');
             if(inputDip.files.length > 0) {
                 const file = inputDip.files[0];
@@ -370,36 +426,28 @@
             }
 
             try {
-                // LÓGICA DE FORKING (COPIA SI NO ES MÍO)
-                let esNuevo = true;
-                
                 if(idEdit) {
                     const cursoOriginal = cursosCache.find(c => c.id === idEdit);
                     const originalInstId = cursoOriginal.institution_id || cursoOriginal.institucion_id;
                     const miInstId = currentProfile.rol === 'superadmin' ? null : currentProfile.institucion_id;
 
-                    // Si soy superadmin, O si el curso es mío -> Actualizo (UPDATE)
                     if(currentProfile.rol === 'superadmin' || originalInstId === miInstId) {
                         await db.from('cursos_oficiales').update(cursoData).eq('id', idEdit);
-                        esNuevo = false;
-                    } 
-                    // Si NO es mío (es Global) -> Creo uno nuevo (INSERT)
-                    else {
-                        // Asigno mi ID al nuevo curso para apropiármelo
+                    } else {
                         cursoData.institution_id = miInstId;
-                        // Mantenemos el diploma original si no subí uno nuevo
                         if(!cursoData.diploma_bg_url) cursoData.diploma_bg_url = cursoOriginal.diploma_bg_url;
                         await db.from('cursos_oficiales').insert([cursoData]);
-                        alert("⚠️ Se ha creado una copia personalizada de este curso para tu instituto.");
+                        toast("Copia de curso creada para tu instituto");
                     }
                 } else {
-                    // Creación desde cero
                     cursoData.institution_id = currentProfile.rol === 'superadmin' ? null : currentProfile.institucion_id;
                     await db.from('cursos_oficiales').insert([cursoData]);
                 }
                 
-                status.innerText = "✅ Guardado";
-                setTimeout(() => { document.getElementById('modal-curso').classList.add('hidden'); cargarCursos(); }, 1000);
+                status.innerText = "";
+                toast("Curso guardado exitosamente");
+                document.getElementById('modal-curso').classList.add('hidden');
+                cargarCursos();
             } catch(e) { status.innerText = "Error: " + e.message; }
         }
 
@@ -459,7 +507,7 @@
             lucide.createIcons();
         }
 
-        // --- SISTEMA DE FILTRADO ---
+        // --- SISTEMA DE FILTRADO Y ALUMNOS ---
         async function llenarFiltros() {
             const { data: cursos } = await db.from('cursos_oficiales').select('nombre').order('nombre');
             const selCur = document.getElementById('filtro-curso');
@@ -486,7 +534,7 @@
             const filtroCurso = document.getElementById('filtro-curso').value;
             const filtroReg = document.getElementById('filtro-registro').value;
 
-            let query = db.from('matriculas').select('*, instituciones(nombre, logo_url)').order('created_at', {ascending:false}).limit(50);
+            let query = db.from('matriculas').select('*, instituciones(nombre, logo_url)').order('created_at', {ascending:false}).limit(100); // Pagination limit increased
 
             if(currentProfile.rol !== 'superadmin') {
                 query = query.eq('institution_id', currentProfile.institucion_id);
@@ -506,6 +554,7 @@
                 data.forEach(a => {
                     const logoInst = a.instituciones?.logo_url ? `<img src="${a.instituciones.logo_url}" class="w-5 h-5 object-contain rounded-full border">` : '';
                     const nombreInst = a.instituciones?.nombre || 'Desconocido';
+                    // NUEVO: Botón de Edición
                     tb.innerHTML += `
                     <tr class="border-b hover:bg-slate-50 transition">
                         <td class="p-3 text-xs font-mono text-slate-500">${a.dni_alumno}</td>
@@ -513,13 +562,148 @@
                         <td class="p-3 text-xs text-slate-500 flex items-center gap-2">${logoInst} ${nombreInst}</td>
                         <td class="p-3 text-xs text-slate-600">${a.curso}</td>
                         <td class="p-3"><span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-bold uppercase">${a.registro_id || '-'}</span></td>
-                        <td class="p-3"><button onclick="borrar('matriculas', '${a.id}')" class="text-slate-300 hover:text-red-500"><i data-lucide="trash-2" size="14"></i></button></td>
+                        <td class="p-3 flex gap-2">
+                            <button onclick="editarAlumno('${a.id}')" class="text-blue-400 hover:text-blue-600"><i data-lucide="pencil" size="14"></i></button>
+                            <button onclick="borrar('matriculas', '${a.id}')" class="text-slate-300 hover:text-red-500"><i data-lucide="trash-2" size="14"></i></button>
+                        </td>
                     </tr>`;
                 });
                 lucide.createIcons();
             } else {
                 tb.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-xs text-slate-400">Sin resultados.</td></tr>';
                 document.getElementById('contador-resultados').innerText = `0 resultados`;
+            }
+        }
+
+        // --- FUNCIONES DE EDICIÓN ALUMNO ---
+        async function editarAlumno(id) {
+            try {
+                const { data, error } = await db.from('matriculas').select('*').eq('id', id).single();
+                if(error) throw error;
+                
+                // Rellenar Modal
+                document.getElementById('m-id-edit').value = data.id;
+                document.getElementById('m-dni').value = data.dni_alumno;
+                document.getElementById('m-nombre').value = data.nombre;
+                document.getElementById('m-apellido').value = data.apellido;
+                
+                // Intentar seleccionar el curso (puede ser texto libre o ID)
+                // Buscamos el ID del curso en caché por nombre
+                const cursoEnCache = cursosCache.find(c => c.nombre === data.curso);
+                if(cursoEnCache) {
+                    document.getElementById('m-curso-select').value = cursoEnCache.id;
+                }
+
+                document.getElementById('titulo-modal-alumno').innerText = "Editar Alumno";
+                abrirModalAlumno();
+            } catch(e) { toast("Error al cargar alumno: " + e.message, 'error'); }
+        }
+
+        async function guardarAlumnoManual() {
+            const idEdit = document.getElementById('m-id-edit').value;
+            const dni = document.getElementById('m-dni').value;
+            const nombre = document.getElementById('m-nombre').value;
+            const apellido = document.getElementById('m-apellido').value;
+            const cursoId = document.getElementById('m-curso-select').value;
+            
+            let instId = currentProfile.institucion_id;
+            if(currentProfile.rol === 'superadmin') {
+                instId = document.getElementById('modal-instituto-select').value;
+                if(!instId) return alert("Superadmin: Debes seleccionar un Instituto.");
+            }
+            if(!dni || !nombre || !cursoId) return alert("Faltan datos");
+            
+            const cursoObj = cursosCache.find(c => c.id === cursoId);
+            
+            const payload = {
+                dni_alumno: dni, nombre: nombre, apellido: apellido, curso: cursoObj.nombre,
+                registro_id: cursoObj.registro_id, institution_id: instId
+            };
+
+            let error;
+            if (idEdit) {
+                // UPDATE
+                const res = await db.from('matriculas').update(payload).eq('id', idEdit);
+                error = res.error;
+            } else {
+                // INSERT
+                payload.fecha_inicio = new Date().toISOString();
+                const res = await db.from('matriculas').insert(payload);
+                error = res.error;
+            }
+
+            if(error) alert("Error: " + error.message);
+            else { 
+                toast(idEdit ? "Alumno actualizado" : "Alumno creado"); 
+                cerrarModalAlumno(); 
+                filtrarAlumnos(); 
+                contarTotal(); 
+            }
+        }
+
+        function abrirModalAlumno() { 
+            // Si no hay ID en el hidden, es nuevo -> limpiar campos
+            if(!document.getElementById('m-id-edit').value) {
+                document.getElementById('titulo-modal-alumno').innerText = "Nuevo Alumno";
+                document.getElementById('m-dni').value = "";
+                document.getElementById('m-nombre').value = "";
+                document.getElementById('m-apellido').value = "";
+            }
+            document.getElementById('modal-alumno').classList.remove('hidden'); 
+        }
+        
+        function cerrarModalAlumno() { 
+            document.getElementById('modal-alumno').classList.add('hidden'); 
+            document.getElementById('m-id-edit').value = ""; // Limpiar ID al cerrar
+        }
+
+        // --- AUDITORÍA LEDGER (NUEVO) ---
+        async function buscarEnLedger() {
+            const input = document.getElementById('input-audit-search').value.trim();
+            const tbody = document.getElementById('tabla-ledger');
+            
+            if(!input) return;
+            tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">Consultando Blockchain...</td></tr>`;
+
+            try {
+                // Buscamos en ledger o matriculas
+                let query = db.from('ledger_transacciones')
+                    .select('*, matriculas(nombre, apellido, curso)')
+                    .order('created_at', {ascending: false});
+
+                // Si parece UUID (hash), buscamos por ID o bloque_hash
+                if(input.length > 20) {
+                     query = query.or(`id.eq.${input},bloque_hash.eq.${input}`);
+                } else {
+                    // Si es corto, asumimos DNI
+                    query = query.eq('alumno_dni', input);
+                }
+
+                const { data, error } = await query;
+                if(error) throw error;
+
+                tbody.innerHTML = "";
+                if(data.length > 0) {
+                    data.forEach(row => {
+                        const fecha = new Date(row.created_at).toLocaleString();
+                        const alumno = row.matriculas ? `${row.matriculas.nombre} ${row.matriculas.apellido}` : 'Desconocido';
+                        const estado = row.metadata?.estado || 'EMITIDO';
+                        
+                        tbody.innerHTML += `
+                        <tr class="border-b hover:bg-slate-50">
+                            <td class="p-3 text-slate-500">${fecha}</td>
+                            <td class="p-3 hash-mono text-emerald-600 select-all">${row.id}</td>
+                            <td class="p-3 font-bold">${alumno}</td>
+                            <td class="p-3"><span class="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-[10px] font-bold">${estado}</span></td>
+                            <td class="p-3"><a href="validador.html?id=${row.matricula_id}" target="_blank" class="text-blue-500 hover:underline">Verificar</a></td>
+                        </tr>`;
+                    });
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-400">No se encontraron registros en el Ledger.</td></tr>`;
+                }
+
+            } catch(e) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500">Error: ${e.message}</td></tr>`;
             }
         }
 
@@ -541,26 +725,6 @@
             let html = '<option value="">-- Seleccionar Instituto --</option>';
             data.forEach(i => html += `<option value="${i.id}">${i.nombre}</option>`);
             selModal.innerHTML = html; selCarga.innerHTML = html;
-        }
-
-        async function guardarAlumnoManual() {
-            const dni = document.getElementById('m-dni').value;
-            const nombre = document.getElementById('m-nombre').value;
-            const apellido = document.getElementById('m-apellido').value;
-            const cursoId = document.getElementById('m-curso-select').value;
-            let instId = currentProfile.institucion_id;
-            if(currentProfile.rol === 'superadmin') {
-                instId = document.getElementById('modal-instituto-select').value;
-                if(!instId) return alert("Superadmin: Debes seleccionar un Instituto.");
-            }
-            if(!dni || !nombre || !cursoId) return alert("Faltan datos");
-            const cursoObj = cursosCache.find(c => c.id === cursoId);
-            const { error } = await db.from('matriculas').insert({
-                dni_alumno: dni, nombre: nombre, apellido: apellido, curso: cursoObj.nombre,
-                registro_id: cursoObj.registro_id, institution_id: instId, fecha_inicio: new Date().toISOString()
-            });
-            if(error) alert("Error: " + error.message);
-            else { alert("Alumno inscripto correctamente"); cerrarModalAlumno(); filtrarAlumnos(); contarTotal(); }
         }
 
         async function cargarEntidadesTabla() {
@@ -594,7 +758,7 @@
             const accion = estadoActual ? "SUSPENDER" : "REACTIVAR";
             if(!confirm(`¿Estás seguro de ${accion}?`)) return;
             const { error } = await db.from('instituciones').update({ activo: !estadoActual }).eq('id', id);
-            if(error) alert("Error: " + error.message); else cargarEntidadesTabla();
+            if(error) toast("Error: " + error.message, 'error'); else cargarEntidadesTabla();
         }
 
         async function crearEntidadCompleta() {
@@ -628,13 +792,13 @@
                         });
                     }
                 }
-                alert("Entidad Creada OK"); cargarEntidadesTabla();
+                toast("Entidad Creada OK"); cargarEntidadesTabla();
                 if(currentProfile.rol==='superadmin') cargarListaInstitutosEnSelects();
             } catch(e) { alert(e.message); }
         }
 
         function mostrarSeccion(id) {
-            ['panel-inicio','panel-alumnos','panel-entidades','panel-cursos','panel-carga'].forEach(x => {
+            ['panel-inicio','panel-alumnos','panel-entidades','panel-cursos','panel-carga', 'panel-auditoria'].forEach(x => {
                 const el = document.getElementById(x); if(el) el.classList.add('hidden');
             });
             document.getElementById(id).classList.remove('hidden');
@@ -650,10 +814,12 @@
         async function borrar(tabla, id, cb) {
             if(confirm("¿Borrar definitivamente?")) {
                 await db.from(tabla).delete().eq('id', id);
+                toast("Eliminado correctamente");
                 if(cb) cb(); else filtrarAlumnos();
             }
         }
 
+        // --- CARGA EXCEL (CORREGIDA: LOOKUP DE CURSO) ---
         function procesarExcel() {
             const input = document.getElementById('input-excel');
             if(!input.files.length) return;
@@ -667,11 +833,25 @@
                     instIdExcel = document.getElementById('carga-instituto-select').value;
                 }
                 if(!instIdExcel) { alert("Selecciona un instituto para cargar."); return; }
-                datosExcelCargados = j.map(row => ({
-                    dni_alumno: row['DNI'] || row['dni'], nombre: row['NOMBRE'] || row['nombre'],
-                    apellido: row['APELLIDO'] || row['apellido'], curso: row['CURSO'] || row['curso'],
-                    registro_id: 'remaep', institution_id: instIdExcel, fecha_inicio: new Date().toISOString()
-                })).filter(x => x.dni_alumno);
+                
+                datosExcelCargados = j.map(row => {
+                    const nombreCursoExcel = (row['CURSO'] || row['curso'] || '').trim();
+                    const cursoObj = cursosCache.find(c => c.nombre.toUpperCase() === nombreCursoExcel.toUpperCase());
+                    const regId = cursoObj ? cursoObj.registro_id : 'remaep'; // Fallback por defecto si no encuentra
+                    
+                    if(!cursoObj) console.warn("Curso no encontrado en BD, usando default:", nombreCursoExcel);
+
+                    return {
+                        dni_alumno: row['DNI'] || row['dni'], 
+                        nombre: row['NOMBRE'] || row['nombre'],
+                        apellido: row['APELLIDO'] || row['apellido'], 
+                        curso: nombreCursoExcel,
+                        registro_id: regId, 
+                        institution_id: instIdExcel, 
+                        fecha_inicio: new Date().toISOString()
+                    };
+                }).filter(x => x.dni_alumno);
+                
                 document.getElementById('count-preview').innerText = datosExcelCargados.length;
                 document.getElementById('preview-area').classList.remove('hidden');
                 const tb = document.getElementById('tabla-preview'); tb.innerHTML = "";
@@ -683,11 +863,9 @@
         async function confirmarCarga() {
             if(!datosExcelCargados.length) return;
             const { error } = await db.from('matriculas').insert(datosExcelCargados);
-            if(error) alert(error.message); else { alert("Carga OK"); location.reload(); }
+            if(error) alert(error.message); else { toast("Carga Masiva Exitosa"); setTimeout(()=>location.reload(), 1500); }
         }
 
-        function abrirModalAlumno() { document.getElementById('modal-alumno').classList.remove('hidden'); }
-        function cerrarModalAlumno() { document.getElementById('modal-alumno').classList.add('hidden'); }
         async function logout() { await db.auth.signOut(); window.location.href = 'saas_login.html'; }
     </script>
 </body>
