@@ -99,10 +99,7 @@
         .diploma-layout { width: 2000px; height: 1414px; position: relative; overflow: hidden; color: #333; }
         .diploma-bg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
         .diploma-overlay { position: relative; z-index: 10; width: 100%; height: 100%; }
-        
-        /* CORRECCIÓN DE ANCHO: 90% para que use casi todo el espacio pero centrado */
         .dip-linea-unica-container { position: absolute; top: 595px; left: 50%; transform: translateX(-50%); width: 90%; text-align: center; white-space: nowrap; }
-        
         .dip-texto-formal { font-family: 'Roboto Slab', serif; font-weight: 900; text-transform: uppercase; font-size: 80px; letter-spacing: 1px; text-shadow: 2px 2px 0px rgba(255,255,255,1); }
         .dip-qr { position: absolute; top: 284px; right: 176px; width: 233px; height: 233px; background: white; padding: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .dip-info-extra { position: absolute; bottom: 1348px; left: 50%; transform: translateX(-50%); text-align: center; font-family: 'Roboto', sans-serif; font-size: 18px; font-weight: 700; color: #222; background: rgba(255,255,255,0.9); padding: 4px 25px; border-radius: 50px; border: 1px solid rgba(0,0,0,0.1); z-index: 20; }
@@ -118,6 +115,47 @@
         .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: none; margin: 0 auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .curso-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid var(--primary); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+
+        /* --- NUEVO: ESTILOS DEL MODAL LEGAL --- */
+        .legal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px);
+            z-index: 9999; display: flex; justify-content: center; align-items: flex-end;
+            padding: 0; opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .legal-overlay.active { opacity: 1; pointer-events: all; }
+        .legal-box {
+            background: white; width: 100%; max-width: 500px;
+            border-radius: 20px 20px 0 0; padding: 30px 25px;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.5); animation: slideUp 0.4s ease;
+            max-height: 90vh; overflow-y: auto;
+        }
+        @media(min-width: 768px) {
+            .legal-overlay { align-items: center; padding: 20px; }
+            .legal-box { border-radius: 20px; }
+        }
+        .legal-title { font-size: 18px; font-weight: 900; color: var(--primary); margin-bottom: 15px; line-height: 1.3; }
+        .legal-text { font-size: 13px; color: #444; line-height: 1.6; margin-bottom: 20px; text-align: justify; }
+        .legal-list { margin-bottom: 20px; padding-left: 15px; }
+        .legal-list li { font-size: 13px; color: #444; margin-bottom: 8px; }
+        .consent-label {
+            display: flex; align-items: flex-start; gap: 10px;
+            padding: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;
+            cursor: pointer; margin-bottom: 20px;
+        }
+        .consent-checkbox { width: 20px; height: 20px; accent-color: var(--primary); margin-top: 2px; }
+        .consent-text { font-size: 12px; font-weight: 700; color: #222; }
+        .btn-accept {
+            width: 100%; padding: 16px; border: none; border-radius: 12px;
+            font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;
+            background: #ccc; color: #666; cursor: not-allowed; transition: 0.3s;
+        }
+        .btn-accept.ready {
+            background: linear-gradient(135deg, var(--primary), #001a66);
+            color: white; cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0, 51, 204, 0.3);
+        }
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
         #ghost-container { position: fixed; top: -9999px; left: -9999px; }
     </style>
@@ -182,12 +220,31 @@
         <div class="footer-brand">Soporte y Seguridad<br><strong>ASARI PLATFORM</strong></div>
     </div>
 
+    <div id="legal-modal" class="legal-overlay">
+        <div class="legal-box">
+            <div class="legal-title">Aviso de Privacidad y Consentimiento Digital</div>
+            <div class="legal-text">
+                Al continuar, usted acepta que sus datos personales (Nombre, DNI y registro académico) sean procesados por <strong>ASARI S.A.S.</strong>, en su carácter de prestador tecnológico del Instituto Colbert, con la exclusiva finalidad de emitir, gestionar y validar su certificación digital mediante tecnología Blockchain.
+            </div>
+            <ul class="legal-list">
+                <li><strong>1.</strong> ASARI S.A.S. actúa únicamente como soporte técnico y emisor de la infraestructura digital.</li>
+                <li><strong>2.</strong> Sus datos serán utilizados para generar un código QR de validación pública.</li>
+                <li><strong>3.</strong> La revocación de este consentimiento implicará la baja automática de su credencial digital.</li>
+            </ul>
+            <label class="consent-label">
+                <input type="checkbox" id="check-legal" class="consent-checkbox">
+                <span class="consent-text">He leído y acepto los Términos de Uso y la Política de Protección de Datos.</span>
+            </label>
+            <button id="btn-legal-accept" class="btn-accept">CONTINUAR</button>
+        </div>
+    </div>
+
     <div id="ghost-container"></div>
 
     <script>
         const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
-        const URL_WEB = 'https://instructormap.github.io/registro-de-matriculas';
+        const URL_WEB = 'https://asari-platform.vercel.app'; // Actualizado a Vercel
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
         
         const WHATSAPP_NUMERO = '5492245602445';
@@ -275,57 +332,101 @@
 
         const CARNET_BACK_HTML = `<img src="${URL_REVERSO}" class="carnet-back-img" id="carnet-back-img">`;
 
+        // --- LÓGICA DE INGRESO PRINCIPAL ---
         async function ingresar() {
             const dni = document.getElementById('input-dni').value.trim();
             const btnText = document.getElementById('btn-text');
             const loader = document.getElementById('loader');
             const errorMsg = document.getElementById('msg-error');
+            
             if(!dni) return;
             btnText.style.display = 'none'; loader.style.display = 'block'; errorMsg.style.display = 'none';
             
             try {
+                // 1. Obtener Datos
                 const { data: matriculas, error } = await db.from('matriculas').select('*').eq('dni_alumno', dni);
                 if (!matriculas || matriculas.length === 0) throw new Error("No encontrado");
                 
+                // 2. Normalizar Fotos
                 const fotoEncontrada = matriculas.find(m => m.foto_url && m.foto_url.length > 5)?.foto_url;
-                if (fotoEncontrada) {
-                    matriculas.forEach(m => m.foto_url = fotoEncontrada);
-                }
+                if (fotoEncontrada) { matriculas.forEach(m => m.foto_url = fotoEncontrada); }
                 
                 globalMatriculas = matriculas;
                 const alumno = matriculas[0]; 
 
+                // 3. Identidad Visual
                 if(alumno.institution_id) {
                     try {
-                        const { data: dataInst } = await db.from('instituciones')
-                            .select('logo_url')
-                            .eq('id', alumno.institution_id)
-                            .maybeSingle();
-                        
-                        if(dataInst && dataInst.logo_url) {
-                            cambiarIdentidadVisual(dataInst.logo_url, null); 
-                        }
-                    } catch(e) { console.log("No se pudo cargar logo instituto"); }
+                        const { data: dataInst } = await db.from('instituciones').select('logo_url').eq('id', alumno.institution_id).maybeSingle();
+                        if(dataInst && dataInst.logo_url) cambiarIdentidadVisual(dataInst.logo_url, null); 
+                    } catch(e) {}
                 }
 
-                if (!matriculas[0].foto_url) {
-                    alumnoActual = matriculas[0];
-                    mostrarPantalla('screen-upload');
-                } else {
-                    if (matriculas.length === 1) {
-                        cargarWallet(matriculas[0]);
-                        mostrarPantalla('screen-wallet');
-                    } else {
-                        generarListaCursos(matriculas);
-                        mostrarPantalla('screen-selector');
-                    }
-                }
+                // 4. VERIFICAR CONSENTIMIENTO (NUEVO)
+                verificarConsentimiento(dni, () => {
+                    // Si aceptó o ya tenía permiso, ejecutamos la lógica de redirección
+                    procesarSiguientePantalla(matriculas);
+                });
+
             } catch (err) {
                 errorMsg.style.display = 'block'; errorMsg.innerText = "DNI no encontrado.";
             } finally {
                 btnText.style.display = 'block'; loader.style.display = 'none';
             }
         }
+
+        // --- NUEVA FUNCIÓN: PROCESAR PANTALLA ---
+        function procesarSiguientePantalla(matriculas) {
+            const alumno = matriculas[0];
+            if (!alumno.foto_url) {
+                alumnoActual = alumno;
+                mostrarPantalla('screen-upload');
+            } else {
+                if (matriculas.length === 1) {
+                    cargarWallet(matriculas[0]);
+                    mostrarPantalla('screen-wallet');
+                } else {
+                    generarListaCursos(matriculas);
+                    mostrarPantalla('screen-selector');
+                }
+            }
+        }
+
+        // --- NUEVA FUNCIÓN: LOGICA LEGAL ---
+        function verificarConsentimiento(dni, callback) {
+            const hasConsented = localStorage.getItem(`asari_consent_${dni}`);
+            
+            if (hasConsented) {
+                callback(); // Ya aceptó antes, pasa directo
+            } else {
+                // Mostrar Modal
+                const modal = document.getElementById('legal-modal');
+                const check = document.getElementById('check-legal');
+                const btnAccept = document.getElementById('btn-legal-accept');
+                
+                modal.classList.add('active');
+                
+                // Eventos del Modal
+                check.addEventListener('change', function() {
+                    if(this.checked) {
+                        btnAccept.classList.add('ready');
+                        btnAccept.disabled = false;
+                    } else {
+                        btnAccept.classList.remove('ready');
+                        btnAccept.disabled = true;
+                    }
+                });
+
+                btnAccept.onclick = function() {
+                    if(!check.checked) return;
+                    localStorage.setItem(`asari_consent_${dni}`, 'true');
+                    modal.classList.remove('active');
+                    callback(); // Ejecutar lo que estaba pendiente
+                };
+            }
+        }
+
+        // ----------------------------------------------------
 
         async function comprimirImagen(file, quality = 0.8, maxWidth = 800) {
             return new Promise((resolve) => {
@@ -396,9 +497,7 @@
             if(alumno.foto_url) { av.src = alumno.foto_url; av.style.display = 'block'; }
             document.getElementById('btn-cambiar-curso').style.display = globalMatriculas.length > 1 ? 'flex' : 'none';
 
-            // --- V4.6 FIX: LIMPIEZA DE VARIABLE CACHÉ ---
             cursoActualData = null; 
-            // --------------------------------------------
 
             let colorDinamico = null;
             if(alumno.registro_id) {
@@ -419,23 +518,15 @@
             const { data: cursosEncontrados } = await db.from('cursos_oficiales').select('*').eq('nombre', alumno.curso);
             
             if (cursosEncontrados && cursosEncontrados.length > 0) {
-                // --- V4.6 FIX: LÓGICA HÍBRIDA (SaaS + Global Fallback) ---
                 let candidato = cursosEncontrados.find(c => c.institution_id === alumno.institution_id);
-                
-                // Si encontré el curso de Colbert pero NO tiene diploma, intento robar el diploma del Global
                 if (candidato && !candidato.diploma_bg_url) {
                      const global = cursosEncontrados.find(c => !c.institution_id);
                      if(global && global.diploma_bg_url) candidato.diploma_bg_url = global.diploma_bg_url;
                 }
-                
-                // Si no tengo curso de Colbert, uso el Global directo
                 if (!candidato) candidato = cursosEncontrados.find(c => !c.institution_id);
-                
-                // Si aún no tengo nada, uso el primero que encuentre (backup final)
                 if (!candidato) candidato = cursosEncontrados[0];
 
                 cursoActualData = candidato;
-                // ---------------------------------------------------------
             } 
 
             document.getElementById('btn-descargar-diploma').style.display = (cursoActualData && cursoActualData.diploma_bg_url) ? 'block' : 'none';
@@ -601,14 +692,12 @@
 
                 await document.fonts.ready;
                 
-                // --- V4.7 FIX: MÁRGENES AMPLIOS Y TAMAÑO BASE CORRECTO ---
                 txtElem.style.display = 'inline-block'; 
                 txtElem.style.whiteSpace = 'nowrap'; 
                 
                 await new Promise(r => setTimeout(r, 100)); 
-                ajustarTextoAlAncho(txtElem, 100, 1600); // 100px base, hasta 1600px de ancho permitido
+                ajustarTextoAlAncho(txtElem, 100, 1600); 
                 await new Promise(r => setTimeout(r, 500));
-                // ---------------------------------------------------
 
                 const canvas = await html2canvas(ghost.querySelector('#diploma-final'), { scale: 1, useCORS: true });
                 const link = document.createElement('a');
