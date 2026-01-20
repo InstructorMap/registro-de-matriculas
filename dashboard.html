@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control - ASARI V5.0 (Auditoría & Edición)</title>
+    <title>Panel de Control - ASARI V5.0</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -23,7 +23,7 @@
         .super-badge { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
         .hash-mono { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: -0.5px; }
         
-        /* TOAST NOTIFICATIONS */
+        /* TOAST */
         #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
         .toast { background: white; border-left: 4px solid #3b82f6; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 10px; animation: slideIn 0.3s ease-out; min-width: 300px; }
         .toast-success { border-color: #10b981; } .toast-error { border-color: #ef4444; }
@@ -302,7 +302,7 @@
         let registroColors = {}; 
         let analiticoPaginas = []; 
 
-        // --- UX HELPERS ---
+        // --- UX HELPERS (TOAST) ---
         function toast(msg, type='success') {
             const el = document.createElement('div');
             el.className = `toast ${type === 'success' ? 'toast-success' : 'toast-error'}`;
@@ -315,7 +315,8 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
             const { data: { session } } = await db.auth.getSession();
-            if (!session) return window.location.href = 'saas_login.html';
+            // REDIRECCIÓN AJUSTADA A INDEX (LOGIN)
+            if (!session) return window.location.href = 'index.html'; 
             
             currentUser = session.user;
             document.getElementById('user-email').innerText = currentUser.email;
@@ -326,7 +327,7 @@
             if (perfil.instituciones && perfil.instituciones.activo === false && perfil.rol !== 'superadmin') {
                 alert("⛔ SU CUENTA ESTÁ SUSPENDIDA. Contacte a soporte.");
                 await db.auth.signOut();
-                window.location.href = 'saas_login.html';
+                window.location.href = 'index.html';
                 return;
             }
 
@@ -534,7 +535,8 @@
             const filtroCurso = document.getElementById('filtro-curso').value;
             const filtroReg = document.getElementById('filtro-registro').value;
 
-            let query = db.from('matriculas').select('*, instituciones(nombre, logo_url)').order('created_at', {ascending:false}).limit(100); // Pagination limit increased
+            // PAGINACIÓN AUMENTADA
+            let query = db.from('matriculas').select('*, instituciones(nombre, logo_url)').order('created_at', {ascending:false}).limit(100);
 
             if(currentProfile.rol !== 'superadmin') {
                 query = query.eq('institution_id', currentProfile.institucion_id);
@@ -554,7 +556,7 @@
                 data.forEach(a => {
                     const logoInst = a.instituciones?.logo_url ? `<img src="${a.instituciones.logo_url}" class="w-5 h-5 object-contain rounded-full border">` : '';
                     const nombreInst = a.instituciones?.nombre || 'Desconocido';
-                    // NUEVO: Botón de Edición
+                    // AGREGADO BOTÓN LÁPIZ (EDITAR)
                     tb.innerHTML += `
                     <tr class="border-b hover:bg-slate-50 transition">
                         <td class="p-3 text-xs font-mono text-slate-500">${a.dni_alumno}</td>
@@ -588,7 +590,6 @@
                 document.getElementById('m-apellido').value = data.apellido;
                 
                 // Intentar seleccionar el curso (puede ser texto libre o ID)
-                // Buscamos el ID del curso en caché por nombre
                 const cursoEnCache = cursosCache.find(c => c.nombre === data.curso);
                 if(cursoEnCache) {
                     document.getElementById('m-curso-select').value = cursoEnCache.id;
@@ -622,11 +623,11 @@
 
             let error;
             if (idEdit) {
-                // UPDATE
+                // UPDATE (SI HAY ID)
                 const res = await db.from('matriculas').update(payload).eq('id', idEdit);
                 error = res.error;
             } else {
-                // INSERT
+                // INSERT (SI NO HAY ID)
                 payload.fecha_inicio = new Date().toISOString();
                 const res = await db.from('matriculas').insert(payload);
                 error = res.error;
@@ -866,7 +867,7 @@
             if(error) alert(error.message); else { toast("Carga Masiva Exitosa"); setTimeout(()=>location.reload(), 1500); }
         }
 
-        async function logout() { await db.auth.signOut(); window.location.href = 'saas_login.html'; }
+        async function logout() { await db.auth.signOut(); window.location.href = 'index.html'; }
     </script>
 </body>
 </html>
