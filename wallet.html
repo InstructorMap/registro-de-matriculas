@@ -11,6 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&family=Roboto+Slab:wght@700;900&display=swap" rel="stylesheet">
 
@@ -60,32 +61,13 @@
         .btn-toggle.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.2); transform: translateY(-1px); }
         .btn-toggle:active { transform: scale(0.95); }
 
-        /* SECTION PREMIUM (IA) */
-        .premium-box {
-            background: linear-gradient(135deg, #1e1e1e 0%, #2a2a2a 100%);
-            color: white; border-radius: 15px; padding: 20px; margin-bottom: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; overflow: hidden;
-            border: 1px solid #444;
-        }
-        .premium-badge {
-            position: absolute; top: 10px; right: 10px; background: var(--gold);
-            color: black; font-size: 10px; font-weight: 900; padding: 4px 8px;
-            border-radius: 4px; text-transform: uppercase; letter-spacing: 1px;
-        }
+        /* SECTION PREMIUM */
+        .premium-box { background: linear-gradient(135deg, #1e1e1e 0%, #2a2a2a 100%); color: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; overflow: hidden; border: 1px solid #444; }
+        .premium-badge { position: absolute; top: 10px; right: 10px; background: var(--gold); color: black; font-size: 10px; font-weight: 900; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 1px; }
         .premium-title { font-size: 18px; font-weight: 900; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
         .premium-desc { font-size: 12px; color: #aaa; margin-bottom: 15px; line-height: 1.4; }
-        .btn-pay {
-            background: var(--gold); color: black; border: none; width: 100%; padding: 12px;
-            border-radius: 8px; font-weight: 900; cursor: pointer; text-transform: uppercase;
-            font-size: 12px; display: flex; justify-content: center; align-items: center; gap: 8px;
-            box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3);
-        }
-        .btn-ai-action {
-            background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2);
-            width: 100%; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer;
-            font-size: 12px; display: flex; justify-content: center; align-items: center; gap: 8px;
-            margin-bottom: 8px; transition: 0.2s;
-        }
+        .btn-pay { background: var(--gold); color: black; border: none; width: 100%; padding: 12px; border-radius: 8px; font-weight: 900; cursor: pointer; text-transform: uppercase; font-size: 12px; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3); }
+        .btn-ai-action { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); width: 100%; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 12px; display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 8px; transition: 0.2s; }
         .btn-ai-action:hover { background: rgba(255,255,255,0.2); }
 
         /* CARNET STYLES */
@@ -110,26 +92,12 @@
         .value-text { font-size: 36px; font-weight: 900; text-align: right; }
         .carnet-back-img { width: 1011px; height: 638px; object-fit: cover; border-radius: 40px; border: 5px solid var(--primary); transition: border-color 0.3s; }
 
-        .live-shimmer {
-            position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
-            background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
-            transform: skewX(-25deg);
-            animation: shimmerMove 4s infinite;
-            z-index: 10; pointer-events: none;
-        }
+        .live-shimmer { position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%); transform: skewX(-25deg); animation: shimmerMove 4s infinite; z-index: 10; pointer-events: none; }
         @keyframes shimmerMove { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
 
-        /* ESTADOS ESPECIALES */
-        .overlay-vencido {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(180, 0, 0, 0.75); z-index: 20;
-            display: flex; justify-content: center; align-items: center;
-            flex-direction: column; color: white; text-align: center;
-            border-radius: 35px; backdrop-filter: blur(2px);
-        }
+        .overlay-vencido { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(180, 0, 0, 0.75); z-index: 20; display: flex; justify-content: center; align-items: center; flex-direction: column; color: white; text-align: center; border-radius: 35px; backdrop-filter: blur(2px); }
         .texto-vencido { font-size: 80px; font-weight: 900; transform: rotate(-15deg); border: 8px solid white; padding: 10px 40px; text-transform: uppercase; letter-spacing: 5px; }
 
-        /* DIPLOMA / ANALITICO LAYOUT */
         .diploma-layout { width: 2000px; height: 1414px; position: relative; overflow: hidden; color: #333; }
         .diploma-bg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
         .diploma-overlay { position: relative; z-index: 10; width: 100%; height: 100%; }
@@ -829,7 +797,13 @@
                     </div>
                 </div>`;
                 const bgImg = ghost.querySelector('#dip-bg-img');
-                bgImg.src = cursoActualData.diploma_bg_url + "?t=" + Date.now();
+                
+                // SE AGREGA LIMPIEZA DE URL PARA EVITAR ARRAYS
+                let bgUrl = cursoActualData.diploma_bg_url;
+                if (bgUrl.startsWith('["') || bgUrl.startsWith('[')) {
+                    try { bgUrl = JSON.parse(bgUrl)[0]; } catch(e) {}
+                }
+                bgImg.src = bgUrl + "?t=" + Date.now();
                 
                 await new Promise((resolve, reject) => {
                     bgImg.onload = resolve;
@@ -858,57 +832,114 @@
             } catch(e) { alert("Error diploma: " + e.message); } finally { btn.innerHTML = originalText; }
         }
 
-        // --- FUNCIÓN ANALÍTICO (VERSIÓN CORREGIDA V6.7) ---
+        // --- FUNCIÓN ANALÍTICO MULTI-PÁGINA (PDF) CORREGIDA V6.10 ---
         async function descargarAnalitico() {
             if(!cursoActualData || !cursoActualData.analitico_bg_url) return alert("Analítico no disponible.");
             const btn = document.getElementById('btn-descargar-analitico'); 
             const originalText = btn.innerHTML;
-            btn.innerHTML = '⏳';
+            btn.innerHTML = 'Generando PDF ⏳';
             
             try {
+                // 1. Detectar URLs (Array o String)
+                let urls = [];
+                try {
+                    // Si viene como string JSON '["url1", "url2"]'
+                    if (cursoActualData.analitico_bg_url.trim().startsWith('[')) {
+                        urls = JSON.parse(cursoActualData.analitico_bg_url);
+                    } else {
+                        // Si es una URL simple
+                        urls = [cursoActualData.analitico_bg_url];
+                    }
+                } catch(e) {
+                    // Fallback si falla el parseo
+                    urls = [cursoActualData.analitico_bg_url];
+                }
+
+                // 2. Inicializar PDF (A4 Landscape)
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('l', 'mm', 'a4'); 
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+
                 const ghost = document.getElementById('ghost-container');
                 const colorTexto = globalColorTexto || '#0033cc';
-                ghost.innerHTML = `
-                <div class="diploma-layout" id="analitico-final">
-                    <img id="ana-bg-img" class="diploma-bg" src="" crossorigin="anonymous">
-                    <div class="diploma-overlay">
-                        <div class="dip-linea-unica-container" id="ana-texto-container">
-                            <span class="dip-texto-formal" id="ana-texto-completo" style="color: ${colorTexto} !important;"></span>
-                        </div>
-                        <div class="dip-qr" id="ana-qr-code"></div>
-                        <div class="dip-info-extra" id="ana-fecha-registro" style="color: ${colorTexto} !important; border-color: ${colorTexto}33;"></div>
-                    </div>
-                </div>`;
-                const bgImg = ghost.querySelector('#ana-bg-img');
-                
-                // CORRECCIÓN: Quitamos el timestamp para evitar errores de CORS con algunos servidores
-                bgImg.src = cursoActualData.analitico_bg_url; 
-                
-                await new Promise((resolve, reject) => {
-                    bgImg.onload = resolve;
-                    bgImg.onerror = () => reject(new Error(`No se pudo cargar la imagen: ${cursoActualData.analitico_bg_url}`));
-                    setTimeout(() => reject(new Error("Tiempo de espera agotado (10s).")), 10000);
-                });
 
-                const txtElem = ghost.querySelector('#ana-texto-completo');
-                const dniFormateado = new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno);
-                txtElem.innerText = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${dniFormateado}`;
-                new QRCode(ghost.querySelector('#ana-qr-code'), { text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, width: 223, height: 223 });
-                const f = new Date(alumnoActual.fecha_inicio || new Date()).toLocaleDateString('es-ES', {year:'numeric', month:'long', day:'numeric'});
-                ghost.querySelector('#ana-fecha-registro').innerHTML = `REGISTRO: <b>${(alumnoActual.registro_id||'OFICIAL').toUpperCase()}</b> • Fecha: ${f}`;
-                await document.fonts.ready;
-                txtElem.style.display = 'inline-block'; 
-                txtElem.style.whiteSpace = 'nowrap'; 
-                await new Promise(r => setTimeout(r, 100)); 
-                ajustarTextoAlAncho(txtElem, 100, 1600); 
-                await new Promise(r => setTimeout(r, 500));
-                const canvas = await html2canvas(ghost.querySelector('#analitico-final'), { scale: 1, useCORS: true });
-                const link = document.createElement('a');
-                link.download = `Analitico_${alumnoActual.dni_alumno}.png`;
-                link.href = canvas.toDataURL("image/png");
-                link.click();
+                // 3. Iterar por cada URL (Página)
+                for (let i = 0; i < urls.length; i++) {
+                    const url = urls[i];
+                    
+                    // --- LOGICA CONDICIONAL: Solo página 0 lleva Overlay ---
+                    let overlayHTML = '';
+                    if (i === 0) {
+                        // Es la primera página -> Lleva datos
+                        overlayHTML = `
+                        <div class="diploma-overlay">
+                            <div class="dip-linea-unica-container" id="ana-text-container-${i}">
+                                <span class="dip-texto-formal" id="ana-text-${i}" style="color: ${colorTexto} !important;"></span>
+                            </div>
+                            <div class="dip-qr" id="ana-qr-${i}"></div>
+                            <div class="dip-info-extra" id="ana-info-${i}" style="color: ${colorTexto} !important; border-color: ${colorTexto}33;"></div>
+                        </div>`;
+                    }
+                    // Paginas i > 0 no llevan overlay, solo la imagen de fondo limpia
+
+                    // Limpiar ghost e inyectar estructura
+                    ghost.innerHTML = `
+                    <div class="diploma-layout" id="analitico-page-${i}">
+                        <img id="ana-bg-${i}" class="diploma-bg" src="" crossorigin="anonymous">
+                        ${overlayHTML}
+                    </div>`;
+
+                    const bgImg = document.getElementById(`ana-bg-${i}`);
+                    bgImg.src = url; // Sin timestamp para evitar errores de CORS con arrays
+
+                    // Esperar carga imagen
+                    await new Promise((resolve, reject) => {
+                        bgImg.onload = resolve;
+                        bgImg.onerror = () => reject(new Error(`Error cargando página ${i+1}`));
+                        setTimeout(() => reject(new Error(`Timeout página ${i+1}`)), 15000);
+                    });
+
+                    // Si es la página 0, llenamos los datos
+                    if (i === 0) {
+                        const txtElem = document.getElementById(`ana-text-${i}`);
+                        txtElem.innerText = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno)}`;
+                        
+                        new QRCode(document.getElementById(`ana-qr-${i}`), { 
+                            text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, 
+                            width: 223, height: 223 
+                        });
+                        
+                        const f = new Date(alumnoActual.fecha_inicio || new Date()).toLocaleDateString('es-ES', {year:'numeric', month:'long', day:'numeric'});
+                        document.getElementById(`ana-info-${i}`).innerHTML = `REGISTRO: <b>${(alumnoActual.registro_id||'OFICIAL').toUpperCase()}</b> • Fecha: ${f}`;
+
+                        // Renderizar fuentes y ajustar texto
+                        await document.fonts.ready;
+                        txtElem.style.display = 'inline-block'; txtElem.style.whiteSpace = 'nowrap';
+                        await new Promise(r => setTimeout(r, 100));
+                        ajustarTextoAlAncho(txtElem, 100, 1600);
+                        await new Promise(r => setTimeout(r, 500));
+                    }
+
+                    // Generar captura
+                    const canvas = await html2canvas(document.getElementById(`analitico-page-${i}`), { scale: 1, useCORS: true });
+                    const imgData = canvas.toDataURL('image/jpeg', 0.90); // Calidad 90% para que no pese tanto el PDF
+
+                    // Agregar al PDF
+                    if (i > 0) pdf.addPage();
+                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+                }
+
+                // 4. Guardar PDF
+                pdf.save(`Analitico_${alumnoActual.dni_alumno}.pdf`);
                 ghost.innerHTML = '';
-            } catch(e) { alert("Error analítico: " + e.message); } finally { btn.innerHTML = originalText; }
+
+            } catch(e) { 
+                console.error(e);
+                alert("Error generando PDF: " + e.message + "\n\nIntenta nuevamente."); 
+            } finally { 
+                btn.innerHTML = originalText; 
+            }
         }
 
         function mostrarPantalla(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
