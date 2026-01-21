@@ -53,7 +53,7 @@
         .card-viewport { width: 100%; overflow: hidden; background: transparent; position: relative; margin-bottom: 20px; height: 220px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); transition: height 0.3s; }
         #carnet-render { width: 1011px; height: 638px; background: white; position: absolute; top: 0; left: 0; transform-origin: top left; }
 
-        /* SECTION PREMIUM (NUEVO) */
+        /* SECTION PREMIUM (IA) */
         .premium-box {
             background: linear-gradient(135deg, #1e1e1e 0%, #2a2a2a 100%);
             color: white; border-radius: 15px; padding: 20px; margin-bottom: 20px;
@@ -112,6 +112,7 @@
         }
         @keyframes shimmerMove { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
 
+        /* ESTADOS ESPECIALES */
         .overlay-vencido {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(180, 0, 0, 0.75); z-index: 20;
@@ -121,6 +122,7 @@
         }
         .texto-vencido { font-size: 80px; font-weight: 900; transform: rotate(-15deg); border: 8px solid white; padding: 10px 40px; text-transform: uppercase; letter-spacing: 5px; }
 
+        /* DIPLOMA */
         .diploma-layout { width: 2000px; height: 1414px; position: relative; overflow: hidden; color: #333; }
         .diploma-bg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
         .diploma-overlay { position: relative; z-index: 10; width: 100%; height: 100%; }
@@ -512,7 +514,7 @@
 
             cursoActualData = null; 
 
-            // Verificar si viene de MercadoPago (Approved)
+            // Verificar si viene de MercadoPago
             checkPaymentReturn(alumno.id);
 
             let colorDinamico = null;
@@ -527,7 +529,9 @@
             container.innerHTML = CARNET_HTML; 
             llenarDatosCarnet(container, alumno, colorDinamico); 
             registrarAcceso(alumno);
-            renderPremiumSection(alumno); // RENDERIZAR PREMIUM
+            
+            renderPremiumSection(alumno); // PREMIUM
+            renderUpselling(alumno); // UPSELLING (Nueva función)
 
             const { data: cursosEncontrados } = await db.from('cursos_oficiales').select('*').eq('nombre', alumno.curso);
             
@@ -546,11 +550,10 @@
             setTimeout(ajustarCarnetResponsivo, 100);
         }
 
-        // --- LÓGICA PREMIUM Y MERCADO PAGO ---
+        // --- LÓGICA PREMIUM ---
         function renderPremiumSection(alumno) {
             const container = document.getElementById('premium-section');
             if (alumno.premium) {
-                // ESTADO: DESBLOQUEADO (IA ACTIVA)
                 container.innerHTML = `
                 <div class="premium-box" style="background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);">
                     <div class="premium-badge" style="background: #00ff88;">PREMIUM ACTIVO</div>
@@ -560,7 +563,6 @@
                     <button class="btn-ai-action" onclick="generarTextoIA('cv')"><i class="fas fa-file-alt"></i> Generar Resumen CV</button>
                 </div>`;
             } else {
-                // ESTADO: BLOQUEADO (VENTA)
                 container.innerHTML = `
                 <div class="premium-box">
                     <div class="premium-badge"><i class="fas fa-lock"></i> PRO</div>
@@ -571,27 +573,55 @@
             }
         }
 
+        // --- LÓGICA UPSELLING (OPCIÓN 3) ---
+        async function renderUpselling(alumno) {
+            try {
+                let { data: ofertas } = await db.from('rutas_carrera').select('*').eq('activo', true).ilike('curso_origen', alumno.curso).maybeSingle();
+                if (!ofertas) {
+                    const { data: ofertaGen } = await db.from('rutas_carrera').select('*').eq('activo', true).eq('curso_origen', 'TODOS').limit(1).maybeSingle();
+                    ofertas = ofertaGen;
+                }
+
+                if (ofertas) {
+                    const container = document.getElementById('premium-section'); // Insertamos después del premium
+                    const ofertaDiv = document.createElement('div');
+                    ofertaDiv.style.marginTop = "20px";
+                    ofertaDiv.innerHTML = `
+                    <div class="action-card" style="background: linear-gradient(135deg, #fff 0%, #f0f9ff 100%); border: 2px solid #3b82f6; text-align: left; padding: 0; overflow: hidden; position: relative;">
+                        <div style="background: #3b82f6; color: white; padding: 5px 15px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;">Ruta de Carrera Sugerida</div>
+                        <div style="padding: 15px; display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <div style="font-size: 16px; font-weight: 900; color: #1e3a8a; line-height: 1.2; margin-bottom: 4px;">${ofertas.titulo_oferta}</div>
+                                <div style="font-size: 12px; color: #555;">${ofertas.beneficio_txt}</div>
+                            </div>
+                            <div style="font-size: 24px; color: #3b82f6;"><i class="fas fa-chevron-circle-right"></i></div>
+                        </div>
+                    </div>`;
+                    ofertaDiv.onclick = () => window.open(ofertas.link_destino, '_blank');
+                    
+                    // Insertamos justo antes de la grilla de acciones
+                    const actionsGrid = document.querySelector('.actions-grid');
+                    actionsGrid.parentNode.insertBefore(ofertaDiv, actionsGrid);
+                }
+            } catch (err) { console.log("Error upselling", err); }
+        }
+
         function iniciarPago() {
             if (LINK_MERCADO_PAGO === "AQUI_TU_LINK_DE_PAGO_DE_5000_PESOS") {
                 alert("Error de Configuración: El administrador no ha configurado el link de pago.");
                 return;
             }
-            // Abrimos MP en la misma ventana para asegurar el retorno
             window.location.href = LINK_MERCADO_PAGO; 
         }
 
         async function checkPaymentReturn(alumnoId) {
             const params = new URLSearchParams(window.location.search);
-            // MercadoPago suele devolver 'collection_status=approved' o 'status=approved'
             const status = params.get('collection_status') || params.get('status');
-            
             if (status === 'approved') {
-                // Actualizar DB
                 try {
                     await db.from('matriculas').update({ premium: true }).eq('id', alumnoId);
                     alumnoActual.premium = true;
                     renderPremiumSection(alumnoActual);
-                    // Limpiar URL para que no se refresque el pago
                     window.history.replaceState({}, document.title, window.location.pathname + "?id=" + alumnoId);
                     alert("¡Pago Exitoso! Las funciones de IA están activas.");
                 } catch(e) { console.error("Error activando premium", e); }
@@ -609,14 +639,8 @@
             } else {
                 texto = `PERFIL PROFESIONAL:\nCertificado como ${curso} por ${instituto}, con formación validada digitalmente. Profesional proactivo, capacitado para desempeñar funciones operativas y estratégicas en el ámbito de ${curso}. Enfoque en la mejora continua y aplicación de estándares de calidad.`;
             }
-
-            // Copiar al portapapeles
-            navigator.clipboard.writeText(texto).then(() => {
-                alert("¡Texto generado y copiado al portapapeles! Listo para pegar.");
-            });
+            navigator.clipboard.writeText(texto).then(() => { alert("¡Texto generado y copiado al portapapeles! Listo para pegar."); });
         }
-
-        // --- END PREMIUM ---
 
         async function registrarAcceso(alumno) { try { await db.from('logs_accesos').insert({ alumno_id: alumno.id, curso: alumno.curso, fecha: new Date().toISOString() }); } catch(e) { } }
 
