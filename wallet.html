@@ -300,7 +300,7 @@
         const LOGO_ASARI_DEFAULT = "https://vxggatcfrywyodovjwxj.supabase.co/storage/v1/object/public/logos-instituciones/Asari%20Logo.jpg"; 
         const URL_REVERSO = "./reverso.jpg"; 
         
-        // ⚠️ ARCHIVO LOCAL
+        // ⚠️ ARCHIVO LOCAL (Sin espacios)
         const URL_DOC_LEGAL = "legal.jpg";
 
         const COLOR_DEFAULT = "#b8860b"; 
@@ -809,7 +809,10 @@
 
         async function descargarDiploma() {
             if(!cursoActualData || !cursoActualData.diploma_bg_url) return alert("Diploma no disponible.");
-            const btn = document.getElementById('btn-descargar-diploma'); const txt = btn.innerHTML; btn.innerHTML = '⏳';
+            const btn = document.getElementById('btn-descargar-diploma');
+            const originalText = btn.innerHTML; 
+            btn.innerHTML = '⏳';
+            
             try {
                 const ghost = document.getElementById('ghost-container');
                 const colorTexto = globalColorTexto || '#0033cc';
@@ -827,7 +830,13 @@
                 </div>`;
                 const bgImg = ghost.querySelector('#dip-bg-img');
                 bgImg.src = cursoActualData.diploma_bg_url + "?t=" + Date.now();
-                await new Promise(r => bgImg.onload = r);
+                
+                await new Promise((resolve, reject) => {
+                    bgImg.onload = resolve;
+                    bgImg.onerror = () => reject(new Error("No se pudo cargar la imagen del diploma."));
+                    setTimeout(() => reject(new Error("Tiempo de espera agotado.")), 10000);
+                });
+
                 const txtElem = ghost.querySelector('#dip-texto-completo');
                 const dniFormateado = new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno);
                 txtElem.innerText = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${dniFormateado}`;
@@ -846,13 +855,16 @@
                 link.href = canvas.toDataURL("image/png");
                 link.click();
                 ghost.innerHTML = '';
-            } catch(e) { alert("Error diploma: " + e.message); } finally { btn.innerHTML = txt; }
+            } catch(e) { alert("Error diploma: " + e.message); } finally { btn.innerHTML = originalText; }
         }
 
-        // --- FUNCIÓN ANALÍTICO (SIMILAR A DIPLOMA) ---
+        // --- FUNCIÓN ANALÍTICO ---
         async function descargarAnalitico() {
             if(!cursoActualData || !cursoActualData.analitico_bg_url) return alert("Analítico no disponible.");
-            const btn = document.getElementById('btn-descargar-analitico'); const txt = btn.innerHTML; btn.innerHTML = '⏳';
+            const btn = document.getElementById('btn-descargar-analitico'); 
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⏳';
+            
             try {
                 const ghost = document.getElementById('ghost-container');
                 const colorTexto = globalColorTexto || '#0033cc';
@@ -869,7 +881,13 @@
                 </div>`;
                 const bgImg = ghost.querySelector('#ana-bg-img');
                 bgImg.src = cursoActualData.analitico_bg_url + "?t=" + Date.now();
-                await new Promise(r => bgImg.onload = r);
+                
+                await new Promise((resolve, reject) => {
+                    bgImg.onload = resolve;
+                    bgImg.onerror = () => reject(new Error("No se pudo cargar la imagen del analítico."));
+                    setTimeout(() => reject(new Error("Tiempo de espera agotado.")), 10000);
+                });
+
                 const txtElem = ghost.querySelector('#ana-texto-completo');
                 const dniFormateado = new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno);
                 txtElem.innerText = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${dniFormateado}`;
@@ -888,7 +906,7 @@
                 link.href = canvas.toDataURL("image/png");
                 link.click();
                 ghost.innerHTML = '';
-            } catch(e) { alert("Error analítico: " + e.message); } finally { btn.innerHTML = txt; }
+            } catch(e) { alert("Error analítico: " + e.message); } finally { btn.innerHTML = originalText; }
         }
 
         function mostrarPantalla(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
