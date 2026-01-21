@@ -539,7 +539,7 @@
                 container.innerHTML = `<img src="${URL_REVERSO}" style="width:1011px; height:638px; object-fit:cover; border-radius:40px; border:5px solid var(--primary);">`;
                 // Ajustar borde al color
                 container.querySelector('img').style.borderColor = globalColorTema || '#0033cc';
-            } else if (vista === 'legal') {
+            } else if (vista === 'legal.jpg') {
                 // Alcance Legal
                 container.innerHTML = `<img src="${URL_DOC_LEGAL}" style="width:1011px; height:638px; object-fit:contain; background:white; border-radius:40px; border:5px solid #ccc;">`;
             }
@@ -652,7 +652,7 @@
         }
 
         function iniciarPago() {
-            if (LINK_MERCADO_PAGO === "AQUI_TU_LINK_DE_PAGO_DE_5000_PESOS") {
+            if (LINK_MERCADO_PAGO === "https://mpago.la/24q6RuZ") {
                 alert("Error de Configuración: El administrador no ha configurado el link de pago.");
                 return;
             }
