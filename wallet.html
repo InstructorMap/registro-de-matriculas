@@ -50,8 +50,14 @@
         .welcome-sub { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
         .welcome-name { font-size: 20px; font-weight: 900; color: var(--text-dark); }
         .user-avatar-mini { width: 40px; height: 40px; border-radius: 50%; background: #ddd; object-fit: cover; border: 2px solid var(--primary); }
-        .card-viewport { width: 100%; overflow: hidden; background: transparent; position: relative; margin-bottom: 20px; height: 220px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); transition: height 0.3s; }
+        .card-viewport { width: 100%; overflow: hidden; background: transparent; position: relative; margin-bottom: 10px; height: 220px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); transition: height 0.3s; }
         #carnet-render { width: 1011px; height: 638px; background: white; position: absolute; top: 0; left: 0; transform-origin: top left; }
+
+        /* VIEW TOGGLES (NUEVO) */
+        .view-toggles { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; }
+        .btn-toggle { background: white; border: 1px solid #ddd; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; color: #666; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 5px; }
+        .btn-toggle.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .btn-toggle:active { transform: scale(0.95); }
 
         /* SECTION PREMIUM (IA) */
         .premium-box {
@@ -231,8 +237,15 @@
             <div><div class="welcome-sub">Bienvenido/a</div><div class="welcome-name" id="user-name">...</div></div>
             <img src="" id="user-avatar-wallet" class="user-avatar-mini" style="display:none;">
         </div>
+        
         <div class="card-viewport" id="card-viewport"><div id="carnet-render"></div></div>
         
+        <div class="view-toggles">
+            <div class="btn-toggle active" id="btn-toggle-front" onclick="cambiarVistaCarnet('front')"><i class="fas fa-id-card"></i> FRENTE</div>
+            <div class="btn-toggle" id="btn-toggle-back" onclick="cambiarVistaCarnet('back')"><i class="fas fa-undo"></i> DORSO</div>
+            <div class="btn-toggle" id="btn-toggle-legal" onclick="cambiarVistaCarnet('legal')"><i class="fas fa-file-contract"></i> ALCANCE</div>
+        </div>
+
         <div id="premium-section"></div>
 
         <div class="actions-grid">
@@ -283,6 +296,8 @@
         
         const LOGO_ASARI_DEFAULT = "https://vxggatcfrywyodovjwxj.supabase.co/storage/v1/object/public/logos-instituciones/Asari%20Logo.jpg"; 
         const URL_REVERSO = "./reverso.jpg"; 
+        // ⬇️ NUEVA CONSTANTE: IMAGEN DEL DOCUMENTO ⬇️
+        const URL_DOC_LEGAL = "https://vxggatcfrywyodovjwxj.supabase.co/storage/v1/object/public/logos-instituciones/Descarga%20de%20Responsabilidad%20Legal.jpg";
 
         const COLOR_DEFAULT = "#b8860b"; 
         
@@ -504,6 +519,27 @@
                 container.appendChild(card); 
             }); 
         }
+
+        // --- FUNCION NUEVA: CAMBIAR VISTA CARNET ---
+        function cambiarVistaCarnet(vista) {
+            const container = document.getElementById('carnet-render');
+            
+            // Gestionar botones activos
+            document.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-toggle-${vista}`).classList.add('active');
+
+            if (vista === 'front') {
+                container.innerHTML = CARNET_HTML;
+                llenarDatosCarnet(container, alumnoActual, globalColorTema);
+            } else if (vista === 'back') {
+                container.innerHTML = `<img src="${URL_REVERSO}" style="width:1011px; height:638px; object-fit:cover; border-radius:40px; border:5px solid var(--primary);">`;
+                // Ajustar borde al color
+                container.querySelector('img').style.borderColor = globalColorTema || '#0033cc';
+            } else if (vista === 'legal') {
+                // Mostrar Documento Legal
+                container.innerHTML = `<img src="${URL_DOC_LEGAL}" style="width:1011px; height:638px; object-fit:contain; background:white; border-radius:40px; border:5px solid #ccc;">`;
+            }
+        }
         
         async function cargarWallet(alumno) {
             alumnoActual = alumno; 
@@ -525,13 +561,18 @@
                 } catch(e) {}
             }
 
+            // Inicializar en FRENTE
             const container = document.getElementById('carnet-render');
             container.innerHTML = CARNET_HTML; 
             llenarDatosCarnet(container, alumno, colorDinamico); 
-            registrarAcceso(alumno);
             
+            // Resetear botones
+            document.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-toggle-front').classList.add('active');
+
+            registrarAcceso(alumno);
             renderPremiumSection(alumno); // PREMIUM
-            renderUpselling(alumno); // UPSELLING (Nueva función)
+            renderUpselling(alumno); // UPSELLING 
 
             const { data: cursosEncontrados } = await db.from('cursos_oficiales').select('*').eq('nombre', alumno.curso);
             
