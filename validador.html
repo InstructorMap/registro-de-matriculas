@@ -52,7 +52,29 @@
                 <p class="text-xs text-red-400 font-bold uppercase mb-1">Certificación</p>
                 <p class="text-sm font-bold text-slate-700" id="susp-curso">---</p>
             </div>
-            <p class="mt-6 text-xs text-slate-400">Esta credencial digital carece de validez oficial en este momento.</p>
+            <p class="mt-6 text-xs text-slate-400">Esta credencial digital carece de validez oficial por decisión administrativa.</p>
+        </div>
+    </div>
+
+    <div id="expired-screen" class="hidden w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border-t-8 border-orange-500 fade-in relative">
+        <div class="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+            <i data-lucide="clock" class="w-32 h-32 text-orange-900"></i>
+        </div>
+        <div class="p-8 text-center relative z-10">
+            <div class="w-20 h-20 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-white shadow-lg">
+                <i data-lucide="alert-triangle" class="w-10 h-10"></i>
+            </div>
+            <h1 class="text-2xl font-black text-orange-600 mb-1">CERTIFICACIÓN VENCIDA</h1>
+            <p class="text-xs font-bold text-orange-400 uppercase tracking-widest mb-6">La vigencia ha expirado</p>
+            
+            <div class="bg-orange-50 rounded-xl p-4 border border-orange-100 text-left">
+                <p class="text-xs text-orange-400 font-bold uppercase mb-1">Fecha de Vencimiento</p>
+                <p class="text-2xl font-black text-slate-700" id="exp-fecha">---</p>
+                <div class="h-px bg-orange-200 my-3"></div>
+                <p class="text-xs text-orange-400 font-bold uppercase mb-1">Estado Actual</p>
+                <p class="text-sm font-bold text-slate-700">NO VIGENTE / REQUIERE RENOVACIÓN</p>
+            </div>
+            <p class="mt-6 text-xs text-slate-400">Este documento fue válido en el pasado pero ha superado su fecha límite de validez.</p>
         </div>
     </div>
 
@@ -106,6 +128,11 @@
                 </div>
             </div>
 
+            <div class="flex justify-between items-center text-xs border-t pt-4">
+                <span class="text-slate-400 font-bold">Vigencia hasta:</span>
+                <span class="font-bold text-slate-700" id="val-vencimiento">---</span>
+            </div>
+
             <div>
                 <p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Hash de Transacción (TXID)</p>
                 <div class="bg-slate-900 text-emerald-400 p-3 rounded-lg text-[10px] hash-font break-all leading-relaxed relative group cursor-pointer" onclick="copiarHash()">
@@ -113,11 +140,6 @@
                     <i data-lucide="copy" class="absolute top-2 right-2 text-slate-600 w-3 h-3 group-hover:text-white transition"></i>
                 </div>
                 <p id="copy-msg" class="text-[10px] text-emerald-600 text-center mt-1 hidden">Copiado al portapapeles</p>
-            </div>
-
-            <div class="flex justify-between items-center text-xs border-t pt-4">
-                <span class="text-slate-400 font-bold">Fecha de Emisión:</span>
-                <span class="font-bold text-slate-700" id="val-fecha">---</span>
             </div>
         </div>
         
@@ -131,7 +153,7 @@
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
-        // --- PALETA DE COLORES (COPIA DE WALLET.HTML) ---
+        // Paleta de colores
         const COLORES_REGISTRO = { 
             'remaep': '#0033cc', 
             'rubra': '#cc0000', 
@@ -162,76 +184,33 @@
 
                 if (error || !alumno) throw new Error("No encontrado");
 
-                // 2. CHECK DE SUSPENSIÓN (PRIORIDAD ALTA)
+                // --- LÓGICA DE PRIORIDAD DE ESTADOS ---
+
+                // A. CHECK SUSPENSIÓN (Máxima Prioridad)
                 if (alumno.estado === 'SUSPENDIDO') {
                     return mostrarSuspendido(alumno);
                 }
 
-                // 3. Buscar Hash en Ledger (Simulado o Real)
-                const { data: ledger } = await db
-                    .from('ledger_transacciones')
-                    .select('id, created_at')
-                    .eq('matricula_id', idAlumno)
-                    .limit(1)
-                    .maybeSingle();
-
-                const hashDisplay = ledger ? ledger.id : `GENESIS_${alumno.id.replace(/-/g,'').substring(0,32)}_ASARI_CHAIN`;
-                const fechaEmision = ledger ? new Date(ledger.created_at) : new Date(alumno.fecha_inicio);
-
-                // 4. Renderizar Éxito
-                document.getElementById('loader').classList.add('hidden');
-                document.getElementById('success-screen').classList.remove('hidden');
-
-                // --- APLICAR ESTILOS DE COLOR ---
-                const regId = (alumno.registro_id || 'default').toLowerCase();
-                const colorTema = COLORES_REGISTRO[regId] || COLORES_REGISTRO['default'];
+                // B. CHECK VENCIMIENTO (Segunda Prioridad)
+                const fechaInicio = new Date(alumno.fecha_inicio);
+                let fechaVence;
                 
-                // Aplicar color al header
-                const headerBg = document.getElementById('header-bg');
-                const iconBg = document.getElementById('icon-bg');
-                const title = document.getElementById('header-title');
-                const subtitle = document.getElementById('header-subtitle');
-                const borderTop = document.getElementById('success-screen');
-                const photoBorder = document.getElementById('foto-border');
-
-                // Convertir hex a rgba suave para el fondo
-                const hexToRgba = (hex, alpha) => {
-                    const r = parseInt(hex.slice(1, 3), 16);
-                    const g = parseInt(hex.slice(3, 5), 16);
-                    const b = parseInt(hex.slice(5, 7), 16);
-                    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-                };
-
-                headerBg.style.backgroundColor = hexToRgba(colorTema, 0.1);
-                borderTop.style.borderColor = colorTema;
-                title.style.color = colorTema;
-                subtitle.style.color = colorTema;
-                iconBg.style.color = colorTema;
-                photoBorder.style.borderColor = colorTema;
-
-                // --- LLENAR DATOS ---
-                document.getElementById('val-nombre').innerText = `${alumno.nombre} ${alumno.apellido}`;
-                document.getElementById('val-dni').innerText = `DNI: ${new Intl.NumberFormat('es-AR').format(alumno.dni_alumno)}`;
-                document.getElementById('val-curso').innerText = alumno.curso;
-                document.getElementById('val-instituto').innerText = alumno.instituciones?.nombre || 'INSTITUTO OFICIAL';
-                document.getElementById('val-hash').innerText = hashDisplay;
-                document.getElementById('val-fecha').innerText = fechaEmision.toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
-                
-                // Matrícula Generada
-                document.getElementById('val-matricula').innerText = generarHashMatricula(String(alumno.dni_alumno));
-                document.getElementById('val-matricula').style.color = colorTema; // Pintar matrícula también
-
-                // Logo Instituto
-                if (alumno.instituciones?.logo_url) {
-                    const logo = document.getElementById('val-logo-inst');
-                    logo.src = alumno.instituciones.logo_url;
-                    logo.classList.remove('hidden');
+                if (alumno.fecha_vencimiento) {
+                    // Si tiene fecha manual específica
+                    const partes = alumno.fecha_vencimiento.split('-'); 
+                    fechaVence = new Date(partes[0], partes[1] - 1, partes[2]);
+                } else {
+                    // Default: 1 año desde inicio
+                    fechaVence = new Date(fechaInicio);
+                    fechaVence.setFullYear(fechaVence.getFullYear() + 1);
                 }
 
-                const imgEl = document.getElementById('val-foto');
-                imgEl.src = alumno.foto_url || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23cbd5e1'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
+                if (new Date() > fechaVence) {
+                    return mostrarVencido(fechaVence);
+                }
 
-                lucide.createIcons();
+                // C. TODO OK -> MOSTRAR CERTIFICADO
+                renderizarExito(alumno, fechaVence);
 
             } catch (err) {
                 console.error(err);
@@ -239,10 +218,65 @@
             }
         }
 
-        function generarHashMatricula(d) { 
-            let h = 0; 
-            for (let i = 0; i < d.length; i++) { h = ((h << 5) - h) + d.charCodeAt(i); h |= 0; } 
-            return String(Math.abs(h)).substring(0, 6).padStart(6, '9'); 
+        function renderizarExito(alumno, fechaVence) {
+            // 3. Buscar Hash en Ledger (Simulado o Real)
+            db.from('ledger_transacciones')
+                .select('id, created_at')
+                .eq('matricula_id', idAlumno)
+                .limit(1)
+                .maybeSingle()
+                .then(({ data: ledger }) => {
+                    const hashDisplay = ledger ? ledger.id : `GENESIS_${alumno.id.replace(/-/g,'').substring(0,32)}_ASARI_CHAIN`;
+                    
+                    document.getElementById('loader').classList.add('hidden');
+                    document.getElementById('success-screen').classList.remove('hidden');
+
+                    // Aplicar Colores
+                    const regId = (alumno.registro_id || 'default').toLowerCase();
+                    const colorTema = COLORES_REGISTRO[regId] || COLORES_REGISTRO['default'];
+                    aplicarEstilos(colorTema);
+
+                    // Llenar Datos
+                    document.getElementById('val-nombre').innerText = `${alumno.nombre} ${alumno.apellido}`;
+                    document.getElementById('val-dni').innerText = `DNI: ${new Intl.NumberFormat('es-AR').format(alumno.dni_alumno)}`;
+                    document.getElementById('val-curso').innerText = alumno.curso;
+                    document.getElementById('val-instituto').innerText = alumno.instituciones?.nombre || 'INSTITUTO OFICIAL';
+                    document.getElementById('val-hash').innerText = hashDisplay;
+                    document.getElementById('val-vencimiento').innerText = fechaVence.toLocaleDateString('es-AR');
+                    
+                    // Matrícula
+                    document.getElementById('val-matricula').innerText = generarHashMatricula(String(alumno.dni_alumno));
+                    document.getElementById('val-matricula').style.color = colorTema;
+
+                    // Logo
+                    if (alumno.instituciones?.logo_url) {
+                        const logo = document.getElementById('val-logo-inst');
+                        logo.src = alumno.instituciones.logo_url;
+                        logo.classList.remove('hidden');
+                    }
+
+                    // Foto
+                    const imgEl = document.getElementById('val-foto');
+                    imgEl.src = alumno.foto_url || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23cbd5e1'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
+                    
+                    lucide.createIcons();
+                });
+        }
+
+        function aplicarEstilos(colorTema) {
+            const hexToRgba = (hex, alpha) => {
+                const r = parseInt(hex.slice(1, 3), 16);
+                const g = parseInt(hex.slice(3, 5), 16);
+                const b = parseInt(hex.slice(5, 7), 16);
+                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+            };
+
+            document.getElementById('header-bg').style.backgroundColor = hexToRgba(colorTema, 0.1);
+            document.getElementById('success-screen').style.borderColor = colorTema;
+            document.getElementById('header-title').style.color = colorTema;
+            document.getElementById('header-subtitle').style.color = colorTema;
+            document.getElementById('icon-bg').style.color = colorTema;
+            document.getElementById('foto-border').style.borderColor = colorTema;
         }
 
         function mostrarError() {
@@ -254,10 +288,22 @@
         function mostrarSuspendido(alumno) {
             document.getElementById('loader').classList.add('hidden');
             document.getElementById('suspended-screen').classList.remove('hidden');
-            
             document.getElementById('susp-nombre').innerText = `${alumno.nombre} ${alumno.apellido}`;
             document.getElementById('susp-curso').innerText = alumno.curso;
             lucide.createIcons();
+        }
+
+        function mostrarVencido(fecha) {
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('expired-screen').classList.remove('hidden');
+            document.getElementById('exp-fecha').innerText = fecha.toLocaleDateString('es-AR');
+            lucide.createIcons();
+        }
+
+        function generarHashMatricula(d) { 
+            let h = 0; 
+            for (let i = 0; i < d.length; i++) { h = ((h << 5) - h) + d.charCodeAt(i); h |= 0; } 
+            return String(Math.abs(h)).substring(0, 6).padStart(6, '9'); 
         }
 
         function copiarHash() {
