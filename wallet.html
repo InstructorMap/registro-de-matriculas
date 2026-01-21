@@ -294,7 +294,7 @@
         
         const WHATSAPP_NUMERO = '5492245602445';
         
-        // ⬇️ ⬇️ CONFIGURACIÓN FINAL ⬇️ ⬇️
+        // ⬇️ CONFIGURACIÓN FINAL ⬇️
         const LINK_MERCADO_PAGO = "https://mpago.la/24q6RuZ"; 
         
         const LOGO_ASARI_DEFAULT = "https://vxggatcfrywyodovjwxj.supabase.co/storage/v1/object/public/logos-instituciones/Asari%20Logo.jpg"; 
@@ -809,7 +809,7 @@
 
         async function descargarDiploma() {
             if(!cursoActualData || !cursoActualData.diploma_bg_url) return alert("Diploma no disponible.");
-            const btn = document.getElementById('btn-descargar-diploma');
+            const btn = document.getElementById('btn-descargar-diploma'); 
             const originalText = btn.innerHTML; 
             btn.innerHTML = '⏳';
             
@@ -858,7 +858,7 @@
             } catch(e) { alert("Error diploma: " + e.message); } finally { btn.innerHTML = originalText; }
         }
 
-        // --- FUNCIÓN ANALÍTICO ---
+        // --- FUNCIÓN ANALÍTICO (VERSIÓN CORREGIDA V6.7) ---
         async function descargarAnalitico() {
             if(!cursoActualData || !cursoActualData.analitico_bg_url) return alert("Analítico no disponible.");
             const btn = document.getElementById('btn-descargar-analitico'); 
@@ -880,12 +880,14 @@
                     </div>
                 </div>`;
                 const bgImg = ghost.querySelector('#ana-bg-img');
-                bgImg.src = cursoActualData.analitico_bg_url + "?t=" + Date.now();
+                
+                // CORRECCIÓN: Quitamos el timestamp para evitar errores de CORS con algunos servidores
+                bgImg.src = cursoActualData.analitico_bg_url; 
                 
                 await new Promise((resolve, reject) => {
                     bgImg.onload = resolve;
-                    bgImg.onerror = () => reject(new Error("No se pudo cargar la imagen del analítico."));
-                    setTimeout(() => reject(new Error("Tiempo de espera agotado.")), 10000);
+                    bgImg.onerror = () => reject(new Error(`No se pudo cargar la imagen: ${cursoActualData.analitico_bg_url}`));
+                    setTimeout(() => reject(new Error("Tiempo de espera agotado (10s).")), 10000);
                 });
 
                 const txtElem = ghost.querySelector('#ana-texto-completo');
