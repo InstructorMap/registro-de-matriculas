@@ -61,13 +61,32 @@
         .btn-toggle.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.2); transform: translateY(-1px); }
         .btn-toggle:active { transform: scale(0.95); }
 
-        /* SECTION PREMIUM */
-        .premium-box { background: linear-gradient(135deg, #1e1e1e 0%, #2a2a2a 100%); color: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; overflow: hidden; border: 1px solid #444; }
-        .premium-badge { position: absolute; top: 10px; right: 10px; background: var(--gold); color: black; font-size: 10px; font-weight: 900; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 1px; }
+        /* SECTION PREMIUM (IA) */
+        .premium-box {
+            background: linear-gradient(135deg, #1e1e1e 0%, #2a2a2a 100%);
+            color: white; border-radius: 15px; padding: 20px; margin-bottom: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; overflow: hidden;
+            border: 1px solid #444;
+        }
+        .premium-badge {
+            position: absolute; top: 10px; right: 10px; background: var(--gold);
+            color: black; font-size: 10px; font-weight: 900; padding: 4px 8px;
+            border-radius: 4px; text-transform: uppercase; letter-spacing: 1px;
+        }
         .premium-title { font-size: 18px; font-weight: 900; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
         .premium-desc { font-size: 12px; color: #aaa; margin-bottom: 15px; line-height: 1.4; }
-        .btn-pay { background: var(--gold); color: black; border: none; width: 100%; padding: 12px; border-radius: 8px; font-weight: 900; cursor: pointer; text-transform: uppercase; font-size: 12px; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3); }
-        .btn-ai-action { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); width: 100%; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 12px; display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 8px; transition: 0.2s; }
+        .btn-pay {
+            background: var(--gold); color: black; border: none; width: 100%; padding: 12px;
+            border-radius: 8px; font-weight: 900; cursor: pointer; text-transform: uppercase;
+            font-size: 12px; display: flex; justify-content: center; align-items: center; gap: 8px;
+            box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3);
+        }
+        .btn-ai-action {
+            background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2);
+            width: 100%; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer;
+            font-size: 12px; display: flex; justify-content: center; align-items: center; gap: 8px;
+            margin-bottom: 8px; transition: 0.2s;
+        }
         .btn-ai-action:hover { background: rgba(255,255,255,0.2); }
 
         /* CARNET STYLES */
@@ -92,12 +111,26 @@
         .value-text { font-size: 36px; font-weight: 900; text-align: right; }
         .carnet-back-img { width: 1011px; height: 638px; object-fit: cover; border-radius: 40px; border: 5px solid var(--primary); transition: border-color 0.3s; }
 
-        .live-shimmer { position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%); transform: skewX(-25deg); animation: shimmerMove 4s infinite; z-index: 10; pointer-events: none; }
+        .live-shimmer {
+            position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
+            transform: skewX(-25deg);
+            animation: shimmerMove 4s infinite;
+            z-index: 10; pointer-events: none;
+        }
         @keyframes shimmerMove { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
 
-        .overlay-vencido { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(180, 0, 0, 0.75); z-index: 20; display: flex; justify-content: center; align-items: center; flex-direction: column; color: white; text-align: center; border-radius: 35px; backdrop-filter: blur(2px); }
+        /* ESTADOS ESPECIALES */
+        .overlay-vencido {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(180, 0, 0, 0.75); z-index: 20;
+            display: flex; justify-content: center; align-items: center;
+            flex-direction: column; color: white; text-align: center;
+            border-radius: 35px; backdrop-filter: blur(2px);
+        }
         .texto-vencido { font-size: 80px; font-weight: 900; transform: rotate(-15deg); border: 8px solid white; padding: 10px 40px; text-transform: uppercase; letter-spacing: 5px; }
 
+        /* DIPLOMA / ANALITICO LAYOUT */
         .diploma-layout { width: 2000px; height: 1414px; position: relative; overflow: hidden; color: #333; }
         .diploma-bg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
         .diploma-overlay { position: relative; z-index: 10; width: 100%; height: 100%; }
@@ -261,14 +294,10 @@
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
         
         const WHATSAPP_NUMERO = '5492245602445';
-        
-        // ⬇️ CONFIGURACIÓN FINAL ⬇️
         const LINK_MERCADO_PAGO = "https://mpago.la/24q6RuZ"; 
         
         const LOGO_ASARI_DEFAULT = "https://vxggatcfrywyodovjwxj.supabase.co/storage/v1/object/public/logos-instituciones/Asari%20Logo.jpg"; 
         const URL_REVERSO = "./reverso.jpg"; 
-        
-        // ⚠️ ARCHIVO LOCAL (Sin espacios)
         const URL_DOC_LEGAL = "legal.jpg";
 
         const COLOR_DEFAULT = "#b8860b"; 
@@ -492,11 +521,8 @@
             }); 
         }
 
-        // --- FUNCION NUEVA: CAMBIAR VISTA CARNET ---
         function cambiarVistaCarnet(vista) {
             const container = document.getElementById('carnet-render');
-            
-            // Gestionar botones activos
             document.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
             document.getElementById(`btn-toggle-${vista}`).classList.add('active');
 
@@ -504,12 +530,9 @@
                 container.innerHTML = CARNET_HTML;
                 llenarDatosCarnet(container, alumnoActual, globalColorTema);
             } else if (vista === 'back') {
-                // Dorso
                 container.innerHTML = `<img src="${URL_REVERSO}" style="width:1011px; height:638px; object-fit:cover; border-radius:40px; border:5px solid var(--primary);">`;
-                // Ajustar borde al color
                 container.querySelector('img').style.borderColor = globalColorTema || '#0033cc';
             } else if (vista === 'legal') {
-                // Alcance Legal
                 container.innerHTML = `<img src="${URL_DOC_LEGAL}" style="width:1011px; height:638px; object-fit:contain; background:white; border-radius:40px; border:5px solid #ccc;">`;
             }
         }
@@ -522,8 +545,6 @@
             document.getElementById('btn-cambiar-curso').style.display = globalMatriculas.length > 1 ? 'flex' : 'none';
 
             cursoActualData = null; 
-
-            // Verificar si viene de MercadoPago
             checkPaymentReturn(alumno.id);
 
             let colorDinamico = null;
@@ -534,18 +555,15 @@
                 } catch(e) {}
             }
 
-            // Inicializar en FRENTE
             const container = document.getElementById('carnet-render');
             container.innerHTML = CARNET_HTML; 
             llenarDatosCarnet(container, alumno, colorDinamico); 
-            
-            // Resetear botones
             document.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-toggle-front').classList.add('active');
 
             registrarAcceso(alumno);
-            renderPremiumSection(alumno); // PREMIUM
-            renderUpselling(alumno); // UPSELLING 
+            renderPremiumSection(alumno);
+            renderUpselling(alumno);
 
             const { data: cursosEncontrados } = await db.from('cursos_oficiales').select('*').eq('nombre', alumno.curso);
             
@@ -560,7 +578,6 @@
                 cursoActualData = candidato;
             } 
 
-            // VERIFICAR DISPONIBILIDAD DE DIPLOMA Y ANALÍTICO
             const btnDiploma = document.getElementById('btn-descargar-diploma');
             const btnAnalitico = document.getElementById('btn-descargar-analitico');
 
@@ -570,7 +587,6 @@
             setTimeout(ajustarCarnetResponsivo, 100);
         }
 
-        // --- LÓGICA PREMIUM ---
         function renderPremiumSection(alumno) {
             const container = document.getElementById('premium-section');
             if (alumno.premium) {
@@ -593,7 +609,6 @@
             }
         }
 
-        // --- LÓGICA UPSELLING (OPCIÓN 3) ---
         async function renderUpselling(alumno) {
             try {
                 let { data: ofertas } = await db.from('rutas_carrera').select('*').eq('activo', true).ilike('curso_origen', alumno.curso).maybeSingle();
@@ -603,7 +618,7 @@
                 }
 
                 if (ofertas) {
-                    const container = document.getElementById('premium-section'); // Insertamos después del premium
+                    const container = document.getElementById('premium-section');
                     const ofertaDiv = document.createElement('div');
                     ofertaDiv.style.marginTop = "20px";
                     ofertaDiv.innerHTML = `
@@ -618,8 +633,6 @@
                         </div>
                     </div>`;
                     ofertaDiv.onclick = () => window.open(ofertas.link_destino, '_blank');
-                    
-                    // Insertamos justo antes de la grilla de acciones
                     const actionsGrid = document.querySelector('.actions-grid');
                     actionsGrid.parentNode.insertBefore(ofertaDiv, actionsGrid);
                 }
@@ -627,10 +640,7 @@
         }
 
         function iniciarPago() {
-            if (!LINK_MERCADO_PAGO || LINK_MERCADO_PAGO.includes("AQUI_TU_LINK")) {
-                alert("Error de Configuración: El administrador no ha configurado el link de pago.");
-                return;
-            }
+            if (!LINK_MERCADO_PAGO || LINK_MERCADO_PAGO.includes("AQUI_TU_LINK")) { alert("Error de Configuración"); return; }
             window.location.href = LINK_MERCADO_PAGO; 
         }
 
@@ -644,7 +654,7 @@
                     renderPremiumSection(alumnoActual);
                     window.history.replaceState({}, document.title, window.location.pathname + "?id=" + alumnoId);
                     alert("¡Pago Exitoso! Las funciones de IA están activas.");
-                } catch(e) { console.error("Error activando premium", e); }
+                } catch(e) { }
             }
         }
 
@@ -653,11 +663,10 @@
             const curso = alumnoActual.curso;
             const instituto = alumnoActual.instituciones?.nombre || "Instituto Colbert";
             let texto = "";
-
             if (tipo === 'linkedin') {
-                texto = `🚀 ¡Meta Cumplida!\n\nMe complace anunciar que he completado oficialmente mi certificación como ${curso} en ${instituto}.\n\nEsta formación me ha permitido desarrollar competencias clave en el sector, validando mis conocimientos a través de tecnología Blockchain para garantizar la autenticidad de mi título.\n\nEstoy listo/a para nuevos desafíos profesionales donde pueda aplicar todo lo aprendido.\n\n#${curso.replace(/\s/g,'')} #CrecimientoProfesional #CertificacionDigital`;
+                texto = `🚀 ¡Meta Cumplida!\n\nMe complace anunciar que he completado oficialmente mi certificación como ${curso} en ${instituto}.\n\nValidado con tecnología Blockchain.\n\n#${curso.replace(/\s/g,'')} #CrecimientoProfesional`;
             } else {
-                texto = `PERFIL PROFESIONAL:\nCertificado como ${curso} por ${instituto}, con formación validada digitalmente. Profesional proactivo, capacitado para desempeñar funciones operativas y estratégicas en el ámbito de ${curso}. Enfoque en la mejora continua y aplicación de estándares de calidad.`;
+                texto = `PERFIL PROFESIONAL:\nCertificado como ${curso} por ${instituto}. Formación validada digitalmente.`;
             }
             navigator.clipboard.writeText(texto).then(() => { alert("¡Texto generado y copiado al portapapeles! Listo para pegar."); });
         }
@@ -682,14 +691,9 @@
                 vence = new Date(fechaInicio); 
                 vence.setFullYear(vence.getFullYear() + 1);
             }
-            
             el('#txt-vence').innerText = vence.toLocaleDateString('es-AR');
             if(new Date() > vence) el('#vencido-overlay').style.display = 'flex';
-            
-            if (alumno.estado === 'SUSPENDIDO') {
-                el('#suspendido-overlay').style.display = 'flex';
-                el('#vencido-overlay').style.display = 'none'; 
-            }
+            if (alumno.estado === 'SUSPENDIDO') { el('#suspendido-overlay').style.display = 'flex'; el('#vencido-overlay').style.display = 'none'; }
 
             if (alumno.foto_url) { const img = el('#img-foto'); img.crossOrigin = "anonymous"; img.src = alumno.foto_url + "?t=" + Date.now(); }
             el('#qr-container').innerHTML = ""; 
@@ -697,54 +701,28 @@
 
             const registroId = (alumno.registro_id || 'default').toLowerCase();
             const colorCarnet = colorOverride || COLORES_REGISTRO[registroId] || COLORES_REGISTRO['default'];
-            const nombreRegistro = (alumno.registro_id || 'OFICIAL').toUpperCase();
-            
             globalColorTema = colorCarnet; 
-
             const panel = el('#bg-panel');
-            panel.style.background = ''; 
-            panel.style.backgroundColor = colorCarnet; 
-            panel.style.backgroundImage = 'none'; 
-            panel.style.color = 'white';
+            panel.style.background = ''; panel.style.backgroundColor = colorCarnet; panel.style.backgroundImage = 'none'; panel.style.color = 'white';
 
-            if (registroId === 'rce') {
-                panel.style.backgroundImage = `repeating-linear-gradient(45deg, transparent, transparent 20px, #222 20px, #222 25px)`;
-                panel.style.color = '#fff';
-                el('#card-base-el').style.borderColor = "#222";
-            } 
-            else if (registroId === 'remets' || registroId === 'rmts') {
-                panel.style.backgroundColor = "#1a1a1a";
-                panel.style.backgroundImage = `linear-gradient(0deg, rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)`;
-                panel.style.backgroundSize = "20px 20px";
-                el('#card-base-el').style.borderColor = "#333";
-            } 
-            else {
-                el('#card-base-el').style.borderColor = colorCarnet;
-            }
+            if (registroId === 'rce') { panel.style.backgroundImage = `repeating-linear-gradient(45deg, transparent, transparent 20px, #222 20px, #222 25px)`; panel.style.color = '#fff'; el('#card-base-el').style.borderColor = "#222"; } 
+            else if (registroId === 'remets' || registroId === 'rmts') { panel.style.backgroundColor = "#1a1a1a"; panel.style.backgroundImage = `linear-gradient(0deg, rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)`; panel.style.backgroundSize = "20px 20px"; el('#card-base-el').style.borderColor = "#333"; } 
+            else { el('#card-base-el').style.borderColor = colorCarnet; }
 
             el('#banda-color').style.backgroundColor = colorCarnet;
-            const sigla = el('#txt-sigla');
-            sigla.innerText = nombreRegistro;
-            sigla.style.color = 'white'; 
-
-            const t = (alumno.curso || "CURSO PROFESIONAL").trim().toUpperCase().split(/\s+/);
-            const e1 = el('#txt-titulo-main'); const e2 = el('#txt-titulo-sub');
-            if(t.length < 2) { e1.innerText = t.join(' '); e2.innerText = ""; } 
-            else { e1.innerText = t[0]; e2.innerText = t.slice(1).join(' '); }
+            el('#txt-sigla').innerText = (alumno.registro_id || 'OFICIAL').toUpperCase();
             
-            ajustarTextoAlAncho(nombreEl, 34); 
-            ajustarTextoAlAncho(e1, 55, 600); 
-            ajustarTextoAlAncho(e2, 55, 500); 
+            const t = (alumno.curso || "CURSO PROFESIONAL").trim().toUpperCase().split(/\s+/);
+            if(t.length < 2) { el('#txt-titulo-main').innerText = t.join(' '); el('#txt-titulo-sub').innerText = ""; } 
+            else { el('#txt-titulo-main').innerText = t[0]; el('#txt-titulo-sub').innerText = t.slice(1).join(' '); }
+            
+            ajustarTextoAlAncho(nombreEl, 34); ajustarTextoAlAncho(el('#txt-titulo-main'), 55, 600); ajustarTextoAlAncho(el('#txt-titulo-sub'), 55, 500); 
         }
 
         function ajustarTextoAlAncho(element, startSize, maxWidth) {
-            let size = startSize;
-            element.style.fontSize = size + 'px';
+            let size = startSize; element.style.fontSize = size + 'px';
             const limit = maxWidth || element.parentElement.clientWidth;
-            while (element.scrollWidth > limit && size > 10) {
-                size -= 2;
-                element.style.fontSize = size + 'px';
-            }
+            while (element.scrollWidth > limit && size > 10) { size -= 2; element.style.fontSize = size + 'px'; }
         }
 
         async function descargarCarnetCompleto() {
@@ -754,33 +732,24 @@
                 const ghost = document.getElementById('ghost-container'); ghost.innerHTML = "";
                 const wrapper = document.createElement('div');
                 wrapper.style.display = "flex"; wrapper.style.flexDirection = "column"; wrapper.style.gap = "20px"; wrapper.style.padding = "20px"; wrapper.style.backgroundColor = "white";
-                wrapper.insertAdjacentHTML('beforeend', CARNET_HTML);
-                wrapper.insertAdjacentHTML('beforeend', CARNET_BACK_HTML);
+                wrapper.insertAdjacentHTML('beforeend', CARNET_HTML); wrapper.insertAdjacentHTML('beforeend', CARNET_BACK_HTML);
                 wrapper.querySelector('.live-shimmer').style.display = 'none'; 
                 ghost.appendChild(wrapper);
                 llenarDatosCarnet(ghost, alumnoActual, globalColorTema);
-                const cards = ghost.querySelectorAll('.card-base, .carnet-back-img');
-                cards.forEach(c => { c.style.width = "1011px"; c.style.height = "638px"; });
-                const backImg = ghost.querySelector('#carnet-back-img');
-                backImg.style.borderColor = ghost.querySelector('.card-base').style.borderColor;
+                ghost.querySelectorAll('.card-base, .carnet-back-img').forEach(c => { c.style.width = "1011px"; c.style.height = "638px"; });
+                ghost.querySelector('#carnet-back-img').style.borderColor = ghost.querySelector('.card-base').style.borderColor;
                 const images = ghost.getElementsByTagName('img');
                 for(let img of images) { if(img.src && !img.complete) await new Promise(r => img.onload = r); }
                 await new Promise(r => setTimeout(r, 500)); 
                 const canvas = await html2canvas(wrapper, { scale: 1.5, useCORS: true });
-                const link = document.createElement('a');
-                link.download = `Carnet_${alumnoActual.dni_alumno}.png`;
-                link.href = canvas.toDataURL("image/png");
-                link.click();
+                const link = document.createElement('a'); link.download = `Carnet_${alumnoActual.dni_alumno}.png`; link.href = canvas.toDataURL("image/png"); link.click();
                 ghost.innerHTML = '';
             } catch(e) { alert("Error: " + e.message); } finally { btn.innerHTML = txt; }
         }
 
         async function descargarDiploma() {
             if(!cursoActualData || !cursoActualData.diploma_bg_url) return alert("Diploma no disponible.");
-            const btn = document.getElementById('btn-descargar-diploma'); 
-            const originalText = btn.innerHTML; 
-            btn.innerHTML = '⏳';
-            
+            const btn = document.getElementById('btn-descargar-diploma'); const originalText = btn.innerHTML; btn.innerHTML = '⏳';
             try {
                 const ghost = document.getElementById('ghost-container');
                 const colorTexto = globalColorTexto || '#0033cc';
@@ -788,51 +757,33 @@
                 <div class="diploma-layout" id="diploma-final">
                     <img id="dip-bg-img" class="diploma-bg" src="" crossorigin="anonymous">
                     <div class="diploma-overlay">
-                        <div class="dip-linea-unica-container" id="dip-texto-container">
-                            <span class="dip-texto-formal" id="dip-texto-completo" style="color: ${colorTexto} !important;"></span>
-                        </div>
+                        <div class="dip-linea-unica-container" id="dip-texto-container"><span class="dip-texto-formal" id="dip-texto-completo" style="color: ${colorTexto} !important;"></span></div>
                         <div class="dip-qr" id="dip-qr-code"></div>
                         <div class="dip-info-extra" id="dip-fecha-registro" style="color: ${colorTexto} !important; border-color: ${colorTexto}33;"></div>
                         <div class="dip-sello"></div>
                     </div>
                 </div>`;
                 const bgImg = ghost.querySelector('#dip-bg-img');
-                
-                // SE AGREGA LIMPIEZA DE URL PARA EVITAR ARRAYS
                 let bgUrl = cursoActualData.diploma_bg_url;
-                if (bgUrl.startsWith('["') || bgUrl.startsWith('[')) {
-                    try { bgUrl = JSON.parse(bgUrl)[0]; } catch(e) {}
-                }
+                if (bgUrl.startsWith('["') || bgUrl.startsWith('[')) { try { bgUrl = JSON.parse(bgUrl)[0]; } catch(e) {} }
                 bgImg.src = bgUrl + "?t=" + Date.now();
-                
-                await new Promise((resolve, reject) => {
-                    bgImg.onload = resolve;
-                    bgImg.onerror = () => reject(new Error("No se pudo cargar la imagen del diploma."));
-                    setTimeout(() => reject(new Error("Tiempo de espera agotado.")), 10000);
-                });
+                await new Promise((resolve, reject) => { bgImg.onload = resolve; bgImg.onerror = () => reject(new Error("No se pudo cargar la imagen.")); setTimeout(() => reject(new Error("Timeout")), 10000); });
 
                 const txtElem = ghost.querySelector('#dip-texto-completo');
-                const dniFormateado = new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno);
-                txtElem.innerText = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${dniFormateado}`;
+                txtElem.innerText = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno)}`;
                 new QRCode(ghost.querySelector('#dip-qr-code'), { text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, width: 223, height: 223 });
                 const f = new Date(alumnoActual.fecha_inicio || new Date()).toLocaleDateString('es-ES', {year:'numeric', month:'long', day:'numeric'});
                 ghost.querySelector('#dip-fecha-registro').innerHTML = `REGISTRO: <b>${(alumnoActual.registro_id||'OFICIAL').toUpperCase()}</b> • Fecha: ${f}`;
                 await document.fonts.ready;
-                txtElem.style.display = 'inline-block'; 
-                txtElem.style.whiteSpace = 'nowrap'; 
-                await new Promise(r => setTimeout(r, 100)); 
-                ajustarTextoAlAncho(txtElem, 100, 1600); 
-                await new Promise(r => setTimeout(r, 500));
+                txtElem.style.display = 'inline-block'; txtElem.style.whiteSpace = 'nowrap'; 
+                await new Promise(r => setTimeout(r, 100)); ajustarTextoAlAncho(txtElem, 100, 1600); await new Promise(r => setTimeout(r, 500));
                 const canvas = await html2canvas(ghost.querySelector('#diploma-final'), { scale: 1, useCORS: true });
-                const link = document.createElement('a');
-                link.download = `Diploma_${alumnoActual.dni_alumno}.png`;
-                link.href = canvas.toDataURL("image/png");
-                link.click();
+                const link = document.createElement('a'); link.download = `Diploma_${alumnoActual.dni_alumno}.png`; link.href = canvas.toDataURL("image/png"); link.click();
                 ghost.innerHTML = '';
             } catch(e) { alert("Error diploma: " + e.message); } finally { btn.innerHTML = originalText; }
         }
 
-        // --- FUNCIÓN ANALÍTICO MULTI-PÁGINA (PDF) CORREGIDA V6.10 ---
+        // --- FUNCIÓN ANALÍTICO MULTI-PÁGINA (PDF) CORREGIDA V6.11 ---
         async function descargarAnalitico() {
             if(!cursoActualData || !cursoActualData.analitico_bg_url) return alert("Analítico no disponible.");
             const btn = document.getElementById('btn-descargar-analitico'); 
@@ -840,103 +791,94 @@
             btn.innerHTML = 'Generando PDF ⏳';
             
             try {
-                // 1. Detectar URLs (Array o String)
+                // 1. Detectar URLs
                 let urls = [];
                 try {
-                    // Si viene como string JSON '["url1", "url2"]'
                     if (cursoActualData.analitico_bg_url.trim().startsWith('[')) {
                         urls = JSON.parse(cursoActualData.analitico_bg_url);
                     } else {
-                        // Si es una URL simple
                         urls = [cursoActualData.analitico_bg_url];
                     }
                 } catch(e) {
-                    // Fallback si falla el parseo
                     urls = [cursoActualData.analitico_bg_url];
                 }
 
-                // 2. Inicializar PDF (A4 Landscape)
+                // 2. Inicializar PDF (Portrait)
                 const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF('l', 'mm', 'a4'); 
+                const pdf = new jsPDF('p', 'mm', 'a4'); 
                 const pdfWidth = pdf.internal.pageSize.getWidth();
                 const pdfHeight = pdf.internal.pageSize.getHeight();
 
                 const ghost = document.getElementById('ghost-container');
                 const colorTexto = globalColorTexto || '#0033cc';
 
-                // 3. Iterar por cada URL (Página)
+                // 3. Iterar por cada URL
                 for (let i = 0; i < urls.length; i++) {
                     const url = urls[i];
                     
-                    // --- LOGICA CONDICIONAL: Solo página 0 lleva Overlay ---
                     let overlayHTML = '';
+                    // --- MODIFICADO: Ajuste de posiciones para NO TAPAR HEADER/FOOTER ---
                     if (i === 0) {
-                        // Es la primera página -> Lleva datos
                         overlayHTML = `
                         <div class="diploma-overlay">
-                            <div class="dip-linea-unica-container" id="ana-text-container-${i}">
-                                <span class="dip-texto-formal" id="ana-text-${i}" style="color: ${colorTexto} !important;"></span>
+                            <div style="position: absolute; top: 120px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; white-space: nowrap;">
+                                <span class="dip-texto-formal" id="ana-text-${i}" style="color: ${colorTexto} !important; font-size: 50px;"></span>
                             </div>
-                            <div class="dip-qr" id="ana-qr-${i}"></div>
-                            <div class="dip-info-extra" id="ana-info-${i}" style="color: ${colorTexto} !important; border-color: ${colorTexto}33;"></div>
+                            
+                            <div id="ana-qr-${i}" style="position: absolute; top: 60px; right: 60px; width: 150px; height: 150px; background: white; padding: 5px;"></div>
+                            
+                            <div id="ana-info-${i}" style="position: absolute; top: 200px; left: 50%; transform: translateX(-50%); text-align: center; font-family: 'Roboto', sans-serif; font-size: 16px; font-weight: 700; color: ${colorTexto}; background: rgba(255,255,255,0.9); padding: 4px 25px; border-radius: 50px;"></div>
                         </div>`;
                     }
-                    // Paginas i > 0 no llevan overlay, solo la imagen de fondo limpia
 
-                    // Limpiar ghost e inyectar estructura
+                    // Inyectar con dimensiones verticales (Portrait Ratio)
                     ghost.innerHTML = `
-                    <div class="diploma-layout" id="analitico-page-${i}">
-                        <img id="ana-bg-${i}" class="diploma-bg" src="" crossorigin="anonymous">
+                    <div class="diploma-layout" id="analitico-page-${i}" style="width: 1414px; height: 2000px; position: relative;">
+                        <img id="ana-bg-${i}" src="" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover;">
                         ${overlayHTML}
                     </div>`;
 
                     const bgImg = document.getElementById(`ana-bg-${i}`);
-                    bgImg.src = url; // Sin timestamp para evitar errores de CORS con arrays
+                    bgImg.src = url; 
 
-                    // Esperar carga imagen
                     await new Promise((resolve, reject) => {
                         bgImg.onload = resolve;
                         bgImg.onerror = () => reject(new Error(`Error cargando página ${i+1}`));
                         setTimeout(() => reject(new Error(`Timeout página ${i+1}`)), 15000);
                     });
 
-                    // Si es la página 0, llenamos los datos
                     if (i === 0) {
                         const txtElem = document.getElementById(`ana-text-${i}`);
                         txtElem.innerText = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno)}`;
                         
                         new QRCode(document.getElementById(`ana-qr-${i}`), { 
                             text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, 
-                            width: 223, height: 223 
+                            width: 140, height: 140 
                         });
                         
                         const f = new Date(alumnoActual.fecha_inicio || new Date()).toLocaleDateString('es-ES', {year:'numeric', month:'long', day:'numeric'});
                         document.getElementById(`ana-info-${i}`).innerHTML = `REGISTRO: <b>${(alumnoActual.registro_id||'OFICIAL').toUpperCase()}</b> • Fecha: ${f}`;
 
-                        // Renderizar fuentes y ajustar texto
                         await document.fonts.ready;
-                        txtElem.style.display = 'inline-block'; txtElem.style.whiteSpace = 'nowrap';
+                        txtElem.style.display = 'inline-block';
                         await new Promise(r => setTimeout(r, 100));
-                        ajustarTextoAlAncho(txtElem, 100, 1600);
+                        ajustarTextoAlAncho(txtElem, 50, 1200); // Max width menor para portrait
                         await new Promise(r => setTimeout(r, 500));
                     }
 
-                    // Generar captura
                     const canvas = await html2canvas(document.getElementById(`analitico-page-${i}`), { scale: 1, useCORS: true });
-                    const imgData = canvas.toDataURL('image/jpeg', 0.90); // Calidad 90% para que no pese tanto el PDF
+                    const imgData = canvas.toDataURL('image/jpeg', 0.90);
 
-                    // Agregar al PDF
                     if (i > 0) pdf.addPage();
                     pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
                 }
 
-                // 4. Guardar PDF
                 pdf.save(`Analitico_${alumnoActual.dni_alumno}.pdf`);
                 ghost.innerHTML = '';
 
             } catch(e) { 
                 console.error(e);
-                alert("Error generando PDF: " + e.message + "\n\nIntenta nuevamente."); 
+                alert("Error generando PDF: " + e.message); 
             } finally { 
                 btn.innerHTML = originalText; 
             }
