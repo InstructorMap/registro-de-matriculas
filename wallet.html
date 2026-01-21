@@ -16,7 +16,7 @@
 
     <style>
         /* ESTILOS BASE */
-        :root { --primary: #0033cc; --bg-app: #f4f6f9; --text-dark: #222; }
+        :root { --primary: #0033cc; --bg-app: #f4f6f9; --text-dark: #222; --gold: #D4AF37; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; padding: 0; font-family: 'Roboto', sans-serif; background-color: var(--bg-app); color: #333; height: 100vh; display: flex; flex-direction: column; }
 
@@ -53,6 +53,34 @@
         .card-viewport { width: 100%; overflow: hidden; background: transparent; position: relative; margin-bottom: 20px; height: 220px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); transition: height 0.3s; }
         #carnet-render { width: 1011px; height: 638px; background: white; position: absolute; top: 0; left: 0; transform-origin: top left; }
 
+        /* SECTION PREMIUM (NUEVO) */
+        .premium-box {
+            background: linear-gradient(135deg, #1e1e1e 0%, #2a2a2a 100%);
+            color: white; border-radius: 15px; padding: 20px; margin-bottom: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; overflow: hidden;
+            border: 1px solid #444;
+        }
+        .premium-badge {
+            position: absolute; top: 10px; right: 10px; background: var(--gold);
+            color: black; font-size: 10px; font-weight: 900; padding: 4px 8px;
+            border-radius: 4px; text-transform: uppercase; letter-spacing: 1px;
+        }
+        .premium-title { font-size: 18px; font-weight: 900; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
+        .premium-desc { font-size: 12px; color: #aaa; margin-bottom: 15px; line-height: 1.4; }
+        .btn-pay {
+            background: var(--gold); color: black; border: none; width: 100%; padding: 12px;
+            border-radius: 8px; font-weight: 900; cursor: pointer; text-transform: uppercase;
+            font-size: 12px; display: flex; justify-content: center; align-items: center; gap: 8px;
+            box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3);
+        }
+        .btn-ai-action {
+            background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2);
+            width: 100%; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer;
+            font-size: 12px; display: flex; justify-content: center; align-items: center; gap: 8px;
+            margin-bottom: 8px; transition: 0.2s;
+        }
+        .btn-ai-action:hover { background: rgba(255,255,255,0.2); }
+
         /* CARNET STYLES */
         .card-base { width: 100%; height: 100%; display: flex; position: relative; border: 5px solid; border-radius: 40px; overflow: hidden; background: white; transition: border-color 0.3s; }
         .front-left { width: 380px; height: 100%; position: relative; background: #d4d4d4; z-index: 1; border-top-left-radius: 35px; border-bottom-left-radius: 35px; overflow: hidden; flex-shrink: 0; }
@@ -75,7 +103,6 @@
         .value-text { font-size: 36px; font-weight: 900; text-align: right; }
         .carnet-back-img { width: 1011px; height: 638px; object-fit: cover; border-radius: 40px; border: 5px solid var(--primary); transition: border-color 0.3s; }
 
-        /* LIVE SHIMMER */
         .live-shimmer {
             position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
             background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
@@ -85,7 +112,6 @@
         }
         @keyframes shimmerMove { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
 
-        /* ESTADO VENCIDO Y SUSPENDIDO */
         .overlay-vencido {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(180, 0, 0, 0.75); z-index: 20;
@@ -95,7 +121,6 @@
         }
         .texto-vencido { font-size: 80px; font-weight: 900; transform: rotate(-15deg); border: 8px solid white; padding: 10px 40px; text-transform: uppercase; letter-spacing: 5px; }
 
-        /* DIPLOMA */
         .diploma-layout { width: 2000px; height: 1414px; position: relative; overflow: hidden; color: #333; }
         .diploma-bg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
         .diploma-overlay { position: relative; z-index: 10; width: 100%; height: 100%; }
@@ -206,6 +231,8 @@
         </div>
         <div class="card-viewport" id="card-viewport"><div id="carnet-render"></div></div>
         
+        <div id="premium-section"></div>
+
         <div class="actions-grid">
             <div class="action-card" onclick="descargarCarnetCompleto()"><span class="action-icon"><i class="fas fa-id-card"></i></span><span class="action-title">Descargar Carnet</span></div>
             <div class="action-card" id="btn-descargar-diploma" style="display:none;" onclick="descargarDiploma()"><span class="action-icon"><i class="fas fa-certificate"></i></span><span class="action-title">Descargar Diploma</span></div>
@@ -248,6 +275,9 @@
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
         
         const WHATSAPP_NUMERO = '5492245602445';
+        
+        // ⬇️ ⬇️ PEGA AQUÍ TU LINK DE MERCADO PAGO ⬇️ ⬇️
+        const LINK_MERCADO_PAGO = "AQUI_TU_LINK_DE_PAGO_DE_5000_PESOS"; 
         
         const LOGO_ASARI_DEFAULT = "https://vxggatcfrywyodovjwxj.supabase.co/storage/v1/object/public/logos-instituciones/Asari%20Logo.jpg"; 
         const URL_REVERSO = "./reverso.jpg"; 
@@ -301,7 +331,6 @@
             window.open(`https://wa.me/${WHATSAPP_NUMERO}?text=${encodeURIComponent(msg)}`, '_blank');
         }
 
-        // --- DEFINICIÓN DE HTML (CON CAPA DE SUSPENSIÓN) ---
         const CARNET_HTML = `
             <div class="card-base" id="card-base-el">
                 <div class="front-left" id="panel-izq-bg">
@@ -339,7 +368,6 @@
 
         const CARNET_BACK_HTML = `<img src="${URL_REVERSO}" class="carnet-back-img" id="carnet-back-img">`;
 
-        // --- LÓGICA DE INGRESO PRINCIPAL ---
         async function ingresar() {
             const dni = document.getElementById('input-dni').value.trim();
             const btnText = document.getElementById('btn-text');
@@ -395,26 +423,15 @@
 
         function verificarConsentimiento(dni, callback) {
             const hasConsented = localStorage.getItem(`asari_consent_${dni}`);
-            
-            if (hasConsented) {
-                callback(); 
-            } else {
+            if (hasConsented) { callback(); } else {
                 const modal = document.getElementById('legal-modal');
                 const check = document.getElementById('check-legal');
                 const btnAccept = document.getElementById('btn-legal-accept');
-                
                 modal.classList.add('active');
-                
                 check.addEventListener('change', function() {
-                    if(this.checked) {
-                        btnAccept.classList.add('ready');
-                        btnAccept.disabled = false;
-                    } else {
-                        btnAccept.classList.remove('ready');
-                        btnAccept.disabled = true;
-                    }
+                    if(this.checked) { btnAccept.classList.add('ready'); btnAccept.disabled = false; } 
+                    else { btnAccept.classList.remove('ready'); btnAccept.disabled = true; }
                 });
-
                 btnAccept.onclick = function() {
                     if(!check.checked) return;
                     localStorage.setItem(`asari_consent_${dni}`, 'true');
@@ -495,13 +512,13 @@
 
             cursoActualData = null; 
 
+            // Verificar si viene de MercadoPago (Approved)
+            checkPaymentReturn(alumno.id);
+
             let colorDinamico = null;
             if(alumno.registro_id) {
                 try {
-                    const { data: regData } = await db.from('instituciones')
-                        .select('color_tema')
-                        .ilike('sigla', alumno.registro_id)
-                        .maybeSingle();
+                    const { data: regData } = await db.from('instituciones').select('color_tema').ilike('sigla', alumno.registro_id).maybeSingle();
                     if(regData && regData.color_tema) colorDinamico = regData.color_tema;
                 } catch(e) {}
             }
@@ -510,6 +527,7 @@
             container.innerHTML = CARNET_HTML; 
             llenarDatosCarnet(container, alumno, colorDinamico); 
             registrarAcceso(alumno);
+            renderPremiumSection(alumno); // RENDERIZAR PREMIUM
 
             const { data: cursosEncontrados } = await db.from('cursos_oficiales').select('*').eq('nombre', alumno.curso);
             
@@ -521,7 +539,6 @@
                 }
                 if (!candidato) candidato = cursosEncontrados.find(c => !c.institution_id);
                 if (!candidato) candidato = cursosEncontrados[0];
-
                 cursoActualData = candidato;
             } 
 
@@ -529,15 +546,79 @@
             setTimeout(ajustarCarnetResponsivo, 100);
         }
 
-        async function registrarAcceso(alumno) {
-            try {
-                await db.from('logs_accesos').insert({
-                    alumno_id: alumno.id,
-                    curso: alumno.curso,
-                    fecha: new Date().toISOString()
-                });
-            } catch(e) { }
+        // --- LÓGICA PREMIUM Y MERCADO PAGO ---
+        function renderPremiumSection(alumno) {
+            const container = document.getElementById('premium-section');
+            if (alumno.premium) {
+                // ESTADO: DESBLOQUEADO (IA ACTIVA)
+                container.innerHTML = `
+                <div class="premium-box" style="background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);">
+                    <div class="premium-badge" style="background: #00ff88;">PREMIUM ACTIVO</div>
+                    <div class="premium-title"><i class="fas fa-robot"></i> Asistente de Carrera IA</div>
+                    <div class="premium-desc">Herramientas de inteligencia artificial activadas para potenciar tu perfil profesional.</div>
+                    <button class="btn-ai-action" onclick="generarTextoIA('linkedin')"><i class="fab fa-linkedin"></i> Redactar Post LinkedIn</button>
+                    <button class="btn-ai-action" onclick="generarTextoIA('cv')"><i class="fas fa-file-alt"></i> Generar Resumen CV</button>
+                </div>`;
+            } else {
+                // ESTADO: BLOQUEADO (VENTA)
+                container.innerHTML = `
+                <div class="premium-box">
+                    <div class="premium-badge"><i class="fas fa-lock"></i> PRO</div>
+                    <div class="premium-title">Kit de Empleabilidad IA</div>
+                    <div class="premium-desc">Destácate en el mercado laboral. Usa nuestra IA para generar tu CV y Perfil de LinkedIn profesional basado en tu certificación.</div>
+                    <button class="btn-pay" onclick="iniciarPago()"><i class="fas fa-bolt"></i> DESBLOQUEAR POR $5.000</button>
+                </div>`;
+            }
         }
+
+        function iniciarPago() {
+            if (LINK_MERCADO_PAGO === "AQUI_TU_LINK_DE_PAGO_DE_5000_PESOS") {
+                alert("Error de Configuración: El administrador no ha configurado el link de pago.");
+                return;
+            }
+            // Abrimos MP en la misma ventana para asegurar el retorno
+            window.location.href = LINK_MERCADO_PAGO; 
+        }
+
+        async function checkPaymentReturn(alumnoId) {
+            const params = new URLSearchParams(window.location.search);
+            // MercadoPago suele devolver 'collection_status=approved' o 'status=approved'
+            const status = params.get('collection_status') || params.get('status');
+            
+            if (status === 'approved') {
+                // Actualizar DB
+                try {
+                    await db.from('matriculas').update({ premium: true }).eq('id', alumnoId);
+                    alumnoActual.premium = true;
+                    renderPremiumSection(alumnoActual);
+                    // Limpiar URL para que no se refresque el pago
+                    window.history.replaceState({}, document.title, window.location.pathname + "?id=" + alumnoId);
+                    alert("¡Pago Exitoso! Las funciones de IA están activas.");
+                } catch(e) { console.error("Error activando premium", e); }
+            }
+        }
+
+        function generarTextoIA(tipo) {
+            const nombre = alumnoActual.nombre.split(' ')[0];
+            const curso = alumnoActual.curso;
+            const instituto = alumnoActual.instituciones?.nombre || "Instituto Colbert";
+            let texto = "";
+
+            if (tipo === 'linkedin') {
+                texto = `🚀 ¡Meta Cumplida!\n\nMe complace anunciar que he completado oficialmente mi certificación como ${curso} en ${instituto}.\n\nEsta formación me ha permitido desarrollar competencias clave en el sector, validando mis conocimientos a través de tecnología Blockchain para garantizar la autenticidad de mi título.\n\nEstoy listo/a para nuevos desafíos profesionales donde pueda aplicar todo lo aprendido.\n\n#${curso.replace(/\s/g,'')} #CrecimientoProfesional #CertificacionDigital`;
+            } else {
+                texto = `PERFIL PROFESIONAL:\nCertificado como ${curso} por ${instituto}, con formación validada digitalmente. Profesional proactivo, capacitado para desempeñar funciones operativas y estratégicas en el ámbito de ${curso}. Enfoque en la mejora continua y aplicación de estándares de calidad.`;
+            }
+
+            // Copiar al portapapeles
+            navigator.clipboard.writeText(texto).then(() => {
+                alert("¡Texto generado y copiado al portapapeles! Listo para pegar.");
+            });
+        }
+
+        // --- END PREMIUM ---
+
+        async function registrarAcceso(alumno) { try { await db.from('logs_accesos').insert({ alumno_id: alumno.id, curso: alumno.curso, fecha: new Date().toISOString() }); } catch(e) { } }
 
         function llenarDatosCarnet(container, alumno, colorOverride) {
             const el = (sel) => container.querySelector(sel);
@@ -561,12 +642,10 @@
             el('#txt-vence').innerText = vence.toLocaleDateString('es-AR');
             if(new Date() > vence) el('#vencido-overlay').style.display = 'flex';
             
-            // --- NUEVO: CHECK DE SUSPENSIÓN ---
             if (alumno.estado === 'SUSPENDIDO') {
                 el('#suspendido-overlay').style.display = 'flex';
-                el('#vencido-overlay').style.display = 'none'; // La suspensión tiene prioridad visual
+                el('#vencido-overlay').style.display = 'none'; 
             }
-            // ----------------------------------
 
             if (alumno.foto_url) { const img = el('#img-foto'); img.crossOrigin = "anonymous"; img.src = alumno.foto_url + "?t=" + Date.now(); }
             el('#qr-container').innerHTML = ""; 
@@ -631,25 +710,18 @@
                 const ghost = document.getElementById('ghost-container'); ghost.innerHTML = "";
                 const wrapper = document.createElement('div');
                 wrapper.style.display = "flex"; wrapper.style.flexDirection = "column"; wrapper.style.gap = "20px"; wrapper.style.padding = "20px"; wrapper.style.backgroundColor = "white";
-                
                 wrapper.insertAdjacentHTML('beforeend', CARNET_HTML);
                 wrapper.insertAdjacentHTML('beforeend', CARNET_BACK_HTML);
-                
                 wrapper.querySelector('.live-shimmer').style.display = 'none'; 
                 ghost.appendChild(wrapper);
-                
                 llenarDatosCarnet(ghost, alumnoActual, globalColorTema);
-                
                 const cards = ghost.querySelectorAll('.card-base, .carnet-back-img');
                 cards.forEach(c => { c.style.width = "1011px"; c.style.height = "638px"; });
-                
                 const backImg = ghost.querySelector('#carnet-back-img');
                 backImg.style.borderColor = ghost.querySelector('.card-base').style.borderColor;
-
                 const images = ghost.getElementsByTagName('img');
                 for(let img of images) { if(img.src && !img.complete) await new Promise(r => img.onload = r); }
                 await new Promise(r => setTimeout(r, 500)); 
-
                 const canvas = await html2canvas(wrapper, { scale: 1.5, useCORS: true });
                 const link = document.createElement('a');
                 link.download = `Carnet_${alumnoActual.dni_alumno}.png`;
@@ -662,11 +734,9 @@
         async function descargarDiploma() {
             if(!cursoActualData || !cursoActualData.diploma_bg_url) return alert("Diploma no disponible.");
             const btn = document.getElementById('btn-descargar-diploma'); const txt = btn.innerHTML; btn.innerHTML = '⏳';
-
             try {
                 const ghost = document.getElementById('ghost-container');
                 const colorTexto = globalColorTexto || '#0033cc';
-                
                 ghost.innerHTML = `
                 <div class="diploma-layout" id="diploma-final">
                     <img id="dip-bg-img" class="diploma-bg" src="" crossorigin="anonymous">
@@ -679,29 +749,21 @@
                         <div class="dip-sello"></div>
                     </div>
                 </div>`;
-
                 const bgImg = ghost.querySelector('#dip-bg-img');
                 bgImg.src = cursoActualData.diploma_bg_url + "?t=" + Date.now();
                 await new Promise(r => bgImg.onload = r);
-
                 const txtElem = ghost.querySelector('#dip-texto-completo');
                 const dniFormateado = new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno);
                 txtElem.innerText = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${dniFormateado}`;
-                
                 new QRCode(ghost.querySelector('#dip-qr-code'), { text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, width: 223, height: 223 });
-
                 const f = new Date(alumnoActual.fecha_inicio || new Date()).toLocaleDateString('es-ES', {year:'numeric', month:'long', day:'numeric'});
                 ghost.querySelector('#dip-fecha-registro').innerHTML = `REGISTRO: <b>${(alumnoActual.registro_id||'OFICIAL').toUpperCase()}</b> • Fecha: ${f}`;
-
                 await document.fonts.ready;
-                
                 txtElem.style.display = 'inline-block'; 
                 txtElem.style.whiteSpace = 'nowrap'; 
-                
                 await new Promise(r => setTimeout(r, 100)); 
                 ajustarTextoAlAncho(txtElem, 100, 1600); 
                 await new Promise(r => setTimeout(r, 500));
-
                 const canvas = await html2canvas(ghost.querySelector('#diploma-final'), { scale: 1, useCORS: true });
                 const link = document.createElement('a');
                 link.download = `Diploma_${alumnoActual.dni_alumno}.png`;
