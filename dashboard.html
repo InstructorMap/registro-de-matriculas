@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control - ASARI V5.1 (Gestión Total)</title>
+    <title>Panel de Control - ASARI V6.0 (Gestión Seminarios)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -53,6 +53,11 @@
             <button onclick="mostrarSeccion('panel-cursos')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all">
                 <i data-lucide="book-open" size="18"></i> Cursos
             </button>
+            
+            <button onclick="mostrarSeccion('panel-seminarios')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-rose-300 hover:bg-rose-900/30 hover:text-white transition-all">
+                <i data-lucide="monitor-play" size="18"></i> Seminarios TV
+            </button>
+
             <button onclick="mostrarSeccion('panel-carga')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all">
                 <i data-lucide="upload-cloud" size="18"></i> Carga Masiva
             </button>
@@ -143,6 +148,43 @@
                         <table class="w-full text-sm text-left"><tbody id="tabla-alumnos" class="divide-y divide-slate-100"></tbody></table>
                     </div>
                     <div class="mt-4 text-xs text-slate-400 text-center" id="contador-resultados">Mostrando resultados...</div>
+                </div>
+            </div>
+
+            <div id="panel-seminarios" class="hidden animate-fade-in">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-1">
+                        <div class="bg-white rounded-2xl shadow-sm border border-rose-100 p-6">
+                            <h3 class="text-xl font-black text-slate-800 mb-4 flex items-center gap-2">
+                                <i data-lucide="upload" class="text-rose-500"></i> Nuevo Seminario
+                            </h3>
+                            <div class="space-y-4">
+                                <input type="hidden" id="sem-id-edit">
+                                <div><label class="label-form">Título del Seminario</label><input type="text" id="sem-titulo" class="input-form" placeholder="Ej: RCP Avanzado 2026"></div>
+                                <div><label class="label-form">ID Video YouTube (Oculto)</label><input type="text" id="sem-video-id" class="input-form font-mono text-xs" placeholder="Ej: dQw4w9WgXcQ"></div>
+                                <div><label class="label-form">Precio (AR$)</label><input type="number" id="sem-precio" class="input-form" placeholder="5000"></div>
+                                <div><label class="label-form">Descripción Corta</label><textarea id="sem-desc" class="input-form h-20 resize-none"></textarea></div>
+                                
+                                <div class="bg-slate-50 p-3 rounded border border-slate-200">
+                                    <label class="label-form">Plantilla Diploma (Sin Nombres)</label>
+                                    <input type="file" id="sem-diploma" accept="image/*" class="w-full text-xs text-slate-500">
+                                    <img id="sem-preview-img" class="h-20 mt-2 object-cover rounded hidden border">
+                                </div>
+
+                                <div id="status-sem" class="text-center text-xs font-bold h-4 text-rose-600"></div>
+                                <button onclick="guardarSeminario()" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-black transition shadow-lg mt-2">PUBLICAR CONTENIDO</button>
+                                <button onclick="limpiarFormSeminario()" class="w-full bg-white text-slate-500 font-bold py-2 rounded-xl hover:bg-slate-100 transition mt-2 text-xs">CANCELAR / LIMPIAR</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="lg:col-span-2">
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col h-full">
+                            <h3 class="font-bold text-slate-700 mb-4">Catálogo Activo (Netflix Mode)</h3>
+                            <div id="lista-seminarios" class="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto pr-2 max-h-[600px]">
+                                </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -298,7 +340,7 @@
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
         
-        let currentUser, currentProfile, cursosCache = [], datosExcelCargados = [];
+        let currentUser, currentProfile, cursosCache = [], seminariosCache = [], datosExcelCargados = [];
         let registroColors = {}; 
         let analiticoPaginas = []; 
 
@@ -344,6 +386,7 @@
             aplicarEstilosInstitucion(perfil.instituciones);
             await cargarOpcionesRegistros();
             await cargarCursos(); 
+            await cargarSeminarios(); // NUEVA CARGA
             await llenarFiltros(); 
             await filtrarAlumnos(); 
             await contarTotal();
@@ -505,6 +548,121 @@
                 div.innerHTML += `<div class="relative group w-12 h-16 bg-slate-200 rounded border border-slate-300 overflow-hidden"><img src="${url}" class="w-full h-full object-cover"><button onclick="analiticoPaginas.splice(${index},1); renderizarGaleriaAnalitico();" class="absolute top-0 right-0 bg-red-500 text-white p-0.5"><i data-lucide="x" size="10"></i></button></div>`;
             });
             lucide.createIcons();
+        }
+
+        // --- GESTIÓN DE SEMINARIOS (NUEVO) ---
+        async function cargarSeminarios() {
+            const div = document.getElementById('lista-seminarios');
+            div.innerHTML = "<p class='text-xs text-slate-400'>Cargando contenido...</p>";
+
+            // Filtramos por institución si no es superadmin
+            let query = db.from('seminarios_catalogo').select('*').order('created_at', {ascending: false});
+            if (currentProfile.rol !== 'superadmin') {
+                query = query.eq('institution_id', currentProfile.institucion_id);
+            }
+
+            const { data, error } = await query;
+            if(error) { div.innerHTML = "Error al cargar."; return; }
+
+            seminariosCache = data;
+            div.innerHTML = "";
+            
+            if(data.length === 0) {
+                div.innerHTML = "<p class='text-sm text-slate-400 italic'>No hay seminarios cargados.</p>";
+                return;
+            }
+
+            data.forEach(s => {
+                // Miniatura de YouTube automática
+                const thumb = s.video_id ? `https://img.youtube.com/vi/${s.video_id}/0.jpg` : 'https://via.placeholder.com/150';
+                
+                div.innerHTML += `
+                <div class="flex gap-4 p-3 border rounded-xl hover:bg-slate-50 transition group">
+                    <div class="w-24 h-16 rounded-lg bg-black overflow-hidden relative shrink-0">
+                        <img src="${thumb}" class="w-full h-full object-cover opacity-80">
+                        <div class="absolute inset-0 flex items-center justify-center"><i data-lucide="play-circle" class="text-white"></i></div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-bold text-slate-800 text-sm truncate">${s.titulo}</p>
+                        <p class="text-xs text-slate-500">$${s.precio}</p>
+                        <div class="flex gap-3 mt-2">
+                            <button onclick="editarSeminario('${s.id}')" class="text-xs font-bold text-blue-500 hover:text-blue-700">Editar</button>
+                            <button onclick="borrar('seminarios_catalogo', '${s.id}', cargarSeminarios)" class="text-xs font-bold text-red-400 hover:text-red-600">Borrar</button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            lucide.createIcons();
+        }
+
+        async function guardarSeminario() {
+            const idEdit = document.getElementById('sem-id-edit').value;
+            const titulo = document.getElementById('sem-titulo').value;
+            const videoId = document.getElementById('sem-video-id').value;
+            const precio = document.getElementById('sem-precio').value;
+            const desc = document.getElementById('sem-desc').value;
+            const status = document.getElementById('status-sem');
+
+            if(!titulo || !videoId || !precio) return alert("Faltan campos obligatorios");
+
+            status.innerText = "Subiendo...";
+
+            let payload = {
+                titulo,
+                video_id: videoId,
+                precio: parseFloat(precio),
+                descripcion: desc,
+                institution_id: currentProfile.rol === 'superadmin' ? null : currentProfile.institucion_id
+            };
+
+            const inputDip = document.getElementById('sem-diploma');
+            if(inputDip.files.length > 0) {
+                const file = inputDip.files[0];
+                const fileName = `sem_diploma_${Date.now()}`;
+                await db.storage.from('plantillas-diplomas').upload(fileName, file); // Reusa bucket existente
+                const { data } = db.storage.from('plantillas-diplomas').getPublicUrl(fileName);
+                payload.diploma_bg_url = data.publicUrl;
+            }
+
+            try {
+                if(idEdit) {
+                    await db.from('seminarios_catalogo').update(payload).eq('id', idEdit);
+                    toast("Seminario actualizado");
+                } else {
+                    await db.from('seminarios_catalogo').insert([payload]);
+                    toast("Seminario publicado");
+                }
+                status.innerText = "";
+                limpiarFormSeminario();
+                cargarSeminarios();
+            } catch(e) { 
+                status.innerText = "Error: " + e.message; 
+                toast("Error al guardar", 'error');
+            }
+        }
+
+        function editarSeminario(id) {
+            const sem = seminariosCache.find(s => s.id === id);
+            document.getElementById('sem-id-edit').value = sem.id;
+            document.getElementById('sem-titulo').value = sem.titulo;
+            document.getElementById('sem-video-id').value = sem.video_id;
+            document.getElementById('sem-precio').value = sem.precio;
+            document.getElementById('sem-desc').value = sem.descripcion || "";
+            
+            if(sem.diploma_bg_url) {
+                document.getElementById('sem-preview-img').src = sem.diploma_bg_url;
+                document.getElementById('sem-preview-img').classList.remove('hidden');
+            }
+        }
+
+        function limpiarFormSeminario() {
+            document.getElementById('sem-id-edit').value = "";
+            document.getElementById('sem-titulo').value = "";
+            document.getElementById('sem-video-id').value = "";
+            document.getElementById('sem-precio').value = "";
+            document.getElementById('sem-desc').value = "";
+            document.getElementById('sem-diploma').value = "";
+            document.getElementById('sem-preview-img').classList.add('hidden');
         }
 
         // --- SISTEMA DE FILTRADO Y ALUMNOS (CON SUSPENSIÓN) ---
@@ -699,7 +857,7 @@
 
                 // Si parece UUID (hash), buscamos por ID o bloque_hash
                 if(input.length > 20) {
-                     query = query.or(`id.eq.${input},bloque_hash.eq.${input}`);
+                      query = query.or(`id.eq.${input},bloque_hash.eq.${input}`);
                 } else {
                     // Si es corto, asumimos DNI
                     query = query.eq('alumno_dni', input);
@@ -824,7 +982,7 @@
         }
 
         function mostrarSeccion(id) {
-            ['panel-inicio','panel-alumnos','panel-entidades','panel-cursos','panel-carga', 'panel-auditoria'].forEach(x => {
+            ['panel-inicio','panel-alumnos','panel-entidades','panel-cursos','panel-carga', 'panel-auditoria', 'panel-seminarios'].forEach(x => {
                 const el = document.getElementById(x); if(el) el.classList.add('hidden');
             });
             document.getElementById(id).classList.remove('hidden');
