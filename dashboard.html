@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control - ASARI V6.0 (Gestión Seminarios)</title>
+    <title>Panel de Control - ASARI V7.0 (Reportes & Finanzas)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -53,16 +53,18 @@
             <button onclick="mostrarSeccion('panel-cursos')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all">
                 <i data-lucide="book-open" size="18"></i> Cursos
             </button>
-            
             <button onclick="mostrarSeccion('panel-seminarios')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-rose-300 hover:bg-rose-900/30 hover:text-white transition-all">
                 <i data-lucide="monitor-play" size="18"></i> Seminarios TV
             </button>
-
             <button onclick="mostrarSeccion('panel-carga')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all">
                 <i data-lucide="upload-cloud" size="18"></i> Carga Masiva
             </button>
 
-            <p class="px-4 pt-4 pb-2 text-[10px] uppercase text-white/40 font-bold tracking-wider">Blockchain</p>
+            <p class="px-4 pt-4 pb-2 text-[10px] uppercase text-white/40 font-bold tracking-wider">Finanzas & Seguridad</p>
+            <button onclick="mostrarSeccion('panel-reportes')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-blue-300 bg-blue-900/20 hover:bg-blue-900/40 border border-blue-500/20 transition-all">
+                <i data-lucide="pie-chart" size="18"></i> Reportes & Caja
+            </button>
+            
             <button onclick="mostrarSeccion('panel-auditoria')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-emerald-300 bg-emerald-900/20 hover:bg-emerald-900/40 border border-emerald-500/20 transition-all">
                 <i data-lucide="shield-check" size="18"></i> Auditoría Ledger
             </button>
@@ -111,6 +113,35 @@
                             <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Tu Institución</p>
                             <p class="text-lg font-bold text-slate-800 mt-1 leading-tight" id="dash-inst-name">...</p>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="panel-reportes" class="hidden animate-fade-in">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-green-100 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-4 opacity-10"><i data-lucide="dollar-sign" size="64" class="text-green-600"></i></div>
+                        <p class="text-green-600 text-xs font-bold uppercase tracking-wider mb-2">Ingresos por Seminarios</p>
+                        <h3 class="text-3xl font-black text-slate-800" id="repo-ingresos">$0</h3>
+                        <p class="text-sm text-slate-400 mt-1" id="repo-ventas-count">0 ventas registradas</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-blue-100 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-4 opacity-10"><i data-lucide="credit-card" size="64" class="text-blue-600"></i></div>
+                        <p class="text-blue-600 text-xs font-bold uppercase tracking-wider mb-2">Credenciales Generadas</p>
+                        <h3 class="text-3xl font-black text-slate-800" id="repo-carnets">0</h3>
+                        <p class="text-sm text-slate-400 mt-1">Alumnos en base de datos</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+                    <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-800">Exportación de Datos</h3>
+                            <p class="text-slate-500 text-sm">Descarga el balance completo para rendición de cuentas.</p>
+                        </div>
+                        <button onclick="descargarReporteExcel()" class="bg-slate-800 hover:bg-black text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg transition">
+                            <i data-lucide="download"></i> DESCARGAR EXCEL RENDICIÓN
+                        </button>
                     </div>
                 </div>
             </div>
@@ -386,10 +417,14 @@
             aplicarEstilosInstitucion(perfil.instituciones);
             await cargarOpcionesRegistros();
             await cargarCursos(); 
-            await cargarSeminarios(); // NUEVA CARGA
+            await cargarSeminarios(); 
             await llenarFiltros(); 
             await filtrarAlumnos(); 
             await contarTotal();
+            
+            // Cargar datos del reporte
+            await actualizarReporteFinanciero();
+
             lucide.createIcons();
         });
 
@@ -406,6 +441,99 @@
             }
             if(inst?.color_primario) {
                 document.getElementById('sidebar').style.backgroundColor = inst.color_primario;
+            }
+        }
+
+        // --- LÓGICA DE REPORTES & EXCEL (NUEVO) ---
+        async function actualizarReporteFinanciero() {
+            try {
+                let instId = currentProfile.rol === 'superadmin' ? null : currentProfile.institucion_id;
+                
+                // 1. Contar Alumnos (Carnets)
+                let qMat = db.from('matriculas').select('count', { count: 'exact', head: true });
+                if(instId) qMat = qMat.eq('institution_id', instId);
+                const { count: totalCarnets } = await qMat;
+                
+                document.getElementById('repo-carnets').innerText = totalCarnets || 0;
+
+                // 2. Calcular Ventas
+                // Truco: Traemos todas las compras y los seminarios para sumar en JS
+                let qCompras = db.from('compras_alumnos').select('*, seminarios_catalogo(precio, institution_id)');
+                const { data: compras } = await qCompras;
+                
+                let totalPesos = 0;
+                let totalVentas = 0;
+
+                if(compras) {
+                    compras.forEach(c => {
+                        // Filtrar por institución si no es superadmin
+                        if (!instId || (c.seminarios_catalogo && c.seminarios_catalogo.institution_id === instId)) {
+                            const precio = parseFloat(c.seminarios_catalogo?.precio || 0);
+                            totalPesos += precio;
+                            totalVentas++;
+                        }
+                    });
+                }
+
+                document.getElementById('repo-ingresos').innerText = `$${totalPesos.toLocaleString('es-AR')}`;
+                document.getElementById('repo-ventas-count').innerText = `${totalVentas} ventas registradas`;
+
+            } catch(e) { console.error("Error en reporte", e); }
+        }
+
+        async function descargarReporteExcel() {
+            toast("Generando reporte completo...");
+            
+            try {
+                const wb = XLSX.utils.book_new();
+                let instId = currentProfile.rol === 'superadmin' ? null : currentProfile.institucion_id;
+
+                // HOJA 1: VENTAS SEMINARIOS
+                const { data: ventas } = await db.from('compras_alumnos')
+                    .select('created_at, matriculas(dni_alumno, nombre, apellido), seminarios_catalogo(titulo, precio, institution_id)');
+                
+                const datosVentas = [];
+                if(ventas) {
+                    ventas.forEach(v => {
+                        // Filtro de seguridad por institución
+                        if(!instId || (v.seminarios_catalogo && v.seminarios_catalogo.institution_id === instId)) {
+                            datosVentas.push({
+                                "Fecha": new Date(v.created_at).toLocaleDateString(),
+                                "Hora": new Date(v.created_at).toLocaleTimeString(),
+                                "Alumno": `${v.matriculas?.nombre} ${v.matriculas?.apellido}`,
+                                "DNI": v.matriculas?.dni_alumno,
+                                "Seminario": v.seminarios_catalogo?.titulo,
+                                "Monto ($)": v.seminarios_catalogo?.precio
+                            });
+                        }
+                    });
+                }
+                const wsVentas = XLSX.utils.json_to_sheet(datosVentas);
+                XLSX.utils.book_append_sheet(wb, wsVentas, "Ventas Seminarios");
+
+                // HOJA 2: PADRÓN ALUMNOS
+                let qAlumnos = db.from('matriculas').select('dni_alumno, nombre, apellido, curso, registro_id, fecha_inicio, estado, institution_id');
+                if(instId) qAlumnos = qAlumnos.eq('institution_id', instId);
+                const { data: alumnos } = await qAlumnos;
+                
+                const datosAlumnos = alumnos.map(a => ({
+                    "DNI": a.dni_alumno,
+                    "Nombre": a.nombre,
+                    "Apellido": a.apellido,
+                    "Curso": a.curso,
+                    "Registro": a.registro_id,
+                    "Estado": a.estado || 'ACTIVO',
+                    "Fecha Alta": new Date(a.fecha_inicio).toLocaleDateString()
+                }));
+                const wsAlumnos = XLSX.utils.json_to_sheet(datosAlumnos);
+                XLSX.utils.book_append_sheet(wb, wsAlumnos, "Padrón Carnets");
+
+                // DESCARGAR
+                XLSX.writeFile(wb, `Rendicion_ASARI_${new Date().toISOString().slice(0,10)}.xlsx`);
+                toast("Descarga iniciada");
+
+            } catch(e) {
+                alert("Error generando Excel: " + e.message);
             }
         }
 
@@ -555,7 +683,6 @@
             const div = document.getElementById('lista-seminarios');
             div.innerHTML = "<p class='text-xs text-slate-400'>Cargando contenido...</p>";
 
-            // Filtramos por institución si no es superadmin
             let query = db.from('seminarios_catalogo').select('*').order('created_at', {ascending: false});
             if (currentProfile.rol !== 'superadmin') {
                 query = query.eq('institution_id', currentProfile.institucion_id);
@@ -573,7 +700,6 @@
             }
 
             data.forEach(s => {
-                // Miniatura de YouTube automática
                 const thumb = s.video_id ? `https://img.youtube.com/vi/${s.video_id}/0.jpg` : 'https://via.placeholder.com/150';
                 
                 div.innerHTML += `
@@ -619,7 +745,7 @@
             if(inputDip.files.length > 0) {
                 const file = inputDip.files[0];
                 const fileName = `sem_diploma_${Date.now()}`;
-                await db.storage.from('plantillas-diplomas').upload(fileName, file); // Reusa bucket existente
+                await db.storage.from('plantillas-diplomas').upload(fileName, file);
                 const { data } = db.storage.from('plantillas-diplomas').getPublicUrl(fileName);
                 payload.diploma_bg_url = data.publicUrl;
             }
@@ -635,6 +761,7 @@
                 status.innerText = "";
                 limpiarFormSeminario();
                 cargarSeminarios();
+                actualizarReporteFinanciero(); // Actualizar stats
             } catch(e) { 
                 status.innerText = "Error: " + e.message; 
                 toast("Error al guardar", 'error');
@@ -665,7 +792,7 @@
             document.getElementById('sem-preview-img').classList.add('hidden');
         }
 
-        // --- SISTEMA DE FILTRADO Y ALUMNOS (CON SUSPENSIÓN) ---
+        // --- SISTEMA DE FILTRADO Y ALUMNOS ---
         async function llenarFiltros() {
             const { data: cursos } = await db.from('cursos_oficiales').select('nombre').order('nombre');
             const selCur = document.getElementById('filtro-curso');
@@ -692,7 +819,6 @@
             const filtroCurso = document.getElementById('filtro-curso').value;
             const filtroReg = document.getElementById('filtro-registro').value;
 
-            // PAGINACIÓN AUMENTADA
             let query = db.from('matriculas').select('*, instituciones(nombre, logo_url)').order('created_at', {ascending:false}).limit(100);
 
             if(currentProfile.rol !== 'superadmin') {
@@ -714,7 +840,6 @@
                     const logoInst = a.instituciones?.logo_url ? `<img src="${a.instituciones.logo_url}" class="w-5 h-5 object-contain rounded-full border">` : '';
                     const nombreInst = a.instituciones?.nombre || 'Desconocido';
                     
-                    // LÓGICA DE SUSPENSIÓN
                     const esSuspendido = a.estado === 'SUSPENDIDO';
                     const filaClase = esSuspendido ? 'bg-red-50 hover:bg-red-100 opacity-75' : 'border-b hover:bg-slate-50 transition';
                     const badgeSusp = esSuspendido ? '<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded text-[10px] font-bold ml-2">SUSPENDIDO</span>' : '';
@@ -746,36 +871,22 @@
         async function toggleSuspensionAlumno(id, estadoActual) {
             const nuevoEstado = estadoActual === 'SUSPENDIDO' ? 'ACTIVO' : 'SUSPENDIDO';
             const accion = nuevoEstado === 'SUSPENDIDO' ? 'SUSPENDER' : 'REACTIVAR';
-            
             if(!confirm(`¿Seguro que deseas ${accion} a este alumno?`)) return;
-
             const { error } = await db.from('matriculas').update({ estado: nuevoEstado }).eq('id', id);
-            
             if(error) toast("Error: " + error.message, 'error');
-            else {
-                toast(`Alumno ${nuevoEstado.toLowerCase()} correctamente`);
-                filtrarAlumnos();
-            }
+            else { toast(`Alumno ${nuevoEstado.toLowerCase()} correctamente`); filtrarAlumnos(); }
         }
 
-        // --- FUNCIONES DE EDICIÓN ALUMNO ---
         async function editarAlumno(id) {
             try {
                 const { data, error } = await db.from('matriculas').select('*').eq('id', id).single();
                 if(error) throw error;
-                
-                // Rellenar Modal
                 document.getElementById('m-id-edit').value = data.id;
                 document.getElementById('m-dni').value = data.dni_alumno;
                 document.getElementById('m-nombre').value = data.nombre;
                 document.getElementById('m-apellido').value = data.apellido;
-                
-                // Intentar seleccionar el curso (puede ser texto libre o ID)
                 const cursoEnCache = cursosCache.find(c => c.nombre === data.curso);
-                if(cursoEnCache) {
-                    document.getElementById('m-curso-select').value = cursoEnCache.id;
-                }
-
+                if(cursoEnCache) { document.getElementById('m-curso-select').value = cursoEnCache.id; }
                 document.getElementById('titulo-modal-alumno').innerText = "Editar Alumno";
                 abrirModalAlumno();
             } catch(e) { toast("Error al cargar alumno: " + e.message, 'error'); }
@@ -796,7 +907,6 @@
             if(!dni || !nombre || !cursoId) return alert("Faltan datos");
             
             const cursoObj = cursosCache.find(c => c.id === cursoId);
-            
             const payload = {
                 dni_alumno: dni, nombre: nombre, apellido: apellido, curso: cursoObj.nombre,
                 registro_id: cursoObj.registro_id, institution_id: instId
@@ -804,75 +914,46 @@
 
             let error;
             if (idEdit) {
-                // UPDATE (SI HAY ID)
-                const res = await db.from('matriculas').update(payload).eq('id', idEdit);
-                error = res.error;
+                const res = await db.from('matriculas').update(payload).eq('id', idEdit); error = res.error;
             } else {
-                // INSERT (SI NO HAY ID)
-                payload.fecha_inicio = new Date().toISOString();
-                // Por defecto nacen activos, pero podemos asegurarlo
-                payload.estado = 'ACTIVO'; 
-                const res = await db.from('matriculas').insert(payload);
-                error = res.error;
+                payload.fecha_inicio = new Date().toISOString(); payload.estado = 'ACTIVO'; 
+                const res = await db.from('matriculas').insert(payload); error = res.error;
             }
 
             if(error) alert("Error: " + error.message);
-            else { 
-                toast(idEdit ? "Alumno actualizado" : "Alumno creado"); 
-                cerrarModalAlumno(); 
-                filtrarAlumnos(); 
-                contarTotal(); 
-            }
+            else { toast(idEdit ? "Alumno actualizado" : "Alumno creado"); cerrarModalAlumno(); filtrarAlumnos(); contarTotal(); }
         }
 
         function abrirModalAlumno() { 
-            // Si no hay ID en el hidden, es nuevo -> limpiar campos
             if(!document.getElementById('m-id-edit').value) {
                 document.getElementById('titulo-modal-alumno').innerText = "Nuevo Alumno";
-                document.getElementById('m-dni').value = "";
-                document.getElementById('m-nombre').value = "";
-                document.getElementById('m-apellido').value = "";
+                document.getElementById('m-dni').value = ""; document.getElementById('m-nombre').value = ""; document.getElementById('m-apellido').value = "";
             }
             document.getElementById('modal-alumno').classList.remove('hidden'); 
         }
         
         function cerrarModalAlumno() { 
             document.getElementById('modal-alumno').classList.add('hidden'); 
-            document.getElementById('m-id-edit').value = ""; // Limpiar ID al cerrar
+            document.getElementById('m-id-edit').value = ""; 
         }
 
-        // --- AUDITORÍA LEDGER (NUEVO) ---
         async function buscarEnLedger() {
             const input = document.getElementById('input-audit-search').value.trim();
             const tbody = document.getElementById('tabla-ledger');
-            
             if(!input) return;
             tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">Consultando Blockchain...</td></tr>`;
-
             try {
-                // Buscamos en ledger o matriculas
-                let query = db.from('ledger_transacciones')
-                    .select('*, matriculas(nombre, apellido, curso)')
-                    .order('created_at', {ascending: false});
-
-                // Si parece UUID (hash), buscamos por ID o bloque_hash
-                if(input.length > 20) {
-                      query = query.or(`id.eq.${input},bloque_hash.eq.${input}`);
-                } else {
-                    // Si es corto, asumimos DNI
-                    query = query.eq('alumno_dni', input);
-                }
-
+                let query = db.from('ledger_transacciones').select('*, matriculas(nombre, apellido, curso)').order('created_at', {ascending: false});
+                if(input.length > 20) { query = query.or(`id.eq.${input},bloque_hash.eq.${input}`); } 
+                else { query = query.eq('alumno_dni', input); }
                 const { data, error } = await query;
                 if(error) throw error;
-
                 tbody.innerHTML = "";
                 if(data.length > 0) {
                     data.forEach(row => {
                         const fecha = new Date(row.created_at).toLocaleString();
                         const alumno = row.matriculas ? `${row.matriculas.nombre} ${row.matriculas.apellido}` : 'Desconocido';
                         const estado = row.metadata?.estado || 'EMITIDO';
-                        
                         tbody.innerHTML += `
                         <tr class="border-b hover:bg-slate-50">
                             <td class="p-3 text-slate-500">${fecha}</td>
@@ -882,16 +963,10 @@
                             <td class="p-3"><a href="validador.html?id=${row.matricula_id}" target="_blank" class="text-blue-500 hover:underline">Verificar</a></td>
                         </tr>`;
                     });
-                } else {
-                    tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-400">No se encontraron registros en el Ledger.</td></tr>`;
-                }
-
-            } catch(e) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500">Error: ${e.message}</td></tr>`;
-            }
+                } else { tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-400">No se encontraron registros.</td></tr>`; }
+            } catch(e) { tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500">Error: ${e.message}</td></tr>`; }
         }
 
-        // --- HELPERS ---
         async function cargarOpcionesRegistros() {
              const { data } = await db.from('instituciones').select('sigla, nombre, color_tema').not('sigla', 'is', null);
              const s = document.getElementById('c-registro'); s.innerHTML = "";
@@ -982,7 +1057,7 @@
         }
 
         function mostrarSeccion(id) {
-            ['panel-inicio','panel-alumnos','panel-entidades','panel-cursos','panel-carga', 'panel-auditoria', 'panel-seminarios'].forEach(x => {
+            ['panel-inicio','panel-alumnos','panel-entidades','panel-cursos','panel-carga', 'panel-auditoria', 'panel-seminarios', 'panel-reportes'].forEach(x => {
                 const el = document.getElementById(x); if(el) el.classList.add('hidden');
             });
             document.getElementById(id).classList.remove('hidden');
@@ -1003,7 +1078,7 @@
             }
         }
 
-        // --- CARGA EXCEL (CORREGIDA: LOOKUP DE CURSO) ---
+        // --- CARGA EXCEL ---
         function procesarExcel() {
             const input = document.getElementById('input-excel');
             if(!input.files.length) return;
@@ -1021,10 +1096,8 @@
                 datosExcelCargados = j.map(row => {
                     const nombreCursoExcel = (row['CURSO'] || row['curso'] || '').trim();
                     const cursoObj = cursosCache.find(c => c.nombre.toUpperCase() === nombreCursoExcel.toUpperCase());
-                    const regId = cursoObj ? cursoObj.registro_id : 'remaep'; // Fallback por defecto si no encuentra
-                    
+                    const regId = cursoObj ? cursoObj.registro_id : 'remaep'; 
                     if(!cursoObj) console.warn("Curso no encontrado en BD, usando default:", nombreCursoExcel);
-
                     return {
                         dni_alumno: row['DNI'] || row['dni'], 
                         nombre: row['NOMBRE'] || row['nombre'],
