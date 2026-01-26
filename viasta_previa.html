@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vista Previa - Diseño Netflix</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Roboto', sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .mobile-frame { width: 100%; max-width: 400px; background: white; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); overflow: hidden; min-height: 800px; border: 8px solid #222; position: relative; }
+        
+        /* HEADER FALSO */
+        .app-header { padding: 20px; text-align: center; border-bottom: 1px solid #eee; }
+        .app-logo { height: 40px; }
+
+        /* ESTILOS EXACTOS DE TU WALLET */
+        :root { --primary: #0033cc; --gold: #D4AF37; }
+        .section-header { font-size: 14px; font-weight: 900; color: #444; margin: 25px 20px 15px 20px; text-transform: uppercase; letter-spacing: 1px; border-left: 4px solid var(--primary); padding-left: 10px; display: flex; align-items: center; gap: 10px; }
+        
+        /* SCROLL NETFLIX */
+        .seminario-scroll { display: flex; overflow-x: auto; gap: 15px; padding: 0 20px 20px 20px; scroll-behavior: smooth; }
+        .sem-card { min-width: 260px; width: 260px; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative; transition: transform 0.2s; border: 1px solid #eee; display: flex; flex-direction: column; }
+        .sem-card:hover { transform: scale(1.02); }
+        .sem-thumb { height: 140px; background: #000; position: relative; }
+        .sem-thumb img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
+        .sem-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); }
+        .sem-play-btn { font-size: 40px; color: white; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.5)); opacity: 0.9; cursor: pointer; }
+        .sem-lock-btn { font-size: 30px; color: #fff; background: rgba(0,0,0,0.6); padding: 10px; border-radius: 50%; cursor: pointer; }
+        .sem-info { padding: 12px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .sem-title { font-size: 14px; font-weight: 700; color: #333; line-height: 1.2; margin-bottom: 5px; }
+        .sem-meta { font-size: 11px; color: #888; font-weight: 600; display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
+        .sem-price { color: var(--primary); font-weight: 900; font-size: 13px; }
+        .sem-owned { color: #10b981; font-weight: 900; font-size: 11px; text-transform: uppercase; }
+
+        /* MODAL */
+        .netflix-modal { position: absolute; inset: 0; background: black; z-index: 9999; display: none; flex-direction: column; }
+        .netflix-header { padding: 15px; display: flex; justify-content: space-between; align-items: center; color: white; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); position: absolute; top: 0; width: 100%; z-index: 10; }
+        .netflix-close { font-size: 24px; cursor: pointer; opacity: 0.8; }
+        .netflix-video-container { flex: 1; display: flex; align-items: center; justify-content: center; background: #111; color: white; }
+        .netflix-controls { padding: 20px; background: #111; color: white; border-top: 1px solid #333; }
+        .btn-gold-action { background: var(--gold); color: black; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 900; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; font-size: 14px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-frame">
+        <div class="app-header">
+            <h3 style="margin:0; color:#0033cc; font-weight:900;">BILLETERA EDUCATIVA</h3>
+        </div>
+
+        <div style="padding: 20px;">
+            <div style="background:#eee; height:200px; border-radius:15px; display:flex; align-items:center; justify-content:center; color:#999; margin-bottom:20px;">
+                (Aquí va el Carnet Digital)
+            </div>
+        </div>
+
+        <div class="section-header"><i class="fas fa-play-circle" style="color:var(--primary)"></i> Formación Continua</div>
+        
+        <div class="seminario-scroll">
+            
+            <div class="sem-card" onclick="abrirModal()">
+                <div class="sem-thumb">
+                    <img src="https://img.youtube.com/vi/dQw4w9WgXcQ/mqdefault.jpg">
+                    <div class="sem-overlay">
+                        <i class="fas fa-play-circle sem-play-btn"></i>
+                    </div>
+                </div>
+                <div class="sem-info">
+                    <div class="sem-title">Protocolos RCP Avanzado 2026</div>
+                    <div class="sem-meta">
+                        <span><i class="fas fa-clock"></i> 2hs</span>
+                        <span class="sem-owned"><i class="fas fa-check-circle"></i> ADQUIRIDO</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sem-card" onclick="alert('Simulación: Iría a Mercado Pago')">
+                <div class="sem-thumb">
+                    <img src="https://img.youtube.com/vi/tgbNymZ7vqY/mqdefault.jpg" style="filter: grayscale(100%);">
+                    <div class="sem-overlay">
+                        <i class="fas fa-lock sem-lock-btn"></i>
+                    </div>
+                </div>
+                <div class="sem-info">
+                    <div class="sem-title">Taller de Vendajes Funcionales</div>
+                    <div class="sem-meta">
+                        <span><i class="fas fa-clock"></i> 45min</span>
+                        <span class="sem-price">$5.000</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sem-card">
+                <div class="sem-thumb">
+                    <img src="https://via.placeholder.com/260x140?text=Trauma+Deportivo">
+                    <div class="sem-overlay">
+                        <i class="fas fa-lock sem-lock-btn"></i>
+                    </div>
+                </div>
+                <div class="sem-info">
+                    <div class="sem-title">Trauma en Campo de Juego</div>
+                    <div class="sem-meta">
+                        <span><i class="fas fa-clock"></i> 3hs</span>
+                        <span class="sem-price">$8.500</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div style="padding:20px; text-align:center; color:#ccc; font-size:12px;">Resto de la Wallet...</div>
+
+        <div id="netflix-modal" class="netflix-modal">
+            <div class="netflix-header">
+                <span class="font-bold">Reproductor Educativo</span>
+                <span class="netflix-close" onclick="cerrarModal()"><i class="fas fa-times"></i></span>
+            </div>
+            <div class="netflix-video-container">
+                <i class="fab fa-youtube" style="font-size: 60px; color: red;"></i>
+                <p style="margin-left: 10px;">Video de YouTube</p>
+            </div>
+            <div class="netflix-controls">
+                <h3 style="margin:0 0 5px 0; font-size:16px;">Protocolos RCP Avanzado 2026</h3>
+                <p style="font-size:12px; color:#aaa; margin:0;">Actualización obligatoria para paramédicos deportivos según nuevas normativas.</p>
+                <button class="btn-gold-action" onclick="alert('Descargando PDF con QR...')">
+                    <i class="fas fa-award"></i> DESCARGAR CERTIFICADO OFICIAL
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function abrirModal() {
+            document.getElementById('netflix-modal').style.display = 'flex';
+        }
+        function cerrarModal() {
+            document.getElementById('netflix-modal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
