@@ -61,14 +61,31 @@
         .btn-toggle.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.2); transform: translateY(-1px); }
         .btn-toggle:active { transform: scale(0.95); }
 
-        /* SECTION PREMIUM */
+        /* SECTION HEADERS */
+        .section-header { font-size: 14px; font-weight: 900; color: #444; margin: 25px 0 15px 0; text-transform: uppercase; letter-spacing: 1px; border-left: 4px solid var(--primary); padding-left: 10px; display: flex; align-items: center; gap: 10px; }
+
+        /* SECTION PREMIUM & SEMINARIOS */
         .premium-box { background: linear-gradient(135deg, #1e1e1e 0%, #2a2a2a 100%); color: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; overflow: hidden; border: 1px solid #444; }
         .premium-badge { position: absolute; top: 10px; right: 10px; background: var(--gold); color: black; font-size: 10px; font-weight: 900; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 1px; }
         .premium-title { font-size: 18px; font-weight: 900; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
         .premium-desc { font-size: 12px; color: #aaa; margin-bottom: 15px; line-height: 1.4; }
         .btn-pay { background: var(--gold); color: black; border: none; width: 100%; padding: 12px; border-radius: 8px; font-weight: 900; cursor: pointer; text-transform: uppercase; font-size: 12px; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3); }
         .btn-ai-action { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); width: 100%; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 12px; display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 8px; transition: 0.2s; }
-        .btn-ai-action:hover { background: rgba(255,255,255,0.2); }
+        
+        /* SEMINARIOS SCROLL (NETFLIX STYLE) */
+        .seminario-scroll { display: flex; overflow-x: auto; gap: 15px; padding-bottom: 10px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+        .sem-card { min-width: 260px; width: 260px; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative; transition: transform 0.2s; border: 1px solid #eee; display: flex; flex-direction: column; }
+        .sem-card:active { transform: scale(0.98); }
+        .sem-thumb { height: 140px; background: #000; position: relative; }
+        .sem-thumb img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
+        .sem-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); }
+        .sem-play-btn { font-size: 40px; color: white; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.5)); opacity: 0.9; }
+        .sem-lock-btn { font-size: 30px; color: #fff; background: rgba(0,0,0,0.6); padding: 10px; border-radius: 50%; }
+        .sem-info { padding: 12px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .sem-title { font-size: 14px; font-weight: 700; color: #333; line-height: 1.2; margin-bottom: 5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .sem-meta { font-size: 11px; color: #888; font-weight: 600; display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
+        .sem-price { color: var(--primary); font-weight: 900; font-size: 13px; }
+        .sem-owned { color: #10b981; font-weight: 900; font-size: 11px; text-transform: uppercase; }
 
         /* CARNET STYLES */
         .card-base { width: 100%; height: 100%; display: flex; position: relative; border: 5px solid; border-radius: 40px; overflow: hidden; background: white; transition: border-color 0.3s; }
@@ -99,7 +116,7 @@
         .overlay-vencido { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(180, 0, 0, 0.75); z-index: 20; display: flex; justify-content: center; align-items: center; flex-direction: column; color: white; text-align: center; border-radius: 35px; backdrop-filter: blur(2px); }
         .texto-vencido { font-size: 80px; font-weight: 900; transform: rotate(-15deg); border: 8px solid white; padding: 10px 40px; text-transform: uppercase; letter-spacing: 5px; }
 
-        /* --- DIPLOMA / ANALITICO LAYOUT --- */
+        /* --- DIPLOMA LAYOUT --- */
         .diploma-layout { width: 2000px; height: 1414px; position: relative; overflow: hidden; color: #333; }
         .diploma-bg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
         .diploma-overlay { position: relative; z-index: 10; width: 100%; height: 100%; }
@@ -119,6 +136,14 @@
         .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: none; margin: 0 auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .curso-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid var(--primary); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+
+        /* --- MODAL VIDEO/NETFLIX --- */
+        .netflix-modal { position: fixed; inset: 0; background: black; z-index: 9999; display: none; flex-direction: column; }
+        .netflix-header { padding: 15px; display: flex; justify-content: space-between; align-items: center; color: white; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); position: absolute; top: 0; width: 100%; z-index: 10; }
+        .netflix-close { font-size: 24px; cursor: pointer; opacity: 0.8; }
+        .netflix-video-container { flex: 1; display: flex; align-items: center; justify-content: center; background: black; }
+        .netflix-controls { padding: 20px; background: #111; color: white; border-top: 1px solid #333; }
+        .btn-gold-action { background: var(--gold); color: black; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 900; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; font-size: 14px; }
 
         /* --- LEGAL MODAL --- */
         .legal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); z-index: 9999; display: flex; justify-content: center; align-items: flex-end; padding: 0; opacity: 0; pointer-events: none; transition: 0.3s; }
@@ -194,6 +219,18 @@
 
         <div id="premium-section"></div>
 
+        <div id="seminarios-section" style="display:none;">
+            <div class="section-header"><i class="fas fa-play-circle" style="color:var(--primary)"></i> Formación Continua</div>
+            <div class="seminario-scroll" id="seminarios-container">
+                </div>
+        </div>
+
+        <div id="tools-section" style="display:none;">
+            <div class="section-header"><i class="fas fa-toolbox"></i> Recursos Profesionales</div>
+            <div class="actions-grid" id="tools-container"></div>
+        </div>
+
+        <div class="section-header"><i class="fas fa-cog"></i> Gestión</div>
         <div class="actions-grid">
             <div class="action-card" onclick="descargarCarnetCompleto()"><span class="action-icon"><i class="fas fa-id-card"></i></span><span class="action-title">Descargar Carnet</span></div>
             <div class="action-card" id="btn-descargar-diploma" style="display:none;" onclick="descargarDiploma()"><span class="action-icon"><i class="fas fa-certificate"></i></span><span class="action-title">Descargar Diploma</span></div>
@@ -208,6 +245,22 @@
         </div>
         
         <div class="footer-brand">Soporte y Seguridad<br><strong>ASARI PLATFORM</strong></div>
+    </div>
+
+    <div id="netflix-modal" class="netflix-modal">
+        <div class="netflix-header">
+            <span class="font-bold">Reproductor Educativo</span>
+            <span class="netflix-close" onclick="cerrarModalNetflix()"><i class="fas fa-times"></i></span>
+        </div>
+        <div class="netflix-video-container" id="netflix-video-iframe">
+            </div>
+        <div class="netflix-controls">
+            <h3 id="netflix-title" style="margin:0 0 5px 0; font-size:16px;">Título del Seminario</h3>
+            <p id="netflix-desc" style="font-size:12px; color:#aaa; margin:0;">Descripción corta del curso.</p>
+            <button class="btn-gold-action" onclick="descargarDiplomaSeminarioActual()">
+                <i class="fas fa-award"></i> DESCARGAR CERTIFICADO OFICIAL
+            </button>
+        </div>
     </div>
 
     <div id="legal-modal" class="legal-overlay">
@@ -265,6 +318,7 @@
         let globalMatriculas = [];
         let alumnoActual = null; 
         let cursoActualData = null;
+        let seminarioActualPlay = null; // Para el modal de Netflix
         let deferredPrompt; 
 
         document.getElementById('app-logo').src = LOGO_ASARI_DEFAULT;
@@ -489,7 +543,7 @@
             document.getElementById('btn-cambiar-curso').style.display = globalMatriculas.length > 1 ? 'flex' : 'none';
 
             cursoActualData = null; 
-            checkPaymentReturn(alumno.id);
+            await checkPaymentReturn(alumno.id);
 
             let colorDinamico = null;
             if(alumno.registro_id) {
@@ -508,14 +562,16 @@
             registrarAcceso(alumno);
             renderPremiumSection(alumno);
             renderUpselling(alumno);
+            cargarSeminarios(alumno);
+            renderizarHerramientas(alumno);
 
             const { data: cursosEncontrados } = await db.from('cursos_oficiales').select('*').eq('nombre', alumno.curso);
             
             if (cursosEncontrados && cursosEncontrados.length > 0) {
                 let candidato = cursosEncontrados.find(c => c.institution_id === alumno.institution_id);
                 if (candidato && !candidato.diploma_bg_url) {
-                     const global = cursosEncontrados.find(c => !c.institution_id);
-                     if(global && global.diploma_bg_url) candidato.diploma_bg_url = global.diploma_bg_url;
+                      const global = cursosEncontrados.find(c => !c.institution_id);
+                      if(global && global.diploma_bg_url) candidato.diploma_bg_url = global.diploma_bg_url;
                 }
                 if (!candidato) candidato = cursosEncontrados.find(c => !c.institution_id);
                 if (!candidato) candidato = cursosEncontrados[0];
@@ -529,6 +585,144 @@
             btnAnalitico.style.display = (cursoActualData && cursoActualData.analitico_bg_url) ? 'block' : 'none';
 
             setTimeout(ajustarCarnetResponsivo, 100);
+        }
+
+        // --- LÓGICA SEMINARIOS (NETFLIX STYLE) ---
+        async function cargarSeminarios(alumno) {
+            const container = document.getElementById('seminarios-container');
+            const section = document.getElementById('seminarios-section');
+            container.innerHTML = "";
+
+            try {
+                // 1. Obtener catálogo
+                let query = db.from('seminarios_catalogo').select('*').order('created_at', {ascending: false});
+                if(alumno.institution_id) {
+                    // Si el alumno tiene institucion, buscar seminarios de esa institución o globales
+                    query = query.or(`institution_id.eq.${alumno.institution_id},institution_id.is.null`);
+                } else {
+                    query = query.is('institution_id', null);
+                }
+                
+                const { data: catalogo } = await query;
+                if(!catalogo || catalogo.length === 0) { section.style.display = 'none'; return; }
+
+                // 2. Obtener compras
+                const { data: compras } = await db.from('compras_alumnos').select('seminario_id').eq('alumno_id', alumno.id);
+                const compradosIds = compras ? compras.map(c => c.seminario_id) : [];
+
+                section.style.display = 'block';
+
+                catalogo.forEach(sem => {
+                    const comprado = compradosIds.includes(sem.id);
+                    const thumb = sem.video_id ? `https://img.youtube.com/vi/${sem.video_id}/mqdefault.jpg` : 'https://via.placeholder.com/260x140?text=Seminario';
+                    
+                    const el = document.createElement('div');
+                    el.className = 'sem-card';
+                    el.innerHTML = `
+                        <div class="sem-thumb">
+                            <img src="${thumb}">
+                            <div class="sem-overlay">
+                                ${comprado 
+                                    ? `<i class="fas fa-play-circle sem-play-btn"></i>` 
+                                    : `<i class="fas fa-lock sem-lock-btn"></i>`
+                                }
+                            </div>
+                        </div>
+                        <div class="sem-info">
+                            <div class="sem-title">${sem.titulo}</div>
+                            <div class="sem-meta">
+                                ${comprado 
+                                    ? `<span class="sem-owned"><i class="fas fa-check-circle"></i> ADQUIRIDO</span>` 
+                                    : `<span class="sem-price">$${sem.precio}</span>`
+                                }
+                            </div>
+                        </div>
+                    `;
+                    el.onclick = () => {
+                        if(comprado) abrirModalNetflix(sem);
+                        else comprarSeminario(sem);
+                    };
+                    container.appendChild(el);
+                });
+
+            } catch(e) { console.error("Error seminarios", e); }
+        }
+
+        function comprarSeminario(sem) {
+            if(confirm(`¿Deseas desbloquear "${sem.titulo}" por $${sem.precio}?`)) {
+                // Guardamos la intención de compra para cuando vuelva de MP
+                localStorage.setItem('pending_seminario_id', sem.id);
+                localStorage.setItem('pending_alumno_id', alumnoActual.id);
+                window.location.href = LINK_MERCADO_PAGO; // Usar link genérico
+            }
+        }
+
+        function abrirModalNetflix(sem) {
+            seminarioActualPlay = sem;
+            const modal = document.getElementById('netflix-modal');
+            document.getElementById('netflix-title').innerText = sem.titulo;
+            document.getElementById('netflix-desc').innerText = sem.descripcion || "Seminario Oficial";
+            
+            // Inyectar Iframe
+            document.getElementById('netflix-video-iframe').innerHTML = `
+                <iframe width="100%" height="100%" src="https://www.youtube.com/embed/${sem.video_id}?autoplay=1&rel=0&modestbranding=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            `;
+            modal.style.display = 'flex';
+        }
+
+        function cerrarModalNetflix() {
+            document.getElementById('netflix-modal').style.display = 'none';
+            document.getElementById('netflix-video-iframe').innerHTML = "";
+            seminarioActualPlay = null;
+        }
+
+        async function descargarDiplomaSeminarioActual() {
+            if(!seminarioActualPlay) return;
+            // Reusamos la lógica de diploma pero con los datos del seminario
+            const sem = seminarioActualPlay;
+            if(!sem.diploma_bg_url) return alert("Este seminario no incluye diploma digital automático.");
+            
+            // Creamos un objeto falso 'cursoActualData' para engañar a la funcion descargarDiploma
+            const backupCurso = cursoActualData;
+            cursoActualData = { diploma_bg_url: sem.diploma_bg_url };
+            
+            await descargarDiploma(); // Usa la función existente
+            
+            // Restauramos
+            cursoActualData = backupCurso;
+        }
+
+        // --- HERRAMIENTAS DINÁMICAS (PARAMÉDICO ETC) ---
+        function renderizarHerramientas(alumno) {
+            const container = document.getElementById('tools-container');
+            const section = document.getElementById('tools-section');
+            container.innerHTML = "";
+            
+            const curso = alumno.curso.toUpperCase();
+            let herramientas = [];
+
+            // Lógica "Inteligente"
+            if (curso.includes('PARAMÉDICO') || curso.includes('ENFERMERÍA') || curso.includes('SALUD')) {
+                herramientas.push({ icon: 'fa-file-medical', label: 'Hoja de Guardia', action: () => alert("Descargando Plantilla Guardia...") });
+                herramientas.push({ icon: 'fa-first-aid', label: 'Checklist Botiquín', action: () => alert("Descargando Checklist...") });
+                herramientas.push({ icon: 'fa-user-injured', label: 'Consentimiento', action: () => alert("Descargando Consentimiento...") });
+            } else if (curso.includes('ACOMPAÑANTE') || curso.includes('TERAPÉUTICO')) {
+                herramientas.push({ icon: 'fa-clipboard-list', label: 'Evolución Diaria', action: () => alert("Descargando Planilla...") });
+                herramientas.push({ icon: 'fa-calendar-alt', label: 'Informe Mensual', action: () => alert("Descargando Modelo Informe...") });
+            }
+
+            if(herramientas.length > 0) {
+                section.style.display = 'block';
+                herramientas.forEach(h => {
+                    const el = document.createElement('div');
+                    el.className = 'action-card';
+                    el.innerHTML = `<span class="action-icon"><i class="fas ${h.icon}"></i></span><span class="action-title">${h.label}</span>`;
+                    el.onclick = h.action;
+                    container.appendChild(el);
+                });
+            } else {
+                section.style.display = 'none';
+            }
         }
 
         function renderPremiumSection(alumno) {
@@ -584,21 +778,45 @@
         }
 
         function iniciarPago() {
-            if (!LINK_MERCADO_PAGO || LINK_MERCADO_PAGO.includes("AQUI_TU_LINK")) { alert("Error de Configuración"); return; }
+            // Pago de funcionalidad Premium
+            localStorage.setItem('pending_premium_id', alumnoActual.id);
             window.location.href = LINK_MERCADO_PAGO; 
         }
 
         async function checkPaymentReturn(alumnoId) {
             const params = new URLSearchParams(window.location.search);
             const status = params.get('collection_status') || params.get('status');
+            
             if (status === 'approved') {
-                try {
-                    await db.from('matriculas').update({ premium: true }).eq('id', alumnoId);
-                    alumnoActual.premium = true;
-                    renderPremiumSection(alumnoActual);
-                    window.history.replaceState({}, document.title, window.location.pathname + "?id=" + alumnoId);
-                    alert("¡Pago Exitoso! Las funciones de IA están activas.");
-                } catch(e) { }
+                // Chequear si era compra de seminario
+                const pendingSem = localStorage.getItem('pending_seminario_id');
+                const pendingAlu = localStorage.getItem('pending_alumno_id');
+                
+                if(pendingSem && pendingAlu === alumnoId) {
+                    // Registrar compra seminario
+                    try {
+                        await db.from('compras_alumnos').insert({ alumno_id: alumnoId, seminario_id: pendingSem });
+                        alert("¡Seminario Desbloqueado!");
+                        localStorage.removeItem('pending_seminario_id');
+                        // Recargar seminarios
+                        cargarSeminarios(alumnoActual);
+                    } catch(e) { console.error(e); }
+                } 
+                
+                // Chequear si era compra premium
+                const pendingPrem = localStorage.getItem('pending_premium_id');
+                if(pendingPrem === alumnoId) {
+                    try {
+                        await db.from('matriculas').update({ premium: true }).eq('id', alumnoId);
+                        alumnoActual.premium = true;
+                        renderPremiumSection(alumnoActual);
+                        localStorage.removeItem('pending_premium_id');
+                        alert("¡Kit Premium Activado!");
+                    } catch(e) {}
+                }
+
+                // Limpiar URL
+                window.history.replaceState({}, document.title, window.location.pathname + "?id=" + alumnoId);
             }
         }
 
@@ -606,11 +824,23 @@
             const nombre = alumnoActual.nombre.split(' ')[0];
             const curso = alumnoActual.curso;
             const instituto = alumnoActual.instituciones?.nombre || "Instituto Colbert";
+            
+            // Lógica Mejorada (Auditoría: Solicitud Punto 1)
             let texto = "";
+            const isDeportivo = curso.toUpperCase().includes("DEPORTIVO");
+            
             if (tipo === 'linkedin') {
-                texto = `🚀 ¡Meta Cumplida!\n\nMe complace anunciar que he completado oficialmente mi certificación como ${curso} en ${instituto}.\n\nValidado con tecnología Blockchain.\n\n#${curso.replace(/\s/g,'')} #CrecimientoProfesional`;
-            } else {
-                texto = `PERFIL PROFESIONAL:\nCertificado como ${curso} por ${instituto}. Formación validada digitalmente.`;
+                if(isDeportivo) {
+                    texto = `⚽ ¡Certificación Oficial!\n\nMe enorgullece compartir que he finalizado mi formación como ${curso} en ${instituto}.\n\nCuento con capacitación especializada en trauma deportivo, vendaje funcional, RCP y protocolos de emergencia en campo de juego.\n\nMi credencial está validada digitalmente con tecnología Blockchain para mayor seguridad.\n\n#SanidadDeportiva #Paramedico #Deporte #CrecimientoProfesional`;
+                } else {
+                    texto = `🚀 ¡Meta Cumplida!\n\nMe complace anunciar que he completado oficialmente mi certificación como ${curso} en ${instituto}.\n\nValidado con tecnología Blockchain.\n\n#${curso.replace(/\s/g,'')} #CrecimientoProfesional`;
+                }
+            } else { // CV Resume
+                 if(isDeportivo) {
+                    texto = `PERFIL PROFESIONAL:\n${curso} certificado por ${instituto}. Experiencia y formación en atención primaria en eventos deportivos, inmovilización, traslado de pacientes y soporte vital básico. Habilidades para trabajo bajo presión y coordinación con equipos médicos.`;
+                 } else {
+                    texto = `PERFIL PROFESIONAL:\nCertificado como ${curso} por ${instituto}. Formación validada digitalmente con enfoque en competencias prácticas y teóricas.`;
+                 }
             }
             navigator.clipboard.writeText(texto).then(() => { alert("¡Texto generado y copiado al portapapeles! Listo para pegar."); });
         }
@@ -709,7 +939,6 @@
                 </div>`;
                 const bgImg = ghost.querySelector('#dip-bg-img');
                 
-                // === FIX CORS: USAR PROXY BLOB PARA DIPLOMA TAMBIÉN ===
                 let bgUrl = cursoActualData.diploma_bg_url;
                 if (bgUrl.startsWith('["') || bgUrl.startsWith('[')) { try { bgUrl = JSON.parse(bgUrl)[0]; } catch(e) {} }
                 
@@ -737,7 +966,6 @@
             } catch(e) { alert("Error diploma: " + e.message); } finally { btn.innerHTML = originalText; }
         }
 
-        // --- FUNCIÓN ANALÍTICO MULTI-PÁGINA (PDF) CORREGIDA V6.13 (FIX CORS BLOB) ---
         async function descargarAnalitico() {
             if(!cursoActualData || !cursoActualData.analitico_bg_url) return alert("Analítico no disponible.");
             const btn = document.getElementById('btn-descargar-analitico'); 
@@ -745,7 +973,6 @@
             btn.innerHTML = 'Generando PDF ⏳';
             
             try {
-                // 1. Detectar URLs
                 let urls = [];
                 try {
                     if (cursoActualData.analitico_bg_url.trim().startsWith('[')) {
@@ -757,7 +984,6 @@
                     urls = [cursoActualData.analitico_bg_url];
                 }
 
-                // 2. Inicializar PDF (Portrait)
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF('p', 'mm', 'a4'); 
                 const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -766,12 +992,10 @@
                 const ghost = document.getElementById('ghost-container');
                 const colorTexto = globalColorTexto || '#0033cc';
 
-                // 3. Iterar por cada URL
                 for (let i = 0; i < urls.length; i++) {
                     const url = urls[i];
                     
                     let overlayHTML = '';
-                    // Solo la primera página (i === 0) lleva los datos superpuestos
                     if (i === 0) {
                         overlayHTML = `
                         <div class="diploma-overlay">
@@ -785,7 +1009,6 @@
                         </div>`;
                     }
 
-                    // Inyectar estructura A4 Vertical
                     ghost.innerHTML = `
                     <div class="diploma-layout" id="analitico-page-${i}" style="width: 1414px; height: 2000px; position: relative;">
                         <img id="ana-bg-${i}" src="" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover;">
@@ -794,7 +1017,6 @@
 
                     const bgImg = document.getElementById(`ana-bg-${i}`);
                     
-                    // === TRUCO DEL BLOB (SOLUCIONA PANTALLA BLANCA) ===
                     const response = await fetch(url);
                     const blob = await response.blob();
                     const objectURL = URL.createObjectURL(blob);
@@ -806,7 +1028,6 @@
                         setTimeout(() => reject(new Error(`Timeout página ${i+1}`)), 15000);
                     });
 
-                    // Si es la página 0, inyectamos los datos
                     if (i === 0) {
                         const txtElem = document.getElementById(`ana-text-${i}`);
                         txtElem.innerText = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno)}`;
@@ -833,7 +1054,6 @@
                     });
                     const imgData = canvas.toDataURL('image/jpeg', 0.90);
 
-                    // Liberar memoria
                     URL.revokeObjectURL(objectURL);
 
                     if (i > 0) pdf.addPage();
