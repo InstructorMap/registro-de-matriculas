@@ -17,6 +17,10 @@
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .fade-in { animation: fadeIn 0.5s ease-out forwards; opacity: 0; transform: translateY(10px); }
         @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+        
+        /* Estilo Seminarios */
+        .seminario-item { display: flex; align-items: center; gap: 10px; padding: 10px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 8px; }
+        .icon-check { color: #10b981; flex-shrink: 0; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-4">
@@ -78,7 +82,7 @@
         </div>
     </div>
 
-    <div id="success-screen" class="hidden w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border-t-8 border-gray-300 fade-in relative">
+    <div id="success-screen" class="hidden w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border-t-8 border-gray-300 fade-in relative mb-10">
         
         <div id="header-bg" class="p-6 text-center border-b border-gray-100 bg-gray-50 transition-colors duration-500">
             <div id="icon-bg" class="w-16 h-16 bg-white text-gray-500 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm transition-colors duration-500">
@@ -93,7 +97,7 @@
 
             <div class="flex items-center gap-4">
                 <div id="foto-border" class="w-16 h-16 bg-slate-200 rounded-full overflow-hidden border-2 border-white shadow-md flex-shrink-0">
-                    <img id="val-foto" src="" class="w-full h-full object-cover">
+                    <img id="val-foto" src="" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150?text=FOTO'">
                 </div>
                 <div>
                     <p class="text-xs text-slate-400 font-bold uppercase">Alumno Certificado</p>
@@ -131,6 +135,11 @@
             <div class="flex justify-between items-center text-xs border-t pt-4">
                 <span class="text-slate-400 font-bold">Vigencia hasta:</span>
                 <span class="font-bold text-slate-700" id="val-vencimiento">---</span>
+            </div>
+
+            <div id="container-seminarios" class="hidden pt-4 border-t border-slate-100">
+                <p class="text-[10px] text-slate-400 font-bold uppercase mb-3">Certificaciones Adicionales (Seminarios)</p>
+                <div id="lista-seminarios"></div>
             </div>
 
             <div>
@@ -175,7 +184,7 @@
             if (!idAlumno) return mostrarError();
 
             try {
-                // 1. Buscar en Matriculas
+                // 1. Buscar en Matriculas (Carrera Principal)
                 const { data: alumno, error } = await db
                     .from('matriculas')
                     .select('*, instituciones(nombre, logo_url)')
@@ -184,32 +193,23 @@
 
                 if (error || !alumno) throw new Error("No encontrado");
 
-                // --- LÓGICA DE PRIORIDAD DE ESTADOS ---
+                // --- CHECK ESTADOS ---
+                if (alumno.estado === 'SUSPENDIDO') return mostrarSuspendido(alumno);
 
-                // A. CHECK SUSPENSIÓN (Máxima Prioridad)
-                if (alumno.estado === 'SUSPENDIDO') {
-                    return mostrarSuspendido(alumno);
-                }
-
-                // B. CHECK VENCIMIENTO (Segunda Prioridad)
                 const fechaInicio = new Date(alumno.fecha_inicio);
                 let fechaVence;
                 
                 if (alumno.fecha_vencimiento) {
-                    // Si tiene fecha manual específica
                     const partes = alumno.fecha_vencimiento.split('-'); 
                     fechaVence = new Date(partes[0], partes[1] - 1, partes[2]);
                 } else {
-                    // Default: 1 año desde inicio
                     fechaVence = new Date(fechaInicio);
                     fechaVence.setFullYear(fechaVence.getFullYear() + 1);
                 }
 
-                if (new Date() > fechaVence) {
-                    return mostrarVencido(fechaVence);
-                }
+                if (new Date() > fechaVence) return mostrarVencido(fechaVence);
 
-                // C. TODO OK -> MOSTRAR CERTIFICADO
+                // --- ÉXITO ---
                 renderizarExito(alumno, fechaVence);
 
             } catch (err) {
@@ -218,54 +218,77 @@
             }
         }
 
-        function renderizarExito(alumno, fechaVence) {
-            // 3. Buscar Hash en Ledger (Simulado o Real)
-            db.from('ledger_transacciones')
-                .select('id, created_at')
-                .eq('matricula_id', idAlumno)
-                .limit(1)
-                .maybeSingle()
-                .then(({ data: ledger }) => {
-                    const hashDisplay = ledger ? ledger.id : `GENESIS_${alumno.id.replace(/-/g,'').substring(0,32)}_ASARI_CHAIN`;
-                    
-                    document.getElementById('loader').classList.add('hidden');
-                    document.getElementById('success-screen').classList.remove('hidden');
+        async function renderizarExito(alumno, fechaVence) {
+            // Hash Principal
+            const { data: ledger } = await db.from('ledger_transacciones').select('id').eq('matricula_id', idAlumno).limit(1).maybeSingle();
+            const hashDisplay = ledger ? ledger.id : `GENESIS_${alumno.id.replace(/-/g,'').substring(0,32)}_ASARI_CHAIN`;
+            
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('success-screen').classList.remove('hidden');
 
-                    // Aplicar Colores
-                    const regId = (alumno.registro_id || 'default').toLowerCase();
-                    const colorTema = COLORES_REGISTRO[regId] || COLORES_REGISTRO['default'];
-                    aplicarEstilos(colorTema);
+            // Colores
+            const regId = (alumno.registro_id || 'default').toLowerCase();
+            const colorTema = COLORES_REGISTRO[regId] || COLORES_REGISTRO['default'];
+            aplicarEstilos(colorTema);
 
-                    // Llenar Datos
-                    document.getElementById('val-nombre').innerText = `${alumno.nombre} ${alumno.apellido}`;
-                    document.getElementById('val-dni').innerText = `DNI: ${new Intl.NumberFormat('es-AR').format(alumno.dni_alumno)}`;
-                    document.getElementById('val-curso').innerText = alumno.curso;
-                    document.getElementById('val-instituto').innerText = alumno.instituciones?.nombre || 'INSTITUTO OFICIAL';
-                    document.getElementById('val-hash').innerText = hashDisplay;
-                    document.getElementById('val-vencimiento').innerText = fechaVence.toLocaleDateString('es-AR');
-                    
-                    // Matrícula
-                    document.getElementById('val-matricula').innerText = generarHashMatricula(String(alumno.dni_alumno));
-                    document.getElementById('val-matricula').style.color = colorTema;
+            // Datos
+            document.getElementById('val-nombre').innerText = `${alumno.nombre} ${alumno.apellido}`;
+            document.getElementById('val-dni').innerText = `DNI: ${new Intl.NumberFormat('es-AR').format(alumno.dni_alumno)}`;
+            document.getElementById('val-curso').innerText = alumno.curso;
+            document.getElementById('val-instituto').innerText = alumno.instituciones?.nombre || 'INSTITUTO OFICIAL';
+            document.getElementById('val-hash').innerText = hashDisplay;
+            document.getElementById('val-vencimiento').innerText = fechaVence.toLocaleDateString('es-AR');
+            
+            document.getElementById('val-matricula').innerText = generarHashMatricula(String(alumno.dni_alumno));
+            document.getElementById('val-matricula').style.color = colorTema;
 
-                    // Logo
-                    if (alumno.instituciones?.logo_url) {
-                        const logo = document.getElementById('val-logo-inst');
-                        logo.src = alumno.instituciones.logo_url;
-                        logo.classList.remove('hidden');
+            // Logo
+            if (alumno.instituciones?.logo_url) {
+                const logo = document.getElementById('val-logo-inst');
+                logo.src = alumno.instituciones.logo_url;
+                logo.classList.remove('hidden');
+            }
+
+            // FIX FOTO: Si la URL es válida, se carga. Si falla, entra el onerror del HTML.
+            // Agregamos timestamp para evitar caché agresiva
+            const imgEl = document.getElementById('val-foto');
+            if (alumno.foto_url && alumno.foto_url.length > 5) {
+                imgEl.src = alumno.foto_url + "?t=" + Date.now();
+                imgEl.crossOrigin = "anonymous";
+            } else {
+                imgEl.src = "https://via.placeholder.com/150?text=Sin+Foto"; // Placeholder si no hay URL
+            }
+
+            // --- CARGAR SEMINARIOS ADICIONALES ---
+            cargarSeminariosValidados(alumno.id);
+            
+            lucide.createIcons();
+        }
+
+        async function cargarSeminariosValidados(alumnoId) {
+            // Buscamos compras de seminarios para este alumno
+            const { data: compras } = await db
+                .from('compras_alumnos')
+                .select('seminarios_catalogo(titulo)')
+                .eq('alumno_id', alumnoId);
+
+            if (compras && compras.length > 0) {
+                const divSem = document.getElementById('container-seminarios');
+                const lista = document.getElementById('lista-seminarios');
+                divSem.classList.remove('hidden');
+                lista.innerHTML = "";
+
+                compras.forEach(c => {
+                    if(c.seminarios_catalogo) {
+                        lista.innerHTML += `
+                        <div class="seminario-item">
+                            <i data-lucide="check-circle" class="icon-check" size="16"></i>
+                            <span class="text-xs font-bold text-slate-700">${c.seminarios_catalogo.titulo}</span>
+                        </div>`;
                     }
-
-                    // Foto CON ANTI-CACHE (Fix: se agrego ?t=Date.now())
-                    const imgEl = document.getElementById('val-foto');
-                    if (alumno.foto_url) {
-                        imgEl.src = alumno.foto_url + "?t=" + Date.now();
-                        imgEl.crossOrigin = "anonymous";
-                    } else {
-                        imgEl.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23cbd5e1'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
-                    }
-                    
-                    lucide.createIcons();
                 });
+                lucide.createIcons();
+            }
         }
 
         function aplicarEstilos(colorTema) {
