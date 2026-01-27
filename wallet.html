@@ -12,6 +12,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&family=Roboto+Slab:wght@700;900&display=swap" rel="stylesheet">
 
@@ -22,13 +25,26 @@
         body { margin: 0; padding: 0; font-family: 'Roboto', sans-serif; background-color: var(--bg-app); color: #333; height: 100vh; display: flex; flex-direction: column; }
 
         /* HEADER */
-        .app-header { background: white; padding: 10px 20px; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; height: 80px; }
-        .app-logo { height: 60px; width: auto; object-fit: contain; }
+        .app-header { background: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; height: 70px; }
+        .app-logo { height: 50px; width: auto; object-fit: contain; }
+        
+        /* NOTIFICATION BELL */
+        .notif-btn { position: relative; font-size: 20px; color: #666; cursor: pointer; padding: 10px; }
+        .notif-badge { position: absolute; top: 5px; right: 5px; width: 10px; height: 10px; background: red; border-radius: 50%; border: 2px solid white; display: none; }
+        .notif-badge.active { display: block; }
 
         /* PANTALLAS */
-        .screen { display: none; flex: 1; flex-direction: column; padding: 20px; animation: fadeIn 0.3s ease; padding-bottom: 60px; }
+        .screen { display: none; flex: 1; flex-direction: column; padding: 20px; animation: fadeIn 0.3s ease; padding-bottom: 60px; overflow-y: auto; }
         .screen.active { display: flex; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* HERO CAROUSEL */
+        .hero-container { width: 100%; height: 200px; border-radius: 20px; overflow: hidden; margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); position: relative; }
+        .swiper { width: 100%; height: 100%; }
+        .swiper-slide { background-size: cover; background-position: center; position: relative; cursor: pointer; }
+        .hero-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); display: flex; flex-direction: column; justify-content: flex-end; padding: 20px; color: white; }
+        .hero-tag { background: var(--gold); color: black; font-size: 10px; font-weight: 900; padding: 4px 8px; border-radius: 4px; width: fit-content; margin-bottom: 5px; text-transform: uppercase; }
+        .hero-title { font-size: 18px; font-weight: 900; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
 
         /* LOGIN */
         .login-container { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
@@ -51,7 +67,7 @@
         .welcome-sub { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
         .welcome-name { font-size: 20px; font-weight: 900; color: var(--text-dark); }
         .user-avatar-mini { width: 40px; height: 40px; border-radius: 50%; background: #ddd; object-fit: cover; border: 2px solid var(--primary); }
-        .card-viewport { width: 100%; overflow: hidden; background: transparent; position: relative; margin-bottom: 15px; height: 220px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); transition: height 0.3s; }
+        .card-viewport { width: 100%; overflow: hidden; background: transparent; position: relative; margin-bottom: 15px; height: 220px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); transition: height 0.3s; flex-shrink: 0; }
         #carnet-render { width: 1011px; height: 638px; background: white; position: absolute; top: 0; left: 0; transform-origin: top left; }
 
         /* VISTA TOGGLES */
@@ -74,7 +90,7 @@
         
         /* SEMINARIOS SCROLL (NETFLIX STYLE) */
         .seminario-scroll { display: flex; overflow-x: auto; gap: 15px; padding-bottom: 10px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
-        .sem-card { min-width: 260px; width: 260px; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative; transition: transform 0.2s; border: 1px solid #eee; display: flex; flex-direction: column; }
+        .sem-card { min-width: 260px; width: 260px; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative; transition: transform 0.2s; border: 1px solid #eee; display: flex; flex-direction: column; flex-shrink: 0; }
         .sem-card:active { transform: scale(0.98); }
         .sem-thumb { height: 140px; background: #000; position: relative; }
         .sem-thumb img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
@@ -137,7 +153,7 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .curso-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid var(--primary); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
 
-        /* --- MODAL NETFLIX --- */
+        /* --- MODAL VIDEO/NETFLIX --- */
         .netflix-modal { position: fixed; inset: 0; background: black; z-index: 9999; display: none; flex-direction: column; }
         .netflix-header { padding: 15px; display: flex; justify-content: space-between; align-items: center; color: white; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); position: absolute; top: 0; width: 100%; z-index: 10; }
         .netflix-close { font-size: 24px; cursor: pointer; opacity: 0.8; }
@@ -168,6 +184,10 @@
 
     <header class="app-header">
         <img src="https://vxggatcfrywyodovjwxj.supabase.co/storage/v1/object/public/logos-instituciones/Asari%20Logo.jpg" id="app-logo" class="app-logo" alt="Logo">
+        <div class="notif-btn" onclick="mostrarNotificaciones()">
+            <i class="fas fa-bell"></i>
+            <div id="notif-badge" class="notif-badge"></div>
+        </div>
     </header>
 
     <div id="screen-login" class="screen active">
@@ -209,6 +229,12 @@
             <img src="" id="user-avatar-wallet" class="user-avatar-mini" style="display:none;">
         </div>
         
+        <div id="hero-slider" class="hero-container swiper" style="display:none;">
+            <div class="swiper-wrapper" id="hero-wrapper">
+                </div>
+            <div class="swiper-pagination"></div>
+        </div>
+
         <div class="card-viewport" id="card-viewport"><div id="carnet-render"></div></div>
         
         <div class="view-toggles">
@@ -292,7 +318,6 @@
         const URL_DOC_LEGAL = "legal.jpg";
         const COLOR_DEFAULT = "#b8860b"; 
 
-        // --- CEREBRO DE PLANILLAS (ADAPTABILIDAD) ---
         const KIT_HERRAMIENTAS = {
             'SALUD': [
                 { id: 'guardia', nombre: 'Planilla de Guardia / Turno', tipo: 'grid' },
@@ -326,9 +351,8 @@
             'colbert': '#2f4f4f', 'default': '#0033cc' 
         };
 
-        // --- CORRECCIÓN: Variables Globales Restauradas ---
         let globalColorTema = COLOR_DEFAULT; 
-        let globalColorTexto = '#0033cc'; // Variable reintegra para evitar errores, pero no se usará en diplomas
+        let globalColorTexto = '#0033cc';
         
         let globalMatriculas = [];
         let alumnoActual = null; 
@@ -357,12 +381,67 @@
             return 'DEFAULT';
         }
 
-        // --- GENERADOR DE PDF AUTOMÁTICO ---
+        // --- CARGAR BANNERS (MARKETING) ---
+        async function cargarBanners(alumno) {
+            const swiperWrapper = document.getElementById('hero-wrapper');
+            const sliderContainer = document.getElementById('hero-slider');
+            
+            try {
+                let query = db.from('anuncios_marketing').select('*').eq('activo', true).order('created_at', {ascending:false});
+                if(alumno.institution_id) {
+                    query = query.or(`institution_id.eq.${alumno.institution_id},institution_id.is.null`);
+                } else {
+                    query = query.is('institution_id', null);
+                }
+                const { data: anuncios } = await query;
+
+                if(anuncios && anuncios.length > 0) {
+                    sliderContainer.style.display = 'block';
+                    swiperWrapper.innerHTML = "";
+                    
+                    let hayNoticiasNuevas = false; // Flag para notificaciones
+
+                    anuncios.forEach(anuncio => {
+                        const esNuevo = (new Date() - new Date(anuncio.created_at)) < (3 * 24 * 60 * 60 * 1000); // 3 dias
+                        if(esNuevo) hayNoticiasNuevas = true;
+
+                        const img = anuncio.imagen_url || 'https://via.placeholder.com/800x400?text=Novedades';
+                        const link = anuncio.link_accion ? `onclick="window.open('${anuncio.link_accion}', '_blank')"` : '';
+                        
+                        swiperWrapper.innerHTML += `
+                        <div class="swiper-slide" ${link} style="background-image: url('${img}');">
+                            <div class="hero-overlay">
+                                <span class="hero-tag">${anuncio.tipo.replace('_', ' ')}</span>
+                                <div class="hero-title">${anuncio.titulo}</div>
+                            </div>
+                        </div>`;
+                    });
+
+                    new Swiper('.swiper', {
+                        loop: true,
+                        autoplay: { delay: 4000, disableOnInteraction: false },
+                        pagination: { el: '.swiper-pagination', clickable: true },
+                    });
+
+                    // Activar campana si hay noticias recientes
+                    if(hayNoticiasNuevas) document.getElementById('notif-badge').classList.add('active');
+
+                } else {
+                    sliderContainer.style.display = 'none';
+                }
+            } catch(e) { console.error("Error banners", e); sliderContainer.style.display = 'none'; }
+        }
+
+        function mostrarNotificaciones() {
+            alert("🔔 Centro de Novedades\n\nAquí aparecerán avisos importantes de tu institución.");
+            document.getElementById('notif-badge').classList.remove('active');
+        }
+
+        // --- GENERADOR DE PDF ---
         async function generarPDFHerramienta(toolId, toolName) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             const instituto = alumnoActual.instituciones?.nombre || "INSTITUTO COLBERT";
-            // Forzamos negro para herramientas de trabajo (más profesional) o azul si prefieres
             const color = "#000000"; 
 
             doc.setFillColor(color);
@@ -495,7 +574,6 @@
             let colorDinamico = null;
             if(alumno.registro_id) { try { const { data: regData } = await db.from('instituciones').select('color_tema').ilike('sigla', alumno.registro_id).maybeSingle(); if(regData && regData.color_tema) colorDinamico = regData.color_tema; } catch(e) {} }
 
-            // CORRECCION: ASIGNAR GLOBALCOLORTEXTO
             globalColorTema = colorDinamico || COLORES_REGISTRO[alumno.registro_id?.toLowerCase()] || COLOR_DEFAULT;
             globalColorTexto = globalColorTema; 
 
@@ -506,6 +584,10 @@
             document.getElementById('btn-toggle-front').classList.add('active');
 
             registrarAcceso(alumno);
+            
+            // --- NUEVO: CARGAR BANNERS MARKETING ---
+            cargarBanners(alumno); 
+
             renderPremiumSection(alumno);
             renderUpselling(alumno);
             cargarSeminarios(alumno);
@@ -573,18 +655,8 @@
         function llenarDatosCarnet(container, alumno, colorOverride) { const el = (sel) => container.querySelector(sel); const nombreEl = el('#txt-nombre'); nombreEl.innerText = `${alumno.nombre} ${alumno.apellido}`; el('#txt-dni').innerText = new Intl.NumberFormat('es-AR').format(alumno.dni_alumno); el('#txt-matricula').innerText = generarHashMatricula(String(alumno.dni_alumno)); const fechaInicio = new Date(alumno.fecha_inicio || new Date()); el('#txt-anio-header').innerText = `CARNET ${fechaInicio.getFullYear()}`; let vence; if (alumno.fecha_vencimiento) { const partes = alumno.fecha_vencimiento.split('-'); vence = new Date(partes[0], partes[1] - 1, partes[2]); } else { vence = new Date(fechaInicio); vence.setFullYear(vence.getFullYear() + 1); } el('#txt-vence').innerText = vence.toLocaleDateString('es-AR'); if(new Date() > vence) el('#vencido-overlay').style.display = 'flex'; if (alumno.estado === 'SUSPENDIDO') { el('#suspendido-overlay').style.display = 'flex'; el('#vencido-overlay').style.display = 'none'; } if (alumno.foto_url) { const img = el('#img-foto'); img.crossOrigin = "anonymous"; img.src = alumno.foto_url + "?t=" + Date.now(); } el('#qr-container').innerHTML = ""; new QRCode(el('#qr-container'), { text: `${URL_WEB}/validador.html?id=${alumno.id}`, width: 144, height: 144 }); const registroId = (alumno.registro_id || 'default').toLowerCase(); const colorCarnet = colorOverride || COLORES_REGISTRO[registroId] || COLORES_REGISTRO['default']; globalColorTema = colorCarnet; const panel = el('#bg-panel'); panel.style.background = ''; panel.style.backgroundColor = colorCarnet; panel.style.backgroundImage = 'none'; panel.style.color = 'white'; if (registroId === 'rce') { panel.style.backgroundImage = `repeating-linear-gradient(45deg, transparent, transparent 20px, #222 20px, #222 25px)`; panel.style.color = '#fff'; el('#card-base-el').style.borderColor = "#222"; } else if (registroId === 'remets' || registroId === 'rmts') { panel.style.backgroundColor = "#1a1a1a"; panel.style.backgroundImage = `linear-gradient(0deg, rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)`; panel.style.backgroundSize = "20px 20px"; el('#card-base-el').style.borderColor = "#333"; } else { el('#card-base-el').style.borderColor = colorCarnet; } el('#banda-color').style.backgroundColor = colorCarnet; el('#txt-sigla').innerText = (alumno.registro_id || 'OFICIAL').toUpperCase(); const t = (alumno.curso || "CURSO PROFESIONAL").trim().toUpperCase().split(/\s+/); if(t.length < 2) { el('#txt-titulo-main').innerText = t.join(' '); el('#txt-titulo-sub').innerText = ""; } else { el('#txt-titulo-main').innerText = t[0]; el('#txt-titulo-sub').innerText = t.slice(1).join(' '); } ajustarTextoAlAncho(nombreEl, 34); ajustarTextoAlAncho(el('#txt-titulo-main'), 55, 600); ajustarTextoAlAncho(el('#txt-titulo-sub'), 55, 500); }
         function ajustarTextoAlAncho(element, startSize, maxWidth) { let size = startSize; element.style.fontSize = size + 'px'; const limit = maxWidth || element.parentElement.clientWidth; while (element.scrollWidth > limit && size > 10) { size -= 2; element.style.fontSize = size + 'px'; } }
         async function descargarCarnetCompleto() { if(!alumnoActual) return; const btn = document.querySelector('.action-card'); const txt = btn.innerHTML; btn.innerHTML = '⏳'; try { const ghost = document.getElementById('ghost-container'); ghost.innerHTML = ""; const wrapper = document.createElement('div'); wrapper.style.display = "flex"; wrapper.style.flexDirection = "column"; wrapper.style.gap = "20px"; wrapper.style.padding = "20px"; wrapper.style.backgroundColor = "white"; wrapper.insertAdjacentHTML('beforeend', CARNET_HTML); wrapper.insertAdjacentHTML('beforeend', CARNET_BACK_HTML); wrapper.querySelector('.live-shimmer').style.display = 'none'; ghost.appendChild(wrapper); llenarDatosCarnet(ghost, alumnoActual, globalColorTema); ghost.querySelectorAll('.card-base, .carnet-back-img').forEach(c => { c.style.width = "1011px"; c.style.height = "638px"; }); ghost.querySelector('#carnet-back-img').style.borderColor = ghost.querySelector('.card-base').style.borderColor; const images = ghost.getElementsByTagName('img'); for(let img of images) { if(img.src && !img.complete) await new Promise(r => img.onload = r); } await new Promise(r => setTimeout(r, 500)); const canvas = await html2canvas(wrapper, { scale: 1.5, useCORS: true }); const link = document.createElement('a'); link.download = `Carnet_${alumnoActual.dni_alumno}.png`; link.href = canvas.toDataURL("image/png"); link.click(); ghost.innerHTML = ''; } catch(e) { alert("Error: " + e.message); } finally { btn.innerHTML = txt; } }
-        async function descargarDiploma() { if(!cursoActualData || !cursoActualData.diploma_bg_url) return alert("Diploma no disponible."); const btn = document.getElementById('btn-descargar-diploma'); const originalText = btn.innerHTML; btn.innerHTML = '⏳'; try { const ghost = document.getElementById('ghost-container'); 
-        
-        // CORRECCIÓN APLICADA: SIEMPRE AZUL EN PDF
-        const colorTexto = '#0033cc'; 
-        
-        ghost.innerHTML = `<div class="diploma-layout" id="diploma-final"><img id="dip-bg-img" class="diploma-bg" src="" crossorigin="anonymous"><div class="diploma-overlay"><div class="dip-linea-unica-container" id="dip-texto-container"><span class="dip-texto-formal" id="dip-texto-completo" style="color: ${colorTexto} !important;"></span></div><div class="dip-qr" id="dip-qr-code"></div><div class="dip-info-extra" id="dip-fecha-registro" style="color: ${colorTexto} !important; border-color: ${colorTexto}33;"></div><div class="dip-sello"></div></div></div>`; const bgImg = ghost.querySelector('#dip-bg-img'); let bgUrl = cursoActualData.diploma_bg_url; if (bgUrl.startsWith('["') || bgUrl.startsWith('[')) { try { bgUrl = JSON.parse(bgUrl)[0]; } catch(e) {} } const response = await fetch(bgUrl); const blob = await response.blob(); const objectURL = URL.createObjectURL(blob); bgImg.src = objectURL; await new Promise((resolve, reject) => { bgImg.onload = resolve; bgImg.onerror = () => reject(new Error("Error carga diploma")); setTimeout(() => reject(new Error("Timeout")), 10000); }); const txtElem = ghost.querySelector('#dip-texto-completo'); txtElem.innerText = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno)}`; new QRCode(ghost.querySelector('#dip-qr-code'), { text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, width: 223, height: 223 }); const f = new Date(alumnoActual.fecha_inicio || new Date()).toLocaleDateString('es-ES', {year:'numeric', month:'long', day:'numeric'}); ghost.querySelector('#dip-fecha-registro').innerHTML = `REGISTRO: <b>${(alumnoActual.registro_id||'OFICIAL').toUpperCase()}</b> • Fecha: ${f}`; await document.fonts.ready; txtElem.style.display = 'inline-block'; txtElem.style.whiteSpace = 'nowrap'; await new Promise(r => setTimeout(r, 100)); ajustarTextoAlAncho(txtElem, 100, 1600); await new Promise(r => setTimeout(r, 500)); const canvas = await html2canvas(ghost.querySelector('#diploma-final'), { scale: 1, useCORS: true }); const link = document.createElement('a'); link.download = `Diploma_${alumnoActual.dni_alumno}.png`; link.href = canvas.toDataURL("image/png"); link.click(); URL.revokeObjectURL(objectURL); ghost.innerHTML = ''; } catch(e) { alert("Error diploma: " + e.message); } finally { btn.innerHTML = originalText; } }
-        async function descargarAnalitico() { if(!cursoActualData || !cursoActualData.analitico_bg_url) return alert("Analítico no disponible."); const btn = document.getElementById('btn-descargar-analitico'); const originalText = btn.innerHTML; btn.innerHTML = 'Generando PDF ⏳'; try { let urls = []; try { if (cursoActualData.analitico_bg_url.trim().startsWith('[')) { urls = JSON.parse(cursoActualData.analitico_bg_url); } else { urls = [cursoActualData.analitico_bg_url]; } } catch(e) { urls = [cursoActualData.analitico_bg_url]; } const { jsPDF } = window.jspdf; const pdf = new jsPDF('p', 'mm', 'a4'); const pdfWidth = pdf.internal.pageSize.getWidth(); const pdfHeight = pdf.internal.pageSize.getHeight(); const ghost = document.getElementById('ghost-container'); 
-        
-        // CORRECCIÓN APLICADA: SIEMPRE AZUL EN PDF
-        const colorTexto = '#0033cc'; 
-        
-        for (let i = 0; i < urls.length; i++) { const url = urls[i]; let overlayHTML = ''; if (i === 0) { overlayHTML = `<div class="diploma-overlay"><div style="position: absolute; top: 120px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; white-space: nowrap;"><span class="dip-texto-formal" id="ana-text-${i}" style="color: ${colorTexto} !important; font-size: 50px;"></span></div><div id="ana-qr-${i}" style="position: absolute; top: 60px; right: 60px; width: 150px; height: 150px; background: white; padding: 5px;"></div><div id="ana-info-${i}" style="position: absolute; top: 200px; left: 50%; transform: translateX(-50%); text-align: center; font-family: 'Roboto', sans-serif; font-size: 16px; font-weight: 700; color: ${colorTexto}; background: rgba(255,255,255,0.9); padding: 4px 25px; border-radius: 50px;"></div></div>`; } ghost.innerHTML = `<div class="diploma-layout" id="analitico-page-${i}" style="width: 1414px; height: 2000px; position: relative;"><img id="ana-bg-${i}" src="" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover;">${overlayHTML}</div>`; const bgImg = document.getElementById(`ana-bg-${i}`); const response = await fetch(url); const blob = await response.blob(); const objectURL = URL.createObjectURL(blob); bgImg.src = objectURL; await new Promise((resolve, reject) => { bgImg.onload = resolve; bgImg.onerror = () => reject(new Error(`Error cargando página ${i+1}`)); setTimeout(() => reject(new Error(`Timeout página ${i+1}`)), 15000); }); if (i === 0) { const txtElem = document.getElementById(`ana-text-${i}`); txtElem.innerText = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno)}`; new QRCode(document.getElementById(`ana-qr-${i}`), { text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, width: 140, height: 140 }); const f = new Date(alumnoActual.fecha_inicio || new Date()).toLocaleDateString('es-ES', {year:'numeric', month:'long', day:'numeric'}); document.getElementById(`ana-info-${i}`).innerHTML = `REGISTRO: <b>${(alumnoActual.registro_id||'OFICIAL').toUpperCase()}</b> • Fecha: ${f}`; await document.fonts.ready; txtElem.style.display = 'inline-block'; await new Promise(r => setTimeout(r, 200)); ajustarTextoAlAncho(txtElem, 50, 1200); await new Promise(r => setTimeout(r, 500)); } const canvas = await html2canvas(document.getElementById(`analitico-page-${i}`), { scale: 1, useCORS: true, backgroundColor: '#ffffff' }); const imgData = canvas.toDataURL('image/jpeg', 0.90); URL.revokeObjectURL(objectURL); if (i > 0) pdf.addPage(); pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight); } pdf.save(`Analitico_${alumnoActual.dni_alumno}.pdf`); ghost.innerHTML = ''; } catch(e) { console.error(e); alert("Error generando PDF: " + e.message); } finally { btn.innerHTML = originalText; } }
+        async function descargarDiploma() { if(!cursoActualData || !cursoActualData.diploma_bg_url) return alert("Diploma no disponible."); const btn = document.getElementById('btn-descargar-diploma'); const originalText = btn.innerHTML; btn.innerHTML = '⏳'; try { const ghost = document.getElementById('ghost-container'); const colorTexto = '#0033cc'; ghost.innerHTML = `<div class="diploma-layout" id="diploma-final"><img id="dip-bg-img" class="diploma-bg" src="" crossorigin="anonymous"><div class="diploma-overlay"><div class="dip-linea-unica-container" id="dip-texto-container"><span class="dip-texto-formal" id="dip-texto-completo" style="color: ${colorTexto} !important;"></span></div><div class="dip-qr" id="dip-qr-code"></div><div class="dip-info-extra" id="dip-fecha-registro" style="color: ${colorTexto} !important; border-color: ${colorTexto}33;"></div><div class="dip-sello"></div></div></div>`; const bgImg = ghost.querySelector('#dip-bg-img'); let bgUrl = cursoActualData.diploma_bg_url; if (bgUrl.startsWith('["') || bgUrl.startsWith('[')) { try { bgUrl = JSON.parse(bgUrl)[0]; } catch(e) {} } const response = await fetch(bgUrl); const blob = await response.blob(); const objectURL = URL.createObjectURL(blob); bgImg.src = objectURL; await new Promise((resolve, reject) => { bgImg.onload = resolve; bgImg.onerror = () => reject(new Error("Error carga diploma")); setTimeout(() => reject(new Error("Timeout")), 10000); }); const txtElem = ghost.querySelector('#dip-texto-completo'); txtElem.innerText = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno)}`; new QRCode(ghost.querySelector('#dip-qr-code'), { text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, width: 223, height: 223 }); const f = new Date(alumnoActual.fecha_inicio || new Date()).toLocaleDateString('es-ES', {year:'numeric', month:'long', day:'numeric'}); ghost.querySelector('#dip-fecha-registro').innerHTML = `REGISTRO: <b>${(alumnoActual.registro_id||'OFICIAL').toUpperCase()}</b> • Fecha: ${f}`; await document.fonts.ready; txtElem.style.display = 'inline-block'; txtElem.style.whiteSpace = 'nowrap'; await new Promise(r => setTimeout(r, 100)); ajustarTextoAlAncho(txtElem, 100, 1600); await new Promise(r => setTimeout(r, 500)); const canvas = await html2canvas(ghost.querySelector('#diploma-final'), { scale: 1, useCORS: true }); const link = document.createElement('a'); link.download = `Diploma_${alumnoActual.dni_alumno}.png`; link.href = canvas.toDataURL("image/png"); link.click(); URL.revokeObjectURL(objectURL); ghost.innerHTML = ''; } catch(e) { alert("Error diploma: " + e.message); } finally { btn.innerHTML = originalText; } }
+        async function descargarAnalitico() { if(!cursoActualData || !cursoActualData.analitico_bg_url) return alert("Analítico no disponible."); const btn = document.getElementById('btn-descargar-analitico'); const originalText = btn.innerHTML; btn.innerHTML = 'Generando PDF ⏳'; try { let urls = []; try { if (cursoActualData.analitico_bg_url.trim().startsWith('[')) { urls = JSON.parse(cursoActualData.analitico_bg_url); } else { urls = [cursoActualData.analitico_bg_url]; } } catch(e) { urls = [cursoActualData.analitico_bg_url]; } const { jsPDF } = window.jspdf; const pdf = new jsPDF('p', 'mm', 'a4'); const pdfWidth = pdf.internal.pageSize.getWidth(); const pdfHeight = pdf.internal.pageSize.getHeight(); const ghost = document.getElementById('ghost-container'); const colorTexto = '#0033cc'; for (let i = 0; i < urls.length; i++) { const url = urls[i]; let overlayHTML = ''; if (i === 0) { overlayHTML = `<div class="diploma-overlay"><div style="position: absolute; top: 120px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; white-space: nowrap;"><span class="dip-texto-formal" id="ana-text-${i}" style="color: ${colorTexto} !important; font-size: 50px;"></span></div><div id="ana-qr-${i}" style="position: absolute; top: 60px; right: 60px; width: 150px; height: 150px; background: white; padding: 5px;"></div><div id="ana-info-${i}" style="position: absolute; top: 200px; left: 50%; transform: translateX(-50%); text-align: center; font-family: 'Roboto', sans-serif; font-size: 16px; font-weight: 700; color: ${colorTexto}; background: rgba(255,255,255,0.9); padding: 4px 25px; border-radius: 50px;"></div></div>`; } ghost.innerHTML = `<div class="diploma-layout" id="analitico-page-${i}" style="width: 1414px; height: 2000px; position: relative;"><img id="ana-bg-${i}" src="" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover;">${overlayHTML}</div>`; const bgImg = document.getElementById(`ana-bg-${i}`); const response = await fetch(url); const blob = await response.blob(); const objectURL = URL.createObjectURL(blob); bgImg.src = objectURL; await new Promise((resolve, reject) => { bgImg.onload = resolve; bgImg.onerror = () => reject(new Error(`Error cargando página ${i+1}`)); setTimeout(() => reject(new Error(`Timeout página ${i+1}`)), 15000); }); if (i === 0) { const txtElem = document.getElementById(`ana-text-${i}`); txtElem.innerText = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno)}`; new QRCode(document.getElementById(`ana-qr-${i}`), { text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, width: 140, height: 140 }); const f = new Date(alumnoActual.fecha_inicio || new Date()).toLocaleDateString('es-ES', {year:'numeric', month:'long', day:'numeric'}); document.getElementById(`ana-info-${i}`).innerHTML = `REGISTRO: <b>${(alumnoActual.registro_id||'OFICIAL').toUpperCase()}</b> • Fecha: ${f}`; await document.fonts.ready; txtElem.style.display = 'inline-block'; await new Promise(r => setTimeout(r, 200)); ajustarTextoAlAncho(txtElem, 50, 1200); await new Promise(r => setTimeout(r, 500)); } const canvas = await html2canvas(document.getElementById(`analitico-page-${i}`), { scale: 1, useCORS: true, backgroundColor: '#ffffff' }); const imgData = canvas.toDataURL('image/jpeg', 0.90); URL.revokeObjectURL(objectURL); if (i > 0) pdf.addPage(); pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight); } pdf.save(`Analitico_${alumnoActual.dni_alumno}.pdf`); ghost.innerHTML = ''; } catch(e) { console.error(e); alert("Error generando PDF: " + e.message); } finally { btn.innerHTML = originalText; } }
         async function cargarSeminarios(alumno) { const container = document.getElementById('seminarios-container'); const section = document.getElementById('seminarios-section'); container.innerHTML = ""; try { let query = db.from('seminarios_catalogo').select('*').order('created_at', {ascending: false}); if(alumno.institution_id) { query = query.or(`institution_id.eq.${alumno.institution_id},institution_id.is.null`); } else { query = query.is('institution_id', null); } const { data: catalogo } = await query; if(!catalogo || catalogo.length === 0) { section.style.display = 'none'; return; } const { data: compras } = await db.from('compras_alumnos').select('seminario_id').eq('alumno_id', alumno.id); const compradosIds = compras ? compras.map(c => c.seminario_id) : []; section.style.display = 'block'; catalogo.forEach(sem => { const comprado = compradosIds.includes(sem.id); const thumb = sem.video_id ? `https://img.youtube.com/vi/${sem.video_id}/mqdefault.jpg` : 'https://via.placeholder.com/260x140?text=Seminario'; const el = document.createElement('div'); el.className = 'sem-card'; el.innerHTML = `<div class="sem-thumb"><img src="${thumb}"><div class="sem-overlay">${comprado ? `<i class="fas fa-play-circle sem-play-btn"></i>` : `<i class="fas fa-lock sem-lock-btn"></i>`}</div></div><div class="sem-info"><div class="sem-title">${sem.titulo}</div><div class="sem-meta">${comprado ? `<span class="sem-owned"><i class="fas fa-check-circle"></i> ADQUIRIDO</span>` : `<span class="sem-price">$${sem.precio}</span>`}</div></div>`; el.onclick = () => { if(comprado) abrirModalNetflix(sem); else comprarSeminario(sem); }; container.appendChild(el); }); } catch(e) { console.error("Error seminarios", e); } }
         function comprarSeminario(sem) { if(confirm(`¿Deseas desbloquear "${sem.titulo}" por $${sem.precio}?`)) { localStorage.setItem('pending_seminario_id', sem.id); localStorage.setItem('pending_alumno_id', alumnoActual.id); window.location.href = LINK_MERCADO_PAGO; } }
         function abrirModalNetflix(sem) { seminarioActualPlay = sem; const modal = document.getElementById('netflix-modal'); document.getElementById('netflix-title').innerText = sem.titulo; document.getElementById('netflix-desc').innerText = sem.descripcion || "Seminario Oficial"; document.getElementById('netflix-video-iframe').innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${sem.video_id}?autoplay=1&rel=0&modestbranding=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`; modal.style.display = 'flex'; }
