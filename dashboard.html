@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control - ASARI V7.0 (Reportes & Finanzas)</title>
+    <title>Panel de Control - ASARI V8.0 (Marketing Edition)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -60,11 +60,17 @@
                 <i data-lucide="upload-cloud" size="18"></i> Carga Masiva
             </button>
 
-            <p class="px-4 pt-4 pb-2 text-[10px] uppercase text-white/40 font-bold tracking-wider">Finanzas & Seguridad</p>
+            <p class="px-4 pt-4 pb-2 text-[10px] uppercase text-white/40 font-bold tracking-wider">Marketing & Finanzas</p>
+            
+            <button onclick="mostrarSeccion('panel-marketing')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-purple-300 bg-purple-900/20 hover:bg-purple-900/40 border border-purple-500/20 transition-all">
+                <i data-lucide="megaphone" size="18"></i> Marketing & Banner
+            </button>
+
             <button onclick="mostrarSeccion('panel-reportes')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-blue-300 bg-blue-900/20 hover:bg-blue-900/40 border border-blue-500/20 transition-all">
                 <i data-lucide="pie-chart" size="18"></i> Reportes & Caja
             </button>
             
+            <p class="px-4 pt-4 pb-2 text-[10px] uppercase text-white/40 font-bold tracking-wider">Seguridad</p>
             <button onclick="mostrarSeccion('panel-auditoria')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-emerald-300 bg-emerald-900/20 hover:bg-emerald-900/40 border border-emerald-500/20 transition-all">
                 <i data-lucide="shield-check" size="18"></i> Auditoría Ledger
             </button>
@@ -142,6 +148,46 @@
                         <button onclick="descargarReporteExcel()" class="bg-slate-800 hover:bg-black text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg transition">
                             <i data-lucide="download"></i> DESCARGAR EXCEL RENDICIÓN
                         </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="panel-marketing" class="hidden animate-fade-in">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-1">
+                        <div class="bg-white rounded-2xl shadow-sm border border-purple-100 p-6">
+                            <h3 class="text-xl font-black text-slate-800 mb-4 flex items-center gap-2">
+                                <i data-lucide="sparkles" class="text-purple-500"></i> Nuevo Anuncio
+                            </h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="label-form">Tipo de Anuncio</label>
+                                    <select id="mkt-tipo" class="input-form font-bold">
+                                        <option value="EVENTO">🎉 Evento Masivo</option>
+                                        <option value="CURSO_EXTERNO">🎓 Curso Recomendado</option>
+                                        <option value="NOTICIA">🔔 Notificación / Noticia</option>
+                                    </select>
+                                </div>
+                                <div><label class="label-form">Título Principal</label><input type="text" id="mkt-titulo" class="input-form" placeholder="Ej: Masterclass Gratuita..."></div>
+                                <div><label class="label-form">Descripción Corta</label><textarea id="mkt-desc" class="input-form h-20 resize-none" placeholder="Texto que enganche..."></textarea></div>
+                                <div><label class="label-form">Link de Acción (Wpp/Web)</label><input type="text" id="mkt-link" class="input-form" placeholder="https://chat.whatsapp.com/..."></div>
+                                
+                                <div class="bg-slate-50 p-3 rounded border border-slate-200">
+                                    <label class="label-form">Imagen del Banner (Horizontal)</label>
+                                    <input type="file" id="mkt-img" accept="image/*" class="w-full text-xs text-slate-500">
+                                </div>
+
+                                <button onclick="guardarAnuncio()" class="w-full bg-purple-600 text-white font-bold py-3 rounded-xl hover:bg-purple-700 transition shadow-lg mt-2">PUBLICAR EN WALLET</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="lg:col-span-2">
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col h-full">
+                            <h3 class="font-bold text-slate-700 mb-4">Anuncios Activos en Carrusel</h3>
+                            <div id="lista-anuncios" class="space-y-3 overflow-y-auto pr-2 max-h-[600px]">
+                                </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -418,6 +464,7 @@
             await cargarOpcionesRegistros();
             await cargarCursos(); 
             await cargarSeminarios(); 
+            await cargarAnuncios(); // CARGA MARKETING
             await llenarFiltros(); 
             await filtrarAlumnos(); 
             await contarTotal();
@@ -442,6 +489,69 @@
             if(inst?.color_primario) {
                 document.getElementById('sidebar').style.backgroundColor = inst.color_primario;
             }
+        }
+
+        // --- GESTIÓN DE MARKETING ---
+        async function cargarAnuncios() {
+            const div = document.getElementById('lista-anuncios');
+            div.innerHTML = "<p class='text-xs text-slate-400'>Cargando...</p>";
+            
+            let query = db.from('anuncios_marketing').select('*').order('created_at', {ascending: false});
+            if (currentProfile.rol !== 'superadmin') query = query.eq('institution_id', currentProfile.institucion_id);
+            
+            try {
+                const { data, error } = await query;
+                if(error) { div.innerHTML = "Error cargando anuncios."; return; }
+
+                div.innerHTML = "";
+                if(!data || data.length === 0) { div.innerHTML = "<p class='text-sm text-slate-400'>Sin anuncios activos.</p>"; return; }
+
+                data.forEach(a => {
+                    const colorTipo = a.tipo === 'EVENTO' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700';
+                    div.innerHTML += `
+                    <div class="flex gap-4 p-4 border rounded-xl bg-white items-center">
+                        <img src="${a.imagen_url || 'https://via.placeholder.com/100'}" class="w-20 h-12 object-cover rounded bg-slate-200">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded ${colorTipo}">${a.tipo}</span>
+                                <span class="font-bold text-slate-800 text-sm">${a.titulo}</span>
+                            </div>
+                            <p class="text-xs text-slate-500 truncate">${a.link_accion || 'Sin link'}</p>
+                        </div>
+                        <button onclick="borrar('anuncios_marketing', '${a.id}', cargarAnuncios)" class="text-red-400 hover:text-red-600"><i data-lucide="trash-2" size="16"></i></button>
+                    </div>`;
+                });
+                lucide.createIcons();
+            } catch(e) { console.error(e); }
+        }
+
+        async function guardarAnuncio() {
+            const titulo = document.getElementById('mkt-titulo').value;
+            const desc = document.getElementById('mkt-desc').value;
+            const link = document.getElementById('mkt-link').value;
+            const tipo = document.getElementById('mkt-tipo').value;
+            const fileInput = document.getElementById('mkt-img');
+
+            if(!titulo) return alert("Ponle un título al anuncio");
+
+            let imgUrl = null;
+            if(fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const fileName = `banner_${Date.now()}`;
+                // Reutilizamos bucket de plantillas para simplificar
+                await db.storage.from('plantillas-diplomas').upload(fileName, file);
+                const { data } = db.storage.from('plantillas-diplomas').getPublicUrl(fileName);
+                imgUrl = data.publicUrl;
+            }
+
+            const payload = {
+                titulo, descripcion: desc, link_accion: link, tipo, imagen_url: imgUrl,
+                institution_id: currentProfile.rol === 'superadmin' ? null : currentProfile.institucion_id
+            };
+
+            const { error } = await db.from('anuncios_marketing').insert([payload]);
+            if(error) alert(error.message);
+            else { toast("Anuncio Publicado"); cargarAnuncios(); }
         }
 
         // --- LÓGICA DE REPORTES & EXCEL (NUEVO) ---
