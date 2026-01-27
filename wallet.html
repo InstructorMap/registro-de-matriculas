@@ -381,47 +381,73 @@
             return 'DEFAULT';
         }
 
-        // --- CARGAR BANNERS (MARKETING) ---
+      // --- CARGAR BANNERS (MARKETING) ---
         async function cargarBanners(alumno) {
             const swiperWrapper = document.getElementById('hero-wrapper');
             const sliderContainer = document.getElementById('hero-slider');
             
             try {
+                // 1. Consulta a Base de Datos
                 let query = db.from('anuncios_marketing').select('*').eq('activo', true).order('created_at', {ascending:false});
+                
+                // Filtro: Trae los de mi instituto O los que no tienen instituto (Globales)
                 if(alumno.institution_id) {
                     query = query.or(`institution_id.eq.${alumno.institution_id},institution_id.is.null`);
                 } else {
                     query = query.is('institution_id', null);
                 }
+                
                 const { data: anuncios } = await query;
 
                 if(anuncios && anuncios.length > 0) {
                     sliderContainer.style.display = 'block';
                     swiperWrapper.innerHTML = "";
                     
-                    let hayNoticiasNuevas = false; // Flag para notificaciones
+                    let hayNoticiasNuevas = false;
 
                     anuncios.forEach(anuncio => {
-                        const esNuevo = (new Date() - new Date(anuncio.created_at)) < (3 * 24 * 60 * 60 * 1000); // 3 dias
+                        // Detectar si es nuevo (menos de 3 días)
+                        const esNuevo = (new Date() - new Date(anuncio.created_at)) < (3 * 24 * 60 * 60 * 1000);
                         if(esNuevo) hayNoticiasNuevas = true;
 
                         const img = anuncio.imagen_url || 'https://via.placeholder.com/800x400?text=Novedades';
-                        const link = anuncio.link_accion ? `onclick="window.open('${anuncio.link_accion}', '_blank')"` : '';
+                        // Si tiene link, hace clic. Si no, no hace nada.
+                        const linkAttr = anuncio.link_accion ? `onclick="window.open('${anuncio.link_accion}', '_blank')"` : '';
                         
                         swiperWrapper.innerHTML += `
-                        <div class="swiper-slide" ${link} style="background-image: url('${img}');">
+                        <div class="swiper-slide" ${linkAttr} style="background-image: url('${img}');">
                             <div class="hero-overlay">
-                                <span class="hero-tag">${anuncio.tipo.replace('_', ' ')}</span>
+                                <span class="hero-tag">${(anuncio.tipo || 'INFO').replace('_', ' ')}</span>
                                 <div class="hero-title">${anuncio.titulo}</div>
                             </div>
                         </div>`;
                     });
 
+                    // --- LÓGICA INTELIGENTE DE SWIPER ---
+                    const hayVarios = anuncios.length > 1;
+
+                    // Limpiar instancia previa si existe para evitar errores
+                    const swiperEl = document.querySelector('.swiper').swiper;
+                    if (swiperEl) swiperEl.destroy(true, true);
+
                     new Swiper('.swiper', {
-                        loop: true,
-                        autoplay: { delay: 4000, disableOnInteraction: false },
+                        loop: hayVarios, // Solo bucle si hay más de 1
+                        allowTouchMove: hayVarios, // Solo deslizar si hay más de 1
+                        autoplay: hayVarios ? { delay: 4000, disableOnInteraction: false } : false,
                         pagination: { el: '.swiper-pagination', clickable: true },
                     });
+
+                    // Activar punto rojo en campana si hay noticias recientes
+                    if(hayNoticiasNuevas) document.getElementById('notif-badge').classList.add('active');
+
+                } else {
+                    sliderContainer.style.display = 'none';
+                }
+            } catch(e) { 
+                console.error("Error banners", e); 
+                sliderContainer.style.display = 'none'; 
+            }
+        }
 
                     // Activar campana si hay noticias recientes
                     if(hayNoticiasNuevas) document.getElementById('notif-badge').classList.add('active');
