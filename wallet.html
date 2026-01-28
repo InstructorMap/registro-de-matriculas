@@ -211,6 +211,26 @@
             100% { left: 200%; }
         }
 
+        /* --- ESTILOS CARRUSEL (NUEVO) --- */
+        .carousel-container {
+            display: flex;
+            overflow-x: auto;
+            gap: 15px;
+            padding: 0 5px 20px 5px; /* Ajuste para que se vea la sombra inferior */
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            margin-top: 25px;
+        }
+        .carousel-item {
+            min-width: 85%;
+            scroll-snap-align: center;
+            flex-shrink: 0;
+            margin-top: 0 !important; /* Sobreescribir el margin-top de .promo-banner */
+        }
+        /* Ocultar barra de scroll visualmente */
+        .carousel-container::-webkit-scrollbar { display: none; }
+        .carousel-container { -ms-overflow-style: none; scrollbar-width: none; }
+
         #ghost-container { position: fixed; top: -9999px; left: -9999px; }
     </style>
 </head>
@@ -629,37 +649,57 @@
             }
         }
 
-        // --- FUNCIÓN MEJORADA: UPSELLING CON DISEÑO PUBLICITARIO NUEVO ---
+        // --- FUNCIÓN UPSELLING CON CARRUSEL DE PUBLICIDAD ---
         async function renderUpselling(alumno) {
             try {
-                let { data: ofertas } = await db.from('rutas_carrera').select('*').eq('activo', true).ilike('curso_origen', alumno.curso).maybeSingle();
-                if (!ofertas) {
-                    const { data: ofertaGen } = await db.from('rutas_carrera').select('*').eq('activo', true).eq('curso_origen', 'TODOS').limit(1).maybeSingle();
-                    ofertas = ofertaGen;
-                }
+                // 1. Buscar ofertas ESPECÍFICAS (sin maybeSingle)
+                let { data: especificas } = await db.from('rutas_carrera')
+                    .select('*')
+                    .eq('activo', true)
+                    .ilike('curso_origen', alumno.curso);
 
-                if (ofertas) {
-                    const container = document.getElementById('premium-section');
-                    // Creamos el div con el nuevo diseño y clases CSS
-                    const ofertaDiv = document.createElement('div');
-                    ofertaDiv.className = 'promo-banner';
-                    ofertaDiv.innerHTML = `
-                        <div class="shine-effect"></div>
-                        <div class="promo-badge"><i class="fas fa-star"></i> Siguiente Nivel</div>
-                        <div class="promo-content">
-                            <div style="flex: 1; padding-right: 10px;">
-                                <div class="promo-title">${ofertas.titulo_oferta}</div>
-                                <div class="promo-desc">${ofertas.beneficio_txt}</div>
-                            </div>
-                            <div class="promo-icon">
-                                <i class="fas fa-chevron-right"></i>
-                            </div>
-                        </div>`;
-                    
-                    ofertaDiv.onclick = () => window.open(ofertas.link_destino, '_blank');
-                    
+                // 2. Buscar ofertas GENERALES (sin maybeSingle)
+                let { data: generales } = await db.from('rutas_carrera')
+                    .select('*')
+                    .eq('activo', true)
+                    .eq('curso_origen', 'TODOS');
+
+                // 3. Unir y filtrar duplicados
+                const ofertasA = especificas || [];
+                const ofertasB = generales || [];
+                const todasLasOfertas = [...ofertasA, ...ofertasB].filter((v,i,a)=>a.findIndex(t=>(t.id === v.id))===i);
+
+                // 4. Limpiar carrusel previo para no duplicar al recargar
+                const existingCarousel = document.querySelector('.carousel-container');
+                if(existingCarousel) existingCarousel.remove();
+
+                if (todasLasOfertas.length > 0) {
+                    const carousel = document.createElement('div');
+                    carousel.className = 'carousel-container';
+
+                    todasLasOfertas.forEach(oferta => {
+                        const card = document.createElement('div');
+                        card.className = 'promo-banner carousel-item';
+                        card.innerHTML = `
+                            <div class="shine-effect"></div>
+                            <div class="promo-badge"><i class="fas fa-star"></i> RECOMENDADO</div>
+                            <div class="promo-content">
+                                <div style="flex: 1; padding-right: 10px;">
+                                    <div class="promo-title">${oferta.titulo_oferta}</div>
+                                    <div class="promo-desc">${oferta.beneficio_txt}</div>
+                                </div>
+                                <div class="promo-icon">
+                                    <i class="fas fa-chevron-right"></i>
+                                </div>
+                            </div>`;
+                        
+                        card.onclick = () => window.open(oferta.link_destino, '_blank');
+                        carousel.appendChild(card);
+                    });
+
+                    // Insertar ANTES de la grilla de acciones
                     const actionsGrid = document.querySelector('.actions-grid');
-                    actionsGrid.parentNode.insertBefore(ofertaDiv, actionsGrid);
+                    actionsGrid.parentNode.insertBefore(carousel, actionsGrid);
                 }
             } catch (err) { console.log("Error upselling", err); }
         }
