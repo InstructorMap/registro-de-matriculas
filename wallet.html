@@ -136,7 +136,7 @@
         .btn-accept.ready { background: linear-gradient(135deg, var(--primary), #001a66); color: white; cursor: pointer; box-shadow: 0 10px 20px rgba(0, 51, 204, 0.3); }
         @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* --- NUEVO ESTILO PUBLICIDAD (MEJORA MARKETING) --- */
+        /* --- ESTILO PUBLICIDAD (CURSOS) --- */
         .promo-banner {
             background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
             border: 0;
@@ -211,7 +211,7 @@
             100% { left: 200%; }
         }
 
-        /* --- ESTILOS CARRUSEL (NUEVO) --- */
+        /* --- ESTILOS CARRUSEL (HORIZONTAL) --- */
         .carousel-container {
             display: flex;
             overflow-x: auto;
@@ -219,7 +219,7 @@
             padding: 0 5px 20px 5px; /* Ajuste para que se vea la sombra inferior */
             scroll-snap-type: x mandatory;
             -webkit-overflow-scrolling: touch;
-            margin-top: 25px;
+            margin-top: 10px;
         }
         .carousel-item {
             min-width: 85%;
@@ -227,9 +227,74 @@
             flex-shrink: 0;
             margin-top: 0 !important; /* Sobreescribir el margin-top de .promo-banner */
         }
-        /* Ocultar barra de scroll visualmente */
         .carousel-container::-webkit-scrollbar { display: none; }
         .carousel-container { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* --- NUEVO: ESTILOS EVENTOS, AGENDA Y SEMINARIOS --- */
+        .section-header {
+            font-size: 13px;
+            font-weight: 900;
+            color: #666;
+            margin: 25px 0 10px 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Tarjeta de Evento (Agenda) */
+        .event-card {
+            background: white;
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border-left: 4px solid var(--primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .event-card:active { transform: scale(0.98); background: #f8f9fa; }
+        .event-date {
+            background: #f0f4ff;
+            color: var(--primary);
+            padding: 8px 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 900;
+            font-size: 14px;
+            min-width: 60px;
+        }
+        .event-info { flex: 1; }
+        .event-title { font-size: 14px; font-weight: 800; color: #222; margin-bottom: 3px; line-height: 1.2; }
+        .event-desc { font-size: 11px; color: #666; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+        /* Tarjeta Seminario (Estilo Netflix/Dark) */
+        .seminario-card {
+            background: linear-gradient(145deg, #1a1a1a, #2c2c2c);
+            color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .seminario-content { padding: 15px; }
+        .sem-badge { 
+            position: absolute; top: 10px; right: 10px; 
+            background: #e50914; color: white; 
+            font-size: 9px; font-weight: 900; padding: 3px 8px; border-radius: 4px; 
+        }
+        .sem-title { font-size: 16px; font-weight: 700; margin-bottom: 5px; }
+        .sem-price { font-size: 18px; font-weight: 900; color: #4ade80; margin-top: 8px; }
+        .btn-sem { 
+            width: 100%; margin-top: 10px; padding: 10px; 
+            background: white; color: black; border: none; 
+            font-weight: 900; border-radius: 6px; cursor: pointer;
+        }
 
         #ghost-container { position: fixed; top: -9999px; left: -9999px; }
     </style>
@@ -355,7 +420,6 @@
             'default': '#0033cc' 
         };
 
-        // --- SOLUCIÓN DEL ERROR: DEFINICIÓN EXPLÍCITA DE CARNET_HTML ---
         const CARNET_HTML = `
             <div class="card-base" id="card-base-el">
                 <div class="front-left" id="panel-izq-bg">
@@ -603,7 +667,9 @@
 
             registrarAcceso(alumno);
             renderPremiumSection(alumno);
-            renderUpselling(alumno);
+            
+            // --- NUEVO: CARGAR TODOS LOS CONTENIDOS (Cursos, Eventos, Seminarios) ---
+            cargarContenidosExtra(alumno);
 
             const { data: cursosEncontrados } = await db.from('cursos_oficiales').select('*').eq('nombre', alumno.curso);
             
@@ -649,59 +715,119 @@
             }
         }
 
-        // --- FUNCIÓN UPSELLING CON CARRUSEL DE PUBLICIDAD ---
-        async function renderUpselling(alumno) {
+        // --- GESTOR DE CONTENIDOS (Cursos, Eventos y Seminarios) ---
+        async function cargarContenidosExtra(alumno) {
+            // Limpiamos contenedores previos si existen
+            document.getElementById('dynamic-content-area')?.remove();
+            
+            // Creamos un contenedor principal para inyectar todo ordenado
+            const mainContainer = document.createElement('div');
+            mainContainer.id = 'dynamic-content-area';
+            
+            // Insertamos antes de la grilla de acciones
+            const actionsGrid = document.querySelector('.actions-grid');
+            actionsGrid.parentNode.insertBefore(mainContainer, actionsGrid);
+
             try {
-                // 1. Buscar ofertas ESPECÍFICAS (sin maybeSingle)
-                let { data: especificas } = await db.from('rutas_carrera')
+                // 1. CARGAR ANUNCIOS (Tabla rutas_carrera)
+                let { data: anuncios } = await db.from('rutas_carrera')
                     .select('*')
-                    .eq('activo', true)
-                    .ilike('curso_origen', alumno.curso);
+                    .eq('activo', true);
 
-                // 2. Buscar ofertas GENERALES (sin maybeSingle)
-                let { data: generales } = await db.from('rutas_carrera')
+                // 2. CARGAR SEMINARIOS (Tabla seminarios)
+                let { data: seminarios } = await db.from('seminarios')
                     .select('*')
-                    .eq('activo', true)
-                    .eq('curso_origen', 'TODOS');
+                    .limit(5);
 
-                // 3. Unir y filtrar duplicados
-                const ofertasA = especificas || [];
-                const ofertasB = generales || [];
-                const todasLasOfertas = [...ofertasA, ...ofertasB].filter((v,i,a)=>a.findIndex(t=>(t.id === v.id))===i);
+                // --- A. PROCESAR CURSOS Y UPSELLING (Carrusel Superior) ---
+                const anunciosRelevantes = anuncios?.filter(a => 
+                    (a.curso_origen === 'TODOS' || a.curso_origen?.toLowerCase() === alumno.curso?.toLowerCase())
+                ) || [];
 
-                // 4. Limpiar carrusel previo para no duplicar al recargar
-                const existingCarousel = document.querySelector('.carousel-container');
-                if(existingCarousel) existingCarousel.remove();
+                // Separamos: ¿Qué es Curso? ¿Qué es Evento?
+                const cursos = anunciosRelevantes.filter(a => !a.tipo || a.tipo.includes('Curso') || a.tipo.includes('Carrera'));
+                const eventos = anunciosRelevantes.filter(a => a.tipo && (a.tipo.includes('Evento') || a.tipo.includes('Noticia')));
 
-                if (todasLasOfertas.length > 0) {
+                // RENDER CURSOS (Upselling)
+                if (cursos.length > 0) {
+                    const wrapper = document.createElement('div');
+                    wrapper.innerHTML = `<div class="section-header"><span>🚀 Recomendado para vos</span></div>`;
                     const carousel = document.createElement('div');
                     carousel.className = 'carousel-container';
-
-                    todasLasOfertas.forEach(oferta => {
-                        const card = document.createElement('div');
-                        card.className = 'promo-banner carousel-item';
-                        card.innerHTML = `
-                            <div class="shine-effect"></div>
-                            <div class="promo-badge"><i class="fas fa-star"></i> RECOMENDADO</div>
-                            <div class="promo-content">
-                                <div style="flex: 1; padding-right: 10px;">
-                                    <div class="promo-title">${oferta.titulo_oferta}</div>
-                                    <div class="promo-desc">${oferta.beneficio_txt}</div>
-                                </div>
-                                <div class="promo-icon">
-                                    <i class="fas fa-chevron-right"></i>
+                    
+                    cursos.forEach(oferta => {
+                        carousel.innerHTML += `
+                            <div class="promo-banner carousel-item" onclick="window.open('${oferta.link_destino}', '_blank')">
+                                <div class="shine-effect"></div>
+                                <div class="promo-badge"><i class="fas fa-star"></i> OFERTA</div>
+                                <div class="promo-content">
+                                    <div style="flex: 1; padding-right: 10px;">
+                                        <div class="promo-title">${oferta.titulo_oferta}</div>
+                                        <div class="promo-desc">${oferta.beneficio_txt}</div>
+                                    </div>
+                                    <div class="promo-icon"><i class="fas fa-chevron-right"></i></div>
                                 </div>
                             </div>`;
-                        
-                        card.onclick = () => window.open(oferta.link_destino, '_blank');
-                        carousel.appendChild(card);
                     });
-
-                    // Insertar ANTES de la grilla de acciones
-                    const actionsGrid = document.querySelector('.actions-grid');
-                    actionsGrid.parentNode.insertBefore(carousel, actionsGrid);
+                    wrapper.appendChild(carousel);
+                    mainContainer.appendChild(wrapper);
                 }
-            } catch (err) { console.log("Error upselling", err); }
+
+                // --- B. RENDER AGENDA (Eventos Masivos) ---
+                if (eventos.length > 0) {
+                    const wrapper = document.createElement('div');
+                    wrapper.innerHTML = `<div class="section-header"><span>📅 Agenda & Eventos</span></div>`;
+                    
+                    eventos.forEach(ev => {
+                        const fechaTexto = ev.fecha ? new Date(ev.fecha).toLocaleDateString() : "INFO";
+                        
+                        const card = document.createElement('div');
+                        card.className = 'event-card';
+                        card.onclick = () => window.open(ev.link_destino, '_blank');
+                        card.innerHTML = `
+                            <div class="event-date">${fechaTexto.split('/')[0] || '★'}</div>
+                            <div class="event-info">
+                                <div class="event-title">${ev.titulo_oferta}</div>
+                                <div class="event-desc">${ev.beneficio_txt || 'Toca para ver más detalles del evento.'}</div>
+                            </div>
+                            <div style="color:#ccc"><i class="fas fa-external-link-alt"></i></div>
+                        `;
+                        wrapper.appendChild(card);
+                    });
+                    mainContainer.appendChild(wrapper);
+                }
+
+                // --- C. RENDER SEMINARIOS (On Demand) ---
+                if (seminarios && seminarios.length > 0) {
+                    const wrapper = document.createElement('div');
+                    wrapper.innerHTML = `<div class="section-header"><span>🎓 Seminarios On-Demand</span><small>Ver Todo</small></div>`;
+                    
+                    seminarios.forEach(sem => {
+                        const card = document.createElement('div');
+                        card.className = 'seminario-card';
+                        
+                        card.innerHTML = `
+                            <div class="sem-badge">ONLINE</div>
+                            <div class="seminario-content">
+                                <div class="sem-title">${sem.titulo}</div>
+                                <div style="font-size:11px; opacity:0.8;">${sem.descripcion || 'Certificación inmediata con tecnología Blockchain.'}</div>
+                                <div class="sem-price">$${sem.precio || 'GRATIS'}</div>
+                                <button class="btn-sem" onclick="comprarSeminario('${sem.id}', '${sem.link_pago || '#'}')">INSCRIBIRSE AHORA</button>
+                            </div>
+                        `;
+                        wrapper.appendChild(card);
+                    });
+                    mainContainer.appendChild(wrapper);
+                }
+
+            } catch (err) {
+                console.log("Error cargando contenidos dinámicos", err);
+            }
+        }
+
+        function comprarSeminario(id, link) {
+            if(link && link !== '#') window.open(link, '_blank');
+            else alert("Inscripción abierta. Contacte a administración.");
         }
 
         function iniciarPago() {
