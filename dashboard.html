@@ -788,47 +788,61 @@
             lucide.createIcons();
         }
 
-        // --- GESTIÓN DE SEMINARIOS (NUEVO) ---
+        // --- GESTIÓN DE SEMINARIOS (CORREGIDO PARA TABLA 'SEMINARIOS') ---
         async function cargarSeminarios() {
             const div = document.getElementById('lista-seminarios');
             div.innerHTML = "<p class='text-xs text-slate-400'>Cargando contenido...</p>";
 
-            let query = db.from('seminarios_catalogo').select('*').order('created_at', {ascending: false});
+            // Corrección: Usar la tabla 'seminarios' que creamos en Supabase
+            let query = db.from('seminarios').select('*').order('created_at', {ascending: false});
+            
             if (currentProfile.rol !== 'superadmin') {
                 query = query.eq('institution_id', currentProfile.institucion_id);
             }
 
-            const { data, error } = await query;
-            if(error) { div.innerHTML = "Error al cargar."; return; }
-
-            seminariosCache = data;
-            div.innerHTML = "";
-            
-            if(data.length === 0) {
-                div.innerHTML = "<p class='text-sm text-slate-400 italic'>No hay seminarios cargados.</p>";
-                return;
-            }
-
-            data.forEach(s => {
-                const thumb = s.video_id ? `https://img.youtube.com/vi/${s.video_id}/0.jpg` : 'https://via.placeholder.com/150';
+            try {
+                const { data, error } = await query;
                 
-                div.innerHTML += `
-                <div class="flex gap-4 p-3 border rounded-xl hover:bg-slate-50 transition group">
-                    <div class="w-24 h-16 rounded-lg bg-black overflow-hidden relative shrink-0">
-                        <img src="${thumb}" class="w-full h-full object-cover opacity-80">
-                        <div class="absolute inset-0 flex items-center justify-center"><i data-lucide="play-circle" class="text-white"></i></div>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <p class="font-bold text-slate-800 text-sm truncate">${s.titulo}</p>
-                        <p class="text-xs text-slate-500">$${s.precio}</p>
-                        <div class="flex gap-3 mt-2">
-                            <button onclick="editarSeminario('${s.id}')" class="text-xs font-bold text-blue-500 hover:text-blue-700">Editar</button>
-                            <button onclick="borrar('seminarios_catalogo', '${s.id}', cargarSeminarios)" class="text-xs font-bold text-red-400 hover:text-red-600">Borrar</button>
+                if(error) { 
+                    div.innerHTML = `<p class='text-red-500 text-xs'>Error: ${error.message}</p>`; 
+                    return; 
+                }
+
+                div.innerHTML = "";
+                
+                if(!data || data.length === 0) {
+                    div.innerHTML = "<p class='text-sm text-slate-400 italic col-span-2 text-center'>No hay seminarios cargados.</p>";
+                    return;
+                }
+
+                seminariosCache = data;
+
+                data.forEach(s => {
+                    // Corrección: Usar columna id_video
+                    const thumb = s.id_video ? `https://img.youtube.com/vi/${s.id_video}/hqdefault.jpg` : 'https://via.placeholder.com/150?text=Sin+Video';
+                    
+                    div.innerHTML += `
+                    <div class="flex gap-4 p-3 border rounded-xl hover:bg-slate-50 transition group bg-white shadow-sm">
+                        <div class="w-32 h-20 rounded-lg bg-black overflow-hidden relative shrink-0">
+                            <img src="${thumb}" class="w-full h-full object-cover opacity-80">
+                            <div class="absolute inset-0 flex items-center justify-center"><i data-lucide="play-circle" class="text-white"></i></div>
                         </div>
-                    </div>
-                </div>`;
-            });
-            lucide.createIcons();
+                        <div class="flex-1 min-w-0">
+                            <p class="font-bold text-slate-800 text-sm truncate">${s.titulo}</p>
+                            <p class="text-xs text-slate-500 line-clamp-2">${s.descripcion || ''}</p>
+                            <p class="text-sm font-black text-green-600 mt-1">$${s.precio || 'GRATIS'}</p>
+                            <div class="flex gap-3 mt-2 border-t pt-2">
+                                <button onclick="editarSeminario('${s.id}')" class="text-xs font-bold text-blue-500 hover:text-blue-700 flex items-center gap-1"><i data-lucide="pencil" size="12"></i> Editar</button>
+                                <button onclick="borrarSeminario('${s.id}')" class="text-xs font-bold text-red-400 hover:text-red-600 flex items-center gap-1 ml-auto"><i data-lucide="trash-2" size="12"></i> Borrar</button>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+                lucide.createIcons();
+            } catch(e) {
+                console.error(e);
+                div.innerHTML = `<p class='text-red-500'>Error crítico: ${e.message}</p>`;
+            }
         }
 
         async function guardarSeminario() {
@@ -839,15 +853,17 @@
             const desc = document.getElementById('sem-desc').value;
             const status = document.getElementById('status-sem');
 
-            if(!titulo || !videoId || !precio) return alert("Faltan campos obligatorios");
+            if(!titulo || !videoId) return alert("Título y ID de Video son obligatorios");
 
             status.innerText = "Subiendo...";
 
+            // Corrección: Mapeo exacto a columnas de la tabla 'seminarios'
             let payload = {
-                titulo,
-                video_id: videoId,
-                precio: parseFloat(precio),
+                titulo: titulo,
+                id_video: videoId,
+                precio: precio || 'GRATIS',
                 descripcion: desc,
+                activo: true,
                 institution_id: currentProfile.rol === 'superadmin' ? null : currentProfile.institucion_id
             };
 
@@ -857,38 +873,53 @@
                 const fileName = `sem_diploma_${Date.now()}`;
                 await db.storage.from('plantillas-diplomas').upload(fileName, file);
                 const { data } = db.storage.from('plantillas-diplomas').getPublicUrl(fileName);
-                payload.diploma_bg_url = data.publicUrl;
+                payload.imagen_url = data.publicUrl; // Usamos imagen_url para guardar diploma si se quiere
             }
 
             try {
+                // Corrección: Usar tabla 'seminarios'
                 if(idEdit) {
-                    await db.from('seminarios_catalogo').update(payload).eq('id', idEdit);
+                    const { error } = await db.from('seminarios').update(payload).eq('id', idEdit);
+                    if(error) throw error;
                     toast("Seminario actualizado");
                 } else {
-                    await db.from('seminarios_catalogo').insert([payload]);
+                    const { error } = await db.from('seminarios').insert([payload]);
+                    if(error) throw error;
                     toast("Seminario publicado");
                 }
                 status.innerText = "";
                 limpiarFormSeminario();
                 cargarSeminarios();
-                actualizarReporteFinanciero(); // Actualizar stats
             } catch(e) { 
                 status.innerText = "Error: " + e.message; 
-                toast("Error al guardar", 'error');
+                toast("Error al guardar: " + e.message, 'error');
             }
         }
 
         function editarSeminario(id) {
             const sem = seminariosCache.find(s => s.id === id);
+            if(!sem) return;
             document.getElementById('sem-id-edit').value = sem.id;
             document.getElementById('sem-titulo').value = sem.titulo;
-            document.getElementById('sem-video-id').value = sem.video_id;
+            document.getElementById('sem-video-id').value = sem.id_video; // Corrección: id_video
             document.getElementById('sem-precio').value = sem.precio;
             document.getElementById('sem-desc').value = sem.descripcion || "";
             
-            if(sem.diploma_bg_url) {
-                document.getElementById('sem-preview-img').src = sem.diploma_bg_url;
+            if(sem.imagen_url) {
+                document.getElementById('sem-preview-img').src = sem.imagen_url;
                 document.getElementById('sem-preview-img').classList.remove('hidden');
+            }
+        }
+        
+        async function borrarSeminario(id) {
+            if(!confirm("¿Seguro que deseas eliminar este contenido?")) return;
+            try {
+                const { error } = await db.from('seminarios').delete().eq('id', id);
+                if(error) throw error;
+                toast("Eliminado correctamente");
+                cargarSeminarios();
+            } catch(e) {
+                toast("Error al eliminar: " + e.message, 'error');
             }
         }
 
