@@ -95,6 +95,14 @@
         .live-shimmer { position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%); transform: skewX(-25deg); animation: shimmerMove 4s infinite; z-index: 10; pointer-events: none; }
         @keyframes shimmerMove { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
 
+        /* --- NUEVO: MARCA DE AGUA --- */
+        .watermark-layer {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 60%; height: 60%; opacity: 0.15; z-index: 3; pointer-events: none;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .watermark-layer img { width: 100%; height: 100%; object-fit: contain; }
+
         /* --- ESTADOS ESPECIALES --- */
         .overlay-vencido { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(180, 0, 0, 0.75); z-index: 20; display: flex; justify-content: center; align-items: center; flex-direction: column; color: white; text-align: center; border-radius: 35px; backdrop-filter: blur(2px); }
         .texto-vencido { font-size: 80px; font-weight: 900; transform: rotate(-15deg); border: 8px solid white; padding: 10px 40px; text-transform: uppercase; letter-spacing: 5px; }
@@ -432,6 +440,8 @@
                     <div class="holo-layer"></div>
                     <div class="live-shimmer"></div>
                     
+                    <div class="watermark-layer" id="watermark-container"></div>
+
                     <div id="vencido-overlay" class="overlay-vencido" style="display:none;">
                         <div class="texto-vencido">VENCIDO</div>
                         <div style="font-size: 20px; font-weight: bold; margin-top: 10px;">EXPIRÓ SU VIGENCIA</div>
@@ -659,18 +669,7 @@
                 } catch(e) {}
             }
 
-            const container = document.getElementById('carnet-render');
-            container.innerHTML = CARNET_HTML; 
-            llenarDatosCarnet(container, alumno, colorDinamico); 
-            document.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
-            document.getElementById('btn-toggle-front').classList.add('active');
-
-            registrarAcceso(alumno);
-            renderPremiumSection(alumno);
-            
-            // --- NUEVO: CARGAR TODOS LOS CONTENIDOS (Cursos, Eventos, Seminarios) ---
-            cargarContenidosExtra(alumno);
-
+            // --- REORDENADO: CARGAR CURSO ANTES DE PINTAR CARNET (Para tener la marca de agua) ---
             const { data: cursosEncontrados } = await db.from('cursos_oficiales').select('*').eq('nombre', alumno.curso);
             
             if (cursosEncontrados && cursosEncontrados.length > 0) {
@@ -683,6 +682,19 @@
                 if (!candidato) candidato = cursosEncontrados[0];
                 cursoActualData = candidato;
             } 
+
+            // AHORA SÍ PINTAMOS EL CARNET (Ya tenemos cursoActualData con marca de agua)
+            const container = document.getElementById('carnet-render');
+            container.innerHTML = CARNET_HTML; 
+            llenarDatosCarnet(container, alumno, colorDinamico); 
+            document.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-toggle-front').classList.add('active');
+
+            registrarAcceso(alumno);
+            renderPremiumSection(alumno);
+            
+            // --- NUEVO: CARGAR TODOS LOS CONTENIDOS (Cursos, Eventos, Seminarios) ---
+            cargarContenidosExtra(alumno);
 
             const btnDiploma = document.getElementById('btn-descargar-diploma');
             const btnAnalitico = document.getElementById('btn-descargar-analitico');
@@ -703,6 +715,7 @@
                     <div class="premium-desc">Herramientas de inteligencia artificial activadas para potenciar tu perfil profesional.</div>
                     <button class="btn-ai-action" onclick="generarTextoIA('linkedin')"><i class="fab fa-linkedin"></i> Redactar Post LinkedIn</button>
                     <button class="btn-ai-action" onclick="generarTextoIA('cv')"><i class="fas fa-file-alt"></i> Generar Resumen CV</button>
+                    <button class="btn-ai-action" onclick="descargarCartaRecomendacion()"><i class="fas fa-file-pdf"></i> Descargar Carta Recomendación</button>
                 </div>`;
             } else {
                 container.innerHTML = `
@@ -806,13 +819,29 @@
                         const card = document.createElement('div');
                         card.className = 'seminario-card';
                         
+                        // Lógica de Imagen: Si hay URL directa úsala, sino genera la de YouTube
+                        let bgStyle = 'background-color: #333;';
+                        if (sem.imagen_url) {
+                            bgStyle = `background: url('${sem.imagen_url}') center/cover no-repeat;`;
+                        } else if (sem.id_video) {
+                            bgStyle = `background: url('https://img.youtube.com/vi/${sem.id_video}/hqdefault.jpg') center/cover no-repeat;`;
+                        }
+
                         card.innerHTML = `
-                            <div class="sem-badge">ONLINE</div>
+                            <div style="height: 140px; ${bgStyle} position: relative;">
+                                <div class="sem-badge">CERTIFICADO</div>
+                                <div style="position:absolute; bottom:0; left:0; width:100%; height:50%; background:linear-gradient(to top, rgba(0,0,0,0.8), transparent);"></div>
+                            </div>
                             <div class="seminario-content">
-                                <div class="sem-title">${sem.titulo}</div>
-                                <div style="font-size:11px; opacity:0.8;">${sem.descripcion || 'Certificación inmediata con tecnología Blockchain.'}</div>
-                                <div class="sem-price">$${sem.precio || 'GRATIS'}</div>
-                                <button class="btn-sem" onclick="comprarSeminario('${sem.id}', '${sem.link_pago || '#'}')">INSCRIBIRSE AHORA</button>
+                                <div class="sem-title">${sem.titulo || 'Seminario Especial'}</div>
+                                <div style="font-size:11px; opacity:0.8; margin-bottom:8px;">${sem.descripcion || ''}</div>
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <div class="sem-price" style="margin:0;">$${sem.precio || '0'}</div>
+                                    <div style="font-size:10px; color:#aaa;">ONLINE</div>
+                                </div>
+                                <button class="btn-sem" onclick="comprarSeminario('${sem.id}', '${sem.link_pago || '#'}')">
+                                    VER AHORA <i class="fas fa-play-circle"></i>
+                                </button>
                             </div>
                         `;
                         wrapper.appendChild(card);
@@ -862,6 +891,29 @@
             navigator.clipboard.writeText(texto).then(() => { alert("¡Texto generado y copiado al portapapeles! Listo para pegar."); });
         }
 
+        // --- NUEVA FUNCIÓN: GENERAR CARTA DE RECOMENDACIÓN PDF ---
+        async function descargarCartaRecomendacion() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const nombre = alumnoActual.nombre + " " + alumnoActual.apellido;
+            const curso = alumnoActual.curso;
+            const fecha = new Date().toLocaleDateString();
+
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(22);
+            doc.text("CARTA DE RECOMENDACIÓN", 105, 30, null, null, "center");
+            
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(12);
+            doc.text(`A quien corresponda,`, 20, 60);
+
+            const texto = `Por medio de la presente, certificamos que ${nombre} (DNI: ${alumnoActual.dni_alumno}) ha completado satisfactoriamente el curso de formación profesional en "${curso}".\n\nDurante su formación, ha demostrado compromiso, responsabilidad y aptitudes destacadas en el área. La validación de sus competencias se encuentra registrada mediante tecnología Blockchain, garantizando la autenticidad de su certificación.\n\nSe extiende la presente recomendación para los fines que el interesado considere oportunos.\n\n\nAtentamente,\n\nDirección Académica\n${cursoActualData?.institucion_id || 'ASARI Platform'}\nFecha de emisión: ${fecha}`;
+            
+            doc.text(texto, 20, 70, { maxWidth: 170, align: "justify" });
+
+            doc.save(`Carta_Recomendacion_${alumnoActual.dni_alumno}.pdf`);
+        }
+
         async function registrarAcceso(alumno) { try { await db.from('logs_accesos').insert({ alumno_id: alumno.id, curso: alumno.curso, fecha: new Date().toISOString() }); } catch(e) { } }
 
         function llenarDatosCarnet(container, alumno, colorOverride) {
@@ -889,6 +941,17 @@
             if (alumno.foto_url) { const img = el('#img-foto'); img.crossOrigin = "anonymous"; img.src = alumno.foto_url + "?t=" + Date.now(); }
             el('#qr-container').innerHTML = ""; 
             new QRCode(el('#qr-container'), { text: `${URL_WEB}/validador.html?id=${alumno.id}`, width: 144, height: 144 });
+
+            // --- LOGICA DE MARCA DE AGUA ---
+            if (cursoActualData && cursoActualData.marca_agua_url) {
+                const wmContainer = el('#watermark-container');
+                if(wmContainer) {
+                    wmContainer.innerHTML = `<img src="${cursoActualData.marca_agua_url}">`;
+                }
+            } else {
+                const wmContainer = el('#watermark-container');
+                if(wmContainer) wmContainer.innerHTML = '';
+            }
 
             const registroId = (alumno.registro_id || 'default').toLowerCase();
             const colorCarnet = colorOverride || COLORES_REGISTRO[registroId] || COLORES_REGISTRO['default'];
