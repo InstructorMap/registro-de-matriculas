@@ -397,6 +397,12 @@
                     <img id="preview-diploma-img" class="h-10 mt-2 object-cover rounded hidden">
                 </div>
 
+                <div class="bg-slate-50 p-3 rounded border border-slate-200 mt-2">
+                    <label class="label-form">Marca de Agua (Imagen Transparente PNG)</label>
+                    <input type="file" id="c-watermark" accept="image/*" class="w-full text-xs text-slate-500">
+                    <img id="preview-watermark-img" class="h-10 mt-2 object-contain hidden opacity-50">
+                </div>
+
                 <div class="bg-slate-50 p-3 rounded border border-slate-200">
                     <div class="flex justify-between items-center mb-2">
                         <label class="label-form mb-0">Analítico (Páginas)</label>
@@ -491,12 +497,13 @@
             }
         }
 
-        // --- GESTIÓN DE MARKETING ---
+        // --- GESTIÓN DE MARKETING (CORREGIDO PARA RUTAS_CARRERA) ---
         async function cargarAnuncios() {
             const div = document.getElementById('lista-anuncios');
             div.innerHTML = "<p class='text-xs text-slate-400'>Cargando...</p>";
             
-            let query = db.from('anuncios_marketing').select('*').order('created_at', {ascending: false});
+            // Corregido: Usar 'rutas_carrera'
+            let query = db.from('rutas_carrera').select('*').order('created_at', {ascending: false});
             if (currentProfile.rol !== 'superadmin') query = query.eq('institution_id', currentProfile.institucion_id);
             
             try {
@@ -507,51 +514,71 @@
                 if(!data || data.length === 0) { div.innerHTML = "<p class='text-sm text-slate-400'>Sin anuncios activos.</p>"; return; }
 
                 data.forEach(a => {
-                    const colorTipo = a.tipo === 'EVENTO' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700';
+                    const tipoRaw = (a.tipo || '').toUpperCase();
+                    const colorTipo = tipoRaw.includes('EVENTO') ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700';
+                    const titulo = a.titulo_oferta || a.titulo || 'Sin título';
+                    const link = a.link_destino || a.link_accion || 'Sin link';
+
                     div.innerHTML += `
                     <div class="flex gap-4 p-4 border rounded-xl bg-white items-center">
                         <img src="${a.imagen_url || 'https://via.placeholder.com/100'}" class="w-20 h-12 object-cover rounded bg-slate-200">
                         <div class="flex-1">
                             <div class="flex items-center gap-2 mb-1">
-                                <span class="text-[10px] font-bold px-2 py-0.5 rounded ${colorTipo}">${a.tipo}</span>
-                                <span class="font-bold text-slate-800 text-sm">${a.titulo}</span>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded ${colorTipo}">${tipoRaw}</span>
+                                <span class="font-bold text-slate-800 text-sm">${titulo}</span>
                             </div>
-                            <p class="text-xs text-slate-500 truncate">${a.link_accion || 'Sin link'}</p>
+                            <p class="text-xs text-slate-500 truncate">${link}</p>
                         </div>
-                        <button onclick="borrar('anuncios_marketing', '${a.id}', cargarAnuncios)" class="text-red-400 hover:text-red-600"><i data-lucide="trash-2" size="16"></i></button>
+                        <button onclick="borrar('rutas_carrera', '${a.id}', cargarAnuncios)" class="text-red-400 hover:text-red-600"><i data-lucide="trash-2" size="16"></i></button>
                     </div>`;
                 });
                 lucide.createIcons();
             } catch(e) { console.error(e); }
         }
 
+        // --- GESTIÓN DE MARKETING (CORREGIDO PARA RUTAS_CARRERA) ---
         async function guardarAnuncio() {
             const titulo = document.getElementById('mkt-titulo').value;
             const desc = document.getElementById('mkt-desc').value;
             const link = document.getElementById('mkt-link').value;
-            const tipo = document.getElementById('mkt-tipo').value;
+            const tipoSelect = document.getElementById('mkt-tipo').value;
             const fileInput = document.getElementById('mkt-img');
 
             if(!titulo) return alert("Ponle un título al anuncio");
+
+            let tipoFinal = 'Curso Recomendado';
+            if(tipoSelect === 'EVENTO') tipoFinal = 'Evento Masivo'; 
+            if(tipoSelect === 'NOTICIA') tipoFinal = 'Noticia';
 
             let imgUrl = null;
             if(fileInput.files.length > 0) {
                 const file = fileInput.files[0];
                 const fileName = `banner_${Date.now()}`;
-                // Reutilizamos bucket de plantillas para simplificar
                 await db.storage.from('plantillas-diplomas').upload(fileName, file);
                 const { data } = db.storage.from('plantillas-diplomas').getPublicUrl(fileName);
                 imgUrl = data.publicUrl;
             }
 
             const payload = {
-                titulo, descripcion: desc, link_accion: link, tipo, imagen_url: imgUrl,
+                titulo_oferta: titulo, 
+                beneficio_txt: desc, 
+                link_destino: link, 
+                tipo: tipoFinal, 
+                imagen_url: imgUrl,
+                curso_origen: 'TODOS',
+                activo: true,
                 institution_id: currentProfile.rol === 'superadmin' ? null : currentProfile.institucion_id
             };
 
-            const { error } = await db.from('anuncios_marketing').insert([payload]);
+            const { error } = await db.from('rutas_carrera').insert([payload]);
             if(error) alert(error.message);
-            else { toast("Anuncio Publicado"); cargarAnuncios(); }
+            else { 
+                toast("Anuncio Publicado"); 
+                document.getElementById('mkt-titulo').value = "";
+                document.getElementById('mkt-desc').value = "";
+                document.getElementById('mkt-link').value = "";
+                cargarAnuncios(); 
+            }
         }
 
         // --- LÓGICA DE REPORTES & EXCEL (NUEVO) ---
@@ -647,7 +674,7 @@
             }
         }
 
-        // --- GESTIÓN DE CURSOS ---
+        // --- GESTIÓN DE CURSOS (ACTUALIZADO PARA MARCA DE AGUA) ---
         async function cargarCursos() {
             const { data } = await db.from('cursos_oficiales').select('*').order('nombre');
             const div = document.getElementById('lista-cursos-config');
@@ -706,6 +733,16 @@
                 cursoData.diploma_bg_url = data.publicUrl;
             }
 
+            // NUEVO: Guardar Marca de Agua
+            const inputWater = document.getElementById('c-watermark');
+            if(inputWater.files.length > 0) {
+                const file = inputWater.files[0];
+                const fileName = `watermark_${Date.now()}`;
+                await db.storage.from('plantillas-diplomas').upload(fileName, file);
+                const { data } = db.storage.from('plantillas-diplomas').getPublicUrl(fileName);
+                cursoData.marca_agua_url = data.publicUrl;
+            }
+
             try {
                 if(idEdit) {
                     const cursoOriginal = cursosCache.find(c => c.id === idEdit);
@@ -717,6 +754,7 @@
                     } else {
                         cursoData.institution_id = miInstId;
                         if(!cursoData.diploma_bg_url) cursoData.diploma_bg_url = cursoOriginal.diploma_bg_url;
+                        if(!cursoData.marca_agua_url) cursoData.marca_agua_url = cursoOriginal.marca_agua_url;
                         await db.from('cursos_oficiales').insert([cursoData]);
                         toast("Copia de curso creada para tu instituto");
                     }
@@ -748,6 +786,14 @@
                     document.getElementById('preview-diploma-img').classList.remove('hidden');
                 }
 
+                // NUEVO: Cargar preview de Marca de Agua
+                if(curso.marca_agua_url) {
+                    document.getElementById('preview-watermark-img').src = curso.marca_agua_url;
+                    document.getElementById('preview-watermark-img').classList.remove('hidden');
+                } else {
+                    document.getElementById('preview-watermark-img').classList.add('hidden');
+                }
+
                 if(curso.analitico_bg_url) {
                     try {
                         const parsed = JSON.parse(curso.analitico_bg_url);
@@ -760,6 +806,7 @@
                 document.getElementById('c-id-edit').value = "";
                 document.getElementById('c-nombre').value = "";
                 document.getElementById('preview-diploma-img').classList.add('hidden');
+                document.getElementById('preview-watermark-img').classList.add('hidden');
                 renderizarGaleriaAnalitico();
             }
         }
