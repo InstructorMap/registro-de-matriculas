@@ -25,30 +25,6 @@
         .app-header { background: white; padding: 10px 20px; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; height: 80px; }
         .app-logo { height: 60px; width: auto; object-fit: contain; }
 
-        /* NOTIFICACIONES (NUEVO) */
-        .header-actions { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); display: flex; gap: 15px; }
-        .btn-bell { position: relative; font-size: 22px; color: var(--primary); cursor: pointer; transition: 0.2s; }
-        .btn-bell:active { transform: scale(0.9); }
-        .bell-badge { 
-            position: absolute; top: -5px; right: -5px; 
-            background: #ff0000; color: white; 
-            font-size: 10px; font-weight: 900; 
-            width: 16px; height: 16px; border-radius: 50%; 
-            display: flex; justify-content: center; align-items: center; 
-            border: 2px solid white; 
-        }
-        /* Modal Notificaciones */
-        .notif-item { padding: 15px; border-bottom: 1px solid #eee; display: flex; gap: 12px; align-items: flex-start; }
-        .notif-item:last-child { border-bottom: none; }
-        .notif-icon { width: 35px; height: 35px; background: #f0f4ff; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: var(--primary); flex-shrink: 0; }
-        .notif-content h4 { margin: 0 0 4px 0; font-size: 14px; font-weight: 700; color: #333; }
-        .notif-content p { margin: 0; font-size: 12px; color: #666; line-height: 1.4; }
-        .notif-date { font-size: 10px; color: #999; margin-top: 5px; display: block; }
-        .notif-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 900; text-transform: uppercase; margin-bottom: 4px; }
-        .tag-evento { background: #fff3cd; color: #856404; }
-        .tag-curso { background: #d1ecf1; color: #0c5460; }
-        .tag-kit { background: #d4edda; color: #155724; }
-
         /* PANTALLAS */
         .screen { display: none; flex: 1; flex-direction: column; padding: 20px; animation: fadeIn 0.3s ease; padding-bottom: 60px; }
         .screen.active { display: flex; }
@@ -85,18 +61,14 @@
         .btn-toggle.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.2); transform: translateY(-1px); }
         .btn-toggle:active { transform: scale(0.95); }
 
-        /* SECTION PREMIUM & DOCS */
+        /* SECTION PREMIUM */
         .premium-box { background: linear-gradient(135deg, #1e1e1e 0%, #2a2a2a 100%); color: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; overflow: hidden; border: 1px solid #444; }
         .premium-badge { position: absolute; top: 10px; right: 10px; background: var(--gold); color: black; font-size: 10px; font-weight: 900; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 1px; }
         .premium-title { font-size: 18px; font-weight: 900; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
         .premium-desc { font-size: 12px; color: #aaa; margin-bottom: 15px; line-height: 1.4; }
-        
-        .docs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .btn-doc { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 10px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 11px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; text-align: center; transition: 0.2s; height: 80px; }
-        .btn-doc:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); }
-        .btn-doc i { font-size: 20px; color: var(--gold); }
-
         .btn-pay { background: var(--gold); color: black; border: none; width: 100%; padding: 12px; border-radius: 8px; font-weight: 900; cursor: pointer; text-transform: uppercase; font-size: 12px; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3); }
+        .btn-ai-action { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); width: 100%; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 12px; display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 8px; transition: 0.2s; }
+        .btn-ai-action:hover { background: rgba(255,255,255,0.2); }
 
         /* CARNET STYLES */
         .card-base { width: 100%; height: 100%; display: flex; position: relative; border: 5px solid; border-radius: 40px; overflow: hidden; background: white; transition: border-color 0.3s; }
@@ -110,15 +82,8 @@
         .front-content { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 6px solid rgba(255,255,255,0.9); padding-bottom: 2px; }
         .header-text { font-size: 85px; font-weight: 900; text-transform: uppercase; line-height: 0.9; text-shadow: 3px 3px 0px rgba(0,0,0,0.2); }
-        
-        /* CONTENEDOR CURSO Y MARCA DE AGUA (Corregido: Logo original nítido) */
-        .course-container { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 10px 0; background: linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.3)); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 0 10px; overflow: hidden; position: relative; z-index: 10; }
-        .course-title-main, .course-title-sub { font-size: 55px; font-weight: 900; text-transform: uppercase; line-height: 1.1; text-align: center; display: inline-block; white-space: nowrap; max-width: 100%; position: relative; z-index: 2; text-shadow: 3px 3px 0px rgba(0,0,0,0.8), 0px 0px 8px rgba(0,0,0,0.9); }
-        
-        /* LOGO ORIGINAL CLARO DETRÁS DEL TEXTO */
-        .watermark-layer { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; height: 85%; opacity: 1; z-index: 1; pointer-events: none; display: flex; justify-content: center; align-items: center; }
-        .watermark-layer img { width: 100%; height: 100%; object-fit: contain; }
-
+        .course-container { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 10px 0; background: linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.3)); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 0 10px; overflow: hidden; }
+        .course-title-main, .course-title-sub { font-size: 55px; font-weight: 900; text-transform: uppercase; line-height: 1.1; text-align: center; text-shadow: 0 4px 8px rgba(0,0,0,0.4); display: inline-block; white-space: nowrap; max-width: 100%; }
         .student-name { font-size: 34px; font-weight: 700; text-transform: uppercase; background: transparent; padding: 10px; text-align: center; border-radius: 8px; margin-bottom: 15px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); width: 100%; overflow: hidden; }
         .data-grid { display: grid; grid-template-columns: 65px 1fr; row-gap: 10px; align-items: center; }
         .icon-box { font-size: 55px; text-align: center; }
@@ -129,6 +94,14 @@
 
         .live-shimmer { position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%); transform: skewX(-25deg); animation: shimmerMove 4s infinite; z-index: 10; pointer-events: none; }
         @keyframes shimmerMove { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
+
+        /* --- NUEVO: MARCA DE AGUA --- */
+        .watermark-layer {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 60%; height: 60%; opacity: 0.15; z-index: 3; pointer-events: none;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .watermark-layer img { width: 100%; height: 100%; object-fit: contain; }
 
         /* --- ESTADOS ESPECIALES --- */
         .overlay-vencido { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(180, 0, 0, 0.75); z-index: 20; display: flex; justify-content: center; align-items: center; flex-direction: column; color: white; text-align: center; border-radius: 35px; backdrop-filter: blur(2px); }
@@ -171,32 +144,165 @@
         .btn-accept.ready { background: linear-gradient(135deg, var(--primary), #001a66); color: white; cursor: pointer; box-shadow: 0 10px 20px rgba(0, 51, 204, 0.3); }
         @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* --- ESTILOS CARRUSEL Y EVENTOS --- */
-        .promo-banner { background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%); border: 0; position: relative; overflow: hidden; border-radius: 16px; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15); margin-top: 25px; cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease; border: 1px solid rgba(59, 130, 246, 0.2); }
+        /* --- ESTILO PUBLICIDAD (CURSOS) --- */
+        .promo-banner {
+            background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+            border: 0;
+            position: relative;
+            overflow: hidden;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15);
+            margin-top: 25px;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
         .promo-banner:active { transform: scale(0.98); }
-        .promo-badge { background: linear-gradient(90deg, #3b82f6, #2563eb); color: white; padding: 6px 15px; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; display: inline-flex; align-items: center; gap: 5px; border-bottom-right-radius: 12px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); }
-        .promo-content { padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; z-index: 2; position: relative; }
-        .promo-title { font-size: 17px; font-weight: 900; color: #1e3a8a; line-height: 1.2; margin-bottom: 6px; }
-        .promo-desc { font-size: 13px; color: #475569; font-weight: 500; }
-        .promo-icon { font-size: 28px; color: #3b82f6; background: rgba(59, 130, 246, 0.1); width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; border-radius: 50%; }
-        .shine-effect { position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(to right, transparent, rgba(255,255,255,0.8), transparent); transform: skewX(-20deg); animation: shine 3s infinite; }
-        @keyframes shine { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
-        .carousel-container { display: flex; overflow-x: auto; gap: 15px; padding: 0 5px 20px 5px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; margin-top: 10px; }
-        .carousel-item { min-width: 85%; scroll-snap-align: center; flex-shrink: 0; margin-top: 0 !important; }
+        .promo-badge {
+            background: linear-gradient(90deg, #3b82f6, #2563eb);
+            color: white;
+            padding: 6px 15px;
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            border-bottom-right-radius: 12px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+        }
+        .promo-content {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 2;
+            position: relative;
+        }
+        .promo-title {
+            font-size: 17px;
+            font-weight: 900;
+            color: #1e3a8a;
+            line-height: 1.2;
+            margin-bottom: 6px;
+        }
+        .promo-desc {
+            font-size: 13px;
+            color: #475569;
+            font-weight: 500;
+        }
+        .promo-icon {
+            font-size: 28px;
+            color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+        }
+        .shine-effect {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.8), transparent);
+            transform: skewX(-20deg);
+            animation: shine 3s infinite;
+        }
+        @keyframes shine {
+            0% { left: -100%; }
+            20% { left: 200%; }
+            100% { left: 200%; }
+        }
+
+        /* --- ESTILOS CARRUSEL (HORIZONTAL) --- */
+        .carousel-container {
+            display: flex;
+            overflow-x: auto;
+            gap: 15px;
+            padding: 0 5px 20px 5px; /* Ajuste para que se vea la sombra inferior */
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            margin-top: 10px;
+        }
+        .carousel-item {
+            min-width: 85%;
+            scroll-snap-align: center;
+            flex-shrink: 0;
+            margin-top: 0 !important; /* Sobreescribir el margin-top de .promo-banner */
+        }
         .carousel-container::-webkit-scrollbar { display: none; }
-        .section-header { font-size: 13px; font-weight: 900; color: #666; margin: 25px 0 10px 5px; text-transform: uppercase; letter-spacing: 1px; display: flex; justify-content: space-between; align-items: center; }
-        .event-card { background: white; border-radius: 12px; padding: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 4px solid var(--primary); margin-bottom: 10px; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: 0.2s; }
+        .carousel-container { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* --- NUEVO: ESTILOS EVENTOS, AGENDA Y SEMINARIOS --- */
+        .section-header {
+            font-size: 13px;
+            font-weight: 900;
+            color: #666;
+            margin: 25px 0 10px 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Tarjeta de Evento (Agenda) */
+        .event-card {
+            background: white;
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border-left: 4px solid var(--primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
         .event-card:active { transform: scale(0.98); background: #f8f9fa; }
-        .event-date { background: #f0f4ff; color: var(--primary); padding: 8px 12px; border-radius: 8px; text-align: center; font-weight: 900; font-size: 14px; min-width: 60px; }
+        .event-date {
+            background: #f0f4ff;
+            color: var(--primary);
+            padding: 8px 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 900;
+            font-size: 14px;
+            min-width: 60px;
+        }
         .event-info { flex: 1; }
         .event-title { font-size: 14px; font-weight: 800; color: #222; margin-bottom: 3px; line-height: 1.2; }
         .event-desc { font-size: 11px; color: #666; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .seminario-card { background: linear-gradient(145deg, #1a1a1a, #2c2c2c); color: white; border-radius: 12px; overflow: hidden; position: relative; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+
+        /* Tarjeta Seminario (Estilo Netflix/Dark) */
+        .seminario-card {
+            background: linear-gradient(145deg, #1a1a1a, #2c2c2c);
+            color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
         .seminario-content { padding: 15px; }
-        .sem-badge { position: absolute; top: 10px; right: 10px; background: #e50914; color: white; font-size: 9px; font-weight: 900; padding: 3px 8px; border-radius: 4px; }
+        .sem-badge { 
+            position: absolute; top: 10px; right: 10px; 
+            background: #e50914; color: white; 
+            font-size: 9px; font-weight: 900; padding: 3px 8px; border-radius: 4px; 
+        }
         .sem-title { font-size: 16px; font-weight: 700; margin-bottom: 5px; }
         .sem-price { font-size: 18px; font-weight: 900; color: #4ade80; margin-top: 8px; }
-        .btn-sem { width: 100%; margin-top: 10px; padding: 10px; background: white; color: black; border: none; font-weight: 900; border-radius: 6px; cursor: pointer; }
+        .btn-sem { 
+            width: 100%; margin-top: 10px; padding: 10px; 
+            background: white; color: black; border: none; 
+            font-weight: 900; border-radius: 6px; cursor: pointer;
+        }
 
         #ghost-container { position: fixed; top: -9999px; left: -9999px; }
     </style>
@@ -205,12 +311,6 @@
 
     <header class="app-header">
         <img src="https://vxggatcfrywyodovjwxj.supabase.co/storage/v1/object/public/logos-instituciones/Asari%20Logo.jpg" id="app-logo" class="app-logo" alt="Logo">
-        <div class="header-actions" id="wallet-header-actions" style="display:none;">
-            <div class="btn-bell" onclick="abrirNotificaciones()">
-                <i class="far fa-bell"></i>
-                <div id="notif-badge" class="bell-badge" style="display:none;">0</div>
-            </div>
-        </div>
     </header>
 
     <div id="screen-login" class="screen active">
@@ -297,16 +397,6 @@
         </div>
     </div>
 
-    <div id="notif-modal" class="legal-overlay">
-        <div class="legal-box">
-            <div class="legal-title">🔔 Centro de Novedades</div>
-            <div id="lista-notificaciones" style="max-height: 400px; overflow-y: auto;">
-                <div style="text-align:center; padding: 20px; color:#999;">Cargando novedades...</div>
-            </div>
-            <button onclick="document.getElementById('notif-modal').classList.remove('active')" class="btn-main" style="margin-top:15px; width:100%;">ENTENDIDO</button>
-        </div>
-    </div>
-
     <div id="ghost-container"></div>
 
     <script>
@@ -350,6 +440,8 @@
                     <div class="holo-layer"></div>
                     <div class="live-shimmer"></div>
                     
+                    <div class="watermark-layer" id="watermark-container"></div>
+
                     <div id="vencido-overlay" class="overlay-vencido" style="display:none;">
                         <div class="texto-vencido">VENCIDO</div>
                         <div style="font-size: 20px; font-weight: bold; margin-top: 10px;">EXPIRÓ SU VIGENCIA</div>
@@ -362,13 +454,7 @@
 
                     <div class="front-content">
                         <div class="header"><span class="header-text" id="txt-anio-header">CARNET</span></div>
-                        
-                        <div class="course-container">
-                            <div class="watermark-layer" id="watermark-container"></div>
-                            <div class="course-title-main" id="txt-titulo-main">CURSO</div>
-                            <div class="course-title-sub" id="txt-titulo-sub">PROFESIONAL</div>
-                        </div>
-
+                        <div class="course-container"><div class="course-title-main" id="txt-titulo-main">CURSO</div><div class="course-title-sub" id="txt-titulo-sub">PROFESIONAL</div></div>
                         <div class="student-name" id="txt-nombre" style="white-space: nowrap;">---</div>
                         <div class="data-grid">
                             <div class="icon-box">✱</div><div class="data-box"><span class="label-text">DNI:</span><span class="value-text" id="txt-dni">---</span></div>
@@ -387,7 +473,6 @@
         let alumnoActual = null; 
         let cursoActualData = null;
         let deferredPrompt; 
-        let notificacionesCache = []; // Para el sistema de novedades
 
         document.getElementById('app-logo').src = LOGO_ASARI_DEFAULT;
         document.documentElement.style.setProperty('--primary', COLOR_DEFAULT);
@@ -608,11 +693,8 @@
             registrarAcceso(alumno);
             renderPremiumSection(alumno);
             
-            // --- CARGAR TODOS LOS CONTENIDOS (Cursos, Eventos, Seminarios) ---
+            // --- NUEVO: CARGAR TODOS LOS CONTENIDOS (Cursos, Eventos, Seminarios) ---
             cargarContenidosExtra(alumno);
-            
-            // --- CARGAR SISTEMA DE NOTIFICACIONES ---
-            cargarNotificacionesSistema(); 
 
             const btnDiploma = document.getElementById('btn-descargar-diploma');
             const btnAnalitico = document.getElementById('btn-descargar-analitico');
@@ -623,285 +705,153 @@
             setTimeout(ajustarCarnetResponsivo, 100);
         }
 
-        // --- SISTEMA INTELIGENTE DE KIT PROFESIONAL ---
         function renderPremiumSection(alumno) {
             const container = document.getElementById('premium-section');
             if (alumno.premium) {
-                // DETECCIÓN INTELIGENTE DE CURSO (Salud vs General)
-                const nombreCurso = (alumno.curso || "").toLowerCase();
-                const esSalud = nombreCurso.match(/param|med|enferm|resca|auxiliar|salud/i);
-                
-                let botonesKit = `
-                    <div class="btn-doc" onclick="generarCartaRecomendacion()"><i class="fas fa-file-contract"></i> Carta Recomendación</div>
-                    <div class="btn-doc" onclick="generarTextoIA('cv')"><i class="fas fa-file-alt"></i> Redactar CV</div>
-                `;
-
-                if (esSalud) {
-                    botonesKit += `
-                    <div class="btn-doc" onclick="generarNegativaAtencion()"><i class="fas fa-user-slash"></i> Negativa Atención</div>
-                    <div class="btn-doc" onclick="generarConsentimiento()"><i class="fas fa-hand-holding-medical"></i> Consentimiento</div>
-                    `;
-                }
-
                 container.innerHTML = `
                 <div class="premium-box" style="background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);">
                     <div class="premium-badge" style="background: #00ff88;">PREMIUM ACTIVO</div>
-                    <div class="premium-title"><i class="fas fa-briefcase"></i> Kit Profesional</div>
-                    <div class="premium-desc">Herramientas digitales activadas para tu perfil de <b>${esSalud ? 'SALUD / EMERGENCIAS' : 'PROFESIONAL'}</b>.</div>
-                    
-                    <div class="docs-grid">
-                        ${botonesKit}
-                    </div>
+                    <div class="premium-title"><i class="fas fa-robot"></i> Asistente de Carrera IA</div>
+                    <div class="premium-desc">Herramientas de inteligencia artificial activadas para potenciar tu perfil profesional.</div>
+                    <button class="btn-ai-action" onclick="generarTextoIA('linkedin')"><i class="fab fa-linkedin"></i> Redactar Post LinkedIn</button>
+                    <button class="btn-ai-action" onclick="generarTextoIA('cv')"><i class="fas fa-file-alt"></i> Generar Resumen CV</button>
+                    <button class="btn-ai-action" onclick="descargarCartaRecomendacion()"><i class="fas fa-file-pdf"></i> Descargar Carta Recomendación</button>
                 </div>`;
             } else {
                 container.innerHTML = `
                 <div class="premium-box">
                     <div class="premium-badge"><i class="fas fa-lock"></i> PRO</div>
-                    <div class="premium-title">Kit de Empleabilidad</div>
-                    <div class="premium-desc">Desbloquea documentos legales, plantillas de consentimiento y carta de recomendación automática.</div>
+                    <div class="premium-title">Kit de Empleabilidad IA</div>
+                    <div class="premium-desc">Destácate en el mercado laboral. Usa nuestra IA para generar tu CV y Perfil de LinkedIn profesional basado en tu certificación.</div>
                     <button class="btn-pay" onclick="iniciarPago()"><i class="fas fa-bolt"></i> DESBLOQUEAR POR $5.000</button>
                 </div>`;
             }
         }
 
-        // --- GENERADORES DE PDF INTELIGENTES ---
-        function getCommonPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            const nombre = alumnoActual.nombre + " " + alumnoActual.apellido;
-            const dni = alumnoActual.dni_alumno;
-            const curso = alumnoActual.curso;
-            const fecha = new Date().toLocaleDateString();
-            return { doc, nombre, dni, curso, fecha };
-        }
-
-        function generarCartaRecomendacion() {
-            const { doc, nombre, dni, curso, fecha } = getCommonPDF();
-            doc.setFont("helvetica", "bold"); doc.setFontSize(20);
-            doc.text("CARTA DE RECOMENDACIÓN", 105, 30, null, null, "center");
-            
-            doc.setFontSize(12); doc.setFont("helvetica", "normal");
-            const texto = `A quien corresponda,\n\nPor medio de la presente, certificamos que ${nombre} (DNI: ${dni}) ha completado satisfactoriamente el curso de formación profesional en "${curso}".\n\nDurante su formación, ha demostrado compromiso, responsabilidad y aptitudes destacadas en el área. La validación de sus competencias se encuentra registrada mediante tecnología Blockchain, garantizando la autenticidad de su certificación.\n\nSe extiende la presente recomendación para los fines que el interesado considere oportunos.\n\nAtentamente,\n\nDirección Académica\n${cursoActualData?.institucion_id || 'ASARI Platform'}\nFecha: ${fecha}`;
-            
-            doc.text(texto, 20, 50, { maxWidth: 170, align: "justify" });
-            doc.save(`Carta_Recomendacion_${dni}.pdf`);
-        }
-
-        function generarNegativaAtencion() {
-            const { doc, nombre, dni, curso, fecha } = getCommonPDF();
-            doc.setFont("helvetica", "bold"); doc.setFontSize(18);
-            doc.text("DESISTIMIENTO / NEGATIVA DE ATENCIÓN", 105, 25, null, null, "center");
-            
-            doc.setFontSize(10); doc.setFont("helvetica", "normal");
-            doc.text(`Profesional Interviniente: ${nombre} - ${curso}`, 20, 40);
-            doc.text(`Fecha y Hora: ${fecha} _____ : _____`, 20, 46);
-            
-            const legal = `Yo, __________________________________________ (DNI: __________________), en pleno uso de mis facultades, RECHAZO la asistencia, tratamiento y/o traslado ofrecido por el personal de salud presente, asumiendo total responsabilidad por las consecuencias médico-legales de mi decisión.\n\nSe me ha informado de los riesgos potenciales para mi salud e integridad física al rechazar la atención.`;
-            doc.text(legal, 20, 60, { maxWidth: 170 });
-            
-            doc.rect(20, 100, 80, 40); doc.text("Firma Paciente", 35, 135);
-            doc.rect(110, 100, 80, 40); doc.text("Firma Testigo / Familiar", 125, 135);
-            
-            doc.save(`Negativa_Atencion_Plantilla.pdf`);
-        }
-
-        function generarConsentimiento() {
-            const { doc, nombre, dni, curso, fecha } = getCommonPDF();
-            doc.setFont("helvetica", "bold"); doc.setFontSize(18);
-            doc.text("CONSENTIMIENTO INFORMADO", 105, 25, null, null, "center");
-            
-            doc.setFontSize(11); doc.setFont("helvetica", "normal");
-            const texto = `Por la presente, autorizo a ${nombre} a realizar el procedimiento de ___________________________________.\n\nDeclaro haber recibido información clara y comprensible sobre la naturaleza del procedimiento, sus beneficios, riesgos y alternativas.\n\nEntiendo que puedo revocar este consentimiento en cualquier momento antes del inicio del procedimiento.`;
-            doc.text(texto, 20, 50, { maxWidth: 170 });
-            
-            doc.line(20, 130, 90, 130); doc.text("Firma del Paciente", 20, 136);
-            doc.line(110, 130, 180, 130); doc.text("Firma del Profesional", 110, 136);
-            
-            doc.save(`Consentimiento_Plantilla.pdf`);
-        }
-
-        // --- SISTEMA DE NOTIFICACIONES INTELIGENTE ---
-        async function cargarNotificacionesSistema() {
-            try {
-                // 1. Obtener datos crudos
-                const [resRutas, resSem] = await Promise.all([
-                    db.from('rutas_carrera').select('*').eq('activo', true).order('created_at', {ascending:false}).limit(5),
-                    db.from('seminarios').select('*').order('created_at', {ascending:false}).limit(3)
-                ]);
-
-                const noticias = [];
-
-                // 2. Procesar Anuncios y Eventos
-                if(resRutas.data) {
-                    resRutas.data.forEach(item => {
-                        // Filtro: Solo mostrar si es para TODOS o para mi curso
-                        if(item.curso_origen === 'TODOS' || item.curso_origen === alumnoActual.curso) {
-                            noticias.push({
-                                tipo: item.tipo.includes('Evento') ? 'EVENTO' : 'CURSO',
-                                titulo: item.titulo_oferta,
-                                desc: item.beneficio_txt,
-                                fecha: new Date(item.created_at),
-                                link: item.link_destino
-                            });
-                        }
-                    });
-                }
-
-                // 3. Procesar Seminarios Nuevos
-                if(resSem.data) {
-                    resSem.data.forEach(sem => {
-                        noticias.push({
-                            tipo: 'SEMINARIO',
-                            titulo: 'Nuevo Seminario: ' + sem.titulo,
-                            desc: 'Disponible on-demand. Certificación Blockchain inmediata.',
-                            fecha: new Date(sem.created_at),
-                            link: null // El botón de compra está en la home
-                        });
-                    });
-                }
-
-                // 4. Procesar Aviso de Kit Profesional (Si es salud)
-                const esSalud = (alumnoActual.curso || "").match(/param|med|enferm|resca|auxiliar|salud/i);
-                if(esSalud) {
-                    // Fingimos que la fecha es la de inicio del alumno para que le salga al principio
-                    noticias.push({
-                        tipo: 'KIT',
-                        titulo: 'Kit Legal de Salud Activado',
-                        desc: 'Se han habilitado documentos de Negativa de Atención y Consentimiento en tu perfil Premium.',
-                        fecha: new Date(), // Siempre fresco
-                        link: null
-                    });
-                }
-
-                // 5. Ordenar por fecha (Más nuevo arriba)
-                noticias.sort((a, b) => b.fecha - a.fecha);
-                notificacionesCache = noticias;
-
-                // 6. Actualizar UI de la Campana
-                actualizarCampana(noticias);
-
-            } catch(e) { console.error("Error notificaciones", e); }
-        }
-
-        function actualizarCampana(noticias) {
-            const badge = document.getElementById('notif-badge');
-            const headerActions = document.getElementById('wallet-header-actions');
-            
-            // Mostrar la campana solo si ya estamos logueados (en screen-wallet)
-            if(document.getElementById('screen-wallet').classList.contains('active')) {
-                headerActions.style.display = 'block';
-            }
-
-            // Lógica del Punto Rojo: Contar items de los últimos 7 días
-            const hace7dias = new Date();
-            hace7dias.setDate(hace7dias.getDate() - 7);
-            
-            const nuevas = noticias.filter(n => n.fecha > hace7dias).length;
-
-            if(nuevas > 0) {
-                badge.innerText = nuevas;
-                badge.style.display = 'flex';
-            } else {
-                badge.style.display = 'none';
-            }
-        }
-
-        function abrirNotificaciones() {
-            const modal = document.getElementById('notif-modal');
-            const lista = document.getElementById('lista-notificaciones');
-            lista.innerHTML = "";
-
-            if(notificacionesCache.length === 0) {
-                lista.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">No hay novedades recientes.</div>';
-            } else {
-                notificacionesCache.forEach(n => {
-                    let icono = 'fa-info-circle';
-                    let claseTag = 'tag-curso';
-                    let accion = '';
-
-                    if(n.tipo === 'EVENTO') { icono = 'fa-calendar-alt'; claseTag = 'tag-evento'; }
-                    if(n.tipo === 'SEMINARIO') { icono = 'fa-play-circle'; claseTag = 'tag-curso'; }
-                    if(n.tipo === 'KIT') { icono = 'fa-briefcase-medical'; claseTag = 'tag-kit'; }
-
-                    if(n.link) {
-                        accion = `<div style="text-align:right; margin-top:5px;"><a href="${n.link}" target="_blank" style="font-size:11px; font-weight:bold; color:var(--primary); text-decoration:none;">VER MÁS <i class="fas fa-chevron-right"></i></a></div>`;
-                    }
-
-                    const fechaStr = n.fecha.toLocaleDateString();
-
-                    lista.innerHTML += `
-                    <div class="notif-item">
-                        <div class="notif-icon"><i class="fas ${icono}"></i></div>
-                        <div class="notif-content" style="flex:1;">
-                            <span class="notif-tag ${claseTag}">${n.tipo}</span>
-                            <h4>${n.titulo}</h4>
-                            <p>${n.desc}</p>
-                            ${accion}
-                            <span class="notif-date">${fechaStr}</span>
-                        </div>
-                    </div>`;
-                });
-            }
-            modal.classList.add('active');
-        }
-
         // --- GESTOR DE CONTENIDOS (Cursos, Eventos y Seminarios) ---
         async function cargarContenidosExtra(alumno) {
-            // Limpiamos contenedores previos
+            // Limpiamos contenedores previos si existen
             document.getElementById('dynamic-content-area')?.remove();
             
+            // Creamos un contenedor principal para inyectar todo ordenado
             const mainContainer = document.createElement('div');
             mainContainer.id = 'dynamic-content-area';
             
+            // Insertamos antes de la grilla de acciones
             const actionsGrid = document.querySelector('.actions-grid');
             actionsGrid.parentNode.insertBefore(mainContainer, actionsGrid);
 
             try {
-                let { data: anuncios } = await db.from('rutas_carrera').select('*').eq('activo', true);
-                let { data: seminarios } = await db.from('seminarios').select('*').limit(5);
+                // 1. CARGAR ANUNCIOS (Tabla rutas_carrera)
+                let { data: anuncios } = await db.from('rutas_carrera')
+                    .select('*')
+                    .eq('activo', true);
 
+                // 2. CARGAR SEMINARIOS (Tabla seminarios)
+                let { data: seminarios } = await db.from('seminarios')
+                    .select('*')
+                    .limit(5);
+
+                // --- A. PROCESAR CURSOS Y UPSELLING (Carrusel Superior) ---
                 const anunciosRelevantes = anuncios?.filter(a => 
                     (a.curso_origen === 'TODOS' || a.curso_origen?.toLowerCase() === alumno.curso?.toLowerCase())
                 ) || [];
 
+                // Separamos: ¿Qué es Curso? ¿Qué es Evento?
                 const cursos = anunciosRelevantes.filter(a => !a.tipo || a.tipo.includes('Curso') || a.tipo.includes('Carrera'));
                 const eventos = anunciosRelevantes.filter(a => a.tipo && (a.tipo.includes('Evento') || a.tipo.includes('Noticia')));
 
+                // RENDER CURSOS (Upselling)
                 if (cursos.length > 0) {
                     const wrapper = document.createElement('div');
                     wrapper.innerHTML = `<div class="section-header"><span>🚀 Recomendado para vos</span></div>`;
                     const carousel = document.createElement('div');
                     carousel.className = 'carousel-container';
+                    
                     cursos.forEach(oferta => {
-                        carousel.innerHTML += `<div class="promo-banner carousel-item" onclick="window.open('${oferta.link_destino}', '_blank')"><div class="shine-effect"></div><div class="promo-badge"><i class="fas fa-star"></i> OFERTA</div><div class="promo-content"><div style="flex: 1; padding-right: 10px;"><div class="promo-title">${oferta.titulo_oferta}</div><div class="promo-desc">${oferta.beneficio_txt}</div></div><div class="promo-icon"><i class="fas fa-chevron-right"></i></div></div></div>`;
+                        carousel.innerHTML += `
+                            <div class="promo-banner carousel-item" onclick="window.open('${oferta.link_destino}', '_blank')">
+                                <div class="shine-effect"></div>
+                                <div class="promo-badge"><i class="fas fa-star"></i> OFERTA</div>
+                                <div class="promo-content">
+                                    <div style="flex: 1; padding-right: 10px;">
+                                        <div class="promo-title">${oferta.titulo_oferta}</div>
+                                        <div class="promo-desc">${oferta.beneficio_txt}</div>
+                                    </div>
+                                    <div class="promo-icon"><i class="fas fa-chevron-right"></i></div>
+                                </div>
+                            </div>`;
                     });
                     wrapper.appendChild(carousel);
                     mainContainer.appendChild(wrapper);
                 }
 
+                // --- B. RENDER AGENDA (Eventos Masivos) ---
                 if (eventos.length > 0) {
                     const wrapper = document.createElement('div');
                     wrapper.innerHTML = `<div class="section-header"><span>📅 Agenda & Eventos</span></div>`;
+                    
                     eventos.forEach(ev => {
                         const fechaTexto = ev.fecha ? new Date(ev.fecha).toLocaleDateString() : "INFO";
-                        wrapper.innerHTML += `<div class="event-card" onclick="window.open('${ev.link_destino}', '_blank')"><div class="event-date">${fechaTexto.split('/')[0] || '★'}</div><div class="event-info"><div class="event-title">${ev.titulo_oferta}</div><div class="event-desc">${ev.beneficio_txt || 'Toca para ver más.'}</div></div><div style="color:#ccc"><i class="fas fa-external-link-alt"></i></div></div>`;
+                        
+                        const card = document.createElement('div');
+                        card.className = 'event-card';
+                        card.onclick = () => window.open(ev.link_destino, '_blank');
+                        card.innerHTML = `
+                            <div class="event-date">${fechaTexto.split('/')[0] || '★'}</div>
+                            <div class="event-info">
+                                <div class="event-title">${ev.titulo_oferta}</div>
+                                <div class="event-desc">${ev.beneficio_txt || 'Toca para ver más detalles del evento.'}</div>
+                            </div>
+                            <div style="color:#ccc"><i class="fas fa-external-link-alt"></i></div>
+                        `;
+                        wrapper.appendChild(card);
                     });
                     mainContainer.appendChild(wrapper);
                 }
 
+                // --- C. RENDER SEMINARIOS (On Demand) ---
                 if (seminarios && seminarios.length > 0) {
                     const wrapper = document.createElement('div');
-                    wrapper.innerHTML = `<div class="section-header"><span>🎓 Seminarios On-Demand</span></div>`;
+                    wrapper.innerHTML = `<div class="section-header"><span>🎓 Seminarios On-Demand</span><small>Ver Todo</small></div>`;
+                    
                     seminarios.forEach(sem => {
-                        let bgStyle = 'background-color: #333;';
-                        if (sem.imagen_url) bgStyle = `background: url('${sem.imagen_url}') center/cover no-repeat;`;
-                        else if (sem.id_video) bgStyle = `background: url('https://img.youtube.com/vi/${sem.id_video}/hqdefault.jpg') center/cover no-repeat;`;
+                        const card = document.createElement('div');
+                        card.className = 'seminario-card';
                         
-                        wrapper.innerHTML += `<div class="seminario-card"><div style="height: 140px; ${bgStyle} position: relative;"><div class="sem-badge">ONLINE</div></div><div class="seminario-content"><div class="sem-title">${sem.titulo}</div><div style="font-size:11px; opacity:0.8;">${sem.descripcion || ''}</div><div class="sem-price">$${sem.precio || '0'}</div><button class="btn-sem" onclick="comprarSeminario('${sem.id}', '${sem.link_pago}')">VER AHORA</button></div></div>`;
+                        // Lógica de Imagen: Si hay URL directa úsala, sino genera la de YouTube
+                        let bgStyle = 'background-color: #333;';
+                        if (sem.imagen_url) {
+                            bgStyle = `background: url('${sem.imagen_url}') center/cover no-repeat;`;
+                        } else if (sem.id_video) {
+                            bgStyle = `background: url('https://img.youtube.com/vi/${sem.id_video}/hqdefault.jpg') center/cover no-repeat;`;
+                        }
+
+                        card.innerHTML = `
+                            <div style="height: 140px; ${bgStyle} position: relative;">
+                                <div class="sem-badge">CERTIFICADO</div>
+                                <div style="position:absolute; bottom:0; left:0; width:100%; height:50%; background:linear-gradient(to top, rgba(0,0,0,0.8), transparent);"></div>
+                            </div>
+                            <div class="seminario-content">
+                                <div class="sem-title">${sem.titulo || 'Seminario Especial'}</div>
+                                <div style="font-size:11px; opacity:0.8; margin-bottom:8px;">${sem.descripcion || ''}</div>
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <div class="sem-price" style="margin:0;">$${sem.precio || '0'}</div>
+                                    <div style="font-size:10px; color:#aaa;">ONLINE</div>
+                                </div>
+                                <button class="btn-sem" onclick="comprarSeminario('${sem.id}', '${sem.link_pago || '#'}')">
+                                    VER AHORA <i class="fas fa-play-circle"></i>
+                                </button>
+                            </div>
+                        `;
+                        wrapper.appendChild(card);
                     });
                     mainContainer.appendChild(wrapper);
                 }
-            } catch (err) { console.log(err); }
+
+            } catch (err) {
+                console.log("Error cargando contenidos dinámicos", err);
+            }
         }
 
         function comprarSeminario(id, link) {
@@ -932,11 +882,39 @@
             const nombre = alumnoActual.nombre.split(' ')[0];
             const curso = alumnoActual.curso;
             const instituto = alumnoActual.instituciones?.nombre || "Instituto Colbert";
-            let texto = tipo === 'linkedin' ? `🚀 ¡Meta Cumplida!\n\nMe complace anunciar que he completado oficialmente mi certificación como ${curso} en ${instituto}.\n\nValidado con tecnología Blockchain.\n\n#${curso.replace(/\s/g,'')} #CrecimientoProfesional` : `PERFIL PROFESIONAL:\nCertificado como ${curso} por ${instituto}. Formación validada digitalmente.`;
-            navigator.clipboard.writeText(texto).then(() => { alert("¡Texto copiado!"); });
+            let texto = "";
+            if (tipo === 'linkedin') {
+                texto = `🚀 ¡Meta Cumplida!\n\nMe complace anunciar que he completado oficialmente mi certificación como ${curso} en ${instituto}.\n\nValidado con tecnología Blockchain.\n\n#${curso.replace(/\s/g,'')} #CrecimientoProfesional`;
+            } else {
+                texto = `PERFIL PROFESIONAL:\nCertificado como ${curso} por ${instituto}. Formación validada digitalmente.`;
+            }
+            navigator.clipboard.writeText(texto).then(() => { alert("¡Texto generado y copiado al portapapeles! Listo para pegar."); });
         }
 
-        function registrarAcceso(alumno) { try { db.from('logs_accesos').insert({ alumno_id: alumno.id, curso: alumno.curso, fecha: new Date().toISOString() }).then(); } catch(e) { } }
+        // --- NUEVA FUNCIÓN: GENERAR CARTA DE RECOMENDACIÓN PDF ---
+        async function descargarCartaRecomendacion() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const nombre = alumnoActual.nombre + " " + alumnoActual.apellido;
+            const curso = alumnoActual.curso;
+            const fecha = new Date().toLocaleDateString();
+
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(22);
+            doc.text("CARTA DE RECOMENDACIÓN", 105, 30, null, null, "center");
+            
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(12);
+            doc.text(`A quien corresponda,`, 20, 60);
+
+            const texto = `Por medio de la presente, certificamos que ${nombre} (DNI: ${alumnoActual.dni_alumno}) ha completado satisfactoriamente el curso de formación profesional en "${curso}".\n\nDurante su formación, ha demostrado compromiso, responsabilidad y aptitudes destacadas en el área. La validación de sus competencias se encuentra registrada mediante tecnología Blockchain, garantizando la autenticidad de su certificación.\n\nSe extiende la presente recomendación para los fines que el interesado considere oportunos.\n\n\nAtentamente,\n\nDirección Académica\n${cursoActualData?.institucion_id || 'ASARI Platform'}\nFecha de emisión: ${fecha}`;
+            
+            doc.text(texto, 20, 70, { maxWidth: 170, align: "justify" });
+
+            doc.save(`Carta_Recomendacion_${alumnoActual.dni_alumno}.pdf`);
+        }
+
+        async function registrarAcceso(alumno) { try { await db.from('logs_accesos').insert({ alumno_id: alumno.id, curso: alumno.curso, fecha: new Date().toISOString() }); } catch(e) { } }
 
         function llenarDatosCarnet(container, alumno, colorOverride) {
             const el = (sel) => container.querySelector(sel);
@@ -967,7 +945,9 @@
             // --- LOGICA DE MARCA DE AGUA ---
             if (cursoActualData && cursoActualData.marca_agua_url) {
                 const wmContainer = el('#watermark-container');
-                if(wmContainer) wmContainer.innerHTML = `<img src="${cursoActualData.marca_agua_url}">`;
+                if(wmContainer) {
+                    wmContainer.innerHTML = `<img src="${cursoActualData.marca_agua_url}">`;
+                }
             } else {
                 const wmContainer = el('#watermark-container');
                 if(wmContainer) wmContainer.innerHTML = '';
@@ -999,6 +979,182 @@
             while (element.scrollWidth > limit && size > 10) { size -= 2; element.style.fontSize = size + 'px'; }
         }
 
+        async function descargarCarnetCompleto() {
+            if(!alumnoActual) return;
+            const btn = document.querySelector('.action-card'); const txt = btn.innerHTML; btn.innerHTML = '⏳';
+            try {
+                const ghost = document.getElementById('ghost-container'); ghost.innerHTML = "";
+                const wrapper = document.createElement('div');
+                wrapper.style.display = "flex"; wrapper.style.flexDirection = "column"; wrapper.style.gap = "20px"; wrapper.style.padding = "20px"; wrapper.style.backgroundColor = "white";
+                wrapper.insertAdjacentHTML('beforeend', CARNET_HTML); wrapper.insertAdjacentHTML('beforeend', CARNET_BACK_HTML);
+                wrapper.querySelector('.live-shimmer').style.display = 'none'; 
+                ghost.appendChild(wrapper);
+                llenarDatosCarnet(ghost, alumnoActual, globalColorTema);
+                ghost.querySelectorAll('.card-base, .carnet-back-img').forEach(c => { c.style.width = "1011px"; c.style.height = "638px"; });
+                ghost.querySelector('#carnet-back-img').style.borderColor = ghost.querySelector('.card-base').style.borderColor;
+                const images = ghost.getElementsByTagName('img');
+                for(let img of images) { if(img.src && !img.complete) await new Promise(r => img.onload = r); }
+                await new Promise(r => setTimeout(r, 500)); 
+                const canvas = await html2canvas(wrapper, { scale: 1.5, useCORS: true });
+                const link = document.createElement('a'); link.download = `Carnet_${alumnoActual.dni_alumno}.png`; link.href = canvas.toDataURL("image/png"); link.click();
+                ghost.innerHTML = '';
+            } catch(e) { alert("Error: " + e.message); } finally { btn.innerHTML = txt; }
+        }
+
+        async function descargarDiploma() {
+            if(!cursoActualData || !cursoActualData.diploma_bg_url) return alert("Diploma no disponible.");
+            const btn = document.getElementById('btn-descargar-diploma'); const originalText = btn.innerHTML; btn.innerHTML = '⏳';
+            try {
+                const ghost = document.getElementById('ghost-container');
+                const colorTexto = globalColorTexto || '#0033cc';
+                ghost.innerHTML = `
+                <div class="diploma-layout" id="diploma-final">
+                    <img id="dip-bg-img" class="diploma-bg" src="" crossorigin="anonymous">
+                    <div class="diploma-overlay">
+                        <div class="dip-linea-unica-container" id="dip-texto-container"><span class="dip-texto-formal" id="dip-texto-completo" style="color: ${colorTexto} !important;"></span></div>
+                        <div class="dip-qr" id="dip-qr-code"></div>
+                        <div class="dip-info-extra" id="dip-fecha-registro" style="color: ${colorTexto} !important; border-color: ${colorTexto}33;"></div>
+                        <div class="dip-sello"></div>
+                    </div>
+                </div>`;
+                const bgImg = ghost.querySelector('#dip-bg-img');
+                
+                let bgUrl = cursoActualData.diploma_bg_url;
+                if (bgUrl.startsWith('["') || bgUrl.startsWith('[')) { try { bgUrl = JSON.parse(bgUrl)[0]; } catch(e) {} }
+                
+                const response = await fetch(bgUrl);
+                const blob = await response.blob();
+                const objectURL = URL.createObjectURL(blob);
+                bgImg.src = objectURL;
+
+                await new Promise((resolve, reject) => { bgImg.onload = resolve; bgImg.onerror = () => reject(new Error("Error carga diploma")); setTimeout(() => reject(new Error("Timeout")), 10000); });
+
+                const txtElem = ghost.querySelector('#dip-texto-completo');
+                txtElem.innerText = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno)}`;
+                new QRCode(ghost.querySelector('#dip-qr-code'), { text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, width: 223, height: 223 });
+                const f = new Date(alumnoActual.fecha_inicio || new Date()).toLocaleDateString('es-ES', {year:'numeric', month:'long', day:'numeric'});
+                ghost.querySelector('#dip-fecha-registro').innerHTML = `REGISTRO: <b>${(alumnoActual.registro_id||'OFICIAL').toUpperCase()}</b> • Fecha: ${f}`;
+                await document.fonts.ready;
+                txtElem.style.display = 'inline-block'; txtElem.style.whiteSpace = 'nowrap'; 
+                await new Promise(r => setTimeout(r, 100)); ajustarTextoAlAncho(txtElem, 100, 1600); await new Promise(r => setTimeout(r, 500));
+                
+                const canvas = await html2canvas(ghost.querySelector('#diploma-final'), { scale: 1, useCORS: true });
+                const link = document.createElement('a'); link.download = `Diploma_${alumnoActual.dni_alumno}.png`; link.href = canvas.toDataURL("image/png"); link.click();
+                
+                URL.revokeObjectURL(objectURL);
+                ghost.innerHTML = '';
+            } catch(e) { alert("Error diploma: " + e.message); } finally { btn.innerHTML = originalText; }
+        }
+
+        async function descargarAnalitico() {
+            if(!cursoActualData || !cursoActualData.analitico_bg_url) return alert("Analítico no disponible.");
+            const btn = document.getElementById('btn-descargar-analitico'); 
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'Generando PDF ⏳';
+            
+            try {
+                let urls = [];
+                try {
+                    if (cursoActualData.analitico_bg_url.trim().startsWith('[')) {
+                        urls = JSON.parse(cursoActualData.analitico_bg_url);
+                    } else {
+                        urls = [cursoActualData.analitico_bg_url];
+                    }
+                } catch(e) {
+                    urls = [cursoActualData.analitico_bg_url];
+                }
+
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4'); 
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+
+                const ghost = document.getElementById('ghost-container');
+                const colorTexto = globalColorTexto || '#0033cc';
+
+                for (let i = 0; i < urls.length; i++) {
+                    const url = urls[i];
+                    
+                    let overlayHTML = '';
+                    if (i === 0) {
+                        overlayHTML = `
+                        <div class="diploma-overlay">
+                            <div style="position: absolute; top: 120px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; white-space: nowrap;">
+                                <span class="dip-texto-formal" id="ana-text-${i}" style="color: ${colorTexto} !important; font-size: 50px;"></span>
+                            </div>
+                            
+                            <div id="ana-qr-${i}" style="position: absolute; top: 60px; right: 60px; width: 150px; height: 150px; background: white; padding: 5px;"></div>
+                            
+                            <div id="ana-info-${i}" style="position: absolute; top: 200px; left: 50%; transform: translateX(-50%); text-align: center; font-family: 'Roboto', sans-serif; font-size: 16px; font-weight: 700; color: ${colorTexto}; background: rgba(255,255,255,0.9); padding: 4px 25px; border-radius: 50px;"></div>
+                        </div>`;
+                    }
+
+                    ghost.innerHTML = `
+                    <div class="diploma-layout" id="analitico-page-${i}" style="width: 1414px; height: 2000px; position: relative;">
+                        <img id="ana-bg-${i}" src="" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover;">
+                        ${overlayHTML}
+                    </div>`;
+
+                    const bgImg = document.getElementById(`ana-bg-${i}`);
+                    
+                    const response = await fetch(url);
+                    const blob = await response.blob();
+                    const objectURL = URL.createObjectURL(blob);
+                    bgImg.src = objectURL;
+
+                    await new Promise((resolve, reject) => {
+                        bgImg.onload = resolve;
+                        bgImg.onerror = () => reject(new Error(`Error cargando página ${i+1}`));
+                        setTimeout(() => reject(new Error(`Timeout página ${i+1}`)), 15000);
+                    });
+
+                    if (i === 0) {
+                        const txtElem = document.getElementById(`ana-text-${i}`);
+                        txtElem.innerText = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno)}`;
+                        
+                        new QRCode(document.getElementById(`ana-qr-${i}`), { 
+                            text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, 
+                            width: 140, height: 140 
+                        });
+                        
+                        const f = new Date(alumnoActual.fecha_inicio || new Date()).toLocaleDateString('es-ES', {year:'numeric', month:'long', day:'numeric'});
+                        document.getElementById(`ana-info-${i}`).innerHTML = `REGISTRO: <b>${(alumnoActual.registro_id||'OFICIAL').toUpperCase()}</b> • Fecha: ${f}`;
+
+                        await document.fonts.ready;
+                        txtElem.style.display = 'inline-block';
+                        await new Promise(r => setTimeout(r, 200));
+                        ajustarTextoAlAncho(txtElem, 50, 1200); 
+                        await new Promise(r => setTimeout(r, 500));
+                    }
+
+                    const canvas = await html2canvas(document.getElementById(`analitico-page-${i}`), { 
+                        scale: 1, 
+                        useCORS: true,
+                        backgroundColor: '#ffffff' 
+                    });
+                    const imgData = canvas.toDataURL('image/jpeg', 0.90);
+
+                    URL.revokeObjectURL(objectURL);
+
+                    if (i > 0) pdf.addPage();
+                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+                }
+
+                pdf.save(`Analitico_${alumnoActual.dni_alumno}.pdf`);
+                ghost.innerHTML = '';
+
+            } catch(e) { 
+                console.error(e);
+                alert("Error generando PDF: " + e.message); 
+            } finally { 
+                btn.innerHTML = originalText; 
+            }
+        }
+
+        function mostrarPantalla(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+        function volverAlSelector() { mostrarPantalla('screen-selector'); }
+        function cerrarSesion() { location.reload(); }
+        function ajustarCarnetResponsivo() { const v = document.getElementById('card-viewport'); const c = document.getElementById('carnet-render'); if(v && c) { const s = v.offsetWidth / 1011; c.style.transform = `scale(${s})`; v.style.height = `${638 * s}px`; } }
         function generarHashMatricula(d) { let h = 0; for (let i = 0; i < d.length; i++) { h = ((h << 5) - h) + d.charCodeAt(i); h |= 0; } return String(Math.abs(h)).substring(0, 6).padStart(6, '9'); }
     </script>
 </body>
