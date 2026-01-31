@@ -11,7 +11,7 @@
         .ghost-input { background: transparent; border: 1px solid transparent; transition: all 0.2s; }
         .ghost-input:hover { border-color: #e2e8f0; background: white; }
         .ghost-input:focus { border-color: #3b82f6; background: white; outline: none; }
-        /* Animaciones para los módulos */
+        /* Animaciones */
         .module-enter { animation: slideDown 0.3s ease-out; }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -88,28 +88,26 @@
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
         let cursoId = null;
-        let modulesData = []; // Aquí guardaremos la estructura en memoria
 
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
             
-            // Obtener ID de la URL (ej: editor-curso.html?id=123)
+            // Obtener ID de la URL
             const params = new URLSearchParams(window.location.search);
             cursoId = params.get('id');
 
             if(cursoId) {
                 await cargarDatosCurso(cursoId);
             } else {
-                // Si es nuevo, agregamos un módulo vacío por defecto
-                agregarModulo();
+                agregarModulo(); // Módulo por defecto si es nuevo
             }
         });
 
-        // --- LÓGICA DE INTERFAZ (UI) ---
+        // --- FUNCIONES UI (VISUALES) ---
 
         function agregarModulo(data = null) {
             const container = document.getElementById('modules-container');
-            const modId = Date.now(); // ID temporal para el DOM
+            const modId = Date.now() + Math.floor(Math.random() * 1000); 
             const titulo = data ? data.titulo : "Nuevo Módulo";
             
             const html = `
@@ -121,14 +119,11 @@
                     
                     <div class="flex gap-2 opacity-100 sm:opacity-0 group-mod-hover:opacity-100 transition-opacity">
                         <button onclick="borrarElemento('mod-${modId}', event)" class="p-2 text-slate-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                        <i data-lucide="chevron-down" class="text-slate-400 w-4 h-4 transition-transform" id="arrow-${modId}"></i>
                     </div>
                 </div>
 
                 <div id="content-${modId}" class="p-4 space-y-3 bg-white">
-                    <div id="lessons-${modId}" class="space-y-2">
-                        </div>
-
+                    <div id="lessons-${modId}" class="space-y-2"></div>
                     <div class="flex gap-3 pt-3">
                         <button onclick="agregarLeccion('${modId}', 'VIDEO')" class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-dashed border-slate-300 text-xs font-bold text-slate-500 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 transition w-full justify-center">
                             <i data-lucide="video" class="w-3 h-3"></i> Agregar Video
@@ -143,7 +138,7 @@
             container.insertAdjacentHTML('beforeend', html);
             lucide.createIcons();
 
-            // Si hay datos pre-cargados (lecciones), agregarlas
+            // Si estamos cargando datos, inyectar las lecciones
             if(data && data.lecciones) {
                 data.lecciones.forEach(lec => agregarLeccion(modId, lec.tipo, lec));
             }
@@ -154,7 +149,7 @@
             const lecId = Date.now() + Math.random();
             const icon = tipo === 'VIDEO' ? 'play-circle' : 'file-text';
             const color = tipo === 'VIDEO' ? 'text-blue-500 bg-blue-50' : 'text-red-500 bg-red-50';
-            const titulo = data ? data.titulo : (tipo === 'VIDEO' ? 'Nueva Clase en Video' : 'Material de Lectura');
+            const titulo = data ? data.titulo : (tipo === 'VIDEO' ? 'Nueva Clase' : 'Documento PDF');
             const urlValue = data ? data.url : '';
 
             const html = `
@@ -165,12 +160,9 @@
                 
                 <div class="flex-1 min-w-0 grid gap-1">
                     <input type="text" class="font-bold text-xs text-slate-700 bg-transparent focus:bg-white focus:outline-none rounded px-1" value="${titulo}" placeholder="Título de la lección">
-                    
                     <div class="flex items-center gap-2">
-                        ${tipo === 'VIDEO' 
-                            ? `<i data-lucide="youtube" class="w-3 h-3 text-slate-400"></i><input type="text" class="text-[10px] text-slate-500 w-full bg-transparent focus:bg-white focus:outline-none border-b border-transparent focus:border-blue-300" placeholder="ID de YouTube o URL" value="${urlValue}">`
-                            : `<i data-lucide="link" class="w-3 h-3 text-slate-400"></i><input type="text" class="text-[10px] text-slate-500 w-full bg-transparent focus:bg-white focus:outline-none border-b border-transparent focus:border-blue-300" placeholder="URL del PDF" value="${urlValue}"><button class="text-[10px] text-blue-600 hover:underline font-bold whitespace-nowrap" onclick="alert('Función de carga disponible pronto')">Subir</button>`
-                        }
+                        <i data-lucide="link" class="w-3 h-3 text-slate-400"></i>
+                        <input type="text" class="text-[10px] text-slate-500 w-full bg-transparent focus:bg-white focus:outline-none border-b border-transparent focus:border-blue-300" placeholder="${tipo === 'VIDEO' ? 'ID de YouTube o URL' : 'URL del archivo'}" value="${urlValue}">
                     </div>
                 </div>
 
@@ -181,17 +173,13 @@
             lucide.createIcons();
         }
 
-        // --- UTILIDADES UI ---
         function toggleModulo(id) {
-            const el = document.getElementById(id);
-            el.classList.toggle('hidden');
+            document.getElementById(id).classList.toggle('hidden');
         }
 
         function borrarElemento(id, e) {
             if(e) e.stopPropagation();
-            if(confirm('¿Eliminar este elemento?')) {
-                document.getElementById(id).remove();
-            }
+            if(confirm('¿Eliminar este elemento?')) document.getElementById(id).remove();
         }
 
         function previewImage(input) {
@@ -206,10 +194,11 @@
             }
         }
 
-        // --- LÓGICA DE DATOS (Backend) ---
+        // --- LÓGICA DE BACKEND (CARGAR Y GUARDAR) ---
 
         async function cargarDatosCurso(id) {
             document.getElementById('save-status').innerText = "Cargando...";
+            // Seleccionamos las columnas nuevas también
             const { data, error } = await db.from('cursos_oficiales').select('*').eq('id', id).single();
             
             if(error) {
@@ -217,20 +206,27 @@
                 return;
             }
 
-            // Cargar datos básicos
+            // 1. Cargar Campos Básicos
             document.getElementById('course-title').value = data.nombre;
-            // Nota: Aquí asumimos que la descripción no estaba en la tabla original, 
-            // si quieres guardarla, necesitaremos agregar la columna 'descripcion' a la tabla.
+            document.getElementById('course-desc').value = data.descripcion || ''; // Carga descripción
             
-            if(data.diploma_bg_url) {
-                document.getElementById('preview-cover').src = data.diploma_bg_url;
+            if(data.imagen_portada_url || data.diploma_bg_url) {
+                document.getElementById('preview-cover').src = data.imagen_portada_url || data.diploma_bg_url;
                 document.getElementById('preview-cover').classList.remove('hidden');
             }
 
-            // Cargar Módulos (Si existen en una columna JSONB 'contenido_json')
-            // POR AHORA: Como no tenemos la estructura de módulos en DB, esto estará vacío.
-            // En el siguiente paso te enseñaré a crear la estructura JSON para guardar esto.
-            
+            // 2. Cargar Estructura de Módulos (JSON)
+            // Verificamos si hay contenido en la columna JSON
+            if(data.contenido && Array.isArray(data.contenido) && data.contenido.length > 0) {
+                // Iteramos y creamos los módulos visuales
+                data.contenido.forEach(mod => {
+                    agregarModulo(mod);
+                });
+            } else {
+                // Si no hay contenido guardado, agregar uno vacío
+                agregarModulo();
+            }
+
             document.getElementById('save-status').innerText = "";
         }
 
@@ -239,12 +235,16 @@
             const originalText = btn.innerHTML;
             btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Guardando...`;
             
-            // 1. Recopilar Datos del DOM
             const nombre = document.getElementById('course-title').value;
-            if(!nombre) return alert("El curso debe tener un nombre");
+            const descripcion = document.getElementById('course-desc').value;
 
-            // 2. Construir el JSON de Módulos (Scraping del DOM)
-            // Esto convierte lo que ves en pantalla en datos para la base de datos
+            if(!nombre) {
+                alert("El curso debe tener un nombre");
+                btn.innerHTML = originalText;
+                return;
+            }
+
+            // 1. CONSTRUIR EL JSON (Scraping del DOM)
             const modulos = [];
             document.querySelectorAll('[id^="mod-"]').forEach(mod => {
                 const tituloMod = mod.querySelector('input[type="text"]').value;
@@ -262,36 +262,55 @@
                 modulos.push({ titulo: tituloMod, lecciones: lecciones });
             });
 
-            console.log("Estructura a guardar:", modulos);
+            // 2. SUBIR PORTADA (Si hay)
+            let portadaUrl = null;
+            const fileInput = document.getElementById('cover-upload');
+            if(fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const fileName = `cover_${Date.now()}`;
+                await db.storage.from('plantillas-diplomas').upload(fileName, file);
+                const { data } = db.storage.from('plantillas-diplomas').getPublicUrl(fileName);
+                portadaUrl = data.publicUrl;
+            }
 
-            // 3. Guardar en Supabase
-            // IMPORTANTE: Necesitamos una columna donde guardar este JSON.
-            // Por ahora actualizaremos solo el nombre para probar la conexión.
-            
-            const payload = { nombre: nombre };
-            
-            // Si tu tabla tuviera una columna 'contenido', haríamos:
-            // payload.contenido = JSON.stringify(modulos);
+            // 3. PREPARAR DATOS PARA SUPABASE
+            const payload = {
+                nombre: nombre,
+                descripcion: descripcion,
+                contenido: modulos // Enviamos el array de objetos directamente (Supabase lo guarda como JSONB)
+            };
+            if(portadaUrl) payload.imagen_portada_url = portadaUrl;
 
+            // 4. GUARDAR EN DB
             try {
                 if(cursoId) {
                     const { error } = await db.from('cursos_oficiales').update(payload).eq('id', cursoId);
                     if(error) throw error;
-                    alert("¡Curso actualizado! (Nota: Los módulos se guardarán cuando configuremos la columna JSON en el siguiente paso)");
+                    alert("¡Curso actualizado correctamente!");
                 } else {
+                    // Para crear nuevo, necesitamos saber el Instituto del usuario actual
+                    const { data: { user } } = await db.auth.getUser();
+                    const { data: perfil } = await db.from('perfiles').select('institucion_id, rol').eq('id', user.id).single();
+                    
+                    // Asignar al instituto correcto (o null si es superadmin)
+                    if(perfil.rol !== 'superadmin') payload.institution_id = perfil.institucion_id;
+                    // Por defecto asignamos un registro ID si es nuevo (puedes cambiar esto luego)
+                    payload.registro_id = 'remaep'; 
+
                     const { data, error } = await db.from('cursos_oficiales').insert([payload]).select().single();
                     if(error) throw error;
-                    cursoId = data.id; // Actualizamos para que la próxima vez sea update
+                    
+                    cursoId = data.id;
                     window.history.pushState({}, '', `?id=${cursoId}`);
                     alert("¡Curso creado exitosamente!");
                 }
             } catch(e) {
                 alert("Error al guardar: " + e.message);
+                console.error(e);
             }
 
             btn.innerHTML = originalText;
         }
-
     </script>
 </body>
 </html>
