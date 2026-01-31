@@ -95,7 +95,7 @@
     </div>
 
     <script>
-        // 1. Configuración Supabase (Mismas credenciales que tu Dashboard)
+        // 1. Configuración Supabase
         const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
@@ -134,28 +134,24 @@
             cargarCursosDesdeDB();
         }
 
-        // 3. Cargar Logos y Colores (Igual que Dashboard)
+        // 3. Cargar Logos y Colores
         function cargarDatosVisuales(perfil) {
-            // Datos del Usuario Footer Sidebar
             document.getElementById('user-name').innerText = perfil.nombre_completo || perfil.email;
             document.getElementById('user-role').innerText = perfil.rol === 'superadmin' ? 'Super Admin' : 'Administrador';
             document.getElementById('user-initials').innerText = (perfil.nombre_completo || 'U').charAt(0).toUpperCase();
 
             const inst = perfil.instituciones;
             if (inst) {
-                // Logo Sidebar
                 if (inst.logo_url) {
                     const logo = document.getElementById('sidebar-logo');
                     logo.src = inst.logo_url;
                     logo.classList.remove('hidden');
                 }
                 
-                // Color Sidebar
                 if (inst.color_primario) {
                     document.getElementById('sidebar').style.backgroundColor = inst.color_primario;
                 }
 
-                // Nombre Marca
                 if (inst.nombre) {
                     document.getElementById('sidebar-brand-text').innerHTML = `
                         <h1 class="font-bold text-lg tracking-wide leading-tight">${inst.nombre}</h1>
@@ -185,7 +181,7 @@
             renderizarCursos(allCursos);
         }
 
-        // 5. Renderizar Tarjetas
+        // 5. Renderizar Tarjetas (CON RUTA CORREGIDA A AULA.HTML)
         function renderizarCursos(cursos) {
             const grid = document.getElementById('grid-cursos');
             const counter = document.getElementById('contador-cursos');
@@ -205,12 +201,15 @@
 
             cursos.forEach(curso => {
                 // Determinar imagen de fondo (Diploma o Default)
-                const bgImage = curso.diploma_bg_url || 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=400';
+                const bgImage = curso.imagen_portada_url || curso.diploma_bg_url || 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=400';
                 
-                // Colores de etiquetas según registro (Lógica visual)
+                // Colores de etiquetas según registro
                 let badgeColor = 'bg-slate-500';
                 if (curso.registro_id === 'remaep') badgeColor = 'bg-blue-600';
                 if (curso.registro_id === 'isf') badgeColor = 'bg-green-600';
+
+                // Contar módulos si existen
+                const cantidadModulos = (curso.contenido && Array.isArray(curso.contenido)) ? curso.contenido.length : 0;
 
                 const cardHTML = `
                 <article class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl transition-all group overflow-hidden flex flex-col h-full">
@@ -220,12 +219,6 @@
                         <span class="absolute top-3 left-3 text-[10px] font-bold text-white px-2 py-1 rounded shadow-sm uppercase tracking-wider ${badgeColor}">
                             ${curso.registro_id || 'GENERAL'}
                         </span>
-                        
-                        <div class="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button class="bg-white/20 hover:bg-white text-white hover:text-slate-900 p-1.5 rounded-lg backdrop-blur-sm transition-colors" title="Configurar">
-                                <i data-lucide="settings" class="w-4 h-4"></i>
-                            </button>
-                        </div>
                     </div>
 
                     <div class="p-6 flex-1 flex flex-col">
@@ -235,23 +228,20 @@
                         
                         <div class="flex items-center gap-4 text-xs text-slate-500 font-medium mb-4 mt-auto">
                             <div class="flex items-center gap-1.5">
-                                <i data-lucide="users" class="w-3.5 h-3.5 text-slate-400"></i>
-                                <span>Ver Alumnos</span>
-                            </div>
-                            <div class="flex items-center gap-1.5">
                                 <i data-lucide="layers" class="w-3.5 h-3.5 text-slate-400"></i>
-                                <span>Módulos</span>
+                                <span>${cantidadModulos} Módulos</span>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-slate-100">
                             <a href="editor-curso.html?id=${curso.id}" class="flex items-center justify-center gap-2 bg-slate-900 hover:bg-black text-white py-2.5 rounded-xl text-xs font-bold transition-colors">
                                 <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
-                                Editar Contenido
+                                Editar
                             </a>
-                             <a href="#" class="flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 py-2.5 rounded-xl text-xs font-bold transition-colors">
+                            
+                            <a href="../student/aula.html?id=${curso.id}" target="_blank" class="flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 py-2.5 rounded-xl text-xs font-bold transition-colors">
                                 <i data-lucide="monitor-play" class="w-3.5 h-3.5"></i>
-                                Aula Virtual
+                                Ver Aula
                             </a>
                         </div>
                     </div>
@@ -260,7 +250,7 @@
                 grid.innerHTML += cardHTML;
             });
             
-            // Re-inicializar iconos para los nuevos elementos
+            // Re-inicializar iconos
             lucide.createIcons();
         }
 
