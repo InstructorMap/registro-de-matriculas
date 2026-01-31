@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASARI Builder - Editor de Curso</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .ghost-input { background: transparent; border: 1px solid transparent; transition: all 0.2s; }
+        .ghost-input:hover { border-color: #e2e8f0; background: white; }
+        .ghost-input:focus { border-color: #3b82f6; background: white; outline: none; }
+        /* Animaciones para los módulos */
+        .module-enter { animation: slideDown 0.3s ease-out; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-slate-50 flex h-screen overflow-hidden font-sans text-slate-800">
+
+    <aside class="w-20 bg-slate-900 text-white flex flex-col items-center py-6 border-r border-slate-800">
+        <div class="mb-8 p-2 bg-blue-600 rounded-lg font-bold text-xl">A</div>
+        
+        <nav class="flex-1 space-y-4 w-full flex flex-col items-center">
+            <a href="cursos.html" class="p-3 text-slate-400 hover:text-white hover:bg-white/10 rounded-xl transition-colors" title="Volver a Mis Cursos">
+                <i data-lucide="arrow-left" class="w-6 h-6"></i>
+            </a>
+            <div class="p-3 bg-blue-600/20 text-blue-300 rounded-xl">
+                <i data-lucide="edit-3" class="w-6 h-6"></i>
+            </div>
+        </nav>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0">
+        
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shadow-sm z-20">
+            <div class="flex items-center gap-4 flex-1">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Editando:</span>
+                <input type="text" id="course-title" class="text-xl font-black text-slate-800 ghost-input px-2 py-1 rounded w-full max-w-lg" placeholder="Escribe el nombre del curso aquí...">
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <span id="save-status" class="text-xs font-bold text-slate-400 uppercase"></span>
+                <button onclick="guardarCambios()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg hover:shadow-green-900/20">
+                    <i data-lucide="save" class="w-4 h-4"></i>
+                    Guardar Todo
+                </button>
+            </div>
+        </header>
+
+        <main class="flex-1 p-8 overflow-y-auto relative">
+            <div class="max-w-4xl mx-auto pb-20">
+                
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-8 flex gap-6 items-start">
+                    <div class="w-32 h-20 bg-slate-100 rounded-lg border border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 cursor-pointer hover:bg-slate-50 transition relative overflow-hidden group">
+                        <img id="preview-cover" class="absolute inset-0 w-full h-full object-cover hidden">
+                        <i data-lucide="image" class="w-6 h-6 mb-1"></i>
+                        <span class="text-[10px] font-bold">PORTADA</span>
+                        <input type="file" id="cover-upload" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="previewImage(this)">
+                    </div>
+                    <div class="flex-1 space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Descripción Corta</label>
+                            <textarea id="course-desc" class="w-full text-sm p-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-blue-500 resize-none h-20" placeholder="¿De qué trata este curso?"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="modules-container" class="space-y-6">
+                    </div>
+
+                <div class="mt-8 text-center border-2 border-dashed border-slate-300 rounded-2xl p-8 hover:border-blue-400 hover:bg-blue-50 transition cursor-pointer group" onclick="agregarModulo()">
+                    <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                        <i data-lucide="plus" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-700">Agregar Nuevo Módulo</h3>
+                    <p class="text-xs text-slate-400">Crea una nueva sección para organizar tus clases</p>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // CONFIGURACIÓN SUPABASE
+        const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
+        const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
+        const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
+
+        let cursoId = null;
+        let modulesData = []; // Aquí guardaremos la estructura en memoria
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            
+            // Obtener ID de la URL (ej: editor-curso.html?id=123)
+            const params = new URLSearchParams(window.location.search);
+            cursoId = params.get('id');
+
+            if(cursoId) {
+                await cargarDatosCurso(cursoId);
+            } else {
+                // Si es nuevo, agregamos un módulo vacío por defecto
+                agregarModulo();
+            }
+        });
+
+        // --- LÓGICA DE INTERFAZ (UI) ---
+
+        function agregarModulo(data = null) {
+            const container = document.getElementById('modules-container');
+            const modId = Date.now(); // ID temporal para el DOM
+            const titulo = data ? data.titulo : "Nuevo Módulo";
+            
+            const html = `
+            <div id="mod-${modId}" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden module-enter relative group-mod">
+                <div class="bg-slate-50 p-4 flex items-center gap-3 border-b border-slate-100 cursor-pointer" onclick="toggleModulo('content-${modId}')">
+                    <i data-lucide="grip-vertical" class="text-slate-300 cursor-move"></i>
+                    <i data-lucide="folder-open" class="text-blue-500 w-5 h-5"></i>
+                    <input type="text" value="${titulo}" class="flex-1 bg-transparent font-bold text-slate-700 text-sm focus:outline-none focus:bg-white focus:ring-2 ring-blue-100 rounded px-2 py-1" onclick="event.stopPropagation()">
+                    
+                    <div class="flex gap-2 opacity-100 sm:opacity-0 group-mod-hover:opacity-100 transition-opacity">
+                        <button onclick="borrarElemento('mod-${modId}', event)" class="p-2 text-slate-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        <i data-lucide="chevron-down" class="text-slate-400 w-4 h-4 transition-transform" id="arrow-${modId}"></i>
+                    </div>
+                </div>
+
+                <div id="content-${modId}" class="p-4 space-y-3 bg-white">
+                    <div id="lessons-${modId}" class="space-y-2">
+                        </div>
+
+                    <div class="flex gap-3 pt-3">
+                        <button onclick="agregarLeccion('${modId}', 'VIDEO')" class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-dashed border-slate-300 text-xs font-bold text-slate-500 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 transition w-full justify-center">
+                            <i data-lucide="video" class="w-3 h-3"></i> Agregar Video
+                        </button>
+                        <button onclick="agregarLeccion('${modId}', 'PDF')" class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-dashed border-slate-300 text-xs font-bold text-slate-500 hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition w-full justify-center">
+                            <i data-lucide="file-text" class="w-3 h-3"></i> Agregar PDF
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+
+            container.insertAdjacentHTML('beforeend', html);
+            lucide.createIcons();
+
+            // Si hay datos pre-cargados (lecciones), agregarlas
+            if(data && data.lecciones) {
+                data.lecciones.forEach(lec => agregarLeccion(modId, lec.tipo, lec));
+            }
+        }
+
+        function agregarLeccion(modId, tipo, data = null) {
+            const container = document.getElementById(`lessons-${modId}`);
+            const lecId = Date.now() + Math.random();
+            const icon = tipo === 'VIDEO' ? 'play-circle' : 'file-text';
+            const color = tipo === 'VIDEO' ? 'text-blue-500 bg-blue-50' : 'text-red-500 bg-red-50';
+            const titulo = data ? data.titulo : (tipo === 'VIDEO' ? 'Nueva Clase en Video' : 'Material de Lectura');
+            const urlValue = data ? data.url : '';
+
+            const html = `
+            <div id="lec-${lecId}" class="flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:border-blue-200 hover:bg-slate-50 transition group-lec">
+                <div class="w-8 h-8 rounded-lg ${color} flex items-center justify-center shrink-0">
+                    <i data-lucide="${icon}" class="w-4 h-4"></i>
+                </div>
+                
+                <div class="flex-1 min-w-0 grid gap-1">
+                    <input type="text" class="font-bold text-xs text-slate-700 bg-transparent focus:bg-white focus:outline-none rounded px-1" value="${titulo}" placeholder="Título de la lección">
+                    
+                    <div class="flex items-center gap-2">
+                        ${tipo === 'VIDEO' 
+                            ? `<i data-lucide="youtube" class="w-3 h-3 text-slate-400"></i><input type="text" class="text-[10px] text-slate-500 w-full bg-transparent focus:bg-white focus:outline-none border-b border-transparent focus:border-blue-300" placeholder="ID de YouTube o URL" value="${urlValue}">`
+                            : `<i data-lucide="link" class="w-3 h-3 text-slate-400"></i><input type="text" class="text-[10px] text-slate-500 w-full bg-transparent focus:bg-white focus:outline-none border-b border-transparent focus:border-blue-300" placeholder="URL del PDF" value="${urlValue}"><button class="text-[10px] text-blue-600 hover:underline font-bold whitespace-nowrap" onclick="alert('Función de carga disponible pronto')">Subir</button>`
+                        }
+                    </div>
+                </div>
+
+                <button onclick="borrarElemento('lec-${lecId}')" class="text-slate-300 hover:text-red-500 opacity-0 group-lec-hover:opacity-100 transition"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>`;
+
+            container.insertAdjacentHTML('beforeend', html);
+            lucide.createIcons();
+        }
+
+        // --- UTILIDADES UI ---
+        function toggleModulo(id) {
+            const el = document.getElementById(id);
+            el.classList.toggle('hidden');
+        }
+
+        function borrarElemento(id, e) {
+            if(e) e.stopPropagation();
+            if(confirm('¿Eliminar este elemento?')) {
+                document.getElementById(id).remove();
+            }
+        }
+
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById('preview-cover');
+                    img.src = e.target.result;
+                    img.classList.remove('hidden');
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // --- LÓGICA DE DATOS (Backend) ---
+
+        async function cargarDatosCurso(id) {
+            document.getElementById('save-status').innerText = "Cargando...";
+            const { data, error } = await db.from('cursos_oficiales').select('*').eq('id', id).single();
+            
+            if(error) {
+                alert("Error cargando curso: " + error.message);
+                return;
+            }
+
+            // Cargar datos básicos
+            document.getElementById('course-title').value = data.nombre;
+            // Nota: Aquí asumimos que la descripción no estaba en la tabla original, 
+            // si quieres guardarla, necesitaremos agregar la columna 'descripcion' a la tabla.
+            
+            if(data.diploma_bg_url) {
+                document.getElementById('preview-cover').src = data.diploma_bg_url;
+                document.getElementById('preview-cover').classList.remove('hidden');
+            }
+
+            // Cargar Módulos (Si existen en una columna JSONB 'contenido_json')
+            // POR AHORA: Como no tenemos la estructura de módulos en DB, esto estará vacío.
+            // En el siguiente paso te enseñaré a crear la estructura JSON para guardar esto.
+            
+            document.getElementById('save-status').innerText = "";
+        }
+
+        async function guardarCambios() {
+            const btn = document.querySelector('button[onclick="guardarCambios()"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Guardando...`;
+            
+            // 1. Recopilar Datos del DOM
+            const nombre = document.getElementById('course-title').value;
+            if(!nombre) return alert("El curso debe tener un nombre");
+
+            // 2. Construir el JSON de Módulos (Scraping del DOM)
+            // Esto convierte lo que ves en pantalla en datos para la base de datos
+            const modulos = [];
+            document.querySelectorAll('[id^="mod-"]').forEach(mod => {
+                const tituloMod = mod.querySelector('input[type="text"]').value;
+                const lecciones = [];
+                
+                mod.querySelectorAll('[id^="lec-"]').forEach(lec => {
+                    const inputs = lec.querySelectorAll('input');
+                    lecciones.push({
+                        titulo: inputs[0].value,
+                        url: inputs[1].value,
+                        tipo: lec.querySelector('.bg-blue-50') ? 'VIDEO' : 'PDF'
+                    });
+                });
+
+                modulos.push({ titulo: tituloMod, lecciones: lecciones });
+            });
+
+            console.log("Estructura a guardar:", modulos);
+
+            // 3. Guardar en Supabase
+            // IMPORTANTE: Necesitamos una columna donde guardar este JSON.
+            // Por ahora actualizaremos solo el nombre para probar la conexión.
+            
+            const payload = { nombre: nombre };
+            
+            // Si tu tabla tuviera una columna 'contenido', haríamos:
+            // payload.contenido = JSON.stringify(modulos);
+
+            try {
+                if(cursoId) {
+                    const { error } = await db.from('cursos_oficiales').update(payload).eq('id', cursoId);
+                    if(error) throw error;
+                    alert("¡Curso actualizado! (Nota: Los módulos se guardarán cuando configuremos la columna JSON en el siguiente paso)");
+                } else {
+                    const { data, error } = await db.from('cursos_oficiales').insert([payload]).select().single();
+                    if(error) throw error;
+                    cursoId = data.id; // Actualizamos para que la próxima vez sea update
+                    window.history.pushState({}, '', `?id=${cursoId}`);
+                    alert("¡Curso creado exitosamente!");
+                }
+            } catch(e) {
+                alert("Error al guardar: " + e.message);
+            }
+
+            btn.innerHTML = originalText;
+        }
+
+    </script>
+</body>
+</html>
