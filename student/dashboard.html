@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel del Estudiante - ASARI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800">
+
+    <nav class="bg-slate-900 text-white p-4 sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold">A</div>
+                <span class="font-bold tracking-wide">Campus Virtual</span>
+            </div>
+            <button onclick="logout()" class="text-slate-400 hover:text-white flex items-center gap-2 text-sm font-bold">
+                <i data-lucide="log-out" class="w-4 h-4"></i> Salir
+            </button>
+        </div>
+    </nav>
+
+    <header class="bg-white border-b border-slate-200 py-10 px-4">
+        <div class="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+            <div>
+                <p class="text-slate-500 font-bold uppercase text-xs tracking-wider mb-1">Bienvenido de nuevo</p>
+                <h1 class="text-3xl font-black text-slate-800" id="student-name">Cargando...</h1>
+                <p class="text-slate-500 mt-2 text-sm">Aquí tienes el resumen de tu actividad académica.</p>
+            </div>
+            
+            <a href="../billetera.html" class="group flex items-center gap-4 bg-slate-100 hover:bg-slate-200 p-4 rounded-2xl border border-slate-200 transition-all cursor-pointer">
+                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                    <i data-lucide="wallet" class="w-6 h-6 text-slate-700"></i>
+                </div>
+                <div class="text-left">
+                    <p class="font-bold text-slate-800 text-sm">Mi Billetera</p>
+                    <p class="text-xs text-slate-500">Ver Credenciales y Diplomas</p>
+                </div>
+                <i data-lucide="chevron-right" class="text-slate-400"></i>
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto p-6 md:py-10">
+        
+        <div class="mb-12">
+            <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                <i data-lucide="book-open" class="text-blue-600"></i> Mis Cursos Activos
+            </h2>
+            
+            <div id="active-courses-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="col-span-3 text-center py-10 text-slate-400 text-sm">Buscando inscripciones...</div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
+        const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
+        const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            
+            // 1. Verificar Sesión
+            const { data: { session } } = await db.auth.getSession();
+            if(!session) return window.location.href = '../index.html';
+
+            // 2. Cargar Datos del Alumno
+            const { data: perfil } = await db.from('perfiles').select('nombre_completo, id').eq('id', session.user.id).single();
+            if(perfil) document.getElementById('student-name').innerText = perfil.nombre_completo;
+
+            // 3. Buscar Inscripciones (Matrículas)
+            // IMPORTANTE: Buscamos por DNI o Email en la tabla matriculas.
+            // Para simplificar, asumimos que 'matriculas' tiene el ID de usuario o buscaremos una lógica de conexión.
+            // *NOTA PARA MARCELO*: Tu tabla 'matriculas' usa DNI. Necesitamos cruzar el DNI del perfil con la matrícula.
+            // Por ahora, buscaré matrículas donde el estado sea 'ACTIVO'.
+            
+            // Paso A: Obtener DNI del perfil (si lo guardaste) o usar el email para buscar en matriculas?
+            // Como tu tabla matriculas no tiene user_id vinculado directo aun, voy a simular que traemos todos los cursos
+            // En producción, deberíamos vincular el DNI del usuario logueado con sus matrículas.
+            
+            // CAMBIO TEMPORAL: Mostraré TODOS los cursos disponibles para probar el diseño.
+            // LUEGO FILTRAREMOS POR EL ALUMNO LOGUEADO.
+            await cargarCursosActivos();
+        });
+
+        async function cargarCursosActivos() {
+            const container = document.getElementById('active-courses-grid');
+            
+            // Traemos los cursos OFICIALES que tengan contenido
+            const { data: cursos, error } = await db.from('cursos_oficiales').select('*').order('created_at', {ascending: false});
+
+            if(error || !cursos || cursos.length === 0) {
+                container.innerHTML = `<div class="col-span-3 text-center py-10 bg-white rounded-xl border border-dashed border-slate-300">
+                    <p class="text-slate-500 font-bold">No tienes cursos activos actualmente.</p>
+                </div>`;
+                return;
+            }
+
+            container.innerHTML = "";
+            cursos.forEach(curso => {
+                // Solo mostramos si tiene contenido (módulos)
+                const cantModulos = curso.contenido ? curso.contenido.length : 0;
+                const bgImg = curso.imagen_portada_url || curso.diploma_bg_url || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&q=80&w=400';
+
+                const html = `
+                <article class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg transition-all overflow-hidden flex flex-col h-full group">
+                    <div class="h-40 relative overflow-hidden bg-slate-900">
+                        <img src="${bgImg}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80">
+                        <div class="absolute top-3 right-3 bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow">
+                            EN CURSO
+                        </div>
+                    </div>
+                    <div class="p-6 flex-1 flex flex-col">
+                        <h3 class="font-black text-slate-800 text-lg mb-2 leading-tight">${curso.nombre}</h3>
+                        <p class="text-xs text-slate-500 mb-6 line-clamp-2">${curso.descripcion || 'Curso de formación profesional intensiva.'}</p>
+                        
+                        <div class="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
+                            <span class="text-xs font-bold text-slate-400 flex items-center gap-1">
+                                <i data-lucide="layers" class="w-3 h-3"></i> ${cantModulos} Módulos
+                            </span>
+                            <a href="aula.html?id=${curso.id}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-bold transition shadow-lg shadow-blue-900/20 flex items-center gap-2">
+                                Entrar al Aula <i data-lucide="arrow-right" class="w-3 h-3"></i>
+                            </a>
+                        </div>
+                    </div>
+                </article>`;
+                container.innerHTML += html;
+            });
+            lucide.createIcons();
+        }
+
+        async function logout() {
+            await db.auth.signOut();
+            window.location.href = '../index.html';
+        }
+    </script>
+</body>
+</html>
