@@ -6,160 +6,271 @@
     <title>ASARI SaaS - Gestión de Cursos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
-        /* Estilos personalizados para scrollbar */
+        /* Scrollbar personalizada */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
-<body class="bg-gray-50 flex h-screen overflow-hidden font-sans">
+<body class="bg-slate-50 flex h-screen overflow-hidden font-sans text-slate-800">
 
-    <aside class="w-64 bg-[#0f172a] text-white flex flex-col hidden md:flex border-r border-gray-800">
-        <div class="p-6 flex items-center gap-3 border-b border-gray-800">
-            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white">A</div>
-            <div>
+    <aside id="sidebar" class="w-64 bg-slate-900 text-white flex flex-col hidden md:flex border-r border-slate-800 transition-colors duration-500">
+        <div class="p-6 flex items-center gap-3 border-b border-white/10 h-24">
+            <img id="sidebar-logo" src="" class="h-10 w-10 object-contain hidden bg-white rounded-lg p-1">
+            <div id="sidebar-brand-text">
                 <h1 class="font-bold text-lg tracking-wide">ASARI <span class="text-xs text-blue-400">SaaS</span></h1>
-                <p class="text-[10px] text-gray-400 uppercase">Panel Educativo</p>
             </div>
         </div>
 
-        <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-            <a href="../dashboard.html" class="flex items-center gap-3 px-3 py-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
-                <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
-                <span class="text-sm">Inicio</span>
+        <nav class="flex-1 overflow-y-auto py-6 px-3 space-y-1">
+            <a href="../dashboard.html" class="flex items-center gap-3 px-3 py-3 text-slate-400 hover:text-white hover:bg-white/10 rounded-xl transition-colors mb-4">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                <span class="text-sm font-bold">Volver al Panel</span>
             </a>
 
-            <div class="pt-4 pb-2 px-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Gestión Académica</div>
+            <div class="pt-2 pb-2 px-3 text-[10px] font-bold text-white/40 uppercase tracking-wider">Gestión Académica</div>
             
-            <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
-                <i data-lucide="users" class="w-4 h-4"></i>
-                <span class="text-sm">Alumnos</span>
-            </a>
-            
-            <a href="#" class="flex items-center gap-3 px-3 py-2 bg-blue-600 text-white rounded-lg shadow-lg shadow-blue-900/20">
-                <i data-lucide="book-open" class="w-4 h-4"></i>
-                <span class="text-sm">Cursos</span>
-            </a>
-
-            <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
-                <i data-lucide="tv" class="w-4 h-4"></i>
-                <span class="text-sm">Seminarios TV</span>
-            </a>
+            <div class="flex items-center gap-3 px-3 py-3 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-900/20">
+                <i data-lucide="book-open" class="w-5 h-5"></i>
+                <span class="text-sm font-bold">Mis Cursos</span>
+            </div>
         </nav>
 
-        <div class="p-4 border-t border-gray-800">
-            <button class="flex items-center gap-2 text-gray-400 hover:text-white text-xs w-full">
-                <i data-lucide="log-out" class="w-4 h-4"></i> Cerrar Sesión
-            </button>
+        <div class="p-4 border-t border-white/10 bg-black/20">
+            <div class="flex items-center gap-3">
+                <div class="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold" id="user-initials">U</div>
+                <div class="overflow-hidden">
+                    <p class="text-sm font-bold truncate" id="user-name">Cargando...</p>
+                    <p class="text-[10px] text-slate-400 uppercase" id="user-role">...</p>
+                </div>
+            </div>
         </div>
     </aside>
 
     <div class="flex-1 flex flex-col min-w-0">
         
-        <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 lg:px-10">
-            <div class="flex items-center gap-4">
-                <h2 class="text-xl font-bold text-gray-800">Mis Cursos</h2>
-                <span class="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full font-medium">3 Activos</span>
+        <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 shadow-sm z-20">
+            <div>
+                <h2 class="text-2xl font-black text-slate-800">Mis Cursos</h2>
+                <p class="text-xs text-slate-500 font-medium mt-1">Gestiona el contenido académico de tu instituto</p>
             </div>
             
-            <a href="editor-curso.html" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all shadow-md hover:shadow-lg">
-                <i data-lucide="plus" class="w-4 h-4"></i>
+            <a href="editor-curso.html" class="bg-slate-900 hover:bg-black text-white px-5 py-3 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                <i data-lucide="plus-circle" class="w-5 h-5"></i>
                 Crear Nuevo Curso
             </a>
         </header>
 
-        <main class="flex-1 p-6 lg:p-10 overflow-y-auto">
+        <main class="flex-1 p-8 overflow-y-auto bg-slate-50">
             
-            <div class="flex flex-col sm:flex-row gap-4 mb-8 justify-between items-center">
+            <div class="flex flex-col sm:flex-row gap-4 mb-8 justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                 <div class="relative w-full sm:w-96">
-                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
-                    <input type="text" placeholder="Buscar curso por nombre..." class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                    <input type="text" id="buscador" placeholder="Buscar por nombre..." class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium transition-all" onkeyup="filtrarCursosUI()">
                 </div>
-                <select class="p-2 border border-gray-200 rounded-lg text-sm text-gray-600 bg-white">
-                    <option>Todas las Áreas</option>
-                    <option>Emergentología</option>
-                    <option>Enfermería</option>
-                    <option>Rescate</option>
-                </select>
+                <div class="text-xs text-slate-400 font-bold uppercase" id="contador-cursos">
+                    Cargando cursos...
+                </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div id="grid-cursos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 fade-in">
+                </div>
 
-                <article class="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow group overflow-hidden">
-                    <div class="h-32 bg-slate-800 relative flex items-center justify-center overflow-hidden">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
-                        <span class="text-4xl">🚑</span> 
-                        <span class="absolute top-3 right-3 z-20 bg-green-500 text-white text-[10px] px-2 py-0.5 rounded font-bold uppercase">Publicado</span>
-                    </div>
-                    <div class="p-5">
-                        <p class="text-xs font-bold text-blue-600 mb-1 uppercase tracking-wide">Emergentología</p>
-                        <h3 class="text-lg font-bold text-gray-900 leading-tight mb-2 group-hover:text-blue-600 transition-colors">Paramédico Profesional 2025</h3>
-                        <p class="text-sm text-gray-500 mb-4 line-clamp-2">Formación intensiva en soporte vital, trauma y emergencias prehospitalarias.</p>
-                        
-                        <div class="flex items-center justify-between text-xs text-gray-500 pt-4 border-t border-gray-100">
-                            <div class="flex items-center gap-1">
-                                <i data-lucide="users" class="w-3 h-3"></i> 34 Alumnos
-                            </div>
-                            <div class="flex items-center gap-1">
-                                <i data-lucide="layers" class="w-3 h-3"></i> 8 Módulos
-                            </div>
-                        </div>
-
-                        <div class="mt-4 flex gap-2">
-                            <button class="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-700 py-2 rounded-lg text-sm font-medium border border-gray-200">Editar</button>
-                            <button class="px-3 bg-gray-50 hover:bg-red-50 text-gray-400 hover:text-red-600 border border-gray-200 rounded-lg transition-colors">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                    </div>
-                </article>
-
-                <article class="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow group overflow-hidden">
-                    <div class="h-32 bg-blue-900 relative flex items-center justify-center">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
-                        <span class="text-4xl">🫀</span>
-                        <span class="absolute top-3 right-3 z-20 bg-yellow-400 text-yellow-900 text-[10px] px-2 py-0.5 rounded font-bold uppercase">Borrador</span>
-                    </div>
-                    <div class="p-5">
-                        <p class="text-xs font-bold text-blue-600 mb-1 uppercase tracking-wide">Cardiología</p>
-                        <h3 class="text-lg font-bold text-gray-900 leading-tight mb-2 group-hover:text-blue-600 transition-colors">Electrocardiografía Básica</h3>
-                        <p class="text-sm text-gray-500 mb-4 line-clamp-2">Curso introductorio para la lectura e interpretación de ECG.</p>
-                        
-                        <div class="flex items-center justify-between text-xs text-gray-500 pt-4 border-t border-gray-100">
-                            <div class="flex items-center gap-1">
-                                <i data-lucide="users" class="w-3 h-3"></i> 0 Alumnos
-                            </div>
-                            <div class="flex items-center gap-1">
-                                <i data-lucide="layers" class="w-3 h-3"></i> 3 Módulos
-                            </div>
-                        </div>
-
-                        <div class="mt-4 flex gap-2">
-                            <button class="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-700 py-2 rounded-lg text-sm font-medium border border-gray-200">Editar</button>
-                            <button class="px-3 bg-gray-50 hover:bg-red-50 text-gray-400 hover:text-red-600 border border-gray-200 rounded-lg transition-colors">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                    </div>
-                </article>
-
-                <a href="editor-curso.html" class="border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center p-6 hover:border-blue-500 hover:bg-blue-50 transition-all group cursor-pointer h-full min-h-[300px]">
-                    <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                        <i data-lucide="plus" class="w-6 h-6"></i>
-                    </div>
-                    <h3 class="text-gray-900 font-bold">Crear Nuevo Curso</h3>
-                    <p class="text-sm text-gray-500 text-center mt-1">Configura módulos, videos y exámenes</p>
-                </a>
-
+            <div id="empty-state" class="hidden flex flex-col items-center justify-center py-20 text-center">
+                <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                    <i data-lucide="book" class="w-10 h-10 text-slate-400"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-700">No hay cursos aún</h3>
+                <p class="text-slate-500 max-w-sm mt-2 mb-6">Comienza creando tu primer programa de capacitación para tus alumnos.</p>
+                <a href="editor-curso.html" class="text-blue-600 font-bold hover:underline">Crear mi primer curso &rarr;</a>
             </div>
+
         </main>
     </div>
 
     <script>
-        // Inicializar iconos
-        lucide.createIcons();
+        // 1. Configuración Supabase (Mismas credenciales que tu Dashboard)
+        const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
+        const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
+        const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
+
+        let currentProfile = null;
+        let allCursos = [];
+
+        // 2. Inicialización
+        document.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            await verificarSesion();
+        });
+
+        async function verificarSesion() {
+            // Verificar si hay usuario logueado
+            const { data: { session } } = await db.auth.getSession();
+            if (!session) {
+                window.location.href = '../index.html'; // Redirigir si no hay sesión
+                return;
+            }
+
+            // Cargar Perfil e Institución
+            const { data: perfil, error } = await db
+                .from('perfiles')
+                .select('*, instituciones(*)')
+                .eq('id', session.user.id)
+                .single();
+
+            if (error || !perfil) {
+                console.error("Error perfil", error);
+                return;
+            }
+
+            currentProfile = perfil;
+            cargarDatosVisuales(perfil);
+            cargarCursosDesdeDB();
+        }
+
+        // 3. Cargar Logos y Colores (Igual que Dashboard)
+        function cargarDatosVisuales(perfil) {
+            // Datos del Usuario Footer Sidebar
+            document.getElementById('user-name').innerText = perfil.nombre_completo || perfil.email;
+            document.getElementById('user-role').innerText = perfil.rol === 'superadmin' ? 'Super Admin' : 'Administrador';
+            document.getElementById('user-initials').innerText = (perfil.nombre_completo || 'U').charAt(0).toUpperCase();
+
+            const inst = perfil.instituciones;
+            if (inst) {
+                // Logo Sidebar
+                if (inst.logo_url) {
+                    const logo = document.getElementById('sidebar-logo');
+                    logo.src = inst.logo_url;
+                    logo.classList.remove('hidden');
+                }
+                
+                // Color Sidebar
+                if (inst.color_primario) {
+                    document.getElementById('sidebar').style.backgroundColor = inst.color_primario;
+                }
+
+                // Nombre Marca
+                if (inst.nombre) {
+                    document.getElementById('sidebar-brand-text').innerHTML = `
+                        <h1 class="font-bold text-lg tracking-wide leading-tight">${inst.nombre}</h1>
+                        <p class="text-[10px] opacity-60 uppercase font-bold">Gestión de Cursos</p>
+                    `;
+                }
+            }
+        }
+
+        // 4. Cargar Cursos Reales
+        async function cargarCursosDesdeDB() {
+            let query = db.from('cursos_oficiales').select('*').order('created_at', { ascending: false });
+
+            // Si no es Superadmin, filtrar solo sus cursos
+            if (currentProfile.rol !== 'superadmin') {
+                query = query.eq('institution_id', currentProfile.institucion_id);
+            }
+
+            const { data, error } = await query;
+            
+            if (error) {
+                console.error("Error cargando cursos:", error);
+                return;
+            }
+
+            allCursos = data || [];
+            renderizarCursos(allCursos);
+        }
+
+        // 5. Renderizar Tarjetas
+        function renderizarCursos(cursos) {
+            const grid = document.getElementById('grid-cursos');
+            const counter = document.getElementById('contador-cursos');
+            const empty = document.getElementById('empty-state');
+
+            grid.innerHTML = "";
+            counter.innerText = `${cursos.length} Cursos Encontrados`;
+
+            if (cursos.length === 0) {
+                grid.classList.add('hidden');
+                empty.classList.remove('hidden');
+                return;
+            }
+
+            empty.classList.add('hidden');
+            grid.classList.remove('hidden');
+
+            cursos.forEach(curso => {
+                // Determinar imagen de fondo (Diploma o Default)
+                const bgImage = curso.diploma_bg_url || 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=400';
+                
+                // Colores de etiquetas según registro (Lógica visual)
+                let badgeColor = 'bg-slate-500';
+                if (curso.registro_id === 'remaep') badgeColor = 'bg-blue-600';
+                if (curso.registro_id === 'isf') badgeColor = 'bg-green-600';
+
+                const cardHTML = `
+                <article class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl transition-all group overflow-hidden flex flex-col h-full">
+                    <div class="h-36 relative overflow-hidden bg-slate-100">
+                        <img src="${bgImage}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                        <span class="absolute top-3 left-3 text-[10px] font-bold text-white px-2 py-1 rounded shadow-sm uppercase tracking-wider ${badgeColor}">
+                            ${curso.registro_id || 'GENERAL'}
+                        </span>
+                        
+                        <div class="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button class="bg-white/20 hover:bg-white text-white hover:text-slate-900 p-1.5 rounded-lg backdrop-blur-sm transition-colors" title="Configurar">
+                                <i data-lucide="settings" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="p-6 flex-1 flex flex-col">
+                        <h3 class="text-lg font-black text-slate-800 leading-tight mb-2 group-hover:text-blue-600 transition-colors">
+                            ${curso.nombre}
+                        </h3>
+                        
+                        <div class="flex items-center gap-4 text-xs text-slate-500 font-medium mb-4 mt-auto">
+                            <div class="flex items-center gap-1.5">
+                                <i data-lucide="users" class="w-3.5 h-3.5 text-slate-400"></i>
+                                <span>Ver Alumnos</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <i data-lucide="layers" class="w-3.5 h-3.5 text-slate-400"></i>
+                                <span>Módulos</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-slate-100">
+                            <a href="editor-curso.html?id=${curso.id}" class="flex items-center justify-center gap-2 bg-slate-900 hover:bg-black text-white py-2.5 rounded-xl text-xs font-bold transition-colors">
+                                <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                                Editar Contenido
+                            </a>
+                             <a href="#" class="flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 py-2.5 rounded-xl text-xs font-bold transition-colors">
+                                <i data-lucide="monitor-play" class="w-3.5 h-3.5"></i>
+                                Aula Virtual
+                            </a>
+                        </div>
+                    </div>
+                </article>
+                `;
+                grid.innerHTML += cardHTML;
+            });
+            
+            // Re-inicializar iconos para los nuevos elementos
+            lucide.createIcons();
+        }
+
+        // 6. Buscador en tiempo real
+        function filtrarCursosUI() {
+            const texto = document.getElementById('buscador').value.toLowerCase();
+            const filtrados = allCursos.filter(c => c.nombre.toLowerCase().includes(texto));
+            renderizarCursos(filtrados);
+        }
+
     </script>
 </body>
 </html>
