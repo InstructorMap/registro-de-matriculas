@@ -4,367 +4,214 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aula Virtual - ASARI</title>
+    <script src='https://meet.jit.si/external_api.js'></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src='https://meet.jit.si/external_api.js'></script>
-
+    
     <style>
-        /* Estilos del Reproductor */
         .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; background: black; border-radius: 12px; }
         .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        /* Scrollbar Moderna */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
     </style>
 </head>
 <body class="bg-slate-900 text-slate-200 h-screen flex flex-col overflow-hidden font-sans">
 
     <header class="h-16 bg-slate-950 border-b border-slate-800 flex items-center justify-between px-4 md:px-6 shrink-0 z-20">
         <div class="flex items-center gap-4">
-            <a href="dashboard.html" class="p-2 hover:bg-slate-800 rounded-lg transition text-slate-400 hover:text-white" title="Volver a mis cursos">
-                <i data-lucide="arrow-left" class="w-5 h-5"></i>
-            </a>
+            <a href="dashboard.html" class="p-2 hover:bg-slate-800 rounded-lg transition text-slate-400 hover:text-white"><i data-lucide="arrow-left" class="w-5 h-5"></i></a>
             <div>
-                <h1 class="font-bold text-white text-sm md:text-lg leading-tight truncate max-w-[200px] md:max-w-md" id="course-title">Cargando curso...</h1>
+                <h1 class="font-bold text-white text-sm md:text-lg leading-tight truncate max-w-[200px] md:max-w-md" id="course-title">Cargando...</h1>
                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Campus Virtual</p>
             </div>
         </div>
-        
         <div class="flex items-center gap-4">
             <div class="hidden md:block text-right">
                 <p class="text-sm font-bold text-white" id="student-name">Estudiante</p>
-                <div class="flex items-center justify-end gap-1.5">
-                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                    <p class="text-[10px] text-green-500 font-bold uppercase">En Línea</p>
-                </div>
+                <div class="flex items-center justify-end gap-1.5"><span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span><p class="text-[10px] text-green-500 font-bold uppercase">En Línea</p></div>
             </div>
-            <div class="w-9 h-9 bg-gradient-to-br from-blue-600 to-blue-800 rounded-full flex items-center justify-center font-bold text-white shadow-lg border border-blue-500/30">
-                <i data-lucide="user" class="w-4 h-4"></i>
-            </div>
+            <div class="w-9 h-9 bg-blue-600 rounded-full flex items-center justify-center font-bold text-white shadow-lg"><i data-lucide="user" class="w-4 h-4"></i></div>
         </div>
     </header>
 
     <div class="flex-1 flex overflow-hidden relative">
-        
         <main class="flex-1 flex flex-col min-w-0 bg-slate-900 relative z-10">
             <div class="flex-1 p-4 md:p-8 overflow-y-auto flex flex-col">
                 <div class="w-full max-w-6xl mx-auto space-y-6 h-full flex flex-col">
                     
                     <div id="player-wrapper" class="w-full bg-black rounded-2xl shadow-2xl overflow-hidden border border-slate-800 relative aspect-video flex-shrink-0 flex items-center justify-center">
                         <div id="player-placeholder" class="text-center p-8">
-                            <div class="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-                                <i data-lucide="play" class="w-8 h-8 text-slate-600 pl-1"></i>
-                            </div>
+                            <div class="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse"><i data-lucide="play" class="w-8 h-8 text-slate-600 pl-1"></i></div>
                             <h3 class="text-xl font-bold text-slate-500">Selecciona una clase</h3>
-                            <p class="text-sm text-slate-600 mt-2">Elige un tema del menú derecho para comenzar.</p>
                         </div>
                         <div id="player-content" class="w-full h-full hidden"></div>
+                        
+                        <div id="jitsi-rescue" class="hidden absolute top-4 right-4 z-50">
+                            <a id="jitsi-external-link" href="#" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg flex items-center gap-2 transition-all opacity-50 hover:opacity-100"><i data-lucide="external-link" class="w-3 h-3"></i> Abrir Sala en Nueva Pestaña</a>
+                        </div>
                     </div>
 
                     <div class="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center pb-10">
                         <div>
-                            <h2 id="current-lesson-title" class="text-xl md:text-2xl font-bold text-white leading-tight">Bienvenido al Curso</h2>
-                            <p class="text-slate-500 text-sm mt-1">Navega por los módulos para avanzar.</p>
+                            <h2 id="current-lesson-title" class="text-xl md:text-2xl font-bold text-white leading-tight">Bienvenido</h2>
+                            <p class="text-slate-500 text-sm mt-1">Selecciona un módulo del menú.</p>
                         </div>
-                        
                         <div class="flex gap-3 w-full md:w-auto">
-                            <button id="btn-prev" class="flex-1 md:flex-none px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2" disabled>
-                                <i data-lucide="chevron-left" class="w-4 h-4"></i> Anterior
-                            </button>
-                            <button id="btn-next" class="flex-1 md:flex-none px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-lg shadow-blue-900/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2" disabled>
-                                Siguiente <i data-lucide="chevron-right" class="w-4 h-4"></i>
-                            </button>
+                            <button id="btn-prev" class="flex-1 md:flex-none px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm disabled:opacity-50 transition-all flex items-center justify-center gap-2" disabled><i data-lucide="chevron-left" class="w-4 h-4"></i> Anterior</button>
+                            <button id="btn-next" class="flex-1 md:flex-none px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-lg disabled:opacity-50 transition-all flex items-center justify-center gap-2" disabled>Siguiente <i data-lucide="chevron-right" class="w-4 h-4"></i></button>
                         </div>
                     </div>
-
                 </div>
             </div>
         </main>
 
         <aside class="w-80 bg-slate-950 border-l border-slate-800 flex flex-col shrink-0 overflow-hidden absolute md:relative right-0 h-full z-20 transition-transform transform translate-x-full md:translate-x-0" id="playlist-sidebar">
             <div class="p-4 border-b border-slate-800 bg-slate-950 sticky top-0 z-10">
-                <h3 class="font-bold text-slate-300 text-xs uppercase tracking-wider flex items-center gap-2">
-                    <i data-lucide="list" class="w-3 h-3"></i> Contenido del Curso
-                </h3>
-                <div class="h-1.5 w-full bg-slate-800 rounded-full mt-3 overflow-hidden">
-                    <div class="h-full bg-blue-500 w-0 transition-all duration-500" id="progress-bar"></div>
-                </div>
-                <p class="text-[10px] text-slate-500 mt-1 text-right" id="progress-text">0% Completado</p>
+                <h3 class="font-bold text-slate-300 text-xs uppercase tracking-wider flex items-center gap-2"><i data-lucide="list" class="w-3 h-3"></i> Contenido</h3>
+                <div class="h-1.5 w-full bg-slate-800 rounded-full mt-3 overflow-hidden"><div class="h-full bg-blue-500 w-0 transition-all duration-500" id="progress-bar"></div></div>
+                <p class="text-[10px] text-slate-500 mt-1 text-right" id="progress-text">0%</p>
             </div>
-
             <div id="modules-list" class="flex-1 overflow-y-auto p-3 space-y-3">
-                <p class="text-center text-slate-600 text-xs py-10 flex flex-col items-center">
-                    <i data-lucide="loader-2" class="w-5 h-5 animate-spin mb-2"></i> Cargando temario...
-                </p>
+                 <p class="text-center text-slate-600 text-xs py-10"><i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto mb-2"></i> Cargando...</p>
             </div>
         </aside>
 
-        <button onclick="toggleMobileMenu()" class="md:hidden absolute bottom-6 right-6 z-50 bg-blue-600 text-white p-4 rounded-full shadow-xl">
-            <i data-lucide="menu" class="w-6 h-6"></i>
-        </button>
-
+        <button onclick="toggleMobileMenu()" class="md:hidden absolute bottom-6 right-6 z-50 bg-blue-600 text-white p-4 rounded-full shadow-xl"><i data-lucide="menu" class="w-6 h-6"></i></button>
     </div>
 
     <script>
         const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
+        let flatLessons = [], currentLessonIndex = -1, jitsiApi = null;
 
-        let flatLessons = []; // Array plano para navegación fácil
-        let currentLessonIndex = -1;
-        let jitsiApi = null; // Instancia de la videollamada
-
-        // --- INICIALIZACIÓN ---
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
-            
-            // 1. Verificar Sesión
             const { data: { session } } = await db.auth.getSession();
-            if(!session) return window.location.href = '../index.html'; // Redirigir si no hay login
+            if(!session) return window.location.href = '../index.html';
             
-            // 2. Cargar Nombre Alumno
             const { data: perfil } = await db.from('perfiles').select('nombre_completo').eq('id', session.user.id).single();
-            if(perfil && perfil.nombre_completo) {
-                document.getElementById('student-name').innerText = perfil.nombre_completo;
-            }
+            if(perfil) document.getElementById('student-name').innerText = perfil.nombre_completo;
 
-            // 3. Obtener ID del Curso
             const params = new URLSearchParams(window.location.search);
             const cursoId = params.get('id');
-
-            if(!cursoId) {
-                alert("No se especificó un curso.");
-                window.location.href = 'dashboard.html';
-                return;
-            }
-
-            await cargarCurso(cursoId);
+            if(cursoId) await cargarCurso(cursoId);
+            else window.location.href = 'dashboard.html';
         });
 
-        // --- CARGA DE DATOS ---
         async function cargarCurso(id) {
             const { data, error } = await db.from('cursos_oficiales').select('*').eq('id', id).single();
-            
-            if(error) {
-                alert("Error cargando el curso. Intente nuevamente.");
-                return;
-            }
-            
-            document.getElementById('course-title').innerText = data.nombre;
-            renderizarTemario(data.contenido);
+            if(!error) { document.getElementById('course-title').innerText = data.nombre; renderizarTemario(data.contenido); }
         }
 
-        // --- RENDERIZADO DEL SIDEBAR ---
         function renderizarTemario(modulos) {
             const container = document.getElementById('modules-list');
-            container.innerHTML = "";
-            flatLessons = [];
-
-            if(!modulos || !Array.isArray(modulos) || modulos.length === 0) {
-                container.innerHTML = `<div class="p-4 bg-slate-900 rounded-xl border border-slate-800 text-center text-slate-500 text-xs">Este curso aún no tiene contenido cargado.</div>`;
-                return;
-            }
-
+            container.innerHTML = ""; flatLessons = [];
+            if(!modulos || !modulos.length) { container.innerHTML = `<p class="text-center text-slate-500 text-xs mt-4">Sin contenido.</p>`; return; }
+            
             modulos.forEach((mod, modIdx) => {
-                // Contenedor del Módulo
                 const modDiv = document.createElement('div');
                 modDiv.className = "space-y-1";
-                
-                // Título del Módulo
-                modDiv.innerHTML = `
-                    <div class="px-3 py-2 bg-slate-900/50 rounded-lg text-[10px] font-bold text-slate-400 uppercase tracking-wider border border-slate-800/50">
-                        ${mod.titulo}
-                    </div>
-                    <div class="space-y-1 pl-1" id="mod-content-${modIdx}"></div>
-                `;
+                modDiv.innerHTML = `<div class="px-3 py-2 bg-slate-900/50 rounded-lg text-[10px] font-bold text-slate-400 uppercase tracking-wider border border-slate-800/50">${mod.titulo}</div><div class="space-y-1 pl-1" id="mod-content-${modIdx}"></div>`;
                 container.appendChild(modDiv);
                 
-                // Lecciones
-                if(mod.lecciones && mod.lecciones.length > 0) {
-                    mod.lecciones.forEach(lec => {
-                        const globalIndex = flatLessons.length;
-                        flatLessons.push({ ...lec, modIdx }); // Guardamos datos para navegación
+                if(mod.lecciones) mod.lecciones.forEach(lec => {
+                    const idx = flatLessons.length;
+                    flatLessons.push({ ...lec, modIdx });
+                    const btn = document.createElement('button');
+                    btn.id = `btn-lec-${idx}`;
+                    btn.className = "w-full text-left px-3 py-3 rounded-lg flex items-center gap-3 text-xs text-slate-400 hover:bg-slate-800 hover:text-white transition-all border border-transparent";
+                    
+                    let icon = 'play-circle', color = 'text-blue-500';
+                    if(lec.tipo === 'PDF') { icon = 'file-text'; color = 'text-red-500'; }
+                    if(lec.tipo === 'LIVE') { icon = 'radio'; color = 'text-purple-500'; }
+                    if(lec.tipo === 'ZOOM') { icon = 'video-off'; color = 'text-cyan-500'; }
 
-                        const btn = document.createElement('button');
-                        btn.id = `btn-lec-${globalIndex}`;
-                        btn.className = "w-full text-left px-3 py-3 rounded-lg flex items-center gap-3 text-xs text-slate-400 hover:bg-slate-800 hover:text-white transition-all group border border-transparent";
-                        
-                        // Iconos según tipo
-                        let icon = 'play-circle', color = 'text-blue-500';
-                        if(lec.tipo === 'PDF') { icon = 'file-text'; color = 'text-red-500'; }
-                        if(lec.tipo === 'LIVE') { icon = 'radio'; color = 'text-purple-500'; }
-                        
-                        btn.innerHTML = `
-                            <i data-lucide="${icon}" class="w-4 h-4 ${color} shrink-0 group-hover:scale-110 transition-transform"></i> 
-                            <span class="truncate font-medium">${lec.titulo}</span>
-                        `;
-                        
-                        btn.onclick = () => cargarClase(globalIndex);
-                        modDiv.querySelector(`#mod-content-${modIdx}`).appendChild(btn);
-                    });
-                }
+                    btn.innerHTML = `<i data-lucide="${icon}" class="w-4 h-4 ${color} shrink-0"></i> <span class="truncate font-medium">${lec.titulo}</span>`;
+                    btn.onclick = () => cargarClase(idx);
+                    modDiv.querySelector(`#mod-content-${modIdx}`).appendChild(btn);
+                });
             });
-            
             lucide.createIcons();
-            
-            // Cargar automáticamente la primera clase
             if(flatLessons.length > 0) cargarClase(0);
         }
 
-        // --- LÓGICA DE REPRODUCCIÓN (CORE) ---
         function cargarClase(index) {
-            if(index < 0 || index >= flatLessons.length) return;
-
-            // 1. Actualizar estado visual (Active State)
-            document.querySelectorAll('[id^="btn-lec-"]').forEach(b => {
-                b.classList.remove('bg-blue-600', 'text-white', 'hover:bg-blue-700', 'shadow-md');
-                b.classList.add('hover:bg-slate-800', 'text-slate-400');
-            });
-            const activeBtn = document.getElementById(`btn-lec-${index}`);
-            if(activeBtn) {
-                activeBtn.classList.remove('hover:bg-slate-800', 'text-slate-400');
-                activeBtn.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-700', 'shadow-md');
-            }
-
-            // 2. Limpieza previa
-            if(jitsiApi) { jitsiApi.dispose(); jitsiApi = null; } // Matar llamada si existe
+            if(jitsiApi) { jitsiApi.dispose(); jitsiApi = null; }
             const container = document.getElementById('player-content');
-            const placeholder = document.getElementById('player-placeholder');
-            container.innerHTML = "";
-            container.classList.remove('hidden');
-            placeholder.classList.add('hidden');
+            document.getElementById('player-placeholder').classList.add('hidden');
+            document.getElementById('jitsi-rescue').classList.add('hidden');
+            container.innerHTML = ""; container.classList.remove('hidden');
+
+            document.querySelectorAll('[id^="btn-lec-"]').forEach(b => b.classList.remove('bg-blue-600', 'text-white', 'shadow-md'));
+            document.getElementById(`btn-lec-${index}`).classList.add('bg-blue-600', 'text-white', 'shadow-md');
 
             currentLessonIndex = index;
             const lec = flatLessons[index];
             document.getElementById('current-lesson-title').innerText = lec.titulo;
 
-            // 3. Renderizar según Tipo
-            
-            // --- CASO A: VIDEO ---
+            // Lógica de Tipos
             if(lec.tipo === 'VIDEO') {
                 let url = lec.url || "";
-                let embedUrl = "";
-
-                // Detectar Youtube (ID o URL completa)
-                if(url.length === 11) { // Probablemente ID
-                    embedUrl = `https://www.youtube.com/embed/${url}?autoplay=1&rel=0&modestbranding=1`;
-                } else if(url.includes('youtu')) { // URL Youtube
+                if(url.includes('youtu')) {
                     const videoId = url.split('v=')[1] || url.split('/').pop().split('?')[0];
-                    embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`;
-                } else {
-                    // Video directo (MP4)
-                    container.innerHTML = `<video src="${url}" controls autoplay class="w-full h-full bg-black object-contain"></video>`;
-                    updateNavButtons(); return;
-                }
-
-                container.innerHTML = `<iframe src="${embedUrl}" class="w-full h-full" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+                    container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1" class="w-full h-full" frameborder="0" allowfullscreen></iframe>`;
+                } else container.innerHTML = `<video src="${url}" controls autoplay class="w-full h-full bg-black"></video>`;
             } 
-            
-            // --- CASO B: PDF ---
             else if (lec.tipo === 'PDF') {
+                container.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-center p-10 bg-slate-900 w-full"><i data-lucide="file-text" class="w-16 h-16 text-red-500 mb-4"></i><h3 class="text-xl font-bold text-white mb-2">Documento PDF</h3><a href="${lec.url}" target="_blank" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-bold flex gap-2"><i data-lucide="download" class="w-4 h-4"></i> Descargar PDF</a></div>`;
+                lucide.createIcons();
+            }
+            else if (lec.tipo === 'ZOOM') {
                 container.innerHTML = `
-                    <div class="flex flex-col items-center justify-center h-full text-center p-10 bg-slate-900 w-full relative overflow-hidden">
-                        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
-                        <div class="z-10 bg-slate-800 p-8 rounded-2xl border border-slate-700 shadow-2xl max-w-md w-full">
-                            <div class="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <i data-lucide="file-text" class="w-8 h-8"></i>
-                            </div>
-                            <h3 class="text-xl font-bold text-white mb-2">Material de Lectura</h3>
-                            <p class="text-slate-400 text-sm mb-6">Este contenido es un documento digital. Puedes visualizarlo o descargarlo para leer offline.</p>
-                            
-                            <div class="flex flex-col gap-3">
-                                <a href="${lec.url}" target="_blank" class="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg font-bold transition flex items-center justify-center gap-2">
-                                    <i data-lucide="download" class="w-4 h-4"></i> Descargar PDF
-                                </a>
-                                <a href="${lec.url}" target="_blank" class="w-full bg-slate-700 hover:bg-slate-600 text-slate-200 py-3 rounded-lg font-bold transition flex items-center justify-center gap-2 text-sm">
-                                    <i data-lucide="eye" class="w-4 h-4"></i> Previsualizar
-                                </a>
-                            </div>
+                    <div class="flex flex-col items-center justify-center h-full text-center p-10 bg-slate-900 w-full relative">
+                        <div class="absolute inset-0 bg-blue-900/10"></div>
+                        <div class="z-10 bg-slate-800 p-8 md:p-10 rounded-2xl border border-slate-700 shadow-2xl max-w-lg w-full">
+                            <div class="w-16 h-16 md:w-20 md:h-20 bg-blue-500/10 text-blue-400 rounded-full flex items-center justify-center mx-auto mb-6"><i data-lucide="video" class="w-8 h-8 md:w-10 md:h-10"></i></div>
+                            <h3 class="text-xl md:text-2xl font-bold text-white mb-2">Clase en Plataforma Externa</h3>
+                            <p class="text-slate-400 text-sm md:text-base mb-8">Esta clase se dictará mediante Zoom o Google Meet.</p>
+                            <a href="${lec.url}" target="_blank" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-base md:text-lg py-3 md:py-4 rounded-xl font-bold transition flex items-center justify-center gap-3 shadow-lg shadow-blue-900/50">🚀 Abrir Reunión Ahora</a>
                         </div>
                     </div>`;
                 lucide.createIcons();
             }
-
-            // --- CASO C: CLASE EN VIVO (JITSI / ZOOM) ---
             else if (lec.tipo === 'LIVE') {
-                const userName = document.getElementById('student-name').innerText || "Alumno";
-                const roomName = lec.url; // El ID único que generamos en el admin
-
-                const domain = 'meet.jit.si';
-                const options = {
-                    roomName: roomName,
-                    width: '100%',
-                    height: '100%',
-                    parentNode: container,
-                    lang: 'es',
-                    configOverwrite: { 
-                        startWithAudioMuted: true, 
-                        startWithVideoMuted: true,
-                        prejoinPageEnabled: false, // Entrar directo sin sala de espera local
-                        disableDeepLinking: true // Evitar que pida instalar app móvil
-                    },
-                    interfaceConfigOverwrite: {
-                        TOOLBAR_BUTTONS: [
-                            'microphone', 'camera', 'closedcaptions', 'desktop', 'fullscreen',
-                            'fodeviceselection', 'hangup', 'profile', 'chat', 'recording',
-                            'livestreaming', 'etherpad', 'sharedvideo', 'settings', 'raisehand',
-                            'videoquality', 'filmstrip', 'tileview'
-                        ],
-                        SHOW_JITSI_WATERMARK: false
-                    },
-                    userInfo: {
-                        displayName: userName
-                    }
+                const meetUrl = `https://meet.jit.si/${lec.url}`;
+                document.getElementById('jitsi-external-link').href = meetUrl;
+                document.getElementById('jitsi-rescue').classList.remove('hidden');
+                
+                const options = { 
+                    roomName: lec.url, 
+                    width: '100%', 
+                    height: '100%', 
+                    parentNode: container, 
+                    lang: 'es', 
+                    configOverwrite: { startWithAudioMuted: true, startWithVideoMuted: true, prejoinPageEnabled: false }, 
+                    userInfo: { displayName: document.getElementById('student-name').innerText } 
                 };
-                
-                // Inicializar Jitsi
-                jitsiApi = new JitsiMeetExternalAPI(domain, options);
-                
-                // Evento cuando cortan la llamada
-                jitsiApi.addEventListeners({
-                    videoConferenceLeft: function () {
-                        container.innerHTML = `<div class="flex items-center justify-center h-full text-slate-500">Has salido de la clase en vivo.</div>`;
-                        jitsiApi.dispose();
-                        jitsiApi = null;
-                    }
-                });
+                jitsiApi = new JitsiMeetExternalAPI('meet.jit.si', options);
             }
-
-            updateNavButtons();
-            updateProgressBar();
             
-            // En móvil, cerrar menú al seleccionar
-            if(window.innerWidth < 768) {
-                document.getElementById('playlist-sidebar').classList.add('translate-x-full');
-            }
-        }
-
-        // --- UI AUXILIAR ---
-        function updateNavButtons() {
-            const btnPrev = document.getElementById('btn-prev');
-            const btnNext = document.getElementById('btn-next');
-
-            btnPrev.disabled = currentLessonIndex <= 0;
-            btnNext.disabled = currentLessonIndex >= flatLessons.length - 1;
-
-            btnPrev.onclick = () => cargarClase(currentLessonIndex - 1);
-            btnNext.onclick = () => cargarClase(currentLessonIndex + 1);
-        }
-
-        function updateProgressBar() {
+            updateNavButtons();
             const percent = Math.round(((currentLessonIndex + 1) / flatLessons.length) * 100);
             document.getElementById('progress-bar').style.width = `${percent}%`;
-            document.getElementById('progress-text').innerText = `${percent}% Completado`;
+            document.getElementById('progress-text').innerText = `${percent}%`;
+            
+            if(window.innerWidth < 768) document.getElementById('playlist-sidebar').classList.add('translate-x-full');
+        }
+
+        function updateNavButtons() {
+            document.getElementById('btn-prev').disabled = currentLessonIndex <= 0;
+            document.getElementById('btn-next').disabled = currentLessonIndex >= flatLessons.length - 1;
+            document.getElementById('btn-prev').onclick = () => cargarClase(currentLessonIndex - 1);
+            document.getElementById('btn-next').onclick = () => cargarClase(currentLessonIndex + 1);
         }
 
         function toggleMobileMenu() {
-            const sidebar = document.getElementById('playlist-sidebar');
-            sidebar.classList.toggle('translate-x-full');
+            document.getElementById('playlist-sidebar').classList.toggle('translate-x-full');
         }
-
     </script>
 </body>
 </html>
