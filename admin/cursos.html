@@ -52,11 +52,10 @@
         <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 shadow-sm z-20">
             <div>
                 <h2 class="text-2xl font-black text-slate-800">Mis Cursos Activos</h2>
-                <p class="text-xs text-slate-500 font-medium mt-1">Gestiona el contenido y las inscripciones</p>
+                <p class="text-xs text-slate-500 font-medium mt-1">Gestiona el contenido y los alumnos</p>
             </div>
             <a href="editor-curso.html" class="bg-slate-900 hover:bg-black text-white px-5 py-3 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-                <i data-lucide="plus-circle" class="w-5 h-5"></i>
-                Crear Nuevo Curso
+                <i data-lucide="plus-circle" class="w-5 h-5"></i> Crear Nuevo Curso
             </a>
         </header>
 
@@ -64,55 +63,77 @@
             <div class="flex flex-col sm:flex-row gap-4 mb-8 justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                 <div class="relative w-full sm:w-96">
                     <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-                    <input type="text" id="buscador" placeholder="Buscar por nombre..." class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium transition-all" onkeyup="filtrarCursosUI()">
+                    <input type="text" id="buscador" placeholder="Buscar curso..." class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium transition-all" onkeyup="filtrarCursosUI()">
                 </div>
                 <div class="text-xs text-slate-400 font-bold uppercase" id="contador-cursos">Cargando...</div>
             </div>
 
             <div id="grid-cursos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 fade-in min-h-[200px]">
-                <div class="col-span-3 text-center py-20">
-                    <i data-lucide="loader-2" class="w-10 h-10 animate-spin mx-auto text-blue-500"></i>
-                    <p class="text-slate-400 text-sm mt-4">Cargando tus cursos...</p>
-                </div>
-            </div>
-
-            <div id="empty-state" class="hidden flex flex-col items-center justify-center py-20 text-center">
-                <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                    <i data-lucide="book" class="w-10 h-10 text-slate-400"></i>
-                </div>
-                <h3 class="text-xl font-bold text-slate-700">No hay cursos aún</h3>
-                <p class="text-slate-500 max-w-sm mt-2 mb-6">Comienza creando tu primer programa de capacitación.</p>
-                <a href="editor-curso.html" class="text-blue-600 font-bold hover:underline">Crear mi primer curso &rarr;</a>
+                <div class="col-span-3 text-center py-20"><i data-lucide="loader-2" class="w-10 h-10 animate-spin mx-auto text-blue-500"></i></div>
             </div>
         </main>
     </div>
 
     <div id="modal-inscripcion" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-8 relative max-h-[90vh] overflow-y-auto">
-            <button onclick="cerrarModalInscripcion()" class="absolute top-4 right-4 text-slate-300 hover:text-slate-600"><i data-lucide="x"></i></button>
+        <div class="bg-white w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
             
-            <h3 class="text-xl font-black text-slate-800 mb-1" id="modal-course-name">Inscripción</h3>
-            <p class="text-sm text-slate-500 mb-6">Agrega alumnos para este curso.</p>
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center shrink-0">
+                <div>
+                    <h3 class="text-xl font-black text-slate-800" id="modal-course-name">Gestión de Alumnos</h3>
+                    <p class="text-xs text-slate-500">Agrega nuevos alumnos o administra los existentes.</p>
+                </div>
+                <button onclick="cerrarModalInscripcion()" class="text-slate-300 hover:text-slate-600"><i data-lucide="x"></i></button>
+            </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="bg-slate-50 p-5 rounded-xl border border-slate-200">
-                    <h4 class="font-bold text-slate-700 text-sm mb-4 flex items-center gap-2"><i data-lucide="user-plus" class="w-4 h-4"></i> Carga Individual</h4>
-                    <div class="space-y-3">
-                        <input type="text" id="ins-dni" placeholder="DNI (Sin puntos)" class="w-full p-2 text-sm border rounded">
-                        <input type="text" id="ins-nombre" placeholder="Nombre" class="w-full p-2 text-sm border rounded">
-                        <input type="text" id="ins-apellido" placeholder="Apellido" class="w-full p-2 text-sm border rounded">
-                        <button onclick="inscribirManual()" class="w-full bg-slate-800 text-white font-bold py-2 rounded text-sm hover:bg-black transition">Inscribir</button>
+            <div class="flex-1 overflow-y-auto p-6 space-y-8 bg-slate-50/50">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                        <h4 class="font-bold text-slate-700 text-xs uppercase mb-3 flex items-center gap-2"><i data-lucide="user-plus" class="w-4 h-4"></i> Alta Individual</h4>
+                        <div class="space-y-2">
+                            <input type="text" id="ins-dni" placeholder="DNI (Sin puntos)" class="w-full p-2 text-sm border rounded bg-slate-50">
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="text" id="ins-nombre" placeholder="Nombre" class="w-full p-2 text-sm border rounded bg-slate-50">
+                                <input type="text" id="ins-apellido" placeholder="Apellido" class="w-full p-2 text-sm border rounded bg-slate-50">
+                            </div>
+                            <button onclick="inscribirManual()" class="w-full bg-slate-800 text-white font-bold py-2 rounded text-xs hover:bg-black transition mt-1">Guardar Alumno</button>
+                        </div>
+                    </div>
+                    <div class="bg-blue-50 p-5 rounded-xl border border-blue-100">
+                        <h4 class="font-bold text-blue-800 text-xs uppercase mb-3 flex items-center gap-2"><i data-lucide="table" class="w-4 h-4"></i> Carga Masiva</h4>
+                        <input type="file" id="ins-excel" accept=".xlsx, .xls" class="block w-full text-xs text-slate-500 mb-2">
+                        <div id="preview-area" class="hidden">
+                            <p class="text-[10px] font-bold text-slate-600 mb-1">Detectados: <span id="count-preview">0</span></p>
+                            <button onclick="confirmarCargaMasiva()" class="w-full bg-blue-600 text-white font-bold py-2 rounded text-xs hover:bg-blue-700 transition">Confirmar Carga</button>
+                        </div>
                     </div>
                 </div>
-                <div class="bg-blue-50 p-5 rounded-xl border border-blue-100">
-                    <h4 class="font-bold text-blue-800 text-sm mb-4 flex items-center gap-2"><i data-lucide="table" class="w-4 h-4"></i> Carga Masiva (Excel)</h4>
-                    <input type="file" id="ins-excel" accept=".xlsx, .xls" class="block w-full text-xs text-slate-500 mb-4">
-                    <div id="preview-area" class="hidden">
-                        <p class="text-xs font-bold text-slate-600 mb-2">Vista previa (<span id="count-preview">0</span>):</p>
-                        <div class="bg-white border rounded h-32 overflow-y-auto mb-2 text-xs p-2" id="preview-list"></div>
-                        <button onclick="confirmarCargaMasiva()" class="w-full bg-blue-600 text-white font-bold py-2 rounded text-sm hover:bg-blue-700 transition">Confirmar Carga</button>
+
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                        <h4 class="font-bold text-slate-700 text-sm flex items-center gap-2">
+                            <i data-lucide="users" class="w-4 h-4"></i> Alumnos Inscriptos
+                        </h4>
+                        <input type="text" id="search-alumno" placeholder="Buscar DNI o Nombre..." class="text-xs p-2 border rounded w-48 focus:outline-none focus:border-blue-500" onkeyup="filtrarTablaAlumnos()">
+                    </div>
+                    
+                    <div class="overflow-x-auto max-h-64">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-white text-slate-500 font-bold text-[10px] uppercase sticky top-0 shadow-sm">
+                                <tr>
+                                    <th class="px-4 py-3">DNI</th>
+                                    <th class="px-4 py-3">Nombre Completo</th>
+                                    <th class="px-4 py-3">Fecha Alta</th>
+                                    <th class="px-4 py-3 text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-alumnos-body" class="divide-y divide-slate-100 text-xs">
+                                <tr><td colspan="4" class="p-4 text-center text-slate-400">Cargando listado...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
+
             </div>
             
             <input type="hidden" id="modal-course-id">
@@ -130,6 +151,7 @@
         let allCursos = [];
         let conteoAlumnos = {}; 
         let datosExcel = [];
+        let alumnosDelCursoActual = []; // Para el buscador del modal
 
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
@@ -140,7 +162,6 @@
         async function verificarSesion() {
             const { data: { session } } = await db.auth.getSession();
             if (!session) return window.location.href = '../index.html';
-
             const { data: perfil } = await db.from('perfiles').select('*, instituciones(*)').eq('id', session.user.id).single();
             if (perfil) {
                 currentProfile = perfil;
@@ -153,128 +174,148 @@
             document.getElementById('user-name').innerText = perfil.nombre_completo || perfil.email;
             document.getElementById('user-role').innerText = perfil.rol === 'superadmin' ? 'Super Admin' : 'Administrador';
             document.getElementById('user-initials').innerText = (perfil.nombre_completo || 'U').charAt(0).toUpperCase();
-
-            const inst = perfil.instituciones;
-            if (inst) {
-                if (inst.logo_url) {
-                    const logo = document.getElementById('sidebar-logo');
-                    logo.src = inst.logo_url;
-                    logo.classList.remove('hidden');
+            if (perfil.instituciones) {
+                if (perfil.instituciones.logo_url) {
+                    document.getElementById('sidebar-logo').src = perfil.instituciones.logo_url;
+                    document.getElementById('sidebar-logo').classList.remove('hidden');
                 }
-                if (inst.color_primario) document.getElementById('sidebar').style.backgroundColor = inst.color_primario;
-                if (inst.nombre) {
-                    document.getElementById('sidebar-brand-text').innerHTML = `<h1 class="font-bold text-lg tracking-wide leading-tight">${inst.nombre}</h1>`;
-                }
+                if (perfil.instituciones.color_primario) document.getElementById('sidebar').style.backgroundColor = perfil.instituciones.color_primario;
+                if (perfil.instituciones.nombre) document.getElementById('sidebar-brand-text').innerHTML = `<h1 class="font-bold text-lg leading-tight">${perfil.instituciones.nombre}</h1>`;
             }
         }
 
         async function cargarDatosCompletos() {
             try {
-                // 1. Cargar Cursos
                 let query = db.from('cursos_oficiales').select('*').order('created_at', { ascending: false });
                 if (currentProfile.rol !== 'superadmin') query = query.eq('institution_id', currentProfile.institucion_id);
-                const { data: cursos, error: errCursos } = await query;
-                
-                if (errCursos) throw errCursos;
+                const { data: cursos } = await query;
 
-                // 2. Cargar Conteo (Seguro)
-                const { data: matriculas, error: errMat } = await db.from('matriculas').select('curso').eq('estado', 'ACTIVO');
-                
-                // Procesar conteo incluso si matriculas es null (vacío)
+                const { data: matriculas } = await db.from('matriculas').select('curso').eq('estado', 'ACTIVO');
                 conteoAlumnos = {};
-                if(matriculas && matriculas.length > 0) {
-                    matriculas.forEach(m => {
-                        if(m.curso) {
-                            const nombreNormalizado = m.curso.trim();
-                            conteoAlumnos[nombreNormalizado] = (conteoAlumnos[nombreNormalizado] || 0) + 1;
-                        }
-                    });
-                }
+                if(matriculas) matriculas.forEach(m => {
+                    const n = m.curso ? m.curso.trim() : 'Sin Curso';
+                    conteoAlumnos[n] = (conteoAlumnos[n] || 0) + 1;
+                });
 
-                // 3. Renderizar
                 if (cursos) { allCursos = cursos; renderizarCursos(allCursos); }
-
             } catch (e) {
-                console.error("Error cargando datos:", e);
-                // Si falla, mostramos mensaje en la grilla para debug
-                document.getElementById('grid-cursos').innerHTML = `<div class="col-span-3 text-red-500 text-center p-10">Error cargando cursos. Ver consola.</div>`;
+                console.error(e);
+                document.getElementById('grid-cursos').innerHTML = `<div class="p-10 text-center text-red-500">Error cargando datos.</div>`;
             }
         }
 
         function renderizarCursos(cursos) {
             const grid = document.getElementById('grid-cursos');
             const counter = document.getElementById('contador-cursos');
-            const empty = document.getElementById('empty-state');
-
+            
             grid.innerHTML = "";
             counter.innerText = `${cursos.length} Cursos Encontrados`;
 
-            if (cursos.length === 0) { 
-                grid.classList.add('hidden'); 
-                empty.classList.remove('hidden'); 
-                return; 
-            }
-
-            empty.classList.add('hidden');
+            if (cursos.length === 0) { grid.classList.add('hidden'); return; }
             grid.classList.remove('hidden');
 
             cursos.forEach(curso => {
                 const bgImage = curso.imagen_portada_url || 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=400';
-                let badgeColor = 'bg-blue-600';
                 const cantModulos = curso.contenido ? curso.contenido.length : 0;
                 const cantAlumnos = conteoAlumnos[curso.nombre.trim()] || 0;
 
-                const cardHTML = `
+                grid.innerHTML += `
                 <article class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl transition-all group overflow-hidden flex flex-col h-full">
                     <div class="h-36 relative overflow-hidden bg-slate-100">
                         <img src="${bgImage}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90">
                         <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-                        <span class="absolute top-3 left-3 text-[10px] font-bold text-white px-2 py-1 rounded shadow-sm uppercase tracking-wider ${badgeColor}">${curso.registro_id || 'GRAL'}</span>
+                        <span class="absolute top-3 left-3 text-[10px] font-bold text-white px-2 py-1 rounded shadow-sm uppercase tracking-wider bg-blue-600">${curso.registro_id || 'GRAL'}</span>
                     </div>
-
                     <div class="p-6 flex-1 flex flex-col">
                         <h3 class="text-lg font-black text-slate-800 leading-tight mb-2 group-hover:text-blue-600 transition-colors">${curso.nombre}</h3>
-                        
                         <div class="flex items-center gap-4 text-xs font-bold text-slate-500 mb-4 mt-auto">
-                            <div class="flex items-center gap-1.5 bg-slate-100 px-2 py-1 rounded text-slate-600">
-                                <i data-lucide="layers" class="w-3.5 h-3.5"></i> ${cantModulos} Módulos
-                            </div>
-                            <div class="flex items-center gap-1.5 bg-blue-50 px-2 py-1 rounded text-blue-600">
-                                <i data-lucide="users" class="w-3.5 h-3.5"></i> ${cantAlumnos} Alumnos
-                            </div>
+                            <div class="flex items-center gap-1.5 bg-slate-100 px-2 py-1 rounded text-slate-600"><i data-lucide="layers" class="w-3.5 h-3.5"></i> ${cantModulos} Módulos</div>
+                            <div class="flex items-center gap-1.5 bg-blue-50 px-2 py-1 rounded text-blue-600"><i data-lucide="users" class="w-3.5 h-3.5"></i> ${cantAlumnos} Alumnos</div>
                         </div>
-
                         <div class="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-slate-100">
-                            <button onclick="abrirInscripcion('${curso.id}', '${curso.nombre}', '${curso.registro_id}')" class="col-span-2 flex items-center justify-center gap-2 bg-slate-800 hover:bg-black text-white py-2 rounded-lg text-xs font-bold transition-colors mb-2">
+                            <button onclick="abrirModalGestion('${curso.id}', '${curso.nombre}', '${curso.registro_id}')" class="col-span-2 flex items-center justify-center gap-2 bg-slate-800 hover:bg-black text-white py-2 rounded-lg text-xs font-bold transition-colors mb-2">
                                 <i data-lucide="users" class="w-3.5 h-3.5"></i> Gestionar Alumnos
                             </button>
-                            <a href="editor-curso.html?id=${curso.id}" class="flex items-center justify-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 py-2 rounded-lg text-xs font-bold transition-colors">
-                                <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Editar
-                            </a>
-                             <a href="../student/aula.html?id=${curso.id}" target="_blank" class="flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 py-2 rounded-lg text-xs font-bold transition-colors">
-                                <i data-lucide="monitor-play" class="w-3.5 h-3.5"></i> Ver Aula
-                            </a>
+                            <a href="editor-curso.html?id=${curso.id}" class="flex items-center justify-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 py-2 rounded-lg text-xs font-bold"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Editar</a>
+                             <a href="../student/aula.html?id=${curso.id}" target="_blank" class="flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 py-2 rounded-lg text-xs font-bold"><i data-lucide="monitor-play" class="w-3.5 h-3.5"></i> Ver Aula</a>
                         </div>
                     </div>
                 </article>`;
-                grid.innerHTML += cardHTML;
             });
             lucide.createIcons();
         }
 
-        // --- GESTIÓN DE INSCRIPCIONES ---
-        function abrirInscripcion(id, nombre, registro) {
+        // --- GESTIÓN DE ALUMNOS (NUEVA LÓGICA) ---
+
+        function abrirModalGestion(id, nombre, registro) {
             document.getElementById('modal-course-id').value = id;
             document.getElementById('modal-course-real-name').value = nombre;
             document.getElementById('modal-registro-id').value = registro;
-            document.getElementById('modal-course-name').innerText = `Inscripción: ${nombre}`;
+            document.getElementById('modal-course-name').innerText = nombre; // Título del modal
             document.getElementById('modal-inscripcion').classList.remove('hidden');
+            
+            // Limpiar campos
+            document.getElementById('ins-dni').value = "";
+            document.getElementById('ins-nombre').value = "";
+            document.getElementById('ins-apellido').value = "";
+            
+            // Cargar Lista de Alumnos
+            cargarAlumnosDelCurso(nombre);
         }
 
-        function cerrarModalInscripcion() {
-            document.getElementById('modal-inscripcion').classList.add('hidden');
-            cargarDatosCompletos();
+        async function cargarAlumnosDelCurso(nombreCurso) {
+            const tbody = document.getElementById('lista-alumnos-body');
+            tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center"><i data-lucide="loader-2" class="w-4 h-4 animate-spin mx-auto"></i></td></tr>`;
+            lucide.createIcons();
+
+            const { data, error } = await db.from('matriculas')
+                .select('*')
+                .eq('curso', nombreCurso)
+                .eq('estado', 'ACTIVO')
+                .order('created_at', { ascending: false });
+
+            if(error) return alert("Error cargando lista");
+
+            alumnosDelCursoActual = data || [];
+            renderizarTablaAlumnos(alumnosDelCursoActual);
         }
+
+        function renderizarTablaAlumnos(lista) {
+            const tbody = document.getElementById('lista-alumnos-body');
+            tbody.innerHTML = "";
+
+            if(lista.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-slate-400">No hay alumnos inscriptos en este curso.</td></tr>`;
+                return;
+            }
+
+            lista.forEach(alumno => {
+                const fecha = new Date(alumno.created_at).toLocaleDateString();
+                tbody.innerHTML += `
+                <tr class="hover:bg-blue-50 group transition">
+                    <td class="px-4 py-3 font-mono font-bold text-slate-600">${alumno.dni_alumno}</td>
+                    <td class="px-4 py-3 font-medium text-slate-800">${alumno.nombre} ${alumno.apellido}</td>
+                    <td class="px-4 py-3 text-slate-400">${fecha}</td>
+                    <td class="px-4 py-3 text-right flex justify-end gap-2">
+                        <button onclick="editarAlumno('${alumno.id}', '${alumno.dni_alumno}', '${alumno.nombre}', '${alumno.apellido}')" class="p-1.5 text-blue-500 hover:bg-blue-100 rounded" title="Editar"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+                        <button onclick="borrarAlumno('${alumno.id}')" class="p-1.5 text-red-500 hover:bg-red-100 rounded" title="Eliminar"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                    </td>
+                </tr>`;
+            });
+            lucide.createIcons();
+        }
+
+        function filtrarTablaAlumnos() {
+            const term = document.getElementById('search-alumno').value.toLowerCase();
+            const filtrados = alumnosDelCursoActual.filter(a => 
+                a.dni_alumno.includes(term) || 
+                a.nombre.toLowerCase().includes(term) || 
+                a.apellido.toLowerCase().includes(term)
+            );
+            renderizarTablaAlumnos(filtrados);
+        }
+
+        // --- ACCIONES CRUD ---
 
         async function inscribirManual() {
             const dni = document.getElementById('ins-dni').value;
@@ -283,76 +324,97 @@
             const cursoNombre = document.getElementById('modal-course-real-name').value;
             const registroId = document.getElementById('modal-registro-id').value;
 
-            if(!dni || !nombre || !apellido) return alert("Completa todos los campos");
+            if(!dni || !nombre) return alert("Faltan datos");
 
             const payload = {
-                dni_alumno: dni, nombre, apellido, 
-                curso: cursoNombre, 
-                registro_id: registroId,
-                institution_id: currentProfile.institucion_id,
-                fecha_inicio: new Date().toISOString(),
+                dni_alumno: dni, nombre, apellido, curso: cursoNombre, 
+                registro_id: registroId, institution_id: currentProfile.institucion_id,
                 estado: 'ACTIVO'
             };
 
             const { error } = await db.from('matriculas').insert([payload]);
-            if(error) alert("Error: " + error.message);
-            else { alert("Inscripto correctamente"); cerrarModalInscripcion(); }
+            if(error) alert(error.message);
+            else { 
+                alert("Guardado"); 
+                // Limpiar inputs
+                document.getElementById('ins-dni').value = "";
+                document.getElementById('ins-nombre').value = "";
+                document.getElementById('ins-apellido').value = "";
+                // Recargar lista
+                cargarAlumnosDelCurso(cursoNombre);
+                cargarDatosCompletos(); // Actualizar contador tarjeta
+            }
         }
 
+        async function borrarAlumno(id) {
+            if(!confirm("¿Seguro que quieres eliminar a este alumno del curso?")) return;
+            const { error } = await db.from('matriculas').delete().eq('id', id);
+            if(error) alert(error.message);
+            else {
+                const cursoNombre = document.getElementById('modal-course-real-name').value;
+                cargarAlumnosDelCurso(cursoNombre);
+                cargarDatosCompletos();
+            }
+        }
+
+        async function editarAlumno(id, dni, nombre, apellido) {
+            const nuevoNombre = prompt("Editar Nombre:", nombre);
+            if(nuevoNombre === null) return;
+            const nuevoApellido = prompt("Editar Apellido:", apellido);
+            if(nuevoApellido === null) return;
+            const nuevoDni = prompt("Editar DNI:", dni);
+            if(nuevoDni === null) return;
+
+            const { error } = await db.from('matriculas').update({
+                nombre: nuevoNombre,
+                apellido: nuevoApellido,
+                dni_alumno: nuevoDni
+            }).eq('id', id);
+
+            if(error) alert(error.message);
+            else {
+                const cursoNombre = document.getElementById('modal-course-real-name').value;
+                cargarAlumnosDelCurso(cursoNombre);
+            }
+        }
+
+        // --- EXCEL --- (Misma lógica anterior)
         function procesarExcel() {
             const input = document.getElementById('ins-excel');
             if(!input.files.length) return;
-            
             const r = new FileReader();
             r.onload = e => {
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, {type:'array'});
-                const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                const json = XLSX.utils.sheet_to_json(sheet);
-                
+                const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
                 datosExcel = json.map(row => ({
                     dni: row['DNI'] || row['dni'],
                     nombre: row['NOMBRE'] || row['nombre'],
                     apellido: row['APELLIDO'] || row['apellido']
                 })).filter(x => x.dni);
-
-                mostrarPreviewExcel();
+                document.getElementById('preview-area').classList.remove('hidden');
+                document.getElementById('count-preview').innerText = datosExcel.length;
             };
             r.readAsArrayBuffer(input.files[0]);
         }
 
-        function mostrarPreviewExcel() {
-            const area = document.getElementById('preview-area');
-            const list = document.getElementById('preview-list');
-            document.getElementById('count-preview').innerText = datosExcel.length;
-            list.innerHTML = "";
-            datosExcel.slice(0, 10).forEach(d => {
-                list.innerHTML += `<div class="border-b py-1 text-slate-500">${d.dni} - ${d.nombre}</div>`;
-            });
-            area.classList.remove('hidden');
-        }
-
         async function confirmarCargaMasiva() {
             const cursoNombre = document.getElementById('modal-course-real-name').value;
-            const registroId = document.getElementById('modal-registro-id').value;
             const instId = currentProfile.institucion_id;
-            
             const filas = datosExcel.map(d => ({
-                dni_alumno: d.dni,
-                nombre: d.nombre,
-                apellido: d.apellido,
-                curso: cursoNombre,
-                registro_id: registroId,
-                institution_id: instId,
-                fecha_inicio: new Date().toISOString(),
-                estado: 'ACTIVO'
+                dni_alumno: d.dni, nombre: d.nombre, apellido: d.apellido,
+                curso: cursoNombre, institution_id: instId, estado: 'ACTIVO'
             }));
-
             const { error } = await db.from('matriculas').insert(filas);
-            if(error) alert("Error: " + error.message);
-            else { alert(`¡${filas.length} inscriptos!`); cerrarModalInscripcion(); }
+            if(error) alert(error.message);
+            else {
+                alert("Carga masiva exitosa");
+                cargarAlumnosDelCurso(cursoNombre);
+                cargarDatosCompletos();
+            }
         }
 
+        function cerrarModalInscripcion() { document.getElementById('modal-inscripcion').classList.add('hidden'); }
         function filtrarCursosUI() {
             const texto = document.getElementById('buscador').value.toLowerCase();
             const filtrados = allCursos.filter(c => c.nombre.toLowerCase().includes(texto));
