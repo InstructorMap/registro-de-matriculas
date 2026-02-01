@@ -137,7 +137,7 @@
 
         // --- GLOBAL STATE ---
         let flatLessons = [], currentLessonIndex = -1, jitsiApi = null, completedLessons = new Set();
-        let currentCourseId = null, currentUserId = null, cachedGeminiKey = null;
+        let currentCourseId = null, currentUserId = null;
 
         // --- AVATARS ---
         const AVATARS = { 'salud': 'https://cdn-icons-png.flaticon.com/512/3304/3304567.png', 'deporte': 'https://cdn-icons-png.flaticon.com/512/5305/5305149.png', 'default': 'https://cdn-icons-png.flaticon.com/512/3468/3468283.png' };
@@ -292,7 +292,7 @@
 
         function toggleMobileMenu() { document.getElementById('playlist-sidebar').classList.toggle('translate-x-full'); }
 
-        // --- GEMINI HYBRID SYSTEM (FLASH -> PRO) ---
+        // --- CHAT SYSTEM (DIAGNOSTIC/DIRECT MODE) ---
         let isChatOpen = false;
         function toggleTutor() {
             const win = document.getElementById('tutor-window'); isChatOpen = !isChatOpen;
@@ -301,69 +301,53 @@
         }
         function borrarHistorial() { document.getElementById('chat-messages').innerHTML = `<div class="flex gap-3 chat-bubble"><div class="w-8 h-8 rounded-full bg-white overflow-hidden shrink-0 border border-indigo-500 mt-1 p-0.5"><img src="${currentAvatarUrl}" class="w-full h-full object-contain"></div><div class="bg-slate-800 text-slate-200 text-sm p-3 rounded-2xl rounded-tl-none border border-slate-700 shadow-md"><p>¡Hola! Soy <b>Doc</b>. 🦉</p></div></div>`; }
         
-        async function getGeminiKey() {
-            // 1. Prioridad: Buscar en Base de Datos
-            if(cachedGeminiKey) return cachedGeminiKey;
-            try {
-                const { data } = await db.from('app_secrets').select('value').eq('name', 'gemini_api_key').single();
-                if(data) { cachedGeminiKey = data.value; return data.value; }
-            } catch(e) { console.warn("DB Key Fetch Failed", e); }
-            
-            // 2. Fallback de Emergencia: Clave Hardcoded proporcionada (Solo se usa si falla DB)
-            return 'AIzaSyAkZT7qHxVuhMgjzf-BlOPIyHx2hHGaj7U'; 
-        }
-
         async function consultarGemini(prompt) { 
             const loadingId = mostrarLoading(); 
             const container = document.getElementById('chat-messages');
             container.scrollTop = container.scrollHeight;
             
             try {
-                const apiKey = await getGeminiKey();
-                if(!apiKey) throw new Error("Sin clave API");
+                // CLAVE DIRECTA PARA EVITAR BLOQUEOS DE DB
+                const apiKey = 'AIzaSyAkZT7qHxVuhMgjzf-BlOPIyHx2hHGaj7U';
 
-                // Lista de modelos para intentar (Híbrido)
-                const models = ['gemini-1.5-flash', 'gemini-1.5-flash-latest', 'gemini-pro'];
-                let responseText = null;
+                // USAMOS EL MODELO FLASH ESTÁNDAR
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
 
-                // Loop de intentos
-                for (const model of models) {
-                    try {
-                        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-                        const response = await fetch(url, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-                        });
-                        
-                        const data = await response.json();
-                        if(data.error) throw new Error(data.error.message);
-                        if(data.candidates && data.candidates[0]) {
-                            responseText = data.candidates[0].content.parts[0].text;
-                            break; // ¡Éxito! Salir del loop
-                        }
-                    } catch(err) {
-                        console.warn(`Modelo ${model} falló, intentando siguiente...`);
-                    }
-                }
-
+                const data = await response.json();
                 removerLoading(loadingId);
                 
-                if(responseText) {
-                    agregarBurbujaTutor(responseText, 'bot');
-                } else {
-                    throw new Error("Todos los modelos fallaron.");
+                // REPORTE DETALLADO DE ERROR SI FALLA
+                if(data.error) {
+                    console.error("GOOGLE ERROR:", data.error);
+                    const msg = `⚠️ Error ${data.error.code || 'API'}: ${data.error.message || 'Sin mensaje'}`;
+                    agregarBurbujaTutor(msg, 'bot');
+                    return;
                 }
+                
+                if(!data.candidates || !data.candidates[0]) {
+                     agregarBurbujaTutor("⚠️ La IA no devolvió respuesta.", 'bot');
+                     return;
+                }
+
+                const respuesta = data.candidates[0].content.parts[0].text;
+                agregarBurbujaTutor(respuesta, 'bot'); 
 
             } catch(e) { 
                 removerLoading(loadingId); 
                 console.error(e);
-                agregarBurbujaTutor("Lo siento, estoy teniendo problemas de conexión. Intenta en un momento.", 'bot'); 
+                // MENSAJE DE RED
+                agregarBurbujaTutor("⚠️ Error de Red/Fetch. Revisa la consola (F12).", 'bot'); 
             } 
         }
 
         function accionarTutor(accion) {
-            if(accion === 'quiz') { agregarBurbujaTutor('Examen rápido.', 'user'); consultarGemini('Genera examen 3 preguntas multiple choice sobre: ' + obtenerContexto() + '. Formato Markdown. Respuestas al final.'); }
+            if(accion === 'quiz') { agregarBurbujaTutor('Examen.', 'user'); consultarGemini('Genera examen 3 preguntas multiple choice sobre: ' + obtenerContexto() + '. Formato Markdown. Respuestas al final.'); }
             if(accion === 'resumen') { agregarBurbujaTutor('Resumen.', 'user'); consultarGemini('Resumen 3 puntos sobre: ' + obtenerContexto()); }
             if(accion === 'explicar') { agregarBurbujaTutor('Explicar.', 'user'); consultarGemini('Explica simple: ' + obtenerContexto()); }
         }
