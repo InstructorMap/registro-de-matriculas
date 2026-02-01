@@ -26,7 +26,9 @@
                 <i data-lucide="layout" class="w-5 h-5"></i>
                 <span class="font-bold text-sm">Mis Cursos</span>
             </a>
+            
             <div class="px-4 py-2 mt-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tu Cuenta</div>
+            
             <div class="px-4 py-2 bg-slate-900 rounded-lg border border-slate-800">
                 <p class="text-xs text-slate-400 font-bold mb-1">Tu DNI vinculado:</p>
                 <p class="text-sm font-mono text-yellow-500 tracking-wider" id="user-dni">Cargando...</p>
@@ -77,69 +79,107 @@
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
             
-            // 1. Verificar Sesión
-            const { data: { session } } = await db.auth.getSession();
-            if(!session) return window.location.href = '../campus.html';
+            try {
+                // 1. Verificar Sesión
+                const { data: { session }, error: errSession } = await db.auth.getSession();
+                if(errSession || !session) return window.location.href = '../campus.html';
 
-            // 2. Obtener Datos del Perfil (DNI)
-            const { data: perfil } = await db.from('perfiles').select('*').eq('id', session.user.id).single();
-            
-            if(perfil) {
-                document.getElementById('student-name').innerText = perfil.nombre_completo || "Estudiante";
+                // 2. Obtener Datos del Perfil
+                const { data: perfil, error: errPerfil } = await db.from('perfiles').select('*').eq('id', session.user.id).single();
                 
-                if(perfil.dni) {
-                    document.getElementById('user-dni').innerText = perfil.dni;
-                    // LÓGICA CLAVE: Cargar SOLO cursos vinculados
-                    await cargarSoloMisCursos(perfil.dni);
-                } else {
-                    // Si no tiene DNI, mostrar pantalla de bloqueo
-                    mostrarBloqueoDNI(session.user.id);
+                if(errPerfil) {
+                    console.error("Error Perfil:", errPerfil);
+                    // Si falla el perfil, no bloqueamos, intentamos mostrar algo básico o error
+                    throw new Error("No pudimos cargar tu perfil de usuario.");
                 }
+                
+                if(perfil) {
+                    document.getElementById('student-name').innerText = perfil.nombre_completo || "Estudiante";
+                    
+                    if(perfil.dni) {
+                        // El usuario TIENE DNI, buscamos sus cursos
+                        document.getElementById('user-dni').innerText = perfil.dni;
+                        await cargarSoloMisCursos(perfil.dni);
+                    } else {
+                        // El usuario NO TIENE DNI, mostramos pantalla de bloqueo
+                        mostrarBloqueoDNI(session.user.id);
+                    }
+                }
+            } catch (e) {
+                console.error("ERROR FATAL EN DASHBOARD:", e);
+                // Mostrar error visual al usuario en lugar de spinner eterno
+                document.getElementById('active-courses-grid').innerHTML = `
+                    <div class="col-span-3 bg-red-500/10 border border-red-500 rounded-xl p-8 text-center text-red-200">
+                        <i data-lucide="alert-octagon" class="w-10 h-10 mx-auto mb-4 text-red-500"></i>
+                        <h3 class="font-bold text-lg">Ocurrió un error inesperado</h3>
+                        <p class="text-sm mt-2 text-red-300">Intenta recargar la página. Si el problema persiste, contacta a soporte.</p>
+                        <p class="text-xs mt-4 font-mono bg-black/30 p-2 rounded inline-block">${e.message}</p>
+                    </div>
+                `;
+                lucide.createIcons();
             }
         });
 
         async function cargarSoloMisCursos(dni) {
             const container = document.getElementById('active-courses-grid');
             
-            // A. Buscar en la tabla MATRICULAS qué cursos tiene este DNI
-            const { data: matriculas, error } = await db
+            console.log("--> Buscando matrículas para DNI:", dni);
+
+            // A. Buscar en tabla MATRICULAS
+            const { data: matriculas, error: errMat } = await db
                 .from('matriculas')
                 .select('curso')
                 .eq('dni_alumno', dni)
                 .eq('estado', 'ACTIVO');
 
-            if (error) console.error("Error matriculas:", error);
+            if (errMat) throw new Error("Error leyendo base de datos de matrículas: " + errMat.message);
 
-            // B. Si no hay matrículas, mostrar vacío
+            // B. Si no hay matrículas activas
             if(!matriculas || matriculas.length === 0) {
                 container.innerHTML = `
                 <div class="col-span-3 text-center py-12 bg-slate-800/50 rounded-2xl border border-dashed border-slate-700">
                     <div class="w-16 h-16 bg-slate-800 text-slate-500 rounded-full flex items-center justify-center mx-auto mb-4"><i data-lucide="book-x" class="w-8 h-8"></i></div>
                     <h3 class="font-bold text-white">No tienes cursos activos</h3>
-                    <p class="text-slate-400 text-sm mt-1">Tu DNI (${dni}) no registra inscripciones habilitadas.</p>
+                    <p class="text-slate-400 text-sm mt-1">Tu DNI (${dni}) no registra inscripciones habilitadas actualmente.</p>
                 </div>`;
                 lucide.createIcons();
                 return;
             }
 
-            // C. Extraer los NOMBRES de los cursos
-            // IMPORTANTE: .trim() elimina espacios vacíos que puedan causar error
-            const nombresCursos = matriculas.map(m => m.curso.trim());
+            console.log("--> Matrículas encontradas:", matriculas);
 
-            // D. Buscar en CURSOS_OFICIALES solo los que coincidan con esos nombres
-            const { data: cursos } = await db
-                .from('cursos_oficiales')
-                .select('*')
-                .in('nombre', nombresCursos); // <--- AQUÍ ESTÁ EL FILTRO MÁGICO
+            // C. Limpiar nombres de cursos (quitar espacios, etc)
+            const nombresCursos = matriculas.map(m => m.curso ? m.curso.trim() : "").filter(n => n !== "");
 
-            container.innerHTML = "";
-
-            if(!cursos || cursos.length === 0) {
-                 container.innerHTML = `<div class="col-span-3 text-center p-10 text-slate-500">Estás matriculado, pero el contenido del curso aún no está disponible en la plataforma.</div>`;
+            if(nombresCursos.length === 0) {
+                 container.innerHTML = `<div class="col-span-3 text-center p-10 text-slate-500">Error: Se encontraron matrículas pero sin nombre de curso asignado.</div>`;
                  return;
             }
 
-            // E. Renderizar Tarjetas
+            // D. Buscar detalles de esos cursos en CURSOS_OFICIALES
+            const { data: cursos, error: errCur } = await db
+                .from('cursos_oficiales')
+                .select('*')
+                .in('nombre', nombresCursos);
+
+            if (errCur) throw new Error("Error obteniendo detalles del curso: " + errCur.message);
+
+            container.innerHTML = "";
+
+            // E. Caso: Hay matrícula pero no coincide el nombre exacto con el curso oficial
+            if(!cursos || cursos.length === 0) {
+                 container.innerHTML = `
+                 <div class="col-span-3 text-center p-10 bg-slate-800 rounded-xl border border-yellow-600/50">
+                    <i data-lucide="alert-triangle" class="w-8 h-8 text-yellow-500 mx-auto mb-2"></i>
+                    <p class="font-bold text-white mb-2">Problema de Configuración</p>
+                    <p class="text-sm text-slate-400">Estás inscripto en: <span class="text-blue-400 font-bold">${nombresCursos.join(", ")}</span></p>
+                    <p class="text-xs text-slate-500 mt-2">Pero el sistema no encontró contenido con ese nombre exacto. <br>Por favor avisa a administración que verifiquen el nombre del curso.</p>
+                 </div>`;
+                 lucide.createIcons();
+                 return;
+            }
+
+            // F. Renderizar Tarjetas
             cursos.forEach(curso => {
                 const cantModulos = curso.contenido ? curso.contenido.length : 0;
                 const bgImg = curso.imagen_portada_url || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&q=80&w=400';
@@ -166,7 +206,7 @@
             lucide.createIcons();
         }
 
-        // --- MANEJO DE FALTA DE DNI ---
+        // --- PANTALLA DE BLOQUEO (SI FALTA DNI) ---
         function mostrarBloqueoDNI(userId) {
             const container = document.getElementById('active-courses-grid');
             document.getElementById('user-dni').innerText = "No Vinculado";
@@ -177,27 +217,55 @@
                         <i data-lucide="alert-triangle" class="w-8 h-8"></i>
                     </div>
                     <h3 class="text-xl font-bold text-white mb-2">Falta vincular tu Matrícula</h3>
-                    <p class="text-slate-400 mb-6 text-sm">Para ver tus cursos, necesitamos confirmar tu identidad.</p>
+                    <p class="text-slate-400 mb-6 text-sm">Para ver tus cursos, necesitamos confirmar tu identidad ingresando tu DNI.</p>
                     
                     <div class="flex gap-2">
                         <input type="text" id="input-dni-sync" placeholder="Ingresa tu DNI" class="flex-1 p-3 bg-slate-900 border border-slate-700 rounded-lg outline-none font-bold text-center text-white focus:border-yellow-500 transition">
                         <button onclick="guardarDNI('${userId}')" class="bg-yellow-500 hover:bg-yellow-400 text-black px-6 py-2 rounded-lg font-bold transition">Vincular</button>
                     </div>
+                    <p id="dni-error-msg" class="text-xs text-red-400 mt-2 hidden font-bold"></p>
                 </div>
             `;
             lucide.createIcons();
         }
 
         async function guardarDNI(userId) {
-            const dni = document.getElementById('input-dni-sync').value.trim();
-            if(dni.length < 6) return alert("DNI inválido");
+            const input = document.getElementById('input-dni-sync');
+            const errorMsg = document.getElementById('dni-error-msg');
+            const dni = input.value.trim();
+
+            errorMsg.classList.add('hidden');
+            
+            if(dni.length < 6) {
+                errorMsg.innerText = "Por favor ingresa un DNI válido.";
+                errorMsg.classList.remove('hidden');
+                return;
+            }
 
             // Validar antes de guardar
-            const { data } = await db.from('matriculas').select('id').eq('dni_alumno', dni);
-            if(!data || data.length === 0) return alert("Error: Este DNI no tiene cursos asignados en el sistema.");
+            const { data, error } = await db.from('matriculas').select('id').eq('dni_alumno', dni);
+            
+            if(error) {
+                errorMsg.innerText = "Error de conexión. Intenta de nuevo.";
+                errorMsg.classList.remove('hidden');
+                return;
+            }
 
-            await db.from('perfiles').update({ dni: dni }).eq('id', userId);
-            window.location.reload();
+            if(!data || data.length === 0) {
+                errorMsg.innerText = "Error: Este DNI no tiene cursos asignados en el sistema.";
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            // Si existe, guardamos en el perfil
+            const { error: errUpdate } = await db.from('perfiles').update({ dni: dni }).eq('id', userId);
+            
+            if(errUpdate) {
+                errorMsg.innerText = "Error al guardar. " + errUpdate.message;
+                errorMsg.classList.remove('hidden');
+            } else {
+                window.location.reload();
+            }
         }
 
         async function logout() { await db.auth.signOut(); window.location.href = '../campus.html'; }
