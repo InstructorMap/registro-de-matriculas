@@ -10,14 +10,11 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
-        /* Estilos Base */
         .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; background: black; border-radius: 12px; }
         .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        
-        /* Animaciones Chat */
         #tutor-window { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .chat-bubble { animation: popIn 0.3s ease-out; }
         @keyframes popIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -159,7 +156,7 @@
             if(currentCourseId) await cargarCurso(currentCourseId); else window.location.href = 'dashboard.html';
         });
 
-        // --- CORE LOGIC ---
+        // --- LOGICA CURSO ---
         async function cargarCurso(id) {
             const { data: curso, error } = await db.from('cursos_oficiales').select('*').eq('id', id).single();
             if(error || !curso) { alert("Error cargando curso"); return window.location.href = 'dashboard.html'; }
@@ -292,7 +289,7 @@
 
         function toggleMobileMenu() { document.getElementById('playlist-sidebar').classList.toggle('translate-x-full'); }
 
-        // --- CHAT SYSTEM (DIAGNOSTIC/DIRECT MODE) ---
+        // --- CHAT SYSTEM (DIRECT + ROBUST) ---
         let isChatOpen = false;
         function toggleTutor() {
             const win = document.getElementById('tutor-window'); isChatOpen = !isChatOpen;
@@ -307,11 +304,11 @@
             container.scrollTop = container.scrollHeight;
             
             try {
-                // CLAVE DIRECTA PARA EVITAR BLOQUEOS DE DB
+                // CLAVE DIRECTA - SIN DB PARA ASEGURAR FUNCIONAMIENTO
                 const apiKey = 'AIzaSyAkZT7qHxVuhMgjzf-BlOPIyHx2hHGaj7U';
 
-                // USAMOS EL MODELO FLASH ESTÁNDAR
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+                // MODELO PRO (El más estable)
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
                 
                 const response = await fetch(url, {
                     method: 'POST',
@@ -322,10 +319,9 @@
                 const data = await response.json();
                 removerLoading(loadingId);
                 
-                // REPORTE DETALLADO DE ERROR SI FALLA
                 if(data.error) {
                     console.error("GOOGLE ERROR:", data.error);
-                    const msg = `⚠️ Error ${data.error.code || 'API'}: ${data.error.message || 'Sin mensaje'}`;
+                    const msg = `⚠️ Error ${data.error.code || ''}: ${data.error.message}`;
                     agregarBurbujaTutor(msg, 'bot');
                     return;
                 }
@@ -341,8 +337,7 @@
             } catch(e) { 
                 removerLoading(loadingId); 
                 console.error(e);
-                // MENSAJE DE RED
-                agregarBurbujaTutor("⚠️ Error de Red/Fetch. Revisa la consola (F12).", 'bot'); 
+                agregarBurbujaTutor("⚠️ Error de Red/Fetch.", 'bot'); 
             } 
         }
 
