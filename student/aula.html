@@ -137,6 +137,7 @@
         // --- ESTADO GLOBAL ---
         let flatLessons = [], currentLessonIndex = -1, jitsiApi = null, completedLessons = new Set();
         let currentCourseId = null, currentUserId = null;
+        let detectedModel = null; // Guardará el modelo descubierto
 
         // --- AVATARS ---
         const AVATARS = { 'salud': 'https://cdn-icons-png.flaticon.com/512/3304/3304567.png', 'deporte': 'https://cdn-icons-png.flaticon.com/512/5305/5305149.png', 'default': 'https://cdn-icons-png.flaticon.com/512/3468/3468283.png' };
@@ -291,7 +292,8 @@
 
         function toggleMobileMenu() { document.getElementById('playlist-sidebar').classList.toggle('translate-x-full'); }
 
-        // --- SISTEMA DE CHAT: MATRIZ DE CONEXIÓN UNIVERSAL (2026) ---
+        // --- SISTEMA DE CHAT: AUTO-DESCUBRIMIENTO DE MODELO ---
+        // Este es el sistema definitivo que soluciona el 404.
         let isChatOpen = false;
         function toggleTutor() {
             const win = document.getElementById('tutor-window'); isChatOpen = !isChatOpen;
@@ -299,6 +301,59 @@
             else { win.classList.add('scale-95', 'opacity-0'); setTimeout(() => win.classList.add('hidden'), 300); }
         }
         function borrarHistorial() { document.getElementById('chat-messages').innerHTML = `<div class="flex gap-3 chat-bubble"><div class="w-8 h-8 rounded-full bg-white overflow-hidden shrink-0 border border-indigo-500 mt-1 p-0.5"><img src="${currentAvatarUrl}" class="w-full h-full object-contain"></div><div class="bg-slate-800 text-slate-200 text-sm p-3 rounded-2xl rounded-tl-none border border-slate-700 shadow-md"><p>¡Hola! Soy <b>Doc</b>. 🦉</p></div></div>`; }
+
+        // --- FUNCIÓN CLAVE: Auto-descubre qué modelo funciona ---
+        async function descubrirYConsultar(prompt, apiKey) {
+            // 1. Si ya sabemos cuál funciona, úsalo directo.
+            if(detectedModel) {
+                 return await realizarPeticion(detectedModel, prompt, apiKey);
+            }
+
+            // 2. Si no, preguntamos a Google: "¿Qué modelos tienes?"
+            try {
+                const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
+                const listResp = await fetch(listUrl);
+                const listData = await listResp.json();
+                
+                if(listData.models) {
+                    // Filtramos solo los que sirven para chatear (generateContent)
+                    const candidatos = listData.models.filter(m => 
+                        m.supportedGenerationMethods && m.supportedGenerationMethods.includes("generateContent")
+                    );
+                    
+                    // Priorizamos: Primero los "pro", luego los "flash"
+                    candidatos.sort((a, b) => {
+                        const scoreA = (a.name.includes("pro") ? 2 : 0) + (a.name.includes("flash") ? 1 : 0);
+                        const scoreB = (b.name.includes("pro") ? 2 : 0) + (b.name.includes("flash") ? 1 : 0);
+                        return scoreB - scoreA; 
+                    });
+
+                    if(candidatos.length > 0) {
+                        // Limpiamos el nombre (a veces viene con 'models/' al inicio)
+                        detectedModel = candidatos[0].name.replace('models/', '');
+                        console.log("Auto-descubierto modelo óptimo:", detectedModel);
+                        return await realizarPeticion(detectedModel, prompt, apiKey);
+                    }
+                }
+            } catch(e) { console.warn("Fallo auto-discovery, probando fallback..."); }
+
+            // 3. Fallback de emergencia si el listado falla (Modelo seguro)
+            detectedModel = "gemini-1.5-flash"; 
+            return await realizarPeticion(detectedModel, prompt, apiKey);
+        }
+
+        async function realizarPeticion(modelo, prompt, apiKey) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${apiKey}`;
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            });
+            const data = await response.json();
+            if(data.error) throw new Error(`${data.error.code}: ${data.error.message}`);
+            if(!data.candidates || !data.candidates[0]) throw new Error("Sin respuesta de IA");
+            return data.candidates[0].content.parts[0].text;
+        }
         
         async function consultarGemini(prompt) { 
             const loadingId = mostrarLoading(); 
@@ -306,54 +361,18 @@
             container.scrollTop = container.scrollHeight;
             
             try {
-                // CLAVE DIRECTA
                 const apiKey = 'AIzaSyAkZT7qHxVuhMgjzf-BlOPIyHx2hHGaj7U';
-
-                // LISTA DE MODELOS 2026 (PRIORIDAD ALTA A BAJA)
-                const modelos = [
-                    'gemini-2.5-flash',       // 1. Estándar 2026 (Tu solicitud)
-                    'gemini-2.5-pro',         // 2. Potente
-                    'gemini-3-flash-preview', // 3. Preview
-                    'gemini-1.5-flash'        // 4. Legacy Fallback
-                ];
-
-                let respuestaExito = null;
-                let errorFinal = null;
-
-                for (const modelo of modelos) {
-                    try {
-                        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${apiKey}`;
-                        const response = await fetch(url, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-                        });
-                        
-                        const data = await response.json();
-                        
-                        if (!data.error && data.candidates && data.candidates[0]) {
-                            respuestaExito = data.candidates[0].content.parts[0].text;
-                            console.log("Conectado con:", modelo);
-                            break;
-                        } else {
-                            errorFinal = data.error;
-                        }
-                    } catch (ignore) { }
-                }
-
+                const respuesta = await descubrirYConsultar(prompt, apiKey);
                 removerLoading(loadingId);
-                
-                if (respuestaExito) {
-                    agregarBurbujaTutor(respuestaExito, 'bot');
-                } else {
-                    console.error("Fallo total de modelos. Último:", errorFinal);
-                    agregarBurbujaTutor("⚠️ Error de conexión: Ningún modelo disponible.", 'bot');
-                }
+                agregarBurbujaTutor(respuesta, 'bot'); 
 
             } catch(e) { 
                 removerLoading(loadingId); 
                 console.error(e);
-                agregarBurbujaTutor("⚠️ Error de Red Crítico.", 'bot'); 
+                let msg = "⚠️ Error de conexión.";
+                if(e.message.includes("404")) msg = "⚠️ Error: Modelo IA no encontrado.";
+                if(e.message.includes("429")) msg = "⚠️ Saturación de sistema. Espera unos segundos.";
+                agregarBurbujaTutor(msg, 'bot'); 
             } 
         }
 
