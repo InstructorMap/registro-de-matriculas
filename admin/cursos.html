@@ -129,13 +129,13 @@
 
         let currentProfile = null;
         let allCursos = [];
+        let conteoAlumnos = {}; // Objeto para guardar el conteo { "Curso A": 10, "Curso B": 5 }
         let datosExcel = [];
 
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
             await verificarSesion();
             
-            // Listener para Excel
             document.getElementById('ins-excel').addEventListener('change', procesarExcel);
         });
 
@@ -148,7 +148,7 @@
 
             currentProfile = perfil;
             cargarDatosVisuales(perfil);
-            cargarCursosDesdeDB();
+            await cargarDatosCompletos();
         }
 
         function cargarDatosVisuales(perfil) {
@@ -170,11 +170,31 @@
             }
         }
 
-        async function cargarCursosDesdeDB() {
+        async function cargarDatosCompletos() {
+            // 1. Cargar Cursos
             let query = db.from('cursos_oficiales').select('*').order('created_at', { ascending: false });
             if (currentProfile.rol !== 'superadmin') query = query.eq('institution_id', currentProfile.institucion_id);
-            const { data, error } = await query;
-            if (!error) { allCursos = data || []; renderizarCursos(allCursos); }
+            const { data: cursos } = await query;
+            
+            // 2. Cargar Conteo de Alumnos (Solo Activos)
+            // Traemos solo la columna 'curso' de matriculas para contar
+            // Nota: En producción masiva, esto se debería hacer con un RPC (función SQL) para ser más rápido, 
+            // pero para <10.000 filas esto funciona bien en el cliente.
+            const { data: matriculas } = await db.from('matriculas')
+                .select('curso')
+                .eq('estado', 'ACTIVO');
+
+            // 3. Procesar Conteo
+            conteoAlumnos = {};
+            if(matriculas) {
+                matriculas.forEach(m => {
+                    const nombreNormalizado = m.curso.trim();
+                    conteoAlumnos[nombreNormalizado] = (conteoAlumnos[nombreNormalizado] || 0) + 1;
+                });
+            }
+
+            // 4. Renderizar
+            if (cursos) { allCursos = cursos; renderizarCursos(allCursos); }
         }
 
         function renderizarCursos(cursos) {
@@ -194,6 +214,9 @@
                 const bgImage = curso.imagen_portada_url || curso.diploma_bg_url || 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=400';
                 let badgeColor = curso.registro_id === 'remaep' ? 'bg-blue-600' : (curso.registro_id === 'isf' ? 'bg-green-600' : 'bg-slate-500');
                 const cantModulos = curso.contenido ? curso.contenido.length : 0;
+                
+                // Obtener cantidad de alumnos del objeto de conteo
+                const cantAlumnos = conteoAlumnos[curso.nombre.trim()] || 0;
 
                 const cardHTML = `
                 <article class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl transition-all group overflow-hidden flex flex-col h-full">
@@ -205,8 +228,14 @@
 
                     <div class="p-6 flex-1 flex flex-col">
                         <h3 class="text-lg font-black text-slate-800 leading-tight mb-2 group-hover:text-blue-600 transition-colors">${curso.nombre}</h3>
-                        <div class="flex items-center gap-4 text-xs text-slate-500 font-medium mb-4 mt-auto">
-                            <div class="flex items-center gap-1.5"><i data-lucide="layers" class="w-3.5 h-3.5 text-slate-400"></i><span>${cantModulos} Módulos</span></div>
+                        
+                        <div class="flex items-center gap-4 text-xs font-bold text-slate-500 mb-4 mt-auto">
+                            <div class="flex items-center gap-1.5 bg-slate-100 px-2 py-1 rounded text-slate-600">
+                                <i data-lucide="layers" class="w-3.5 h-3.5"></i> ${cantModulos} Módulos
+                            </div>
+                            <div class="flex items-center gap-1.5 bg-blue-50 px-2 py-1 rounded text-blue-600">
+                                <i data-lucide="users" class="w-3.5 h-3.5"></i> ${cantAlumnos} Alumnos
+                            </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-slate-100">
@@ -227,7 +256,7 @@
             lucide.createIcons();
         }
 
-        // --- GESTIÓN DE INSCRIPCIONES ---
+        // --- GESTIÓN DE INSCRIPCIONES (Igual que antes) ---
 
         function abrirInscripcion(id, nombre, registro) {
             document.getElementById('modal-course-id').value = id;
@@ -235,7 +264,6 @@
             document.getElementById('modal-registro-id').value = registro;
             document.getElementById('modal-course-name').innerText = `Inscripción: ${nombre}`;
             
-            // Limpiar campos
             document.getElementById('ins-dni').value = "";
             document.getElementById('ins-nombre').value = "";
             document.getElementById('ins-apellido').value = "";
@@ -247,6 +275,8 @@
 
         function cerrarModalInscripcion() {
             document.getElementById('modal-inscripcion').classList.add('hidden');
+            // Recargar datos para actualizar el contador
+            cargarDatosCompletos();
         }
 
         async function inscribirManual() {
@@ -264,7 +294,7 @@
                 registro_id: registroId,
                 institution_id: currentProfile.institucion_id,
                 fecha_inicio: new Date().toISOString(),
-                estado: 'ACTIVO' // Forzamos ACTIVO para el campus
+                estado: 'ACTIVO'
             };
 
             const { error } = await db.from('matriculas').insert([payload]);
@@ -324,7 +354,7 @@
                 registro_id: registroId,
                 institution_id: instId,
                 fecha_inicio: new Date().toISOString(),
-                estado: 'ACTIVO' // Forzamos ACTIVO
+                estado: 'ACTIVO'
             }));
 
             const { error } = await db.from('matriculas').insert(filas);
