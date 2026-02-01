@@ -8,20 +8,16 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <style>
         .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; background: black; border-radius: 12px; }
         .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        
-        /* Animaciones del Chat */
         #tutor-window { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .chat-bubble { animation: popIn 0.3s ease-out; }
         @keyframes popIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-slate-900 text-slate-200 h-screen flex flex-col overflow-hidden font-sans">
@@ -30,7 +26,7 @@
         <div class="flex items-center gap-4">
             <a href="dashboard.html" class="p-2 hover:bg-slate-800 rounded-lg transition text-slate-400 hover:text-white"><i data-lucide="arrow-left" class="w-5 h-5"></i></a>
             <div>
-                <h1 class="font-bold text-white text-sm md:text-lg leading-tight truncate max-w-[200px] md:max-w-md" id="course-title">Cargando curso...</h1>
+                <h1 class="font-bold text-white text-sm md:text-lg leading-tight truncate max-w-[200px] md:max-w-md" id="course-title">Cargando...</h1>
                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Campus Virtual</p>
             </div>
         </div>
@@ -47,18 +43,16 @@
         <main class="flex-1 flex flex-col min-w-0 bg-slate-900 relative z-10">
             <div class="flex-1 p-4 md:p-8 overflow-y-auto flex flex-col">
                 <div class="w-full max-w-6xl mx-auto space-y-6 h-full flex flex-col">
-                    
                     <div id="player-wrapper" class="w-full bg-black rounded-2xl shadow-2xl overflow-hidden border border-slate-800 relative aspect-video flex-shrink-0 flex items-center justify-center group">
                         <div id="player-placeholder" class="text-center p-8">
                             <div class="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse"><i data-lucide="loader-2" class="w-8 h-8 text-slate-600 animate-spin"></i></div>
-                            <h3 class="text-xl font-bold text-slate-500">Preparando clase...</h3>
+                            <h3 class="text-xl font-bold text-slate-500">Cargando clase...</h3>
                         </div>
                         <div id="player-content" class="w-full h-full hidden"></div>
                         <div id="jitsi-rescue" class="hidden absolute top-4 right-4 z-50">
-                            <a id="jitsi-external-link" href="#" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg flex items-center gap-2 transition-all opacity-50 hover:opacity-100"><i data-lucide="external-link" class="w-3 h-3"></i> Abrir en Nueva Pestaña</a>
+                            <a id="jitsi-external-link" href="#" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg flex items-center gap-2 transition-all opacity-50 hover:opacity-100"><i data-lucide="external-link" class="w-3 h-3"></i> Abrir Sala</a>
                         </div>
                     </div>
-
                     <div class="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center pb-10 bg-slate-900 sticky bottom-0 z-20 py-4 border-t border-slate-800/50">
                         <div class="flex-1">
                             <div class="flex items-center gap-3 mb-1">
@@ -66,8 +60,7 @@
                                 <span id="check-completed" class="hidden bg-green-500/20 text-green-400 text-[10px] px-2 py-0.5 rounded font-bold uppercase border border-green-500/30 flex items-center gap-1"><i data-lucide="check" class="w-3 h-3"></i> Completada</span>
                             </div>
                             <button onclick="marcarComoCompletada()" id="btn-mark-done" class="text-xs font-bold text-slate-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer select-none">
-                                <div class="w-4 h-4 border-2 border-slate-500 rounded-sm flex items-center justify-center group-hover:border-white transition-colors" id="btn-mark-icon"></div>
-                                Marcar como vista
+                                <div class="w-4 h-4 border-2 border-slate-500 rounded-sm flex items-center justify-center group-hover:border-white transition-colors" id="btn-mark-icon"></div> Marcar vista
                             </button>
                         </div>
                         <div class="flex gap-3 w-full md:w-auto">
@@ -91,12 +84,10 @@
         </aside>
 
         <button onclick="toggleMobileMenu()" class="md:hidden absolute bottom-6 right-6 z-30 bg-blue-600 text-white p-4 rounded-full shadow-xl"><i data-lucide="menu" class="w-6 h-6"></i></button>
-
+        
         <button id="btn-tutor-toggle" onclick="toggleTutor()" class="fixed bottom-8 right-8 z-[100] group transition-all duration-300 hover:scale-110 cursor-pointer">
             <div class="relative">
-                <div class="w-16 h-16 rounded-full bg-white p-1 shadow-2xl border-4 border-indigo-500 overflow-hidden relative z-10">
-                    <img id="tutor-btn-img" src="https://cdn-icons-png.flaticon.com/512/3468/3468283.png" class="w-full h-full object-contain">
-                </div>
+                <div class="w-16 h-16 rounded-full bg-white p-1 shadow-2xl border-4 border-indigo-500 overflow-hidden relative z-10"><img id="tutor-btn-img" src="https://cdn-icons-png.flaticon.com/512/3468/3468283.png" class="w-full h-full object-contain"></div>
                 <div class="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-slate-900 rounded-full z-20 animate-pulse"></div>
             </div>
         </button>
@@ -104,13 +95,11 @@
         <div id="tutor-window" class="fixed bottom-28 right-4 md:right-8 z-[100] w-80 md:w-96 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl flex flex-col hidden origin-bottom-right transform scale-95 opacity-0 h-[500px] transition-all duration-300">
             <div class="p-4 bg-gradient-to-r from-slate-900 to-slate-800 border-b border-slate-700 rounded-t-2xl flex justify-between items-center">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-white p-0.5 border border-white/10 overflow-hidden">
-                        <img id="tutor-header-img" src="https://cdn-icons-png.flaticon.com/512/3468/3468283.png" class="w-full h-full object-contain">
-                    </div>
+                    <div class="w-10 h-10 rounded-full bg-white p-0.5 border border-white/10 overflow-hidden"><img id="tutor-header-img" src="https://cdn-icons-png.flaticon.com/512/3468/3468283.png" class="w-full h-full object-contain"></div>
                     <div><h3 class="font-bold text-white text-sm">Hola, soy Doc.</h3><p class="text-[10px] text-green-400 font-medium" id="tutor-status">Tutor Virtual</p></div>
                 </div>
                 <div class="flex gap-2">
-                    <button onclick="borrarHistorial()" class="text-slate-500 hover:text-red-400 p-1" title="Reiniciar chat"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    <button onclick="borrarHistorial()" class="text-slate-500 hover:text-red-400 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                     <button onclick="toggleTutor()" class="text-slate-400 hover:text-white p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
                 </div>
             </div>
@@ -134,24 +123,15 @@
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
-        // --- CONFIGURACIÓN CRÍTICA ---
-        const API_KEY_GOOGLE = 'AIzaSyAkZT7qHxVuhMgjzf-BlOPIyHx2hHGaj7U';
-        let detectedModel = null; 
-
         // --- VARIABLES GLOBALES ---
         let flatLessons = [], currentLessonIndex = -1, jitsiApi = null, completedLessons = new Set();
-        let currentCourseId = null, currentUserId = null;
-        let isChatOpen = false; // Estado del chat
-
+        let currentCourseId = null, currentUserId = null, isChatOpen = false, detectedModel = null;
         const AVATARS = { 'salud': 'https://cdn-icons-png.flaticon.com/512/3304/3304567.png', 'deporte': 'https://cdn-icons-png.flaticon.com/512/5305/5305149.png', 'default': 'https://cdn-icons-png.flaticon.com/512/3468/3468283.png' };
         let currentAvatarUrl = AVATARS['default'];
         let currentRole = "Profesor General";
 
-        // --- INICIO ---
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
-            
-            // Lógica de Sesión
             const { data: { session } } = await db.auth.getSession();
             if(!session) return window.location.href = '../index.html';
             currentUserId = session.user.id;
@@ -164,47 +144,20 @@
             if(currentCourseId) await cargarCurso(currentCourseId); else window.location.href = 'dashboard.html';
         });
 
-        // --- FUNCIONES DEL TUTOR (ARREGLADAS) ---
-        function toggleTutor() {
-            const win = document.getElementById('tutor-window');
-            isChatOpen = !isChatOpen;
-            console.log("Toggle Tutor. Estado:", isChatOpen); // Debug log
-
-            if(isChatOpen) {
-                win.classList.remove('hidden');
-                // Pequeño delay para permitir que el navegador renderice antes de la transición
-                requestAnimationFrame(() => {
-                    win.classList.remove('scale-95', 'opacity-0');
-                    const input = document.getElementById('chat-input');
-                    if(input) input.focus();
-                });
-            } else {
-                win.classList.add('scale-95', 'opacity-0');
-                setTimeout(() => {
-                    if(!isChatOpen) win.classList.add('hidden');
-                }, 300);
-            }
+        // --- OBTENER API KEY DE BASE DE DATOS (SEGURIDAD) ---
+        async function getGeminiKey() {
+            // Esta función busca la clave en Supabase, así Google no puede leerla del código
+            const { data, error } = await db.from('app_secrets').select('value').eq('name', 'gemini_api_key').single();
+            if(error || !data) { console.error("Falta API Key en DB"); return null; }
+            return data.value;
         }
 
-        async function enviarMensajeTutor(e) { 
-            e.preventDefault(); 
-            const input = document.getElementById('chat-input');
-            const texto = input.value.trim(); 
-            if(!texto) return; 
-            
-            agregarBurbujaTutor(texto, 'user'); 
-            input.value = ""; 
-            
-            const prompt = `Actúa como "Doc", un ${currentRole}. El alumno está viendo: "${obtenerContexto()}". Pregunta: "${texto}". Responde de forma breve y útil.`;
-            consultarGemini(prompt); 
-        }
-
-        // --- SISTEMA DE DETECCIÓN INTELIGENTE DE MODELO ---
-        async function getWorkingModel() {
+        // --- AUTO-DESCUBRIMIENTO DE MODELO ---
+        async function getBestModel(apiKey) {
             if (detectedModel) return detectedModel;
             try {
-                // Descargar lista real de modelos
-                const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${API_KEY_GOOGLE}`);
+                // Descargar lista real de tu cuenta
+                const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
                 const d = await r.json();
                 
                 if (d.models) {
@@ -212,7 +165,7 @@
                         .filter(m => m.supportedGenerationMethods.includes("generateContent"))
                         .map(m => m.name.replace("models/", ""));
                     
-                    // Prioridad: 1. gemini-2.5-flash, 2. gemini-2.0, 3. Cualquiera que diga "flash"
+                    // Prioridad de Modelos 2026
                     let elegido = disponibles.find(m => m === 'gemini-2.5-flash') ||
                                   disponibles.find(m => m === 'gemini-2.0-flash-lite') ||
                                   disponibles.find(m => m.includes('flash')) ||
@@ -224,8 +177,8 @@
                         return detectedModel;
                     }
                 }
-            } catch (e) { console.warn("Fallo auto-config, usando fallback."); }
-            return "gemini-2.5-flash"; // Fallback por defecto 2026
+            } catch (e) { console.warn("Error auto-config", e); }
+            return "gemini-2.5-flash"; 
         }
 
         async function consultarGemini(prompt) { 
@@ -234,12 +187,16 @@
             container.scrollTop = container.scrollHeight;
             
             try {
-                const modelo = await getWorkingModel();
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${API_KEY_GOOGLE}`;
+                // 1. Obtener clave segura
+                const apiKey = await getGeminiKey();
+                if(!apiKey) throw new Error("Ejecuta el SQL en Supabase para guardar la clave.");
+
+                // 2. Obtener modelo válido
+                const modelo = await getBestModel(apiKey);
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${apiKey}`;
                 
                 const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
                 });
 
@@ -247,7 +204,6 @@
                 removerLoading(loadingId);
                 
                 if(data.error) {
-                    // Si falla con 404, limpiamos el modelo guardado para re-buscar la proxima vez
                     if(data.error.code === 404) detectedModel = null;
                     throw new Error(data.error.message);
                 }
@@ -256,13 +212,29 @@
                 agregarBurbujaTutor(data.candidates[0].content.parts[0].text, 'bot'); 
 
             } catch(e) { 
-                removerLoading(loadingId); 
-                console.error(e);
-                agregarBurbujaTutor(`⚠️ ${e.message}`, 'bot'); 
+                removerLoading(loadingId); console.error(e);
+                let msg = `⚠️ ${e.message}`; 
+                if(msg.includes("API key not valid")) msg = "⚠️ Error: Clave inválida. Actualiza DB.";
+                agregarBurbujaTutor(msg, 'bot'); 
             } 
         }
 
-        // --- RESTO LÓGICA DE CURSO ---
+        // --- FUNCIONES INTERFAZ ---
+        function toggleTutor() {
+            const win = document.getElementById('tutor-window'); isChatOpen = !isChatOpen;
+            if(isChatOpen) { win.classList.remove('hidden'); requestAnimationFrame(() => { win.classList.remove('scale-95', 'opacity-0'); document.getElementById('chat-input').focus(); }); }
+            else { win.classList.add('scale-95', 'opacity-0'); setTimeout(() => { if(!isChatOpen) win.classList.add('hidden'); }, 300); }
+        }
+        async function enviarMensajeTutor(e) { 
+            e.preventDefault(); const t = document.getElementById('chat-input').value.trim(); if(!t) return; 
+            agregarBurbujaTutor(t, 'user'); document.getElementById('chat-input').value=""; 
+            consultarGemini(`Rol: ${currentRole}. Contexto: "${obtenerContexto()}". Pregunta: "${t}". Responde breve.`); 
+        }
+        function borrarHistorial() { document.getElementById('chat-messages').innerHTML = `<div class="flex gap-3 chat-bubble"><div class="w-8 h-8 rounded-full bg-white overflow-hidden shrink-0 border border-indigo-500 mt-1 p-0.5"><img src="${currentAvatarUrl}" class="w-full h-full object-contain"></div><div class="bg-slate-800 text-slate-200 text-sm p-3 rounded-2xl rounded-tl-none border border-slate-700 shadow-md"><p>¡Hola! Soy <b>Doc</b>. 🦉</p></div></div>`; }
+        function accionarTutor(accion) { if(accion === 'quiz') { agregarBurbujaTutor('Examen.', 'user'); consultarGemini('Genera examen 3 preguntas multiple choice sobre: ' + obtenerContexto() + '. Formato Markdown. Respuestas al final.'); } if(accion === 'resumen') { agregarBurbujaTutor('Resumen.', 'user'); consultarGemini('Resumen 3 puntos sobre: ' + obtenerContexto()); } if(accion === 'explicar') { agregarBurbujaTutor('Explicar.', 'user'); consultarGemini('Explica simple: ' + obtenerContexto()); } }
+        function obtenerContexto() { return `${document.getElementById('current-lesson-title').innerText} (Curso: ${document.getElementById('course-title').innerText})`; }
+        
+        // --- RESTO SISTEMA ---
         async function cargarCurso(id) {
             const { data: curso, error } = await db.from('cursos_oficiales').select('*').eq('id', id).single();
             if(error || !curso) { alert("Error cargando curso"); return window.location.href = 'dashboard.html'; }
@@ -319,9 +291,6 @@
         function updateNavButtons() { document.getElementById('btn-prev').disabled = currentLessonIndex <= 0; document.getElementById('btn-next').disabled = currentLessonIndex >= flatLessons.length - 1; document.getElementById('btn-prev').onclick = () => cargarClase(currentLessonIndex - 1); document.getElementById('btn-next').onclick = () => cargarClase(currentLessonIndex + 1); }
         function personalizarDoc(registroId) { let tipo = 'default'; let statusText = 'Tutor Académico'; if (registroId) { const rid = registroId.toLowerCase(); if(rid.includes('remaep') || rid.includes('salud')) { tipo = 'salud'; statusText = 'Experto en Salud'; } else if (rid.includes('isf') || rid.includes('deporte')) { tipo = 'deporte'; statusText = 'Coach Deportivo'; } } currentAvatarUrl = AVATARS[tipo]; currentRole = statusText; document.getElementById('tutor-btn-img').src = currentAvatarUrl; document.getElementById('tutor-header-img').src = currentAvatarUrl; document.getElementById('tutor-status').innerText = statusText; borrarHistorial(); }
         function toggleMobileMenu() { document.getElementById('playlist-sidebar').classList.toggle('translate-x-full'); }
-        function borrarHistorial() { document.getElementById('chat-messages').innerHTML = `<div class="flex gap-3 chat-bubble"><div class="w-8 h-8 rounded-full bg-white overflow-hidden shrink-0 border border-indigo-500 mt-1 p-0.5"><img src="${currentAvatarUrl}" class="w-full h-full object-contain"></div><div class="bg-slate-800 text-slate-200 text-sm p-3 rounded-2xl rounded-tl-none border border-slate-700 shadow-md"><p>¡Hola! Soy <b>Doc</b>. 🦉</p></div></div>`; }
-        function accionarTutor(accion) { if(accion === 'quiz') { agregarBurbujaTutor('Examen.', 'user'); consultarGemini('Genera examen 3 preguntas multiple choice sobre: ' + obtenerContexto() + '. Formato Markdown. Respuestas al final.'); } if(accion === 'resumen') { agregarBurbujaTutor('Resumen.', 'user'); consultarGemini('Resumen 3 puntos sobre: ' + obtenerContexto()); } if(accion === 'explicar') { agregarBurbujaTutor('Explicar.', 'user'); consultarGemini('Explica simple: ' + obtenerContexto()); } }
-        function obtenerContexto() { return `${document.getElementById('current-lesson-title').innerText} (Curso: ${document.getElementById('course-title').innerText})`; }
         function agregarBurbujaTutor(t, k) { const c = document.getElementById('chat-messages'); const d = document.createElement('div'); const h = t.replace(/\*\*(.*?)\*\*/g, '<b class="text-white">$1</b>').replace(/\n/g, '<br>'); d.className = k==='user' ? "flex gap-3 flex-row-reverse chat-bubble" : "flex gap-3 chat-bubble"; d.innerHTML = k==='user' ? `<div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center shrink-0"><i data-lucide="user" class="w-4 h-4 text-slate-300"></i></div><div class="bg-blue-600 text-white text-sm p-3 rounded-2xl rounded-tr-none shadow-md max-w-[80%]">${h}</div>` : `<div class="w-8 h-8 rounded-full bg-white overflow-hidden shrink-0 border border-indigo-500 mt-1 p-0.5"><img src="${currentAvatarUrl}" class="w-full h-full object-contain"></div><div class="bg-slate-800 text-slate-200 text-sm p-3 rounded-2xl rounded-tl-none border border-slate-700 shadow-md max-w-[90%] leading-relaxed">${h}</div>`; c.appendChild(d); c.scrollTop=c.scrollHeight; lucide.createIcons(); }
         function mostrarLoading() { const c=document.getElementById('chat-messages'), i='load-'+Date.now(), d=document.createElement('div'); d.id=i; d.className="flex gap-3 chat-bubble"; d.innerHTML=`<div class="w-8 h-8 rounded-full bg-white overflow-hidden shrink-0 border border-indigo-500 mt-1 p-0.5"><img src="${currentAvatarUrl}" class="w-full h-full object-contain"></div><div class="bg-slate-800 p-4 rounded-2xl rounded-tl-none border border-slate-700 flex gap-1 items-center h-10"><span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce"></span><span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce delay-100"></span><span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce delay-200"></span></div>`; c.appendChild(d); c.scrollTop=c.scrollHeight; return i; }
         function removerLoading(i) { const e=document.getElementById(i); if(e) e.remove(); }
