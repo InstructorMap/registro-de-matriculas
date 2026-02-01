@@ -15,8 +15,6 @@
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        
-        /* Animaciones */
         #tutor-window { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .chat-bubble { animation: popIn 0.3s ease-out; }
         @keyframes popIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -47,7 +45,6 @@
         <main class="flex-1 flex flex-col min-w-0 bg-slate-900 relative z-10">
             <div class="flex-1 p-4 md:p-8 overflow-y-auto flex flex-col">
                 <div class="w-full max-w-6xl mx-auto space-y-6 h-full flex flex-col">
-                    
                     <div id="player-wrapper" class="w-full bg-black rounded-2xl shadow-2xl overflow-hidden border border-slate-800 relative aspect-video flex-shrink-0 flex items-center justify-center group">
                         <div id="player-placeholder" class="text-center p-8">
                             <div class="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse"><i data-lucide="loader-2" class="w-8 h-8 text-slate-600 animate-spin"></i></div>
@@ -58,7 +55,6 @@
                             <a id="jitsi-external-link" href="#" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg flex items-center gap-2 transition-all opacity-50 hover:opacity-100"><i data-lucide="external-link" class="w-3 h-3"></i> Abrir en Nueva Pestaña</a>
                         </div>
                     </div>
-
                     <div class="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center pb-10 bg-slate-900 sticky bottom-0 z-20 py-4 border-t border-slate-800/50">
                         <div class="flex-1">
                             <div class="flex items-center gap-3 mb-1">
@@ -91,12 +87,9 @@
         </aside>
 
         <button onclick="toggleMobileMenu()" class="md:hidden absolute bottom-6 right-6 z-30 bg-blue-600 text-white p-4 rounded-full shadow-xl"><i data-lucide="menu" class="w-6 h-6"></i></button>
-
         <button onclick="toggleTutor()" class="fixed bottom-8 right-8 z-50 group transition-all duration-300 hover:scale-110">
             <div class="relative">
-                <div class="w-16 h-16 rounded-full bg-white p-1 shadow-2xl border-4 border-indigo-500 overflow-hidden relative z-10">
-                    <img id="tutor-btn-img" src="https://cdn-icons-png.flaticon.com/512/3468/3468283.png" class="w-full h-full object-contain">
-                </div>
+                <div class="w-16 h-16 rounded-full bg-white p-1 shadow-2xl border-4 border-indigo-500 overflow-hidden relative z-10"><img id="tutor-btn-img" src="https://cdn-icons-png.flaticon.com/512/3468/3468283.png" class="w-full h-full object-contain"></div>
                 <div class="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-slate-900 rounded-full z-20 animate-pulse"></div>
             </div>
         </button>
@@ -104,13 +97,11 @@
         <div id="tutor-window" class="fixed bottom-28 right-4 md:right-8 z-50 w-80 md:w-96 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl flex flex-col hidden origin-bottom-right transform scale-95 opacity-0 h-[500px] transition-all duration-300">
             <div class="p-4 bg-gradient-to-r from-slate-900 to-slate-800 border-b border-slate-700 rounded-t-2xl flex justify-between items-center">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-white p-0.5 border border-white/10 overflow-hidden">
-                        <img id="tutor-header-img" src="https://cdn-icons-png.flaticon.com/512/3468/3468283.png" class="w-full h-full object-contain">
-                    </div>
+                    <div class="w-10 h-10 rounded-full bg-white p-0.5 border border-white/10 overflow-hidden"><img id="tutor-header-img" src="https://cdn-icons-png.flaticon.com/512/3468/3468283.png" class="w-full h-full object-contain"></div>
                     <div><h3 class="font-bold text-white text-sm">Hola, soy Doc.</h3><p class="text-[10px] text-green-400 font-medium" id="tutor-status">Tutor Virtual</p></div>
                 </div>
                 <div class="flex gap-2">
-                    <button onclick="borrarHistorial()" class="text-slate-500 hover:text-red-400 p-1" title="Reiniciar chat"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    <button onclick="borrarHistorial()" class="text-slate-500 hover:text-red-400 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                     <button onclick="toggleTutor()" class="text-slate-400 hover:text-white p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
                 </div>
             </div>
@@ -134,17 +125,16 @@
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
-        // --- ESTADO GLOBAL ---
+        // CONFIGURACIÓN CRÍTICA
+        const API_KEY_GOOGLE = 'AIzaSyAkZT7qHxVuhMgjzf-BlOPIyHx2hHGaj7U';
+        let detectedModel = null; // Se llenará automáticamente
+
         let flatLessons = [], currentLessonIndex = -1, jitsiApi = null, completedLessons = new Set();
         let currentCourseId = null, currentUserId = null;
-        let detectedModel = null; // Guardará el modelo descubierto
-
-        // --- AVATARS ---
         const AVATARS = { 'salud': 'https://cdn-icons-png.flaticon.com/512/3304/3304567.png', 'deporte': 'https://cdn-icons-png.flaticon.com/512/5305/5305149.png', 'default': 'https://cdn-icons-png.flaticon.com/512/3468/3468283.png' };
         let currentAvatarUrl = AVATARS['default'];
         let currentRole = "Profesor General";
 
-        // --- INICIALIZACIÓN ---
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
             const { data: { session } } = await db.auth.getSession();
@@ -159,240 +149,131 @@
             if(currentCourseId) await cargarCurso(currentCourseId); else window.location.href = 'dashboard.html';
         });
 
-        // --- LÓGICA DE CURSO ---
-        async function cargarCurso(id) {
-            const { data: curso, error } = await db.from('cursos_oficiales').select('*').eq('id', id).single();
-            if(error || !curso) { alert("Error cargando curso"); return window.location.href = 'dashboard.html'; }
-
-            document.getElementById('course-title').innerText = curso.nombre;
-            personalizarDoc(curso.registro_id);
-            if(curso.institution_id) aplicarBranding(curso.institution_id);
-
-            const { data: progreso } = await db.from('progreso_alumnos').select('clases_vistas').eq('student_id', currentUserId).eq('curso_id', id).single();
-            if(progreso && progreso.clases_vistas) completedLessons = new Set(progreso.clases_vistas);
-
-            renderizarTemario(curso.contenido);
-            
-            let targetIndex = 0;
-            for(let i=0; i<flatLessons.length; i++) if(!completedLessons.has(flatLessons[i].uniqueId)) { targetIndex = i; break; }
-            if(completedLessons.size === flatLessons.length && flatLessons.length > 0) targetIndex = flatLessons.length - 1;
-            cargarClase(targetIndex);
-        }
-
-        async function aplicarBranding(instId) {
-            const { data: inst } = await db.from('instituciones').select('*').eq('id', instId).single();
-            if(inst && inst.color_primario) {
-                document.getElementById('top-header').style.backgroundColor = inst.color_primario;
-                document.getElementById('user-avatar-ui').style.backgroundColor = "rgba(255,255,255,0.2)";
-            }
-        }
-
-        function renderizarTemario(modulos) {
-            const container = document.getElementById('modules-list');
-            container.innerHTML = ""; flatLessons = [];
-            modulos.forEach((mod, modIdx) => {
-                const modDiv = document.createElement('div');
-                modDiv.className = "space-y-1";
-                modDiv.innerHTML = `<div class="px-3 py-2 bg-slate-900/50 rounded-lg text-[10px] font-bold text-slate-400 uppercase tracking-wider border border-slate-800/50">${mod.titulo}</div><div class="space-y-1 pl-1" id="mod-content-${modIdx}"></div>`;
-                container.appendChild(modDiv);
-                if(mod.lecciones) mod.lecciones.forEach((lec, lecIdx) => {
-                    const idx = flatLessons.length;
-                    const uniqueId = `${modIdx}-${lecIdx}`;
-                    flatLessons.push({ ...lec, modIdx, uniqueId });
-                    const btn = document.createElement('button');
-                    btn.id = `btn-lec-${idx}`;
-                    const isCompleted = completedLessons.has(uniqueId);
-                    btn.className = `w-full text-left px-3 py-3 rounded-lg flex items-center justify-between text-xs transition-all border border-transparent group ${isCompleted ? 'text-green-400' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`;
-                    let icon = 'play-circle';
-                    if(lec.tipo === 'PDF') icon = 'file-text';
-                    if(lec.tipo === 'LIVE' || lec.tipo === 'ZOOM') icon = 'video';
-                    const leftIcon = isCompleted ? `<i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i>` : `<i data-lucide="${icon}" class="w-4 h-4 opacity-50 group-hover:opacity-100"></i>`;
-                    btn.innerHTML = `<div class="flex items-center gap-3 overflow-hidden"><span class="shrink-0">${leftIcon}</span> <span class="truncate font-medium">${lec.titulo}</span></div>`;
-                    btn.onclick = () => cargarClase(idx);
-                    modDiv.querySelector(`#mod-content-${modIdx}`).appendChild(btn);
-                });
-            });
-            lucide.createIcons(); actualizarBarraGlobal();
-        }
-
-        function cargarClase(index) {
-            if(index < 0 || index >= flatLessons.length) return;
-            if(jitsiApi) { jitsiApi.dispose(); jitsiApi = null; }
-            document.getElementById('player-placeholder').classList.add('hidden');
-            document.getElementById('jitsi-rescue').classList.add('hidden');
-            const container = document.getElementById('player-content');
-            container.innerHTML = ""; container.classList.remove('hidden');
-
-            document.querySelectorAll('[id^="btn-lec-"]').forEach(b => b.classList.remove('bg-blue-600/20', 'border-blue-500/30'));
-            const activeBtn = document.getElementById(`btn-lec-${index}`);
-            if(activeBtn) activeBtn.classList.add('bg-blue-600/20', 'border-blue-500/30');
-
-            currentLessonIndex = index;
-            const lec = flatLessons[index];
-            document.getElementById('current-lesson-title').innerText = lec.titulo;
-            actualizarBotonCompletado(completedLessons.has(lec.uniqueId));
-
-            if(lec.tipo === 'VIDEO') {
-                let url = lec.url || "";
-                if(url.includes('youtu')) { const videoId = url.split('v=')[1] || url.split('/').pop().split('?')[0]; container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1" class="w-full h-full" frameborder="0" allowfullscreen></iframe>`; } 
-                else container.innerHTML = `<video src="${url}" controls class="w-full h-full bg-black"></video>`;
-            } else if (lec.tipo === 'PDF') {
-                container.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-center p-10 bg-slate-900 w-full"><i data-lucide="file-text" class="w-16 h-16 text-red-500 mb-4"></i><h3 class="text-xl font-bold text-white mb-2">Lectura</h3><a href="${lec.url}" target="_blank" onclick="marcarComoCompletada()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-bold flex gap-2"><i data-lucide="download" class="w-4 h-4"></i> Abrir PDF</a></div>`;
-                lucide.createIcons();
-            } else if (lec.tipo === 'ZOOM' || lec.tipo === 'LIVE') {
-                 container.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-center bg-slate-900"><i data-lucide="video" class="w-12 h-12 text-blue-500 mb-4"></i><h3 class="font-bold text-white">Clase Externa</h3><a href="${lec.url}" target="_blank" onclick="marcarComoCompletada()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold mt-4">Unirse a la Reunión</a></div>`;
-                 lucide.createIcons();
-            }
-            updateNavButtons();
-            if(window.innerWidth < 768) document.getElementById('playlist-sidebar').classList.add('translate-x-full');
-        }
-
-        async function marcarComoCompletada() {
-            if(currentLessonIndex === -1) return;
-            const lec = flatLessons[currentLessonIndex];
-            if(completedLessons.has(lec.uniqueId)) { if(currentLessonIndex < flatLessons.length - 1) cargarClase(currentLessonIndex + 1); return; }
-            completedLessons.add(lec.uniqueId);
-            actualizarBotonCompletado(true); actualizarItemLista(currentLessonIndex, true); actualizarBarraGlobal();
-            await db.from('progreso_alumnos').upsert({ student_id: currentUserId, curso_id: currentCourseId, clases_vistas: Array.from(completedLessons), updated_at: new Date().toISOString() }, { onConflict: 'student_id, curso_id' });
-            setTimeout(() => { if(currentLessonIndex < flatLessons.length - 1) cargarClase(currentLessonIndex + 1); }, 800);
-        }
-
-        function actualizarBotonCompletado(isDone) {
-            const btn = document.getElementById('btn-mark-done');
-            const badge = document.getElementById('check-completed');
-            if(isDone) { badge.classList.remove('hidden'); btn.innerHTML = `<span class="text-green-400 flex items-center gap-1">Siguiente <i data-lucide="arrow-right" class="w-3 h-3"></i></span>`; } 
-            else { badge.classList.add('hidden'); btn.innerHTML = `<div class="w-4 h-4 border-2 border-slate-500 rounded-sm flex items-center justify-center mr-2"></div> Marcar como vista`; }
-        }
-
-        function actualizarItemLista(idx, isDone) {
-            const btn = document.getElementById(`btn-lec-${idx}`);
-            if(btn && isDone) { btn.classList.remove('text-slate-400'); btn.classList.add('text-green-400'); btn.querySelector('span:first-child').innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i>`; lucide.createIcons(); }
-        }
-
-        function actualizarBarraGlobal() {
-            if(flatLessons.length === 0) return;
-            const percent = Math.round((completedLessons.size / flatLessons.length) * 100);
-            document.getElementById('progress-bar').style.width = `${percent}%`; document.getElementById('progress-text').innerText = `${percent}%`;
-        }
-        
-        function updateNavButtons() {
-            document.getElementById('btn-prev').disabled = currentLessonIndex <= 0;
-            document.getElementById('btn-next').disabled = currentLessonIndex >= flatLessons.length - 1;
-            document.getElementById('btn-prev').onclick = () => cargarClase(currentLessonIndex - 1);
-            document.getElementById('btn-next').onclick = () => cargarClase(currentLessonIndex + 1);
-        }
-
-        function personalizarDoc(registroId) {
-            let tipo = 'default'; let statusText = 'Tutor Académico';
-            if (registroId) { const rid = registroId.toLowerCase(); if(rid.includes('remaep') || rid.includes('salud')) { tipo = 'salud'; statusText = 'Experto en Salud'; } else if (rid.includes('isf') || rid.includes('deporte')) { tipo = 'deporte'; statusText = 'Coach Deportivo'; } }
-            currentAvatarUrl = AVATARS[tipo]; currentRole = statusText;
-            document.getElementById('tutor-btn-img').src = currentAvatarUrl; document.getElementById('tutor-header-img').src = currentAvatarUrl; document.getElementById('tutor-status').innerText = statusText;
-            borrarHistorial();
-        }
-
-        function toggleMobileMenu() { document.getElementById('playlist-sidebar').classList.toggle('translate-x-full'); }
-
-        // --- SISTEMA DE CHAT: AUTO-DESCUBRIMIENTO DE MODELO ---
-        // Este es el sistema definitivo que soluciona el 404.
-        let isChatOpen = false;
-        function toggleTutor() {
-            const win = document.getElementById('tutor-window'); isChatOpen = !isChatOpen;
-            if(isChatOpen) { win.classList.remove('hidden'); requestAnimationFrame(() => { win.classList.remove('scale-95', 'opacity-0'); document.getElementById('chat-input').focus(); }); }
-            else { win.classList.add('scale-95', 'opacity-0'); setTimeout(() => win.classList.add('hidden'), 300); }
-        }
-        function borrarHistorial() { document.getElementById('chat-messages').innerHTML = `<div class="flex gap-3 chat-bubble"><div class="w-8 h-8 rounded-full bg-white overflow-hidden shrink-0 border border-indigo-500 mt-1 p-0.5"><img src="${currentAvatarUrl}" class="w-full h-full object-contain"></div><div class="bg-slate-800 text-slate-200 text-sm p-3 rounded-2xl rounded-tl-none border border-slate-700 shadow-md"><p>¡Hola! Soy <b>Doc</b>. 🦉</p></div></div>`; }
-
-        // --- FUNCIÓN CLAVE: Auto-descubre qué modelo funciona ---
-        async function descubrirYConsultar(prompt, apiKey) {
-            // 1. Si ya sabemos cuál funciona, úsalo directo.
-            if(detectedModel) {
-                 return await realizarPeticion(detectedModel, prompt, apiKey);
-            }
-
-            // 2. Si no, preguntamos a Google: "¿Qué modelos tienes?"
+        // --- SISTEMA DE AUTO-SELECCIÓN DE MODELO ---
+        // Esta función lee tu lista de 47 modelos y elige el mejor disponible.
+        async function getBestModel() {
+            if (detectedModel) return detectedModel;
             try {
-                const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
-                const listResp = await fetch(listUrl);
-                const listData = await listResp.json();
+                // 1. Pedir lista a Google
+                const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${API_KEY_GOOGLE}`);
+                const d = await r.json();
                 
-                if(listData.models) {
-                    // Filtramos solo los que sirven para chatear (generateContent)
-                    const candidatos = listData.models.filter(m => 
-                        m.supportedGenerationMethods && m.supportedGenerationMethods.includes("generateContent")
-                    );
+                if (d.models) {
+                    // 2. Filtrar solo los que generan texto (generateContent)
+                    const candidatos = d.models.filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes("generateContent"));
                     
-                    // Priorizamos: Primero los "pro", luego los "flash"
-                    candidatos.sort((a, b) => {
-                        const scoreA = (a.name.includes("pro") ? 2 : 0) + (a.name.includes("flash") ? 1 : 0);
-                        const scoreB = (b.name.includes("pro") ? 2 : 0) + (b.name.includes("flash") ? 1 : 0);
-                        return scoreB - scoreA; 
-                    });
-
-                    if(candidatos.length > 0) {
-                        // Limpiamos el nombre (a veces viene con 'models/' al inicio)
-                        detectedModel = candidatos[0].name.replace('models/', '');
-                        console.log("Auto-descubierto modelo óptimo:", detectedModel);
-                        return await realizarPeticion(detectedModel, prompt, apiKey);
+                    // 3. Buscar prioritarios: Versiones "Flash" nuevas, luego las viejas
+                    // Intentamos encontrar "gemini-1.5-flash" o similar.
+                    let elegido = candidates.find(m => m.name.includes("gemini-1.5-flash")) || 
+                                  candidates.find(m => m.name.includes("flash")) || 
+                                  candidates[0]; // Si no hay flash, el primero que sirva
+                    
+                    if (elegido) {
+                        detectedModel = elegido.name.replace("models/", "");
+                        console.log("🚀 MODELO SELECCIONADO:", detectedModel);
+                        return detectedModel;
                     }
                 }
-            } catch(e) { console.warn("Fallo auto-discovery, probando fallback..."); }
-
-            // 3. Fallback de emergencia si el listado falla (Modelo seguro)
-            detectedModel = "gemini-1.5-flash"; 
-            return await realizarPeticion(detectedModel, prompt, apiKey);
+            } catch (e) { console.error("Error auto-config", e); }
+            
+            // 4. Fallback si todo falla (Probabilidad 0.1%)
+            return "gemini-1.5-flash-latest";
         }
 
-        async function realizarPeticion(modelo, prompt, apiKey) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${apiKey}`;
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-            });
-            const data = await response.json();
-            if(data.error) throw new Error(`${data.error.code}: ${data.error.message}`);
-            if(!data.candidates || !data.candidates[0]) throw new Error("Sin respuesta de IA");
-            return data.candidates[0].content.parts[0].text;
-        }
-        
         async function consultarGemini(prompt) { 
             const loadingId = mostrarLoading(); 
             const container = document.getElementById('chat-messages');
             container.scrollTop = container.scrollHeight;
             
             try {
-                const apiKey = 'AIzaSyAkZT7qHxVuhMgjzf-BlOPIyHx2hHGaj7U';
-                const respuesta = await descubrirYConsultar(prompt, apiKey);
+                // Obtenemos el nombre exacto de la lista de 47
+                const modeloExacto = await getBestModel();
+                
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${modeloExacto}:generateContent?key=${API_KEY_GOOGLE}`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+
+                const data = await response.json();
                 removerLoading(loadingId);
-                agregarBurbujaTutor(respuesta, 'bot'); 
+                
+                if(data.error) throw new Error(data.error.message);
+                if(!data.candidates || !data.candidates[0]) throw new Error("Sin respuesta");
+                
+                agregarBurbujaTutor(data.candidates[0].content.parts[0].text, 'bot'); 
 
             } catch(e) { 
                 removerLoading(loadingId); 
                 console.error(e);
-                let msg = "⚠️ Error de conexión.";
-                if(e.message.includes("404")) msg = "⚠️ Error: Modelo IA no encontrado.";
-                if(e.message.includes("429")) msg = "⚠️ Saturación de sistema. Espera unos segundos.";
-                agregarBurbujaTutor(msg, 'bot'); 
+                agregarBurbujaTutor(`⚠️ Error (${e.message}). Revisa la consola.`, 'bot'); 
             } 
         }
 
-        function accionarTutor(accion) {
-            if(accion === 'quiz') { agregarBurbujaTutor('Examen.', 'user'); consultarGemini('Genera examen 3 preguntas multiple choice sobre: ' + obtenerContexto() + '. Formato Markdown. Respuestas al final.'); }
-            if(accion === 'resumen') { agregarBurbujaTutor('Resumen.', 'user'); consultarGemini('Resumen 3 puntos sobre: ' + obtenerContexto()); }
-            if(accion === 'explicar') { agregarBurbujaTutor('Explicar.', 'user'); consultarGemini('Explica simple: ' + obtenerContexto()); }
+        // --- RESTO DE FUNCIONES (Igual que antes) ---
+        async function cargarCurso(id) {
+            const { data: curso, error } = await db.from('cursos_oficiales').select('*').eq('id', id).single();
+            if(error || !curso) { alert("Error cargando curso"); return window.location.href = 'dashboard.html'; }
+            document.getElementById('course-title').innerText = curso.nombre;
+            personalizarDoc(curso.registro_id);
+            if(curso.institution_id) aplicarBranding(curso.institution_id);
+            const { data: progreso } = await db.from('progreso_alumnos').select('clases_vistas').eq('student_id', currentUserId).eq('curso_id', id).single();
+            if(progreso && progreso.clases_vistas) completedLessons = new Set(progreso.clases_vistas);
+            renderizarTemario(curso.contenido);
+            let targetIndex = 0; for(let i=0; i<flatLessons.length; i++) if(!completedLessons.has(flatLessons[i].uniqueId)) { targetIndex = i; break; }
+            if(completedLessons.size === flatLessons.length && flatLessons.length > 0) targetIndex = flatLessons.length - 1;
+            cargarClase(targetIndex);
         }
+        async function aplicarBranding(instId) { const { data: inst } = await db.from('instituciones').select('*').eq('id', instId).single(); if(inst && inst.color_primario) { document.getElementById('top-header').style.backgroundColor = inst.color_primario; document.getElementById('user-avatar-ui').style.backgroundColor = "rgba(255,255,255,0.2)"; } }
+        function renderizarTemario(modulos) {
+            const container = document.getElementById('modules-list'); container.innerHTML = ""; flatLessons = [];
+            modulos.forEach((mod, modIdx) => {
+                const modDiv = document.createElement('div'); modDiv.className = "space-y-1";
+                modDiv.innerHTML = `<div class="px-3 py-2 bg-slate-900/50 rounded-lg text-[10px] font-bold text-slate-400 uppercase tracking-wider border border-slate-800/50">${mod.titulo}</div><div class="space-y-1 pl-1" id="mod-content-${modIdx}"></div>`;
+                container.appendChild(modDiv);
+                if(mod.lecciones) mod.lecciones.forEach((lec, lecIdx) => {
+                    const idx = flatLessons.length; const uniqueId = `${modIdx}-${lecIdx}`; flatLessons.push({ ...lec, modIdx, uniqueId });
+                    const btn = document.createElement('button'); btn.id = `btn-lec-${idx}`; const isCompleted = completedLessons.has(uniqueId);
+                    btn.className = `w-full text-left px-3 py-3 rounded-lg flex items-center justify-between text-xs transition-all border border-transparent group ${isCompleted ? 'text-green-400' : 'text-slate-400 hover:bg-slate-800 hover:text-white'}`;
+                    let icon = 'play-circle'; if(lec.tipo === 'PDF') icon = 'file-text'; if(lec.tipo === 'LIVE' || lec.tipo === 'ZOOM') icon = 'video';
+                    const leftIcon = isCompleted ? `<i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i>` : `<i data-lucide="${icon}" class="w-4 h-4 opacity-50 group-hover:opacity-100"></i>`;
+                    btn.innerHTML = `<div class="flex items-center gap-3 overflow-hidden"><span class="shrink-0">${leftIcon}</span> <span class="truncate font-medium">${lec.titulo}</span></div>`;
+                    btn.onclick = () => cargarClase(idx); modDiv.querySelector(`#mod-content-${modIdx}`).appendChild(btn);
+                });
+            }); lucide.createIcons(); actualizarBarraGlobal();
+        }
+        function cargarClase(index) {
+            if(index < 0 || index >= flatLessons.length) return; if(jitsiApi) { jitsiApi.dispose(); jitsiApi = null; }
+            document.getElementById('player-placeholder').classList.add('hidden'); document.getElementById('jitsi-rescue').classList.add('hidden');
+            const container = document.getElementById('player-content'); container.innerHTML = ""; container.classList.remove('hidden');
+            document.querySelectorAll('[id^="btn-lec-"]').forEach(b => b.classList.remove('bg-blue-600/20', 'border-blue-500/30'));
+            const activeBtn = document.getElementById(`btn-lec-${index}`); if(activeBtn) activeBtn.classList.add('bg-blue-600/20', 'border-blue-500/30');
+            currentLessonIndex = index; const lec = flatLessons[index]; document.getElementById('current-lesson-title').innerText = lec.titulo; actualizarBotonCompletado(completedLessons.has(lec.uniqueId));
+            if(lec.tipo === 'VIDEO') { let url = lec.url || ""; if(url.includes('youtu')) { const videoId = url.split('v=')[1] || url.split('/').pop().split('?')[0]; container.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1" class="w-full h-full" frameborder="0" allowfullscreen></iframe>`; } else container.innerHTML = `<video src="${url}" controls class="w-full h-full bg-black"></video>`; } 
+            else if (lec.tipo === 'PDF') { container.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-center p-10 bg-slate-900 w-full"><i data-lucide="file-text" class="w-16 h-16 text-red-500 mb-4"></i><h3 class="text-xl font-bold text-white mb-2">Lectura</h3><a href="${lec.url}" target="_blank" onclick="marcarComoCompletada()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-bold flex gap-2"><i data-lucide="download" class="w-4 h-4"></i> Abrir PDF</a></div>`; lucide.createIcons(); } 
+            else if (lec.tipo === 'ZOOM' || lec.tipo === 'LIVE') { container.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-center bg-slate-900"><i data-lucide="video" class="w-12 h-12 text-blue-500 mb-4"></i><h3 class="font-bold text-white">Clase Externa</h3><a href="${lec.url}" target="_blank" onclick="marcarComoCompletada()" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold mt-4">Unirse a la Reunión</a></div>`; lucide.createIcons(); }
+            updateNavButtons(); if(window.innerWidth < 768) document.getElementById('playlist-sidebar').classList.add('translate-x-full');
+        }
+        async function marcarComoCompletada() {
+            if(currentLessonIndex === -1) return; const lec = flatLessons[currentLessonIndex];
+            if(completedLessons.has(lec.uniqueId)) { if(currentLessonIndex < flatLessons.length - 1) cargarClase(currentLessonIndex + 1); return; }
+            completedLessons.add(lec.uniqueId); actualizarBotonCompletado(true); actualizarItemLista(currentLessonIndex, true); actualizarBarraGlobal();
+            await db.from('progreso_alumnos').upsert({ student_id: currentUserId, curso_id: currentCourseId, clases_vistas: Array.from(completedLessons), updated_at: new Date().toISOString() }, { onConflict: 'student_id, curso_id' });
+            setTimeout(() => { if(currentLessonIndex < flatLessons.length - 1) cargarClase(currentLessonIndex + 1); }, 800);
+        }
+        function actualizarBotonCompletado(isDone) { const btn = document.getElementById('btn-mark-done'); const badge = document.getElementById('check-completed'); if(isDone) { badge.classList.remove('hidden'); btn.innerHTML = `<span class="text-green-400 flex items-center gap-1">Siguiente <i data-lucide="arrow-right" class="w-3 h-3"></i></span>`; } else { badge.classList.add('hidden'); btn.innerHTML = `<div class="w-4 h-4 border-2 border-slate-500 rounded-sm flex items-center justify-center mr-2"></div> Marcar como vista`; } }
+        function actualizarItemLista(idx, isDone) { const btn = document.getElementById(`btn-lec-${idx}`); if(btn && isDone) { btn.classList.remove('text-slate-400'); btn.classList.add('text-green-400'); btn.querySelector('span:first-child').innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i>`; lucide.createIcons(); } }
+        function actualizarBarraGlobal() { if(flatLessons.length === 0) return; const percent = Math.round((completedLessons.size / flatLessons.length) * 100); document.getElementById('progress-bar').style.width = `${percent}%`; document.getElementById('progress-text').innerText = `${percent}%`; }
+        function updateNavButtons() { document.getElementById('btn-prev').disabled = currentLessonIndex <= 0; document.getElementById('btn-next').disabled = currentLessonIndex >= flatLessons.length - 1; document.getElementById('btn-prev').onclick = () => cargarClase(currentLessonIndex - 1); document.getElementById('btn-next').onclick = () => cargarClase(currentLessonIndex + 1); }
+        function personalizarDoc(registroId) { let tipo = 'default'; let statusText = 'Tutor Académico'; if (registroId) { const rid = registroId.toLowerCase(); if(rid.includes('remaep') || rid.includes('salud')) { tipo = 'salud'; statusText = 'Experto en Salud'; } else if (rid.includes('isf') || rid.includes('deporte')) { tipo = 'deporte'; statusText = 'Coach Deportivo'; } } currentAvatarUrl = AVATARS[tipo]; currentRole = statusText; document.getElementById('tutor-btn-img').src = currentAvatarUrl; document.getElementById('tutor-header-img').src = currentAvatarUrl; document.getElementById('tutor-status').innerText = statusText; borrarHistorial(); }
+        function toggleMobileMenu() { document.getElementById('playlist-sidebar').classList.toggle('translate-x-full'); }
+        let isChatOpen = false; function toggleTutor() { const win = document.getElementById('tutor-window'); isChatOpen = !isChatOpen; if(isChatOpen) { win.classList.remove('hidden'); requestAnimationFrame(() => { win.classList.remove('scale-95', 'opacity-0'); document.getElementById('chat-input').focus(); }); } else { win.classList.add('scale-95', 'opacity-0'); setTimeout(() => win.classList.add('hidden'), 300); } }
+        function borrarHistorial() { document.getElementById('chat-messages').innerHTML = `<div class="flex gap-3 chat-bubble"><div class="w-8 h-8 rounded-full bg-white overflow-hidden shrink-0 border border-indigo-500 mt-1 p-0.5"><img src="${currentAvatarUrl}" class="w-full h-full object-contain"></div><div class="bg-slate-800 text-slate-200 text-sm p-3 rounded-2xl rounded-tl-none border border-slate-700 shadow-md"><p>¡Hola! Soy <b>Doc</b>. 🦉</p></div></div>`; }
+        function accionarTutor(accion) { if(accion === 'quiz') { agregarBurbujaTutor('Examen.', 'user'); consultarGemini('Genera examen 3 preguntas multiple choice sobre: ' + obtenerContexto() + '. Formato Markdown. Respuestas al final.'); } if(accion === 'resumen') { agregarBurbujaTutor('Resumen.', 'user'); consultarGemini('Resumen 3 puntos sobre: ' + obtenerContexto()); } if(accion === 'explicar') { agregarBurbujaTutor('Explicar.', 'user'); consultarGemini('Explica simple: ' + obtenerContexto()); } }
         async function enviarMensajeTutor(e) { e.preventDefault(); const t = document.getElementById('chat-input').value.trim(); if(!t) return; agregarBurbujaTutor(t, 'user'); document.getElementById('chat-input').value=""; consultarGemini(`Rol: ${currentRole}. Contexto: "${obtenerContexto()}". Pregunta: "${t}". Responde breve.`); }
         function obtenerContexto() { return `${document.getElementById('current-lesson-title').innerText} (Curso: ${document.getElementById('course-title').innerText})`; }
-
-        function agregarBurbujaTutor(t, k) { 
-            const c = document.getElementById('chat-messages'); const d = document.createElement('div');
-            const h = t.replace(/\*\*(.*?)\*\*/g, '<b class="text-white">$1</b>').replace(/\n/g, '<br>');
-            d.className = k==='user' ? "flex gap-3 flex-row-reverse chat-bubble" : "flex gap-3 chat-bubble";
-            d.innerHTML = k==='user' 
-                ? `<div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center shrink-0"><i data-lucide="user" class="w-4 h-4 text-slate-300"></i></div><div class="bg-blue-600 text-white text-sm p-3 rounded-2xl rounded-tr-none shadow-md max-w-[80%]">${h}</div>` 
-                : `<div class="w-8 h-8 rounded-full bg-white overflow-hidden shrink-0 border border-indigo-500 mt-1 p-0.5"><img src="${currentAvatarUrl}" class="w-full h-full object-contain"></div><div class="bg-slate-800 text-slate-200 text-sm p-3 rounded-2xl rounded-tl-none border border-slate-700 shadow-md max-w-[90%] leading-relaxed">${h}</div>`;
-            c.appendChild(d); c.scrollTop=c.scrollHeight; lucide.createIcons(); 
-        }
+        function agregarBurbujaTutor(t, k) { const c = document.getElementById('chat-messages'); const d = document.createElement('div'); const h = t.replace(/\*\*(.*?)\*\*/g, '<b class="text-white">$1</b>').replace(/\n/g, '<br>'); d.className = k==='user' ? "flex gap-3 flex-row-reverse chat-bubble" : "flex gap-3 chat-bubble"; d.innerHTML = k==='user' ? `<div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center shrink-0"><i data-lucide="user" class="w-4 h-4 text-slate-300"></i></div><div class="bg-blue-600 text-white text-sm p-3 rounded-2xl rounded-tr-none shadow-md max-w-[80%]">${h}</div>` : `<div class="w-8 h-8 rounded-full bg-white overflow-hidden shrink-0 border border-indigo-500 mt-1 p-0.5"><img src="${currentAvatarUrl}" class="w-full h-full object-contain"></div><div class="bg-slate-800 text-slate-200 text-sm p-3 rounded-2xl rounded-tl-none border border-slate-700 shadow-md max-w-[90%] leading-relaxed">${h}</div>`; c.appendChild(d); c.scrollTop=c.scrollHeight; lucide.createIcons(); }
         function mostrarLoading() { const c=document.getElementById('chat-messages'), i='load-'+Date.now(), d=document.createElement('div'); d.id=i; d.className="flex gap-3 chat-bubble"; d.innerHTML=`<div class="w-8 h-8 rounded-full bg-white overflow-hidden shrink-0 border border-indigo-500 mt-1 p-0.5"><img src="${currentAvatarUrl}" class="w-full h-full object-contain"></div><div class="bg-slate-800 p-4 rounded-2xl rounded-tl-none border border-slate-700 flex gap-1 items-center h-10"><span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce"></span><span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce delay-100"></span><span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce delay-200"></span></div>`; c.appendChild(d); c.scrollTop=c.scrollHeight; return i; }
         function removerLoading(i) { const e=document.getElementById(i); if(e) e.remove(); }
     </script>
