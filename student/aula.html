@@ -15,6 +15,11 @@
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        
+        /* Animaciones del Chat */
+        #tutor-window { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .chat-bubble { animation: popIn 0.3s ease-out; }
+        @keyframes popIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="bg-slate-900 text-slate-200 h-screen flex flex-col overflow-hidden font-sans">
@@ -79,7 +84,51 @@
         </aside>
 
         <button onclick="toggleMobileMenu()" class="md:hidden absolute bottom-6 right-6 z-50 bg-blue-600 text-white p-4 rounded-full shadow-xl"><i data-lucide="menu" class="w-6 h-6"></i></button>
-    </div>
+
+        <button onclick="toggleTutor()" class="fixed bottom-6 right-20 md:right-6 z-50 bg-gradient-to-r from-purple-600 to-pink-600 text-white p-3 rounded-full shadow-2xl hover:scale-105 transition-transform flex items-center gap-2 group border border-white/10">
+            <i data-lucide="sparkles" class="w-6 h-6"></i>
+            <span class="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-500 text-xs font-bold whitespace-nowrap">Tutor IA</span>
+        </button>
+
+        <div id="tutor-window" class="fixed bottom-20 right-4 md:right-6 z-50 w-80 md:w-96 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl flex flex-col hidden origin-bottom-right transform scale-95 opacity-0 h-[450px]">
+            
+            <div class="p-3 bg-slate-950 border-b border-slate-800 rounded-t-2xl flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center"><i data-lucide="bot" class="w-5 h-5 text-white"></i></div>
+                    <div>
+                        <h3 class="font-bold text-white text-xs">Tutor Inteligente</h3>
+                        <p class="text-[10px] text-green-400">Impulsado por Gemini</p>
+                    </div>
+                </div>
+                <button onclick="toggleTutor()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-900">
+                <div class="flex gap-3">
+                    <div class="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center shrink-0 mt-1"><i data-lucide="bot" class="w-3 h-3 text-white"></i></div>
+                    <div class="bg-slate-800 text-slate-200 text-xs p-3 rounded-r-xl rounded-bl-xl border border-slate-700 chat-bubble">
+                        ¡Hola! Soy tu tutor personal. Puedo explicarte conceptos de la clase actual o generarte un examen rápido. ¿Qué necesitas? 🤖
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-3 py-2 bg-slate-900 flex gap-2 overflow-x-auto border-t border-slate-800/50">
+                <button onclick="accionarTutor('quiz')" class="text-[10px] bg-blue-600/10 hover:bg-blue-600/30 text-blue-300 border border-blue-500/20 px-3 py-1 rounded-full whitespace-nowrap flex items-center gap-1 transition">
+                    <i data-lucide="graduation-cap" class="w-3 h-3"></i> Tomar Examen
+                </button>
+                <button onclick="accionarTutor('resumen')" class="text-[10px] bg-purple-600/10 hover:bg-purple-600/30 text-purple-300 border border-purple-500/20 px-3 py-1 rounded-full whitespace-nowrap flex items-center gap-1 transition">
+                    <i data-lucide="file-text" class="w-3 h-3"></i> Resumir Clase
+                </button>
+            </div>
+
+            <div class="p-3 bg-slate-950 border-t border-slate-800 rounded-b-2xl">
+                <form id="chat-form" class="flex gap-2" onsubmit="enviarMensajeTutor(event)">
+                    <input type="text" id="chat-input" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500" placeholder="Pregunta algo sobre el tema..." autocomplete="off">
+                    <button type="submit" class="bg-purple-600 hover:bg-purple-500 text-white p-2 rounded-lg transition"><i data-lucide="send" class="w-4 h-4"></i></button>
+                </form>
+            </div>
+        </div>
+        </div>
 
     <script>
         const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
@@ -211,6 +260,128 @@
 
         function toggleMobileMenu() {
             document.getElementById('playlist-sidebar').classList.toggle('translate-x-full');
+        }
+
+        /* ============================================== */
+        /* LOGICA DEL TUTOR IA (GEMINI)          */
+        /* ============================================== */
+        
+        // API KEY SUMINISTRADA
+        const GEMINI_KEY = 'AIzaSyC-P_Y77BBsAinIHvZKhlQbCOVmXThIHOw';
+        let isChatOpen = false;
+
+        function toggleTutor() {
+            const win = document.getElementById('tutor-window');
+            isChatOpen = !isChatOpen;
+            if(isChatOpen) {
+                win.classList.remove('hidden');
+                setTimeout(() => win.classList.remove('scale-95', 'opacity-0'), 10);
+            } else {
+                win.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => win.classList.add('hidden'), 300);
+            }
+        }
+
+        function accionarTutor(accion) {
+            if(accion === 'quiz') {
+                agregarBurbujaTutor('Generame un examen rápido de 3 preguntas (multiple choice) sobre el tema actual.', 'user');
+                consultarGemini('Genera un examen corto de 3 preguntas de opción múltiple sobre el tema: ' + obtenerContexto() + '. Formato claro. Indica la respuesta correcta al final.');
+            }
+            if(accion === 'resumen') {
+                agregarBurbujaTutor('Dame un resumen de esta clase.', 'user');
+                consultarGemini('Haz un resumen conciso de 3 puntos clave sobre: ' + obtenerContexto());
+            }
+        }
+
+        async function enviarMensajeTutor(e) {
+            e.preventDefault();
+            const input = document.getElementById('chat-input');
+            const texto = input.value.trim();
+            if(!texto) return;
+
+            agregarBurbujaTutor(texto, 'user');
+            input.value = "";
+            
+            const prompt = `Actúa como un profesor experto. El alumno está viendo: "${obtenerContexto()}". Pregunta del alumno: "${texto}". Responde breve y didácticamente.`;
+            consultarGemini(prompt);
+        }
+
+        function obtenerContexto() {
+            const curso = document.getElementById('course-title').innerText;
+            const leccion = document.getElementById('current-lesson-title').innerText;
+            return `${leccion} (del curso ${curso})`;
+        }
+
+        async function consultarGemini(prompt) {
+            const loadingId = mostrarLoading();
+            
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+
+                const data = await response.json();
+                removerLoading(loadingId);
+
+                if(data.error) throw new Error(data.error.message);
+                const respuesta = data.candidates[0].content.parts[0].text;
+                agregarBurbujaTutor(respuesta, 'bot');
+
+            } catch (error) {
+                removerLoading(loadingId);
+                agregarBurbujaTutor("Lo siento, tuve un problema de conexión. Intenta de nuevo. 🧠💥", 'bot');
+                console.error(error);
+            }
+        }
+
+        function agregarBurbujaTutor(texto, tipo) {
+            const container = document.getElementById('chat-messages');
+            const div = document.createElement('div');
+            
+            // Formateo simple de Markdown (Negritas)
+            const htmlText = texto.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
+
+            if(tipo === 'user') {
+                div.className = "flex gap-3 flex-row-reverse chat-bubble";
+                div.innerHTML = `
+                    <div class="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center shrink-0 mt-1"><i data-lucide="user" class="w-3 h-3 text-white"></i></div>
+                    <div class="bg-blue-600/20 text-blue-100 text-xs p-3 rounded-l-xl rounded-br-xl border border-blue-600/30 text-right">${htmlText}</div>`;
+            } else {
+                div.className = "flex gap-3 chat-bubble";
+                div.innerHTML = `
+                    <div class="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center shrink-0 mt-1"><i data-lucide="bot" class="w-3 h-3 text-white"></i></div>
+                    <div class="bg-slate-800 text-slate-200 text-xs p-3 rounded-r-xl rounded-bl-xl border border-slate-700 leading-relaxed">${htmlText}</div>`;
+            }
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+            lucide.createIcons();
+        }
+
+        function mostrarLoading() {
+            const container = document.getElementById('chat-messages');
+            const id = 'loading-' + Date.now();
+            const div = document.createElement('div');
+            div.id = id;
+            div.className = "flex gap-3 chat-bubble";
+            div.innerHTML = `
+                <div class="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center shrink-0 mt-1"><i data-lucide="bot" class="w-3 h-3 text-white"></i></div>
+                <div class="bg-slate-800 p-3 rounded-r-xl rounded-bl-xl border border-slate-700 flex gap-1">
+                    <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span>
+                    <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce delay-100"></span>
+                    <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce delay-200"></span>
+                </div>`;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+            lucide.createIcons();
+            return id;
+        }
+
+        function removerLoading(id) {
+            const el = document.getElementById(id);
+            if(el) el.remove();
         }
     </script>
 </body>
