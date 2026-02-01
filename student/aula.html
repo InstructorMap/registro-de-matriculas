@@ -16,7 +16,7 @@
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         
-        /* Animaciones del Chat */
+        /* Animaciones */
         #tutor-window { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .chat-bubble { animation: popIn 0.3s ease-out; }
         @keyframes popIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -30,6 +30,7 @@
             <div>
                 <h1 class="font-bold text-white text-sm md:text-lg leading-tight truncate max-w-[200px] md:max-w-md" id="course-title">Cargando...</h1>
                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Campus Virtual</p>
+                <input type="hidden" id="course-category" value="">
             </div>
         </div>
         <div class="flex items-center gap-4">
@@ -52,7 +53,6 @@
                             <h3 class="text-xl font-bold text-slate-500">Selecciona una clase</h3>
                         </div>
                         <div id="player-content" class="w-full h-full hidden"></div>
-                        
                         <div id="jitsi-rescue" class="hidden absolute top-4 right-4 z-50">
                             <a id="jitsi-external-link" href="#" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg flex items-center gap-2 transition-all opacity-50 hover:opacity-100"><i data-lucide="external-link" class="w-3 h-3"></i> Abrir Sala en Nueva Pestaña</a>
                         </div>
@@ -85,56 +85,69 @@
 
         <button onclick="toggleMobileMenu()" class="md:hidden absolute bottom-6 right-6 z-50 bg-blue-600 text-white p-4 rounded-full shadow-xl"><i data-lucide="menu" class="w-6 h-6"></i></button>
 
-        <button onclick="toggleTutor()" class="fixed bottom-6 right-20 md:right-6 z-50 bg-gradient-to-r from-purple-600 to-pink-600 text-white p-3 rounded-full shadow-2xl hover:scale-105 transition-transform flex items-center gap-2 group border border-white/10">
-            <i data-lucide="sparkles" class="w-6 h-6"></i>
-            <span class="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-500 text-xs font-bold whitespace-nowrap">Tutor IA</span>
+
+        <button onclick="toggleTutor()" class="fixed bottom-8 right-8 z-50 group transition-all duration-300 hover:scale-110">
+            <div class="relative">
+                <div class="w-16 h-16 rounded-full bg-white p-1 shadow-2xl border-4 border-indigo-500 overflow-hidden relative z-10">
+                    <img id="tutor-btn-img" src="https://cdn-icons-png.flaticon.com/512/3468/3468283.png" class="w-full h-full object-contain">
+                </div>
+                <div class="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-slate-900 rounded-full z-20 animate-pulse"></div>
+                <div class="absolute right-full top-1/2 -translate-y-1/2 mr-3 px-3 py-1.5 bg-white text-slate-900 text-xs font-bold rounded-xl shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                    Hablar con Doc
+                    <div class="absolute top-1/2 -right-1 -translate-y-1/2 w-2 h-2 bg-white transform rotate-45"></div>
+                </div>
+            </div>
         </button>
 
-        <div id="tutor-window" class="fixed bottom-20 right-4 md:right-6 z-50 w-80 md:w-96 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl flex flex-col hidden origin-bottom-right transform scale-95 opacity-0 h-[450px]">
+        <div id="tutor-window" class="fixed bottom-28 right-4 md:right-8 z-50 w-80 md:w-96 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl flex flex-col hidden origin-bottom-right transform scale-95 opacity-0 h-[500px] transition-all duration-300">
             
-            <div class="p-3 bg-slate-950 border-b border-slate-800 rounded-t-2xl flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center"><i data-lucide="bot" class="w-5 h-5 text-white"></i></div>
+            <div class="p-4 bg-gradient-to-r from-slate-900 to-slate-800 border-b border-slate-700 rounded-t-2xl flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-indigo-500 p-0.5 border border-white/10 overflow-hidden bg-white">
+                        <img id="tutor-header-img" src="https://cdn-icons-png.flaticon.com/512/3468/3468283.png" class="w-full h-full object-contain">
+                    </div>
                     <div>
-                        <h3 class="font-bold text-white text-xs">Tutor Inteligente</h3>
-                        <p class="text-[10px] text-green-400">Impulsado por Gemini</p>
+                        <h3 class="font-bold text-white text-sm">Hola, soy Doc.</h3>
+                        <p class="text-[10px] text-green-400 font-medium" id="tutor-status">Tutor Virtual</p>
                     </div>
                 </div>
-                <button onclick="toggleTutor()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
-            </div>
-
-            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-900">
-                <div class="flex gap-3">
-                    <div class="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center shrink-0 mt-1"><i data-lucide="bot" class="w-3 h-3 text-white"></i></div>
-                    <div class="bg-slate-800 text-slate-200 text-xs p-3 rounded-r-xl rounded-bl-xl border border-slate-700 chat-bubble">
-                        ¡Hola! Soy tu tutor personal. Puedo explicarte conceptos de la clase actual o generarte un examen rápido. ¿Qué necesitas? 🤖
-                    </div>
+                <div class="flex gap-2">
+                    <button onclick="borrarHistorial()" class="text-slate-500 hover:text-red-400 p-1 rounded" title="Borrar chat"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    <button onclick="toggleTutor()" class="text-slate-400 hover:text-white p-1 rounded"><i data-lucide="x" class="w-5 h-5"></i></button>
                 </div>
             </div>
 
-            <div class="px-3 py-2 bg-slate-900 flex gap-2 overflow-x-auto border-t border-slate-800/50">
-                <button onclick="accionarTutor('quiz')" class="text-[10px] bg-blue-600/10 hover:bg-blue-600/30 text-blue-300 border border-blue-500/20 px-3 py-1 rounded-full whitespace-nowrap flex items-center gap-1 transition">
-                    <i data-lucide="graduation-cap" class="w-3 h-3"></i> Tomar Examen
-                </button>
-                <button onclick="accionarTutor('resumen')" class="text-[10px] bg-purple-600/10 hover:bg-purple-600/30 text-purple-300 border border-purple-500/20 px-3 py-1 rounded-full whitespace-nowrap flex items-center gap-1 transition">
-                    <i data-lucide="file-text" class="w-3 h-3"></i> Resumir Clase
-                </button>
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-900/95"></div>
+
+            <div class="px-3 py-2 bg-slate-900 flex gap-2 overflow-x-auto border-t border-slate-800 no-scrollbar">
+                <button onclick="accionarTutor('quiz')" class="text-[11px] bg-slate-800 hover:bg-blue-600 hover:text-white text-blue-300 border border-slate-700 px-3 py-1.5 rounded-full whitespace-nowrap flex items-center gap-1 transition-colors">📝 Examen Rápido</button>
+                <button onclick="accionarTutor('resumen')" class="text-[11px] bg-slate-800 hover:bg-purple-600 hover:text-white text-purple-300 border border-slate-700 px-3 py-1.5 rounded-full whitespace-nowrap flex items-center gap-1 transition-colors">⚡ Resumen</button>
+                <button onclick="accionarTutor('explicar')" class="text-[11px] bg-slate-800 hover:bg-green-600 hover:text-white text-green-300 border border-slate-700 px-3 py-1.5 rounded-full whitespace-nowrap flex items-center gap-1 transition-colors">💡 Explicar</button>
             </div>
 
             <div class="p-3 bg-slate-950 border-t border-slate-800 rounded-b-2xl">
-                <form id="chat-form" class="flex gap-2" onsubmit="enviarMensajeTutor(event)">
-                    <input type="text" id="chat-input" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500" placeholder="Pregunta algo sobre el tema..." autocomplete="off">
-                    <button type="submit" class="bg-purple-600 hover:bg-purple-500 text-white p-2 rounded-lg transition"><i data-lucide="send" class="w-4 h-4"></i></button>
+                <form id="chat-form" class="flex gap-2 relative" onsubmit="enviarMensajeTutor(event)">
+                    <input type="text" id="chat-input" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl pl-4 pr-10 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition shadow-inner" placeholder="Escribe tu duda aquí..." autocomplete="off">
+                    <button type="submit" class="absolute right-4 top-1/2 -translate-y-1/2 text-indigo-500 hover:text-indigo-400 transition"><i data-lucide="send-horizontal" class="w-5 h-5"></i></button>
                 </form>
             </div>
         </div>
-        </div>
+    </div>
 
     <script>
         const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
         let flatLessons = [], currentLessonIndex = -1, jitsiApi = null;
+
+        // --- IMÁGENES DE "DOC" (EL BOT CAMALEÓN) ---
+        const AVATARS = {
+            'salud': 'https://cdn-icons-png.flaticon.com/512/3304/3304567.png',   // Búho Médico
+            'deporte': 'https://cdn-icons-png.flaticon.com/512/5305/5305149.png', // Búho Deporte
+            'default': 'https://cdn-icons-png.flaticon.com/512/3468/3468283.png' // Búho Profe
+        };
+        let currentAvatarUrl = AVATARS['default'];
+        let currentRole = "Profesor General";
 
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
@@ -151,8 +164,46 @@
         });
 
         async function cargarCurso(id) {
+            // Obtenemos registro_id para saber el TEMA del curso
             const { data, error } = await db.from('cursos_oficiales').select('*').eq('id', id).single();
-            if(!error) { document.getElementById('course-title').innerText = data.nombre; renderizarTemario(data.contenido); }
+            
+            if(!error) { 
+                document.getElementById('course-title').innerText = data.nombre;
+                
+                // --- ACTIVAR AL "DOC" CORRECTO ---
+                personalizarDoc(data.registro_id); 
+                
+                renderizarTemario(data.contenido); 
+            }
+        }
+
+        // --- LÓGICA DE PERSONALIZACIÓN DEL BOT ---
+        function personalizarDoc(registroId) {
+            let tipo = 'default';
+            let statusText = 'Tutor Académico';
+
+            if (registroId) {
+                const rid = registroId.toLowerCase();
+                if(rid.includes('remaep') || rid.includes('salud') || rid.includes('emergencia')) {
+                    tipo = 'salud';
+                    statusText = 'Experto en Salud';
+                } else if (rid.includes('isf') || rid.includes('deporte') || rid.includes('fitness')) {
+                    tipo = 'deporte';
+                    statusText = 'Coach Deportivo';
+                }
+            }
+
+            // Actualizar variables globales
+            currentAvatarUrl = AVATARS[tipo];
+            currentRole = statusText;
+
+            // Actualizar DOM
+            document.getElementById('tutor-btn-img').src = currentAvatarUrl;
+            document.getElementById('tutor-header-img').src = currentAvatarUrl;
+            document.getElementById('tutor-status').innerText = statusText;
+
+            // Mensaje de bienvenida inicial
+            borrarHistorial();
         }
 
         function renderizarTemario(modulos) {
@@ -201,7 +252,7 @@
             const lec = flatLessons[index];
             document.getElementById('current-lesson-title').innerText = lec.titulo;
 
-            // Lógica de Tipos
+            // Tipos de contenido
             if(lec.tipo === 'VIDEO') {
                 let url = lec.url || "";
                 if(url.includes('youtu')) {
@@ -214,32 +265,14 @@
                 lucide.createIcons();
             }
             else if (lec.tipo === 'ZOOM') {
-                container.innerHTML = `
-                    <div class="flex flex-col items-center justify-center h-full text-center p-10 bg-slate-900 w-full relative">
-                        <div class="absolute inset-0 bg-blue-900/10"></div>
-                        <div class="z-10 bg-slate-800 p-8 md:p-10 rounded-2xl border border-slate-700 shadow-2xl max-w-lg w-full">
-                            <div class="w-16 h-16 md:w-20 md:h-20 bg-blue-500/10 text-blue-400 rounded-full flex items-center justify-center mx-auto mb-6"><i data-lucide="video" class="w-8 h-8 md:w-10 md:h-10"></i></div>
-                            <h3 class="text-xl md:text-2xl font-bold text-white mb-2">Clase en Plataforma Externa</h3>
-                            <p class="text-slate-400 text-sm md:text-base mb-8">Esta clase se dictará mediante Zoom o Google Meet.</p>
-                            <a href="${lec.url}" target="_blank" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-base md:text-lg py-3 md:py-4 rounded-xl font-bold transition flex items-center justify-center gap-3 shadow-lg shadow-blue-900/50">🚀 Abrir Reunión Ahora</a>
-                        </div>
-                    </div>`;
+                container.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-center p-10 bg-slate-900 w-full relative"><div class="absolute inset-0 bg-blue-900/10"></div><div class="z-10 bg-slate-800 p-8 md:p-10 rounded-2xl border border-slate-700 shadow-2xl max-w-lg w-full"><div class="w-16 h-16 md:w-20 md:h-20 bg-blue-500/10 text-blue-400 rounded-full flex items-center justify-center mx-auto mb-6"><i data-lucide="video" class="w-8 h-8 md:w-10 md:h-10"></i></div><h3 class="text-xl md:text-2xl font-bold text-white mb-2">Clase Externa</h3><a href="${lec.url}" target="_blank" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-base md:text-lg py-3 md:py-4 rounded-xl font-bold transition flex items-center justify-center gap-3 shadow-lg shadow-blue-900/50">🚀 Abrir Reunión</a></div></div>`;
                 lucide.createIcons();
             }
             else if (lec.tipo === 'LIVE') {
                 const meetUrl = `https://meet.jit.si/${lec.url}`;
                 document.getElementById('jitsi-external-link').href = meetUrl;
                 document.getElementById('jitsi-rescue').classList.remove('hidden');
-                
-                const options = { 
-                    roomName: lec.url, 
-                    width: '100%', 
-                    height: '100%', 
-                    parentNode: container, 
-                    lang: 'es', 
-                    configOverwrite: { startWithAudioMuted: true, startWithVideoMuted: true, prejoinPageEnabled: false }, 
-                    userInfo: { displayName: document.getElementById('student-name').innerText } 
-                };
+                const options = { roomName: lec.url, width: '100%', height: '100%', parentNode: container, lang: 'es', configOverwrite: { startWithAudioMuted: true, startWithVideoMuted: true, prejoinPageEnabled: false }, userInfo: { displayName: document.getElementById('student-name').innerText } };
                 jitsiApi = new JitsiMeetExternalAPI('meet.jit.si', options);
             }
             
@@ -247,7 +280,6 @@
             const percent = Math.round(((currentLessonIndex + 1) / flatLessons.length) * 100);
             document.getElementById('progress-bar').style.width = `${percent}%`;
             document.getElementById('progress-text').innerText = `${percent}%`;
-            
             if(window.innerWidth < 768) document.getElementById('playlist-sidebar').classList.add('translate-x-full');
         }
 
@@ -258,15 +290,11 @@
             document.getElementById('btn-next').onclick = () => cargarClase(currentLessonIndex + 1);
         }
 
-        function toggleMobileMenu() {
-            document.getElementById('playlist-sidebar').classList.toggle('translate-x-full');
-        }
+        function toggleMobileMenu() { document.getElementById('playlist-sidebar').classList.toggle('translate-x-full'); }
 
         /* ============================================== */
-        /* LOGICA DEL TUTOR IA (GEMINI)          */
+        /* LOGICA DEL TUTOR IA "DOC" (GEMINI)             */
         /* ============================================== */
-        
-        // API KEY SUMINISTRADA
         const GEMINI_KEY = 'AIzaSyC-P_Y77BBsAinIHvZKhlQbCOVmXThIHOw';
         let isChatOpen = false;
 
@@ -275,21 +303,39 @@
             isChatOpen = !isChatOpen;
             if(isChatOpen) {
                 win.classList.remove('hidden');
-                setTimeout(() => win.classList.remove('scale-95', 'opacity-0'), 10);
+                requestAnimationFrame(() => { win.classList.remove('scale-95', 'opacity-0'); document.getElementById('chat-input').focus(); });
             } else {
                 win.classList.add('scale-95', 'opacity-0');
                 setTimeout(() => win.classList.add('hidden'), 300);
             }
         }
 
+        function borrarHistorial() {
+            const container = document.getElementById('chat-messages');
+            container.innerHTML = `
+                <div class="flex gap-3 chat-bubble">
+                    <div class="w-8 h-8 rounded-full bg-white overflow-hidden shrink-0 border border-indigo-500 mt-1 p-0.5">
+                        <img src="${currentAvatarUrl}" class="w-full h-full object-contain">
+                    </div>
+                    <div class="bg-slate-800 text-slate-200 text-sm p-3 rounded-2xl rounded-tl-none border border-slate-700 shadow-md">
+                        <p>¡Hola! Soy <b>Doc</b>. 🦉</p>
+                        <p class="mt-1 opacity-80 text-xs">Estoy viendo la clase contigo. Pídeme un resumen, un examen o pregúntame lo que no entiendas.</p>
+                    </div>
+                </div>`;
+        }
+
         function accionarTutor(accion) {
             if(accion === 'quiz') {
-                agregarBurbujaTutor('Generame un examen rápido de 3 preguntas (multiple choice) sobre el tema actual.', 'user');
-                consultarGemini('Genera un examen corto de 3 preguntas de opción múltiple sobre el tema: ' + obtenerContexto() + '. Formato claro. Indica la respuesta correcta al final.');
+                agregarBurbujaTutor('Generame un examen rápido.', 'user');
+                consultarGemini('Genera un examen corto de 3 preguntas (multiple choice) sobre: ' + obtenerContexto() + '. Usa Markdown negritas. Pon respuestas correctas al final ocultas.');
             }
             if(accion === 'resumen') {
-                agregarBurbujaTutor('Dame un resumen de esta clase.', 'user');
-                consultarGemini('Haz un resumen conciso de 3 puntos clave sobre: ' + obtenerContexto());
+                agregarBurbujaTutor('Dame un resumen.', 'user');
+                consultarGemini('Haz un resumen conciso de 3 puntos clave sobre: ' + obtenerContexto() + '. Usa emojis.');
+            }
+            if(accion === 'explicar') {
+                agregarBurbujaTutor('Explícame esto sencillo.', 'user');
+                consultarGemini('Explica el concepto principal de: ' + obtenerContexto() + ' de forma muy sencilla.');
             }
         }
 
@@ -298,11 +344,10 @@
             const input = document.getElementById('chat-input');
             const texto = input.value.trim();
             if(!texto) return;
-
             agregarBurbujaTutor(texto, 'user');
             input.value = "";
             
-            const prompt = `Actúa como un profesor experto. El alumno está viendo: "${obtenerContexto()}". Pregunta del alumno: "${texto}". Responde breve y didácticamente.`;
+            const prompt = `Actúa como "Doc", un ${currentRole} del instituto ASARI. El alumno está viendo: "${obtenerContexto()}". Pregunta: "${texto}". Responde breve y didácticamente.`;
             consultarGemini(prompt);
         }
 
@@ -314,6 +359,8 @@
 
         async function consultarGemini(prompt) {
             const loadingId = mostrarLoading();
+            const container = document.getElementById('chat-messages');
+            container.scrollTop = container.scrollHeight;
             
             try {
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
@@ -322,38 +369,29 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
                 });
-
                 const data = await response.json();
                 removerLoading(loadingId);
-
                 if(data.error) throw new Error(data.error.message);
+                
                 const respuesta = data.candidates[0].content.parts[0].text;
                 agregarBurbujaTutor(respuesta, 'bot');
-
             } catch (error) {
                 removerLoading(loadingId);
-                agregarBurbujaTutor("Lo siento, tuve un problema de conexión. Intenta de nuevo. 🧠💥", 'bot');
-                console.error(error);
+                agregarBurbujaTutor("Tuve un error de conexión. Intenta de nuevo.", 'bot');
             }
         }
 
         function agregarBurbujaTutor(texto, tipo) {
             const container = document.getElementById('chat-messages');
             const div = document.createElement('div');
-            
-            // Formateo simple de Markdown (Negritas)
-            const htmlText = texto.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
+            let htmlText = texto.replace(/\*\*(.*?)\*\*/g, '<b class="text-white">$1</b>').replace(/\n/g, '<br>');
 
             if(tipo === 'user') {
                 div.className = "flex gap-3 flex-row-reverse chat-bubble";
-                div.innerHTML = `
-                    <div class="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center shrink-0 mt-1"><i data-lucide="user" class="w-3 h-3 text-white"></i></div>
-                    <div class="bg-blue-600/20 text-blue-100 text-xs p-3 rounded-l-xl rounded-br-xl border border-blue-600/30 text-right">${htmlText}</div>`;
+                div.innerHTML = `<div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center shrink-0 border border-slate-600"><i data-lucide="user" class="w-4 h-4 text-slate-300"></i></div><div class="bg-blue-600 text-white text-sm p-3 rounded-2xl rounded-tr-none shadow-md max-w-[80%]">${htmlText}</div>`;
             } else {
                 div.className = "flex gap-3 chat-bubble";
-                div.innerHTML = `
-                    <div class="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center shrink-0 mt-1"><i data-lucide="bot" class="w-3 h-3 text-white"></i></div>
-                    <div class="bg-slate-800 text-slate-200 text-xs p-3 rounded-r-xl rounded-bl-xl border border-slate-700 leading-relaxed">${htmlText}</div>`;
+                div.innerHTML = `<div class="w-8 h-8 rounded-full bg-white overflow-hidden shrink-0 border border-indigo-500 mt-1 p-0.5"><img src="${currentAvatarUrl}" class="w-full h-full object-contain"></div><div class="bg-slate-800 text-slate-200 text-sm p-3 rounded-2xl rounded-tl-none border border-slate-700 shadow-md max-w-[90%] leading-relaxed">${htmlText}</div>`;
             }
             container.appendChild(div);
             container.scrollTop = container.scrollHeight;
@@ -366,23 +404,13 @@
             const div = document.createElement('div');
             div.id = id;
             div.className = "flex gap-3 chat-bubble";
-            div.innerHTML = `
-                <div class="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center shrink-0 mt-1"><i data-lucide="bot" class="w-3 h-3 text-white"></i></div>
-                <div class="bg-slate-800 p-3 rounded-r-xl rounded-bl-xl border border-slate-700 flex gap-1">
-                    <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span>
-                    <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce delay-100"></span>
-                    <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce delay-200"></span>
-                </div>`;
+            div.innerHTML = `<div class="w-8 h-8 rounded-full bg-white overflow-hidden shrink-0 border border-indigo-500 mt-1 p-0.5"><img src="${currentAvatarUrl}" class="w-full h-full object-contain"></div><div class="bg-slate-800 p-4 rounded-2xl rounded-tl-none border border-slate-700 flex gap-1.5 items-center h-10"><span class="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></span><span class="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-100"></span><span class="w-2 h-2 bg-indigo-400 rounded-full animate-bounce delay-200"></span></div>`;
             container.appendChild(div);
             container.scrollTop = container.scrollHeight;
-            lucide.createIcons();
             return id;
         }
 
-        function removerLoading(id) {
-            const el = document.getElementById(id);
-            if(el) el.remove();
-        }
+        function removerLoading(id) { const el = document.getElementById(id); if(el) el.remove(); }
     </script>
 </body>
 </html>
