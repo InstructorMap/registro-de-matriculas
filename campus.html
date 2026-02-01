@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso Campus Virtual</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* Fondo por defecto (se sobrescribe si hay institución) */
+        .bg-campus {
+            background-image: linear-gradient(rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.95)), url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=2070&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body id="page-body" class="bg-campus h-screen flex items-center justify-center font-sans text-slate-200 p-4 transition-all duration-700">
+
+    <div class="glass-panel p-8 rounded-2xl shadow-2xl w-full max-w-md relative overflow-hidden">
+        
+        <div id="top-bar" class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+
+        <div class="text-center mb-8">
+            <div id="logo-container" class="w-20 h-20 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg p-2 hidden">
+                <img id="inst-logo" src="" class="w-full h-full object-contain">
+            </div>
+            
+            <div id="default-logo" class="w-16 h-16 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-900/50">
+                <span class="font-bold text-2xl text-white">A</span>
+            </div>
+
+            <h1 class="text-2xl font-black text-white tracking-tight" id="welcome-title">Campus Virtual</h1>
+            <p class="text-slate-400 text-sm mt-1" id="welcome-subtitle">Plataforma de Educación Digital</p>
+        </div>
+
+        <form id="auth-form" class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-slate-300 uppercase mb-1 ml-1">Correo Electrónico</label>
+                <div class="relative">
+                    <i data-lucide="mail" class="absolute left-3 top-3 w-5 h-5 text-slate-400"></i>
+                    <input type="email" id="email" required placeholder="alumno@ejemplo.com" class="w-full bg-slate-900/50 border border-slate-600 rounded-xl py-3 pl-10 pr-4 text-white placeholder-slate-500 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-300 uppercase mb-1 ml-1">Contraseña</label>
+                <div class="relative">
+                    <i data-lucide="lock" class="absolute left-3 top-3 w-5 h-5 text-slate-400"></i>
+                    <input type="password" id="password" required placeholder="••••••••" class="w-full bg-slate-900/50 border border-slate-600 rounded-xl py-3 pl-10 pr-4 text-white placeholder-slate-500 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition">
+                </div>
+            </div>
+
+            <button type="submit" id="btn-submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 mt-4">
+                Ingresar al Aula <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+        </form>
+
+        <div class="mt-6 text-center border-t border-white/10 pt-4">
+            <p class="text-xs text-slate-400 mb-2" id="toggle-text">¿Primera vez aquí?</p>
+            <button onclick="toggleMode()" id="toggle-btn" class="text-white text-sm font-bold hover:underline transition">
+                Crear mi cuenta de alumno
+            </button>
+        </div>
+
+        <div id="msg-error" class="hidden mt-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-200 text-xs text-center font-bold"></div>
+    </div>
+
+    <script>
+        const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
+        const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
+        const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
+
+        let isLogin = true;
+        let brandingColor = '#2563eb'; // Azul por defecto
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            await checkSession();
+            await aplicarBranding();
+        });
+
+        // 1. APLICAR IDENTIDAD VISUAL (BRANDING)
+        async function aplicarBranding() {
+            // Leer parámetro ?inst=ID_INSTITUCION de la URL
+            const params = new URLSearchParams(window.location.search);
+            const instId = params.get('inst'); // ej: campus.html?inst=123
+
+            if (!instId) return; // Si no hay ID, dejar estilo ASARI por defecto
+
+            const { data: inst, error } = await db.from('instituciones').select('*').eq('id', instId).single();
+            
+            if (inst && !error) {
+                // A. Cambiar Logo
+                if (inst.logo_url) {
+                    document.getElementById('default-logo').classList.add('hidden');
+                    document.getElementById('logo-container').classList.remove('hidden');
+                    document.getElementById('inst-logo').src = inst.logo_url;
+                }
+
+                // B. Cambiar Textos
+                if (inst.nombre) {
+                    document.getElementById('welcome-title').innerText = inst.nombre;
+                    document.getElementById('welcome-subtitle').innerText = "Bienvenido al Campus Virtual";
+                    document.title = `Acceso | ${inst.nombre}`;
+                }
+
+                // C. Cambiar Colores
+                if (inst.color_primario) {
+                    brandingColor = inst.color_primario;
+                    const btn = document.getElementById('btn-submit');
+                    
+                    // Aplicar color al botón
+                    btn.style.backgroundColor = brandingColor;
+                    btn.classList.remove('bg-blue-600', 'hover:bg-blue-500');
+                    btn.onmouseover = () => btn.style.filter = 'brightness(1.1)';
+                    btn.onmouseout = () => btn.style.filter = 'brightness(1)';
+
+                    // Aplicar color a la barra superior
+                    document.getElementById('top-bar').style.background = brandingColor;
+                    
+                    // Fondo tintado suavemente con el color de la marca
+                    document.getElementById('page-body').style.backgroundImage = `linear-gradient(${hexToRgba(brandingColor, 0.9)}, ${hexToRgba(brandingColor, 0.95)}), url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=2070&auto=format&fit=crop')`;
+                }
+            }
+        }
+
+        // Utilidad Color
+        function hexToRgba(hex, alpha) {
+            let r = 0, g = 0, b = 0;
+            if (hex.length == 4) {
+                r = "0x" + hex[1] + hex[1]; g = "0x" + hex[2] + hex[2]; b = "0x" + hex[3] + hex[3];
+            } else if (hex.length == 7) {
+                r = "0x" + hex[1] + hex[2]; g = "0x" + hex[3] + hex[4]; b = "0x" + hex[5] + hex[6];
+            }
+            return "rgba(" + +r + "," + +g + "," + +b + "," + alpha + ")";
+        }
+
+        async function checkSession() {
+            const { data: { session } } = await db.auth.getSession();
+            if (session) window.location.href = 'student/dashboard.html';
+        }
+
+        function toggleMode() {
+            isLogin = !isLogin;
+            const btn = document.getElementById('btn-submit');
+            const toggleText = document.getElementById('toggle-text');
+            const toggleBtn = document.getElementById('toggle-btn');
+            
+            if(isLogin) {
+                btn.innerHTML = `Ingresar al Aula <i data-lucide="log-in" class="w-4 h-4 ml-2"></i>`;
+                toggleText.innerText = "¿Primera vez aquí?";
+                toggleBtn.innerText = "Crear mi cuenta de alumno";
+            } else {
+                btn.innerHTML = `Registrarme Gratis <i data-lucide="user-plus" class="w-4 h-4 ml-2"></i>`;
+                toggleText.innerText = "¿Ya tienes usuario?";
+                toggleBtn.innerText = "Iniciar Sesión";
+            }
+            lucide.createIcons();
+        }
+
+        document.getElementById('auth-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const msgError = document.getElementById('msg-error');
+            const btn = document.getElementById('btn-submit');
+
+            msgError.classList.add('hidden');
+            btn.disabled = true;
+            btn.innerText = "Cargando...";
+
+            try {
+                let result;
+                if (isLogin) {
+                    result = await db.auth.signInWithPassword({ email, password });
+                } else {
+                    result = await db.auth.signUp({ 
+                        email, 
+                        password,
+                        options: { data: { rol: 'alumno' } }
+                    });
+                }
+
+                if (result.error) throw result.error;
+                window.location.href = 'student/dashboard.html';
+
+            } catch (error) {
+                msgError.innerText = error.message.includes("Invalid login") ? "Datos incorrectos" : error.message;
+                msgError.classList.remove('hidden');
+                btn.disabled = false;
+                btn.innerHTML = isLogin ? `Ingresar` : `Registrarme`;
+            }
+        });
+    </script>
+</body>
+</html>
