@@ -15,6 +15,8 @@
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        
+        /* Animaciones */
         #tutor-window { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .chat-bubble { animation: popIn 0.3s ease-out; }
         @keyframes popIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -108,7 +110,7 @@
                     <div><h3 class="font-bold text-white text-sm">Hola, soy Doc.</h3><p class="text-[10px] text-green-400 font-medium" id="tutor-status">Tutor Virtual</p></div>
                 </div>
                 <div class="flex gap-2">
-                    <button onclick="borrarHistorial()" class="text-slate-500 hover:text-red-400 p-1" title="Reiniciar"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    <button onclick="borrarHistorial()" class="text-slate-500 hover:text-red-400 p-1" title="Reiniciar chat"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                     <button onclick="toggleTutor()" class="text-slate-400 hover:text-white p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
                 </div>
             </div>
@@ -132,7 +134,7 @@
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
-        // --- GLOBAL STATE ---
+        // --- ESTADO GLOBAL ---
         let flatLessons = [], currentLessonIndex = -1, jitsiApi = null, completedLessons = new Set();
         let currentCourseId = null, currentUserId = null;
 
@@ -141,7 +143,7 @@
         let currentAvatarUrl = AVATARS['default'];
         let currentRole = "Profesor General";
 
-        // --- INIT ---
+        // --- INICIALIZACIÓN ---
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
             const { data: { session } } = await db.auth.getSession();
@@ -156,7 +158,7 @@
             if(currentCourseId) await cargarCurso(currentCourseId); else window.location.href = 'dashboard.html';
         });
 
-        // --- LOGICA CURSO ---
+        // --- LÓGICA DE CURSO ---
         async function cargarCurso(id) {
             const { data: curso, error } = await db.from('cursos_oficiales').select('*').eq('id', id).single();
             if(error || !curso) { alert("Error cargando curso"); return window.location.href = 'dashboard.html'; }
@@ -289,7 +291,7 @@
 
         function toggleMobileMenu() { document.getElementById('playlist-sidebar').classList.toggle('translate-x-full'); }
 
-        // --- CHAT SYSTEM (DIRECT + ROBUST) ---
+        // --- SISTEMA DE CHAT: MATRIZ DE CONEXIÓN UNIVERSAL (2026) ---
         let isChatOpen = false;
         function toggleTutor() {
             const win = document.getElementById('tutor-window'); isChatOpen = !isChatOpen;
@@ -304,40 +306,54 @@
             container.scrollTop = container.scrollHeight;
             
             try {
-                // CLAVE DIRECTA - SIN DB PARA ASEGURAR FUNCIONAMIENTO
+                // CLAVE DIRECTA
                 const apiKey = 'AIzaSyAkZT7qHxVuhMgjzf-BlOPIyHx2hHGaj7U';
 
-                // MODELO PRO (El más estable)
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
-                
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-                });
+                // LISTA DE MODELOS 2026 (PRIORIDAD ALTA A BAJA)
+                const modelos = [
+                    'gemini-2.5-flash',       // 1. Estándar 2026 (Tu solicitud)
+                    'gemini-2.5-pro',         // 2. Potente
+                    'gemini-3-flash-preview', // 3. Preview
+                    'gemini-1.5-flash'        // 4. Legacy Fallback
+                ];
 
-                const data = await response.json();
+                let respuestaExito = null;
+                let errorFinal = null;
+
+                for (const modelo of modelos) {
+                    try {
+                        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${apiKey}`;
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (!data.error && data.candidates && data.candidates[0]) {
+                            respuestaExito = data.candidates[0].content.parts[0].text;
+                            console.log("Conectado con:", modelo);
+                            break;
+                        } else {
+                            errorFinal = data.error;
+                        }
+                    } catch (ignore) { }
+                }
+
                 removerLoading(loadingId);
                 
-                if(data.error) {
-                    console.error("GOOGLE ERROR:", data.error);
-                    const msg = `⚠️ Error ${data.error.code || ''}: ${data.error.message}`;
-                    agregarBurbujaTutor(msg, 'bot');
-                    return;
+                if (respuestaExito) {
+                    agregarBurbujaTutor(respuestaExito, 'bot');
+                } else {
+                    console.error("Fallo total de modelos. Último:", errorFinal);
+                    agregarBurbujaTutor("⚠️ Error de conexión: Ningún modelo disponible.", 'bot');
                 }
-                
-                if(!data.candidates || !data.candidates[0]) {
-                     agregarBurbujaTutor("⚠️ La IA no devolvió respuesta.", 'bot');
-                     return;
-                }
-
-                const respuesta = data.candidates[0].content.parts[0].text;
-                agregarBurbujaTutor(respuesta, 'bot'); 
 
             } catch(e) { 
                 removerLoading(loadingId); 
                 console.error(e);
-                agregarBurbujaTutor("⚠️ Error de Red/Fetch.", 'bot'); 
+                agregarBurbujaTutor("⚠️ Error de Red Crítico.", 'bot'); 
             } 
         }
 
