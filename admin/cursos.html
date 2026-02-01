@@ -3,15 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Principal | ASARI SaaS</title>
+    <title>ASARI SaaS - Gestión de Cursos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <style>
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body class="bg-slate-50 flex h-screen overflow-hidden font-sans text-slate-800">
@@ -24,135 +27,97 @@
             </div>
         </div>
         <nav class="flex-1 overflow-y-auto py-6 px-3 space-y-1">
-            <div class="pt-2 pb-2 px-3 text-[10px] font-bold text-white/40 uppercase tracking-wider">Principal</div>
-            <div class="flex items-center gap-3 px-3 py-3 bg-white/10 text-white rounded-xl shadow-inner">
-                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-                <span class="text-sm font-bold">Dashboard</span>
-            </div>
-            
-            <div class="pt-6 pb-2 px-3 text-[10px] font-bold text-white/40 uppercase tracking-wider">Gestión</div>
-            <a href="cursos.html" class="flex items-center gap-3 px-3 py-3 text-slate-400 hover:text-white hover:bg-white/10 rounded-xl transition-colors">
+            <a href="../dashboard.html" class="flex items-center gap-3 px-3 py-3 text-slate-400 hover:text-white hover:bg-white/10 rounded-xl transition-colors mb-4">
+                <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                <span class="text-sm font-bold">Volver al Panel</span>
+            </a>
+            <div class="pt-2 pb-2 px-3 text-[10px] font-bold text-white/40 uppercase tracking-wider">Gestión Académica</div>
+            <div class="flex items-center gap-3 px-3 py-3 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-900/20">
                 <i data-lucide="book-open" class="w-5 h-5"></i>
                 <span class="text-sm font-bold">Mis Cursos</span>
-            </a>
+            </div>
         </nav>
         <div class="p-4 border-t border-white/10 bg-black/20">
             <div class="flex items-center gap-3">
                 <div class="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold" id="user-initials">U</div>
                 <div class="overflow-hidden">
                     <p class="text-sm font-bold truncate" id="user-name">Cargando...</p>
-                    <button onclick="logout()" class="text-[10px] text-red-400 hover:text-red-300 font-bold uppercase">Cerrar Sesión</button>
+                    <p class="text-[10px] text-slate-400 uppercase" id="user-role">...</p>
                 </div>
             </div>
         </div>
     </aside>
 
     <div class="flex-1 flex flex-col min-w-0">
-        <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 shadow-sm">
+        <header class="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 shadow-sm z-20">
             <div>
-                <h2 class="text-2xl font-black text-slate-800">Panel General</h2>
-                <p class="text-xs text-slate-500 font-medium mt-1">Resumen de actividad y métricas</p>
+                <h2 class="text-2xl font-black text-slate-800">Mis Cursos Activos</h2>
+                <p class="text-xs text-slate-500 font-medium mt-1">Gestiona el contenido y las inscripciones</p>
             </div>
-            <div class="flex gap-3">
-                <button onclick="abrirModalMatricula()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-blue-900/20 transition-all">
-                    <i data-lucide="user-plus" class="w-5 h-5"></i> Nueva Matrícula
-                </button>
-            </div>
+            <a href="editor-curso.html" class="bg-slate-900 hover:bg-black text-white px-5 py-3 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                Crear Nuevo Curso
+            </a>
         </header>
 
         <main class="flex-1 p-8 overflow-y-auto bg-slate-50">
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-                        <i data-lucide="users" class="w-6 h-6"></i>
-                    </div>
-                    <div>
-                        <p class="text-xs font-bold text-slate-400 uppercase">Total Alumnos</p>
-                        <h3 class="text-2xl font-black text-slate-800" id="kpi-alumnos">-</h3>
-                    </div>
+            <div class="flex flex-col sm:flex-row gap-4 mb-8 justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <div class="relative w-full sm:w-96">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                    <input type="text" id="buscador" placeholder="Buscar por nombre..." class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium transition-all" onkeyup="filtrarCursosUI()">
                 </div>
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-full bg-green-50 text-green-600 flex items-center justify-center">
-                        <i data-lucide="book" class="w-6 h-6"></i>
-                    </div>
-                    <div>
-                        <p class="text-xs font-bold text-slate-400 uppercase">Cursos Activos</p>
-                        <h3 class="text-2xl font-black text-slate-800" id="kpi-cursos">-</h3>
-                    </div>
-                </div>
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center">
-                        <i data-lucide="activity" class="w-6 h-6"></i>
-                    </div>
-                    <div>
-                        <p class="text-xs font-bold text-slate-400 uppercase">Estado Sistema</p>
-                        <h3 class="text-lg font-black text-green-500">Operativo</h3>
-                    </div>
+                <div class="text-xs text-slate-400 font-bold uppercase" id="contador-cursos">Cargando...</div>
+            </div>
+
+            <div id="grid-cursos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 fade-in min-h-[200px]">
+                <div class="col-span-3 text-center py-20">
+                    <i data-lucide="loader-2" class="w-10 h-10 animate-spin mx-auto text-blue-500"></i>
+                    <p class="text-slate-400 text-sm mt-4">Cargando tus cursos...</p>
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <div class="p-6 border-b border-slate-100 flex justify-between items-center">
-                    <h3 class="font-bold text-slate-800">Últimas Matriculaciones</h3>
-                    <a href="cursos.html" class="text-xs font-bold text-blue-600 hover:underline">Ver cursos completos &rarr;</a>
+            <div id="empty-state" class="hidden flex flex-col items-center justify-center py-20 text-center">
+                <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                    <i data-lucide="book" class="w-10 h-10 text-slate-400"></i>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left">
-                        <thead class="bg-slate-50 text-slate-500 font-bold text-xs uppercase">
-                            <tr>
-                                <th class="px-6 py-4">Fecha</th>
-                                <th class="px-6 py-4">Alumno</th>
-                                <th class="px-6 py-4">DNI</th>
-                                <th class="px-6 py-4">Curso Asignado</th>
-                                <th class="px-6 py-4">Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabla-matriculas" class="divide-y divide-slate-100">
-                            <tr><td colspan="5" class="px-6 py-8 text-center text-slate-400">Cargando datos...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
+                <h3 class="text-xl font-bold text-slate-700">No hay cursos aún</h3>
+                <p class="text-slate-500 max-w-sm mt-2 mb-6">Comienza creando tu primer programa de capacitación.</p>
+                <a href="editor-curso.html" class="text-blue-600 font-bold hover:underline">Crear mi primer curso &rarr;</a>
             </div>
-
         </main>
     </div>
 
-    <div id="modal-global" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 relative">
-            <button onclick="document.getElementById('modal-global').classList.add('hidden')" class="absolute top-4 right-4 text-slate-300 hover:text-slate-600"><i data-lucide="x"></i></button>
+    <div id="modal-inscripcion" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-8 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="cerrarModalInscripcion()" class="absolute top-4 right-4 text-slate-300 hover:text-slate-600"><i data-lucide="x"></i></button>
             
-            <h3 class="text-xl font-black text-slate-800 mb-1">Inscribir Alumno</h3>
-            <p class="text-sm text-slate-500 mb-6">Selecciona el curso y carga los datos del alumno.</p>
+            <h3 class="text-xl font-black text-slate-800 mb-1" id="modal-course-name">Inscripción</h3>
+            <p class="text-sm text-slate-500 mb-6">Agrega alumnos para este curso.</p>
 
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Curso Destino</label>
-                    <select id="glob-curso" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-700 outline-none focus:border-blue-500">
-                        <option value="">Cargando cursos...</option>
-                    </select>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre</label>
-                        <input type="text" id="glob-nombre" class="w-full p-2.5 border border-slate-200 rounded-lg text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Apellido</label>
-                        <input type="text" id="glob-apellido" class="w-full p-2.5 border border-slate-200 rounded-lg text-sm">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-slate-50 p-5 rounded-xl border border-slate-200">
+                    <h4 class="font-bold text-slate-700 text-sm mb-4 flex items-center gap-2"><i data-lucide="user-plus" class="w-4 h-4"></i> Carga Individual</h4>
+                    <div class="space-y-3">
+                        <input type="text" id="ins-dni" placeholder="DNI (Sin puntos)" class="w-full p-2 text-sm border rounded">
+                        <input type="text" id="ins-nombre" placeholder="Nombre" class="w-full p-2 text-sm border rounded">
+                        <input type="text" id="ins-apellido" placeholder="Apellido" class="w-full p-2 text-sm border rounded">
+                        <button onclick="inscribirManual()" class="w-full bg-slate-800 text-white font-bold py-2 rounded text-sm hover:bg-black transition">Inscribir</button>
                     </div>
                 </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">DNI (Sin puntos)</label>
-                    <input type="text" id="glob-dni" class="w-full p-2.5 border border-slate-200 rounded-lg text-sm" placeholder="Ej: 30123456">
+                <div class="bg-blue-50 p-5 rounded-xl border border-blue-100">
+                    <h4 class="font-bold text-blue-800 text-sm mb-4 flex items-center gap-2"><i data-lucide="table" class="w-4 h-4"></i> Carga Masiva (Excel)</h4>
+                    <input type="file" id="ins-excel" accept=".xlsx, .xls" class="block w-full text-xs text-slate-500 mb-4">
+                    <div id="preview-area" class="hidden">
+                        <p class="text-xs font-bold text-slate-600 mb-2">Vista previa (<span id="count-preview">0</span>):</p>
+                        <div class="bg-white border rounded h-32 overflow-y-auto mb-2 text-xs p-2" id="preview-list"></div>
+                        <button onclick="confirmarCargaMasiva()" class="w-full bg-blue-600 text-white font-bold py-2 rounded text-sm hover:bg-blue-700 transition">Confirmar Carga</button>
+                    </div>
                 </div>
-
-                <button onclick="guardarMatriculaGlobal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition shadow-lg mt-2">
-                    Confirmar Inscripción
-                </button>
             </div>
+            
+            <input type="hidden" id="modal-course-id">
+            <input type="hidden" id="modal-course-real-name">
+            <input type="hidden" id="modal-registro-id">
         </div>
     </div>
 
@@ -162,11 +127,14 @@
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
         let currentProfile = null;
-        let cursosDisponibles = [];
+        let allCursos = [];
+        let conteoAlumnos = {}; 
+        let datosExcel = [];
 
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
             await verificarSesion();
+            document.getElementById('ins-excel').addEventListener('change', procesarExcel);
         });
 
         async function verificarSesion() {
@@ -174,106 +142,152 @@
             if (!session) return window.location.href = '../index.html';
 
             const { data: perfil } = await db.from('perfiles').select('*, instituciones(*)').eq('id', session.user.id).single();
-            if (!perfil) return;
-            currentProfile = perfil;
-
-            cargarBranding(perfil);
-            cargarDatos();
+            if (perfil) {
+                currentProfile = perfil;
+                cargarDatosVisuales(perfil);
+                await cargarDatosCompletos();
+            }
         }
 
-        function cargarBranding(perfil) {
-            document.getElementById('user-name').innerText = perfil.nombre_completo;
+        function cargarDatosVisuales(perfil) {
+            document.getElementById('user-name').innerText = perfil.nombre_completo || perfil.email;
+            document.getElementById('user-role').innerText = perfil.rol === 'superadmin' ? 'Super Admin' : 'Administrador';
             document.getElementById('user-initials').innerText = (perfil.nombre_completo || 'U').charAt(0).toUpperCase();
-            
-            if(perfil.instituciones) {
-                const inst = perfil.instituciones;
-                if(inst.logo_url) {
-                    const l = document.getElementById('sidebar-logo');
-                    l.src = inst.logo_url; l.classList.remove('hidden');
+
+            const inst = perfil.instituciones;
+            if (inst) {
+                if (inst.logo_url) {
+                    const logo = document.getElementById('sidebar-logo');
+                    logo.src = inst.logo_url;
+                    logo.classList.remove('hidden');
                 }
-                if(inst.color_primario) document.getElementById('sidebar').style.background = inst.color_primario;
-                if(inst.nombre) document.getElementById('sidebar-brand-text').innerHTML = `<h1 class="font-bold text-lg leading-tight">${inst.nombre}</h1>`;
+                if (inst.color_primario) document.getElementById('sidebar').style.backgroundColor = inst.color_primario;
+                if (inst.nombre) {
+                    document.getElementById('sidebar-brand-text').innerHTML = `<h1 class="font-bold text-lg tracking-wide leading-tight">${inst.nombre}</h1>`;
+                }
             }
         }
 
-        async function cargarDatos() {
-            // 1. Cargar Cursos (Para KPI y Select)
-            let q = db.from('cursos_oficiales').select('id, nombre, registro_id');
-            if(currentProfile.rol !== 'superadmin') q = q.eq('institution_id', currentProfile.institucion_id);
-            const { data: cursos } = await q;
-            
-            if(cursos) {
-                cursosDisponibles = cursos;
-                document.getElementById('kpi-cursos').innerText = cursos.length;
-                llenarSelectCursos(cursos);
-            }
+        async function cargarDatosCompletos() {
+            try {
+                // 1. Cargar Cursos
+                let query = db.from('cursos_oficiales').select('*').order('created_at', { ascending: false });
+                if (currentProfile.rol !== 'superadmin') query = query.eq('institution_id', currentProfile.institucion_id);
+                const { data: cursos, error: errCursos } = await query;
+                
+                if (errCursos) throw errCursos;
 
-            // 2. Cargar Matriculas (Para KPI y Tabla)
-            // Traemos las últimas 10
-            let qm = db.from('matriculas').select('*').order('created_at', { ascending: false }).limit(10);
-            if(currentProfile.rol !== 'superadmin') qm = qm.eq('institution_id', currentProfile.institucion_id);
-            const { data: matriculas } = await qm;
+                // 2. Cargar Conteo (Seguro)
+                const { data: matriculas, error: errMat } = await db.from('matriculas').select('curso').eq('estado', 'ACTIVO');
+                
+                // Procesar conteo incluso si matriculas es null (vacío)
+                conteoAlumnos = {};
+                if(matriculas && matriculas.length > 0) {
+                    matriculas.forEach(m => {
+                        if(m.curso) {
+                            const nombreNormalizado = m.curso.trim();
+                            conteoAlumnos[nombreNormalizado] = (conteoAlumnos[nombreNormalizado] || 0) + 1;
+                        }
+                    });
+                }
 
-            if(matriculas) {
-                // Total aproximado (si quieres el total real, harías un count, pero por ahora usamos length de lo traido o hacemos otra query count)
-                // Hacemos query count separada para KPI total
-                const { count } = await db.from('matriculas').select('*', { count: 'exact', head: true }).eq('estado', 'ACTIVO');
-                document.getElementById('kpi-alumnos').innerText = count || matriculas.length;
+                // 3. Renderizar
+                if (cursos) { allCursos = cursos; renderizarCursos(allCursos); }
 
-                renderizarTabla(matriculas);
+            } catch (e) {
+                console.error("Error cargando datos:", e);
+                // Si falla, mostramos mensaje en la grilla para debug
+                document.getElementById('grid-cursos').innerHTML = `<div class="col-span-3 text-red-500 text-center p-10">Error cargando cursos. Ver consola.</div>`;
             }
         }
 
-        function renderizarTabla(filas) {
-            const tbody = document.getElementById('tabla-matriculas');
-            tbody.innerHTML = "";
-            if(filas.length === 0) { tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">Sin inscripciones recientes.</td></tr>`; return; }
+        function renderizarCursos(cursos) {
+            const grid = document.getElementById('grid-cursos');
+            const counter = document.getElementById('contador-cursos');
+            const empty = document.getElementById('empty-state');
 
-            filas.forEach(m => {
-                const fecha = new Date(m.created_at).toLocaleDateString();
-                const html = `
-                <tr class="hover:bg-slate-50 transition">
-                    <td class="px-6 py-4 text-slate-500">${fecha}</td>
-                    <td class="px-6 py-4 font-bold text-slate-700">${m.nombre} ${m.apellido}</td>
-                    <td class="px-6 py-4 font-mono text-slate-500">${m.dni_alumno}</td>
-                    <td class="px-6 py-4 text-blue-600 font-bold text-xs uppercase">${m.curso}</td>
-                    <td class="px-6 py-4"><span class="bg-green-100 text-green-700 px-2 py-1 rounded text-[10px] font-bold">ACTIVO</span></td>
-                </tr>`;
-                tbody.innerHTML += html;
+            grid.innerHTML = "";
+            counter.innerText = `${cursos.length} Cursos Encontrados`;
+
+            if (cursos.length === 0) { 
+                grid.classList.add('hidden'); 
+                empty.classList.remove('hidden'); 
+                return; 
+            }
+
+            empty.classList.add('hidden');
+            grid.classList.remove('hidden');
+
+            cursos.forEach(curso => {
+                const bgImage = curso.imagen_portada_url || 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=400';
+                let badgeColor = 'bg-blue-600';
+                const cantModulos = curso.contenido ? curso.contenido.length : 0;
+                const cantAlumnos = conteoAlumnos[curso.nombre.trim()] || 0;
+
+                const cardHTML = `
+                <article class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl transition-all group overflow-hidden flex flex-col h-full">
+                    <div class="h-36 relative overflow-hidden bg-slate-100">
+                        <img src="${bgImage}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                        <span class="absolute top-3 left-3 text-[10px] font-bold text-white px-2 py-1 rounded shadow-sm uppercase tracking-wider ${badgeColor}">${curso.registro_id || 'GRAL'}</span>
+                    </div>
+
+                    <div class="p-6 flex-1 flex flex-col">
+                        <h3 class="text-lg font-black text-slate-800 leading-tight mb-2 group-hover:text-blue-600 transition-colors">${curso.nombre}</h3>
+                        
+                        <div class="flex items-center gap-4 text-xs font-bold text-slate-500 mb-4 mt-auto">
+                            <div class="flex items-center gap-1.5 bg-slate-100 px-2 py-1 rounded text-slate-600">
+                                <i data-lucide="layers" class="w-3.5 h-3.5"></i> ${cantModulos} Módulos
+                            </div>
+                            <div class="flex items-center gap-1.5 bg-blue-50 px-2 py-1 rounded text-blue-600">
+                                <i data-lucide="users" class="w-3.5 h-3.5"></i> ${cantAlumnos} Alumnos
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-slate-100">
+                            <button onclick="abrirInscripcion('${curso.id}', '${curso.nombre}', '${curso.registro_id}')" class="col-span-2 flex items-center justify-center gap-2 bg-slate-800 hover:bg-black text-white py-2 rounded-lg text-xs font-bold transition-colors mb-2">
+                                <i data-lucide="users" class="w-3.5 h-3.5"></i> Gestionar Alumnos
+                            </button>
+                            <a href="editor-curso.html?id=${curso.id}" class="flex items-center justify-center gap-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 py-2 rounded-lg text-xs font-bold transition-colors">
+                                <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Editar
+                            </a>
+                             <a href="../student/aula.html?id=${curso.id}" target="_blank" class="flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 py-2 rounded-lg text-xs font-bold transition-colors">
+                                <i data-lucide="monitor-play" class="w-3.5 h-3.5"></i> Ver Aula
+                            </a>
+                        </div>
+                    </div>
+                </article>`;
+                grid.innerHTML += cardHTML;
             });
+            lucide.createIcons();
         }
 
-        // --- GESTIÓN GLOBAL DE MATRÍCULA ---
-
-        function abrirModalMatricula() {
-            document.getElementById('modal-global').classList.remove('hidden');
+        // --- GESTIÓN DE INSCRIPCIONES ---
+        function abrirInscripcion(id, nombre, registro) {
+            document.getElementById('modal-course-id').value = id;
+            document.getElementById('modal-course-real-name').value = nombre;
+            document.getElementById('modal-registro-id').value = registro;
+            document.getElementById('modal-course-name').innerText = `Inscripción: ${nombre}`;
+            document.getElementById('modal-inscripcion').classList.remove('hidden');
         }
 
-        function llenarSelectCursos(cursos) {
-            const sel = document.getElementById('glob-curso');
-            sel.innerHTML = `<option value="">Selecciona un curso...</option>`;
-            cursos.forEach(c => {
-                sel.innerHTML += `<option value="${c.nombre}" data-reg="${c.registro_id}">${c.nombre}</option>`;
-            });
+        function cerrarModalInscripcion() {
+            document.getElementById('modal-inscripcion').classList.add('hidden');
+            cargarDatosCompletos();
         }
 
-        async function guardarMatriculaGlobal() {
-            const sel = document.getElementById('glob-curso');
-            const cursoNombre = sel.value;
-            const registroId = sel.options[sel.selectedIndex].getAttribute('data-reg') || 'remaep';
-            
-            const dni = document.getElementById('glob-dni').value.trim();
-            const nombre = document.getElementById('glob-nombre').value;
-            const apellido = document.getElementById('glob-apellido').value;
+        async function inscribirManual() {
+            const dni = document.getElementById('ins-dni').value;
+            const nombre = document.getElementById('ins-nombre').value;
+            const apellido = document.getElementById('ins-apellido').value;
+            const cursoNombre = document.getElementById('modal-course-real-name').value;
+            const registroId = document.getElementById('modal-registro-id').value;
 
-            if(!cursoNombre || !dni || !nombre) return alert("Completa todos los datos.");
-
-            const btn = document.querySelector('button[onclick="guardarMatriculaGlobal()"]');
-            btn.innerText = "Guardando..."; btn.disabled = true;
+            if(!dni || !nombre || !apellido) return alert("Completa todos los campos");
 
             const payload = {
-                dni_alumno: dni, nombre, apellido,
-                curso: cursoNombre,
+                dni_alumno: dni, nombre, apellido, 
+                curso: cursoNombre, 
                 registro_id: registroId,
                 institution_id: currentProfile.institucion_id,
                 fecha_inicio: new Date().toISOString(),
@@ -281,21 +295,69 @@
             };
 
             const { error } = await db.from('matriculas').insert([payload]);
-
             if(error) alert("Error: " + error.message);
-            else {
-                alert("Alumno inscripto correctamente.");
-                document.getElementById('modal-global').classList.add('hidden');
-                cargarDatos(); // Refrescar tabla y KPIs
-                // Limpiar form
-                document.getElementById('glob-dni').value = "";
-                document.getElementById('glob-nombre').value = "";
-                document.getElementById('glob-apellido').value = "";
-            }
-            btn.innerText = "Confirmar Inscripción"; btn.disabled = false;
+            else { alert("Inscripto correctamente"); cerrarModalInscripcion(); }
         }
 
-        async function logout() { await db.auth.signOut(); window.location.href = '../index.html'; }
+        function procesarExcel() {
+            const input = document.getElementById('ins-excel');
+            if(!input.files.length) return;
+            
+            const r = new FileReader();
+            r.onload = e => {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type:'array'});
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const json = XLSX.utils.sheet_to_json(sheet);
+                
+                datosExcel = json.map(row => ({
+                    dni: row['DNI'] || row['dni'],
+                    nombre: row['NOMBRE'] || row['nombre'],
+                    apellido: row['APELLIDO'] || row['apellido']
+                })).filter(x => x.dni);
+
+                mostrarPreviewExcel();
+            };
+            r.readAsArrayBuffer(input.files[0]);
+        }
+
+        function mostrarPreviewExcel() {
+            const area = document.getElementById('preview-area');
+            const list = document.getElementById('preview-list');
+            document.getElementById('count-preview').innerText = datosExcel.length;
+            list.innerHTML = "";
+            datosExcel.slice(0, 10).forEach(d => {
+                list.innerHTML += `<div class="border-b py-1 text-slate-500">${d.dni} - ${d.nombre}</div>`;
+            });
+            area.classList.remove('hidden');
+        }
+
+        async function confirmarCargaMasiva() {
+            const cursoNombre = document.getElementById('modal-course-real-name').value;
+            const registroId = document.getElementById('modal-registro-id').value;
+            const instId = currentProfile.institucion_id;
+            
+            const filas = datosExcel.map(d => ({
+                dni_alumno: d.dni,
+                nombre: d.nombre,
+                apellido: d.apellido,
+                curso: cursoNombre,
+                registro_id: registroId,
+                institution_id: instId,
+                fecha_inicio: new Date().toISOString(),
+                estado: 'ACTIVO'
+            }));
+
+            const { error } = await db.from('matriculas').insert(filas);
+            if(error) alert("Error: " + error.message);
+            else { alert(`¡${filas.length} inscriptos!`); cerrarModalInscripcion(); }
+        }
+
+        function filtrarCursosUI() {
+            const texto = document.getElementById('buscador').value.toLowerCase();
+            const filtrados = allCursos.filter(c => c.nombre.toLowerCase().includes(texto));
+            renderizarCursos(filtrados);
+        }
     </script>
 </body>
 </html>
