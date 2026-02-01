@@ -3,44 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Panel | Estudiante</title>
+    <title>Campus Virtual</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
-        /* Estilos para scrollbar oscuro */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        /* Transición suave para el cambio de marca */
+        .brand-transition { transition: background-color 0.5s ease, border-color 0.5s ease; }
     </style>
 </head>
 <body class="bg-slate-900 text-slate-200 flex h-screen overflow-hidden font-sans">
 
-    <aside class="w-64 bg-slate-950 border-r border-slate-800 flex flex-col hidden md:flex">
-        <div class="p-6 h-20 flex items-center border-b border-slate-800">
-            <h1 class="font-bold text-xl tracking-wide text-white">ASARI <span class="text-xs text-blue-500">Campus</span></h1>
+    <aside id="sidebar-panel" class="w-64 bg-slate-950 border-r border-slate-800 flex flex-col hidden md:flex brand-transition">
+        
+        <div class="p-6 h-24 flex items-center justify-center border-b border-white/10">
+            <img id="brand-logo-img" src="" class="h-16 w-auto object-contain hidden transition-all duration-500">
+            
+            <h1 id="brand-text" class="font-bold text-xl tracking-wide text-white">
+                ASARI <span class="text-xs text-blue-500">Campus</span>
+            </h1>
         </div>
         
         <nav class="flex-1 p-4 space-y-2">
-            <a href="#" class="flex items-center gap-3 px-4 py-3 bg-blue-600/10 text-blue-400 rounded-xl border border-blue-600/20 transition-all">
+            <div class="px-4 py-3 bg-white/10 text-white rounded-xl border border-white/20 transition-all flex items-center gap-3">
                 <i data-lucide="layout" class="w-5 h-5"></i>
                 <span class="font-bold text-sm">Mis Cursos</span>
-            </a>
+            </div>
             
-            <div class="px-4 py-2 mt-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tu Cuenta</div>
-            
-            <div class="px-4 py-3 bg-slate-900 rounded-lg border border-slate-800">
-                <p class="text-xs text-slate-400 font-bold mb-1">DNI Vinculado:</p>
-                <p class="text-sm font-mono text-yellow-500 tracking-wider font-bold" id="user-dni">
-                    <span class="animate-pulse">...</span>
-                </p>
+            <div class="mt-auto pt-10">
+                <div class="px-4 py-2 text-[10px] font-bold text-white/50 uppercase tracking-wider">Tu Cuenta</div>
+                <div class="px-4 py-3 bg-black/20 rounded-lg border border-white/5 mx-2">
+                    <p class="text-xs text-white/60 font-bold mb-1">DNI Vinculado:</p>
+                    <p class="text-sm font-mono text-yellow-400 tracking-wider font-bold" id="user-dni">
+                        <span class="animate-pulse">...</span>
+                    </p>
+                </div>
             </div>
         </nav>
 
-        <div class="p-4 border-t border-slate-800">
-            <button onclick="logout()" class="flex items-center gap-2 text-slate-400 hover:text-white transition text-xs font-bold uppercase w-full p-2 hover:bg-slate-800 rounded-lg">
+        <div class="p-4 border-t border-white/10">
+            <button onclick="logout()" class="flex items-center gap-2 text-white/60 hover:text-white transition text-xs font-bold uppercase w-full p-2 hover:bg-white/5 rounded-lg">
                 <i data-lucide="log-out" class="w-4 h-4"></i> Cerrar Sesión
             </button>
         </div>
@@ -48,50 +54,40 @@
 
     <div class="flex-1 flex flex-col min-w-0">
         
-        <header class="h-20 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-8 z-20 shadow-md">
+        <header id="top-header" class="h-20 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-8 z-20 shadow-md brand-transition">
             <div>
-                <h2 class="text-2xl font-black text-white tracking-tight">Mis Cursos</h2>
-                <p class="text-xs text-slate-500 font-medium">Formaciones activas en tu matrícula</p>
+                <h2 class="text-2xl font-black text-white tracking-tight" id="header-title">Mis Cursos</h2>
+                <p class="text-xs text-slate-400 font-medium" id="header-subtitle">Panel de Estudiante</p>
             </div>
             
             <div class="flex items-center gap-4">
                 <div class="text-right hidden sm:block">
-                    <p class="text-sm font-bold text-white" id="student-name">Estudiante</p>
-                    <p class="text-[10px] text-green-500 font-bold uppercase flex justify-end items-center gap-1">
+                    <p class="text-sm font-bold text-white" id="student-name">Cargando...</p>
+                    <p class="text-[10px] text-green-400 font-bold uppercase flex justify-end items-center gap-1">
                         <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Online
                     </p>
                 </div>
-                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center font-bold text-white shadow-lg border border-white/10">
+                <div id="user-avatar" class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center font-bold text-white shadow-lg border border-white/10">
                     <i data-lucide="user" class="w-5 h-5"></i>
                 </div>
             </div>
         </header>
 
-        <main class="flex-1 p-8 overflow-y-auto relative">
+        <main class="flex-1 p-8 overflow-y-auto relative bg-slate-900" id="main-area">
             <div id="active-courses-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                
-                <div class="col-span-3 text-center py-20 flex flex-col items-center justify-center h-64">
-                    <div class="relative">
-                        <div class="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
-                    </div>
-                    <p class="text-slate-500 mt-4 text-sm font-medium animate-pulse">Verificando matrículas...</p>
+                <div class="col-span-3 text-center py-20">
+                    <i data-lucide="loader-2" class="w-10 h-10 animate-spin mx-auto text-blue-500"></i>
+                    <p class="text-slate-500 mt-4 text-sm animate-pulse">Sincronizando perfil...</p>
                 </div>
-
             </div>
         </main>
     </div>
 
     <script>
-        // CONFIGURACIÓN
         const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
-        
-        // Inicializar cliente con persistencia
-        const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY, {
-            auth: { persistSession: true }
-        });
+        const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY, { auth: { persistSession: true } });
 
-        // INICIO
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
             await iniciarDashboard();
@@ -99,122 +95,103 @@
 
         async function iniciarDashboard() {
             try {
-                // A. Verificar Sesión
+                // 1. Validar Sesión
                 const { data: { session }, error: errSession } = await db.auth.getSession();
-                
-                if (errSession) throw errSession;
-                if (!session) return window.location.href = '../campus.html';
+                if (errSession || !session) return window.location.href = '../campus.html';
 
-                // B. Obtener Perfil del Usuario
+                // 2. Cargar Perfil
                 const { data: perfil, error: errPerfil } = await db.from('perfiles').select('*').eq('id', session.user.id).single();
                 
-                // Manejo de error de red en el perfil
                 if (errPerfil) {
-                    if (errPerfil.message && errPerfil.message.includes("aborted")) {
-                        console.warn("Red inestable detectada al cargar perfil. Reintentando...");
-                        setTimeout(() => window.location.reload(), 1000);
-                        return;
-                    }
-                    // Si no existe perfil, es un error raro, lo manejamos
-                    if (errPerfil.code === 'PGRST116') throw new Error("Perfil de usuario no encontrado.");
+                    if (errPerfil.message.includes("aborted")) return setTimeout(() => window.location.reload(), 1000); // Retry
                     throw errPerfil;
                 }
-                
-                // C. Lógica de UI según datos
+
                 if (perfil) {
-                    document.getElementById('student-name').innerText = perfil.nombre_completo || "Estudiante";
+                    document.getElementById('student-name').innerText = perfil.nombre_completo || "Alumno";
                     
                     if (perfil.dni) {
                         document.getElementById('user-dni').innerText = perfil.dni;
-                        // Si tiene DNI, buscamos sus cursos
-                        await cargarSoloMisCursos(perfil.dni);
+                        // AQUÍ ESTÁ LA CLAVE: Cargamos cursos Y Branding
+                        await cargarCursosYBranding(perfil.dni);
                     } else {
-                        // Si NO tiene DNI, mostramos pantalla de vinculación
                         mostrarBloqueoDNI(session.user.id);
                     }
                 }
 
             } catch (e) {
-                console.error("ERROR EN DASHBOARD:", e);
-                manejarErrorFatal(e);
+                console.error("Error Dashboard:", e);
+                // Manejo de error silencioso o visual si es crítico
+                if(!e.message.includes("aborted")) {
+                    document.getElementById('active-courses-grid').innerHTML = `<div class="col-span-3 text-center text-red-400 p-10">Error de conexión: ${e.message}</div>`;
+                }
             }
         }
 
-        async function cargarSoloMisCursos(dni) {
+        // --- FUNCIÓN HÍBRIDA: Carga Cursos + Aplica Marca ---
+        async function cargarCursosYBranding(dni) {
             const container = document.getElementById('active-courses-grid');
 
-            // 1. Buscar Matrículas Activas
+            // A. Buscar Matrículas (y de paso obtenemos el ID de institución)
             const { data: matriculas, error: errMat } = await db
                 .from('matriculas')
-                .select('curso')
+                .select('curso, institution_id') // Pedimos también la institución
                 .eq('dni_alumno', dni)
                 .eq('estado', 'ACTIVO');
 
             if (errMat) throw errMat;
 
-            // 2. Si no hay matrículas
             if (!matriculas || matriculas.length === 0) {
                 container.innerHTML = `
-                <div class="col-span-3 flex flex-col items-center justify-center py-16 bg-slate-800/30 rounded-2xl border border-dashed border-slate-700">
-                    <div class="w-16 h-16 bg-slate-800 text-slate-500 rounded-full flex items-center justify-center mb-4"><i data-lucide="book-x" class="w-8 h-8"></i></div>
-                    <h3 class="font-bold text-white text-lg">No tienes cursos activos</h3>
-                    <p class="text-slate-400 text-sm mt-1 max-w-md text-center">Tu DNI (${dni}) no registra inscripciones habilitadas en este momento.</p>
+                <div class="col-span-3 text-center py-16 bg-white/5 rounded-2xl border border-dashed border-white/10">
+                    <i data-lucide="book-x" class="w-12 h-12 text-slate-500 mx-auto mb-4"></i>
+                    <h3 class="font-bold text-white">Sin cursos activos</h3>
+                    <p class="text-slate-400 text-sm mt-1">El DNI ${dni} no tiene inscripciones.</p>
                 </div>`;
                 lucide.createIcons();
                 return;
             }
 
-            // 3. Obtener nombres limpios
-            const nombresCursos = matriculas.map(m => m.curso ? m.curso.trim() : "").filter(n => n !== "");
+            // --- B. APLICAR BRANDING (SAAS LOGIC) ---
+            // Tomamos el ID de institución de la primera matrícula encontrada
+            const instId = matriculas[0].institution_id;
+            if (instId) {
+                aplicarEstiloInstitucional(instId);
+            }
 
-            // 4. Buscar detalles de los Cursos
-            const { data: cursos, error: errCur } = await db
-                .from('cursos_oficiales')
-                .select('*')
-                .in('nombre', nombresCursos);
+            // C. Procesar Cursos (Usando la búsqueda flexible que arreglamos antes)
+            const nombresCursos = matriculas.map(m => m.curso ? m.curso.trim() : "").filter(n => n !== "");
+            
+            // Usamos la función SQL 'buscar_cursos_flexible'
+            const { data: cursos, error: errCur } = await db.rpc('buscar_cursos_flexible', { lista_nombres: nombresCursos });
 
             if (errCur) throw errCur;
 
+            // D. Renderizar
             container.innerHTML = "";
-
-            // 5. Verificar si se encontraron los cursos
             if (!cursos || cursos.length === 0) {
-                 container.innerHTML = `
-                 <div class="col-span-3 text-center p-10 bg-slate-800 rounded-xl border border-yellow-600/50">
-                    <i data-lucide="alert-triangle" class="w-10 h-10 text-yellow-500 mx-auto mb-3"></i>
-                    <p class="font-bold text-white mb-2 text-lg">Discrepancia de Datos</p>
-                    <p class="text-sm text-slate-400">Estás matriculado en: <span class="text-blue-400 font-bold">${nombresCursos.join(", ")}</span></p>
-                    <p class="text-xs text-slate-500 mt-4 bg-black/20 p-2 rounded inline-block">El sistema no encontró contenido con ese nombre exacto. <br>Por favor contacta a soporte.</p>
-                 </div>`;
-                 lucide.createIcons();
+                 container.innerHTML = `<div class="col-span-3 text-center text-slate-500 p-10">Matriculado en: <b class="text-blue-400">${nombresCursos.join(", ")}</b><br>Pero no se encontró contenido oficial.</div>`;
                  return;
             }
 
-            // 6. Renderizar Tarjetas
             cursos.forEach(curso => {
                 const cantModulos = curso.contenido ? curso.contenido.length : 0;
                 const bgImg = curso.imagen_portada_url || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&q=80&w=400';
 
+                // Tarjeta con diseño neutro oscuro
                 const html = `
-                <article class="bg-slate-800 rounded-2xl border border-slate-700 shadow-lg hover:border-blue-500/50 hover:shadow-blue-900/20 transition-all duration-300 overflow-hidden flex flex-col h-full group">
-                    <div class="h-44 relative overflow-hidden bg-slate-900">
-                        <img src="${bgImg}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-60 group-hover:opacity-100">
-                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent"></div>
-                        <div class="absolute top-3 right-3 bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow flex items-center gap-1">
-                            <span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span> CURSANDO
-                        </div>
+                <article class="bg-slate-800 rounded-2xl border border-slate-700 shadow-lg hover:border-white/30 transition-all overflow-hidden flex flex-col h-full group">
+                    <div class="h-44 relative overflow-hidden bg-black">
+                        <img src="${bgImg}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-70 group-hover:opacity-100">
+                        <div class="absolute top-3 right-3 bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow">CURSANDO</div>
                     </div>
-                    
-                    <div class="p-6 flex-1 flex flex-col relative">
-                        <h3 class="font-black text-white text-xl mb-2 leading-tight group-hover:text-blue-400 transition-colors">${curso.nombre}</h3>
-                        <p class="text-xs text-slate-400 mb-6 line-clamp-2">${curso.descripcion || 'Programa de formación profesional intensiva.'}</p>
-                        
+                    <div class="p-6 flex-1 flex flex-col">
+                        <h3 class="font-bold text-white text-lg mb-2 leading-tight">${curso.nombre}</h3>
+                        <p class="text-xs text-slate-400 mb-6 line-clamp-2">${curso.descripcion || 'Formación profesional.'}</p>
                         <div class="mt-auto pt-4 border-t border-slate-700 flex items-center justify-between">
-                            <span class="text-xs font-bold text-slate-500 flex items-center gap-1.5">
-                                <i data-lucide="layers" class="w-3.5 h-3.5"></i> ${cantModulos} Módulos
-                            </span>
-                            <a href="aula.html?id=${curso.id}" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-lg shadow-blue-900/30 flex items-center gap-2 transform active:scale-95">
-                                Entrar al Aula <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                            <span class="text-xs font-bold text-slate-500 flex items-center gap-1"><i data-lucide="layers" class="w-3 h-3"></i> ${cantModulos} Módulos</span>
+                            <a href="aula.html?id=${curso.id}" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2 border border-white/10">
+                                Entrar <i data-lucide="arrow-right" class="w-3 h-3"></i>
                             </a>
                         </div>
                     </div>
@@ -224,113 +201,84 @@
             lucide.createIcons();
         }
 
-        // --- MANEJO DE VINCULACIÓN DE DNI ---
+        // --- FUNCIÓN QUIRÚRGICA DE MARCA ---
+        async function aplicarEstiloInstitucional(instId) {
+            try {
+                const { data: inst } = await db.from('instituciones').select('*').eq('id', instId).single();
+                if (!inst) return;
+
+                console.log("Aplicando Branding:", inst.nombre);
+
+                // 1. Cambiar Logos
+                if (inst.logo_url) {
+                    const logoImg = document.getElementById('brand-logo-img');
+                    const textBrand = document.getElementById('brand-text');
+                    
+                    logoImg.src = inst.logo_url;
+                    logoImg.classList.remove('hidden'); // Mostrar logo
+                    textBrand.classList.add('hidden');  // Ocultar texto ASARI
+                }
+
+                // 2. Cambiar Colores (Sidebar y Header)
+                if (inst.color_primario) {
+                    const sidebar = document.getElementById('sidebar-panel');
+                    const header = document.getElementById('top-header');
+                    const avatar = document.getElementById('user-avatar');
+                    
+                    // Aplicar color primario
+                    sidebar.style.backgroundColor = inst.color_primario;
+                    sidebar.style.borderColor = "rgba(255,255,255,0.1)"; // Ajuste fino de borde
+                    
+                    // Header un poco más oscuro o igual
+                    header.style.backgroundColor = inst.color_primario; 
+                    // Opcional: header.style.filter = "brightness(0.9)"; // Un toque más oscuro
+                    
+                    avatar.style.backgroundColor = "rgba(255,255,255,0.2)";
+                    
+                    // Cambiar título de la página
+                    if(inst.nombre) document.title = `Campus Virtual | ${inst.nombre}`;
+                }
+
+            } catch (e) {
+                console.error("Error aplicando branding:", e);
+                // Si falla, se queda con el estilo ASARI por defecto
+            }
+        }
+
+        // --- VINCULACIÓN DE DNI ---
         function mostrarBloqueoDNI(userId) {
             const container = document.getElementById('active-courses-grid');
             document.getElementById('user-dni').innerText = "Pendiente";
-            document.getElementById('user-dni').classList.add('text-red-400');
-            
             container.innerHTML = `
-                <div class="col-span-3 bg-gradient-to-br from-yellow-500/5 to-slate-800 border border-yellow-500/30 rounded-2xl p-10 text-center max-w-lg mx-auto mt-10 shadow-2xl">
-                    <div class="w-20 h-20 bg-yellow-500/10 text-yellow-500 rounded-full flex items-center justify-center mx-auto mb-6 border border-yellow-500/20">
-                        <i data-lucide="shield-alert" class="w-10 h-10"></i>
+                <div class="col-span-3 bg-gradient-to-br from-blue-900 to-slate-900 border border-blue-500/30 rounded-2xl p-10 text-center max-w-lg mx-auto mt-10 shadow-2xl">
+                    <i data-lucide="shield-check" class="w-12 h-12 text-blue-400 mx-auto mb-4"></i>
+                    <h3 class="text-xl font-bold text-white mb-2">Validación de Alumno</h3>
+                    <p class="text-slate-400 mb-6 text-sm">Ingresa tu DNI para sincronizar tus cursos y personalizar tu experiencia.</p>
+                    <div class="flex gap-2">
+                        <input type="text" id="input-dni-sync" placeholder="DNI sin puntos" class="flex-1 p-3 bg-black/30 border border-blue-500/50 rounded-lg outline-none font-bold text-center text-white focus:bg-black/50 transition">
+                        <button onclick="guardarDNI('${userId}')" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-bold transition">Validar</button>
                     </div>
-                    <h3 class="text-2xl font-black text-white mb-2">Validación Requerida</h3>
-                    <p class="text-slate-400 mb-8 text-sm leading-relaxed">Para proteger tu cuenta y acceder al contenido académico, necesitamos verificar tu identidad. Por favor, ingresa tu número de documento.</p>
-                    
-                    <div class="flex gap-3">
-                        <input type="text" id="input-dni-sync" placeholder="Ingresa tu DNI aquí" class="flex-1 p-3 bg-slate-900 border border-slate-600 rounded-xl outline-none font-bold text-center text-white focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 transition placeholder-slate-600">
-                        <button onclick="guardarDNI('${userId}')" class="bg-yellow-500 hover:bg-yellow-400 text-slate-900 px-8 py-3 rounded-xl font-bold transition shadow-lg hover:shadow-yellow-500/20">
-                            Validar
-                        </button>
-                    </div>
-                    <p id="dni-error-msg" class="text-xs text-red-400 mt-4 hidden font-bold bg-red-900/20 p-2 rounded border border-red-500/30 animate-pulse"></p>
-                </div>
-            `;
+                    <p id="dni-error-msg" class="text-xs text-red-400 mt-4 hidden font-bold"></p>
+                </div>`;
             lucide.createIcons();
         }
 
         async function guardarDNI(userId) {
             const input = document.getElementById('input-dni-sync');
             const errorMsg = document.getElementById('dni-error-msg');
-            const btn = document.querySelector('button[onclick^="guardarDNI"]');
-            
-            // Limpiar DNI (sacar puntos)
             const dni = input.value.replace(/\./g, '').trim();
 
             errorMsg.classList.add('hidden');
-            
-            if(dni.length < 6) {
-                errorMsg.innerText = "Por favor ingresa un DNI válido (mínimo 6 números).";
-                errorMsg.classList.remove('hidden');
-                return;
-            }
+            if(dni.length < 6) { errorMsg.innerText = "DNI inválido."; errorMsg.classList.remove('hidden'); return; }
 
-            btn.disabled = true;
-            btn.innerText = "Verificando...";
+            const { data } = await db.from('matriculas').select('id').eq('dni_alumno', dni);
+            if(!data || data.length === 0) { errorMsg.innerText = "DNI no encontrado en el padrón."; errorMsg.classList.remove('hidden'); return; }
 
-            try {
-                // Verificar existencia en matrícula
-                const { data, error } = await db.from('matriculas').select('id').eq('dni_alumno', dni);
-                
-                if(error) throw error;
-
-                if(!data || data.length === 0) {
-                    throw new Error("Este DNI no figura en nuestros registros. Contacta a administración.");
-                }
-
-                // Guardar en perfil
-                const { error: errUpdate } = await db.from('perfiles').update({ dni: dni }).eq('id', userId);
-                
-                if(errUpdate) throw errUpdate;
-
-                // Éxito
-                window.location.reload();
-
-            } catch (e) {
-                errorMsg.innerText = e.message;
-                errorMsg.classList.remove('hidden');
-                btn.disabled = false;
-                btn.innerText = "Validar";
-            }
+            await db.from('perfiles').update({ dni: dni }).eq('id', userId);
+            window.location.reload();
         }
 
-        function manejarErrorFatal(e) {
-            // Si el error es "aborted" (microcorte), recargamos automáticamente
-            if (e.name === 'AbortError' || (e.message && e.message.includes("aborted"))) {
-                document.getElementById('active-courses-grid').innerHTML = `
-                    <div class="col-span-3 text-center py-24">
-                        <i data-lucide="wifi-off" class="w-12 h-12 animate-pulse mx-auto text-yellow-500 mb-4"></i>
-                        <h3 class="text-white font-bold text-lg">Conexión inestable</h3>
-                        <p class="text-slate-400 text-sm mb-4">Reconectando con el servidor...</p>
-                    </div>
-                `;
-                lucide.createIcons();
-                setTimeout(() => window.location.reload(), 2000);
-                return;
-            }
-
-            // Si es otro error, mostramos mensaje amigable
-            document.getElementById('active-courses-grid').innerHTML = `
-                <div class="col-span-3 bg-red-500/10 border border-red-500/50 rounded-2xl p-10 text-center text-red-200 max-w-lg mx-auto mt-10">
-                    <i data-lucide="server-crash" class="w-12 h-12 mx-auto mb-4 text-red-500"></i>
-                    <h3 class="font-bold text-xl text-white">Ocurrió un error</h3>
-                    <p class="text-sm mt-2 text-red-300 opacity-80">No pudimos cargar tus datos correctamente.</p>
-                    <div class="bg-black/30 p-3 rounded mt-4 text-[10px] font-mono text-left overflow-hidden text-red-400 border border-red-500/20">
-                        ${e.message || "Error desconocido"}
-                    </div>
-                    <button onclick="window.location.reload()" class="mt-6 bg-red-600 hover:bg-red-500 text-white px-6 py-2 rounded-lg text-sm font-bold transition shadow-lg">
-                        Intentar nuevamente
-                    </button>
-                </div>
-            `;
-            lucide.createIcons();
-        }
-
-        async function logout() { 
-            await db.auth.signOut(); 
-            window.location.href = '../campus.html'; 
-        }
+        async function logout() { await db.auth.signOut(); window.location.href = '../campus.html'; }
     </script>
 </body>
 </html>
