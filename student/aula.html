@@ -87,6 +87,7 @@
         </aside>
 
         <button onclick="toggleMobileMenu()" class="md:hidden absolute bottom-6 right-6 z-30 bg-blue-600 text-white p-4 rounded-full shadow-xl"><i data-lucide="menu" class="w-6 h-6"></i></button>
+
         <button onclick="toggleTutor()" class="fixed bottom-8 right-8 z-50 group transition-all duration-300 hover:scale-110">
             <div class="relative">
                 <div class="w-16 h-16 rounded-full bg-white p-1 shadow-2xl border-4 border-indigo-500 overflow-hidden relative z-10"><img id="tutor-btn-img" src="https://cdn-icons-png.flaticon.com/512/3468/3468283.png" class="w-full h-full object-contain"></div>
@@ -125,9 +126,18 @@
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
-        // CONFIGURACIÓN CRÍTICA
+        // --- CONFIGURACIÓN CRÍTICA (ACTUALIZADA 2026) ---
         const API_KEY_GOOGLE = 'AIzaSyAkZT7qHxVuhMgjzf-BlOPIyHx2hHGaj7U';
-        let detectedModel = null; // Se llenará automáticamente
+        let detectedModel = null; 
+
+        // Lista Oficial de Modelos Vigentes 2026 (Prioridad de mejor a peor)
+        const MODEL_PRIORITY = [
+            'gemini-2.5-flash',       // ESTÁNDAR ORO (2026)
+            'gemini-2.5-flash-lite',  // ESTÁNDAR PLATA
+            'gemini-3-flash-preview', // FUTURO
+            'gemini-1.5-flash-002',   // LEGACY ESTABLE (Si existe)
+            'gemini-2.0-flash'        // LEGACY 
+        ];
 
         let flatLessons = [], currentLessonIndex = -1, jitsiApi = null, completedLessons = new Set();
         let currentCourseId = null, currentUserId = null;
@@ -149,35 +159,41 @@
             if(currentCourseId) await cargarCurso(currentCourseId); else window.location.href = 'dashboard.html';
         });
 
-        // --- SISTEMA DE AUTO-SELECCIÓN DE MODELO ---
-        // Esta función lee tu lista de 47 modelos y elige el mejor disponible.
-        async function getBestModel() {
+        // --- SISTEMA DE DETECCIÓN INTELIGENTE ---
+        async function getWorkingModel() {
             if (detectedModel) return detectedModel;
+
+            // 1. Intentar descargar la lista real de tu cuenta
             try {
-                // 1. Pedir lista a Google
                 const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${API_KEY_GOOGLE}`);
                 const d = await r.json();
                 
                 if (d.models) {
-                    // 2. Filtrar solo los que generan texto (generateContent)
-                    const candidatos = d.models.filter(m => m.supportedGenerationMethods && m.supportedGenerationMethods.includes("generateContent"));
+                    const disponibles = d.models
+                        .filter(m => m.supportedGenerationMethods.includes("generateContent"))
+                        .map(m => m.name.replace("models/", ""));
                     
-                    // 3. Buscar prioritarios: Versiones "Flash" nuevas, luego las viejas
-                    // Intentamos encontrar "gemini-1.5-flash" o similar.
-                    let elegido = candidates.find(m => m.name.includes("gemini-1.5-flash")) || 
-                                  candidates.find(m => m.name.includes("flash")) || 
-                                  candidates[0]; // Si no hay flash, el primero que sirva
+                    // Buscar coincidencia con nuestra lista de prioridad
+                    for (const ideal of MODEL_PRIORITY) {
+                        if (disponibles.includes(ideal)) {
+                            detectedModel = ideal;
+                            console.log("✅ Modelo Oficial Detectado:", detectedModel);
+                            return detectedModel;
+                        }
+                    }
                     
-                    if (elegido) {
-                        detectedModel = elegido.name.replace("models/", "");
-                        console.log("🚀 MODELO SELECCIONADO:", detectedModel);
+                    // Si no está en nuestra lista, agarrar el primer "flash" que haya
+                    const fallbackFlash = disponibles.find(m => m.includes("flash"));
+                    if (fallbackFlash) {
+                        detectedModel = fallbackFlash;
                         return detectedModel;
                     }
                 }
-            } catch (e) { console.error("Error auto-config", e); }
-            
-            // 4. Fallback si todo falla (Probabilidad 0.1%)
-            return "gemini-1.5-flash-latest";
+            } catch (e) { console.warn("Fallo listado automático, usando hardcoded..."); }
+
+            // 2. Si falla el listado, probar Fuerza Bruta con el estándar 2026
+            detectedModel = "gemini-2.5-flash"; 
+            return detectedModel;
         }
 
         async function consultarGemini(prompt) { 
@@ -186,10 +202,9 @@
             container.scrollTop = container.scrollHeight;
             
             try {
-                // Obtenemos el nombre exacto de la lista de 47
-                const modeloExacto = await getBestModel();
+                const modelo = await getWorkingModel();
                 
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/${modeloExacto}:generateContent?key=${API_KEY_GOOGLE}`;
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${API_KEY_GOOGLE}`;
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -199,19 +214,27 @@
                 const data = await response.json();
                 removerLoading(loadingId);
                 
-                if(data.error) throw new Error(data.error.message);
-                if(!data.candidates || !data.candidates[0]) throw new Error("Sin respuesta");
+                if(data.error) {
+                    console.error("Error API:", data.error);
+                    // Si falla por 404, reseteamos el modelo para que busque otro la próxima
+                    if(data.error.code === 404) detectedModel = null;
+                    throw new Error(data.error.message);
+                }
+                
+                if(!data.candidates || !data.candidates[0]) throw new Error("Sin respuesta de IA");
                 
                 agregarBurbujaTutor(data.candidates[0].content.parts[0].text, 'bot'); 
 
             } catch(e) { 
                 removerLoading(loadingId); 
                 console.error(e);
-                agregarBurbujaTutor(`⚠️ Error (${e.message}). Revisa la consola.`, 'bot'); 
+                let msg = `⚠️ Error de conexión: ${e.message}`;
+                if(e.message.includes("404")) msg = "⚠️ Modelo no encontrado. Reintentando...";
+                agregarBurbujaTutor(msg, 'bot'); 
             } 
         }
 
-        // --- RESTO DE FUNCIONES (Igual que antes) ---
+        // --- FUNCIONES RESTANTES ---
         async function cargarCurso(id) {
             const { data: curso, error } = await db.from('cursos_oficiales').select('*').eq('id', id).single();
             if(error || !curso) { alert("Error cargando curso"); return window.location.href = 'dashboard.html'; }
@@ -268,7 +291,7 @@
         function updateNavButtons() { document.getElementById('btn-prev').disabled = currentLessonIndex <= 0; document.getElementById('btn-next').disabled = currentLessonIndex >= flatLessons.length - 1; document.getElementById('btn-prev').onclick = () => cargarClase(currentLessonIndex - 1); document.getElementById('btn-next').onclick = () => cargarClase(currentLessonIndex + 1); }
         function personalizarDoc(registroId) { let tipo = 'default'; let statusText = 'Tutor Académico'; if (registroId) { const rid = registroId.toLowerCase(); if(rid.includes('remaep') || rid.includes('salud')) { tipo = 'salud'; statusText = 'Experto en Salud'; } else if (rid.includes('isf') || rid.includes('deporte')) { tipo = 'deporte'; statusText = 'Coach Deportivo'; } } currentAvatarUrl = AVATARS[tipo]; currentRole = statusText; document.getElementById('tutor-btn-img').src = currentAvatarUrl; document.getElementById('tutor-header-img').src = currentAvatarUrl; document.getElementById('tutor-status').innerText = statusText; borrarHistorial(); }
         function toggleMobileMenu() { document.getElementById('playlist-sidebar').classList.toggle('translate-x-full'); }
-        let isChatOpen = false; function toggleTutor() { const win = document.getElementById('tutor-window'); isChatOpen = !isChatOpen; if(isChatOpen) { win.classList.remove('hidden'); requestAnimationFrame(() => { win.classList.remove('scale-95', 'opacity-0'); document.getElementById('chat-input').focus(); }); } else { win.classList.add('scale-95', 'opacity-0'); setTimeout(() => win.classList.add('hidden'), 300); } }
+        function toggleTutor() { const win = document.getElementById('tutor-window'); isChatOpen = !isChatOpen; if(isChatOpen) { win.classList.remove('hidden'); requestAnimationFrame(() => { win.classList.remove('scale-95', 'opacity-0'); document.getElementById('chat-input').focus(); }); } else { win.classList.add('scale-95', 'opacity-0'); setTimeout(() => win.classList.add('hidden'), 300); } }
         function borrarHistorial() { document.getElementById('chat-messages').innerHTML = `<div class="flex gap-3 chat-bubble"><div class="w-8 h-8 rounded-full bg-white overflow-hidden shrink-0 border border-indigo-500 mt-1 p-0.5"><img src="${currentAvatarUrl}" class="w-full h-full object-contain"></div><div class="bg-slate-800 text-slate-200 text-sm p-3 rounded-2xl rounded-tl-none border border-slate-700 shadow-md"><p>¡Hola! Soy <b>Doc</b>. 🦉</p></div></div>`; }
         function accionarTutor(accion) { if(accion === 'quiz') { agregarBurbujaTutor('Examen.', 'user'); consultarGemini('Genera examen 3 preguntas multiple choice sobre: ' + obtenerContexto() + '. Formato Markdown. Respuestas al final.'); } if(accion === 'resumen') { agregarBurbujaTutor('Resumen.', 'user'); consultarGemini('Resumen 3 puntos sobre: ' + obtenerContexto()); } if(accion === 'explicar') { agregarBurbujaTutor('Explicar.', 'user'); consultarGemini('Explica simple: ' + obtenerContexto()); } }
         async function enviarMensajeTutor(e) { e.preventDefault(); const t = document.getElementById('chat-input').value.trim(); if(!t) return; agregarBurbujaTutor(t, 'user'); document.getElementById('chat-input').value=""; consultarGemini(`Rol: ${currentRole}. Contexto: "${obtenerContexto()}". Pregunta: "${t}". Responde breve.`); }
