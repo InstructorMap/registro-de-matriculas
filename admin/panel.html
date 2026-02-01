@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Colbert OS | Command Center</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .glass-panel { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+        .active-nav { background: #1e293b; border-right: 3px solid #3b82f6; color: #fff; }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 h-screen flex overflow-hidden selection:bg-blue-500/30">
+
+    <aside class="w-72 bg-slate-900 border-r border-slate-800 flex flex-col shrink-0 z-30 shadow-2xl">
+        <div class="h-16 flex items-center px-6 border-b border-slate-800 gap-3 bg-slate-900">
+            <div id="inst-logo-container" class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white shadow-lg shadow-blue-500/20">C</div>
+            <div>
+                <h1 class="font-bold text-white tracking-tight leading-none" id="inst-name">Cargando...</h1>
+                <p class="text-[10px] text-slate-500 font-mono mt-0.5">SaaS Platform v1.0</p>
+            </div>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto py-6 px-3 space-y-8">
+            
+            <div>
+                <p class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Visión Global</p>
+                <button onclick="renderDashboardView()" id="nav-dashboard" class="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-400 rounded-lg hover:bg-slate-800 hover:text-white transition-all active-nav">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
+                </button>
+                <a href="../portal.html" target="_blank" class="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-400 rounded-lg hover:bg-slate-800 hover:text-white transition-all">
+                    <i data-lucide="external-link" class="w-4 h-4"></i> Ver Portal Público
+                </a>
+            </div>
+
+            <div>
+                <div class="flex items-center justify-between px-3 mb-2 group">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Áreas Académicas</p>
+                    <button onclick="openModalArea()" class="text-slate-600 hover:text-blue-400 transition-colors bg-slate-800/50 p-1 rounded hover:bg-slate-800"><i data-lucide="plus" class="w-3 h-3"></i></button>
+                </div>
+                <div id="areas-list-sidebar" class="space-y-1">
+                    <div class="px-3 py-2 text-xs text-slate-600 animate-pulse">Sincronizando...</div>
+                </div>
+            </div>
+
+        </nav>
+
+        <div class="p-4 border-t border-slate-800 bg-slate-900/50">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg"><i data-lucide="user" class="w-4 h-4 text-white"></i></div>
+                <div class="overflow-hidden">
+                    <p class="text-xs font-bold text-white truncate" id="user-name">Usuario</p>
+                    <p class="text-[10px] text-slate-500 truncate" id="user-role">Director</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col relative overflow-hidden bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-slate-950">
+        
+        <header class="h-16 border-b border-slate-800/60 flex items-center justify-between px-8 bg-slate-900/80 backdrop-blur-md sticky top-0 z-20">
+            <div>
+                <h2 id="view-title" class="text-lg font-bold text-white">Dashboard</h2>
+                <div class="flex items-center gap-2 text-xs text-slate-500" id="view-breadcrumbs">
+                    <span>Inicio</span>
+                </div>
+            </div>
+            <div class="flex gap-3">
+                 <div id="header-actions"></div>
+            </div>
+        </header>
+
+        <div id="main-content" class="flex-1 overflow-y-auto p-8 relative">
+            
+            <div id="view-dashboard" class="max-w-6xl mx-auto space-y-8 fade-in">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="glass-panel p-6 rounded-2xl relative overflow-hidden group">
+                        <div class="absolute -right-4 -top-4 bg-blue-500/10 w-24 h-24 rounded-full group-hover:bg-blue-500/20 transition-all"></div>
+                        <div class="relative z-10">
+                            <p class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Universos Activos</p>
+                            <h3 class="text-4xl font-black text-white" id="stat-areas">0</h3>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-6 rounded-2xl relative overflow-hidden group">
+                        <div class="absolute -right-4 -top-4 bg-purple-500/10 w-24 h-24 rounded-full group-hover:bg-purple-500/20 transition-all"></div>
+                        <div class="relative z-10">
+                            <p class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Cursos Totales</p>
+                            <h3 class="text-4xl font-black text-white" id="stat-cursos">0</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="empty-state-areas" class="hidden flex flex-col items-center justify-center py-20 border-2 border-dashed border-slate-800 rounded-3xl bg-slate-900/30">
+                    <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mb-4"><i data-lucide="layers" class="w-8 h-8 text-slate-500"></i></div>
+                    <h3 class="text-xl font-bold text-white">Comienza tu Estructura</h3>
+                    <p class="text-slate-400 text-sm mb-6 max-w-md text-center">Para usar el sistema SaaS, primero define tus áreas (Ej: Salud, Tecnología).</p>
+                    <button onclick="openModalArea()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl font-bold transition shadow-lg shadow-blue-900/20">Crear Primera Área</button>
+                </div>
+            </div>
+
+            <div id="view-area" class="hidden max-w-6xl mx-auto space-y-8 fade-in">
+                
+                <div class="glass-panel p-1 rounded-2xl">
+                    <div class="bg-slate-900/80 p-6 rounded-xl">
+                        <div class="flex flex-col md:flex-row gap-6">
+                            <div class="flex-1">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                        <i data-lucide="brain-circuit" class="w-4 h-4 text-indigo-400"></i> Contexto para la IA
+                                    </h3>
+                                    <span class="text-[10px] text-slate-500 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">Entrenamiento del Bot Vendedor</span>
+                                </div>
+                                <textarea id="area-dossier" rows="3" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs text-slate-300 focus:border-indigo-500 focus:outline-none transition resize-none font-mono" placeholder="Pega aquí el texto del Dossier, PDF o Temario de esta área. La IA usará esto para responder a los interesados en el portal."></textarea>
+                                <div class="flex justify-end mt-2">
+                                    <button onclick="guardarDossier()" class="text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-bold transition flex items-center gap-2">
+                                        <i data-lucide="save" class="w-3 h-3"></i> Guardar Conocimiento
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="w-full md:w-64 border-l border-slate-800 pl-6 flex flex-col justify-center">
+                                <p class="text-[10px] text-slate-400 font-bold uppercase mb-2">Personalidad Activada</p>
+                                <div class="p-3 bg-slate-950 rounded-lg border border-slate-800">
+                                    <p class="text-xs text-slate-300 italic" id="area-prompt-display">"..."</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-end mb-4">
+                        <h3 class="font-bold text-white text-sm uppercase tracking-wider flex items-center gap-2">
+                            <i data-lucide="graduation-cap" class="w-4 h-4 text-slate-500"></i> Cursos en este Universo
+                        </h3>
+                        <div class="relative">
+                            <input type="text" id="search-curso-area" placeholder="Filtrar cursos..." class="bg-slate-900 border border-slate-800 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white focus:border-blue-500 w-48 transition" onkeyup="filtrarCursosUI()">
+                            <i data-lucide="search" class="w-3 h-3 text-slate-500 absolute left-2.5 top-2"></i>
+                        </div>
+                    </div>
+                    
+                    <div id="area-courses-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <div id="modal-area" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 w-full max-w-md rounded-2xl shadow-2xl p-6 transform scale-95 transition-all" id="modal-area-content">
+            <h3 class="text-xl font-bold text-white mb-1">Nuevo Universo Académico</h3>
+            <p class="text-xs text-slate-400 mb-6">Agrupa cursos bajo una temática y personalidad.</p>
+            <form id="form-create-area" class="space-y-4">
+                <div>
+                    <label class="text-xs font-bold text-slate-400 block mb-1">Nombre</label>
+                    <input type="text" name="nombre" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:border-blue-500" placeholder="Ej: Ciencias Forenses" required>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-bold text-slate-400 block mb-1">Slug URL</label>
+                        <input type="text" name="slug" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-slate-400 font-mono" placeholder="forense" required>
+                    </div>
+                    <div>
+                         <label class="text-xs font-bold text-slate-400 block mb-1">Color Identidad</label>
+                         <input type="color" name="color" value="#3b82f6" class="h-10 w-full bg-transparent cursor-pointer rounded">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-indigo-400 block mb-1">Personalidad del Bot</label>
+                    <textarea name="prompt" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:border-indigo-500" placeholder="Ej: Eres un experto técnico. Sé serio y preciso."></textarea>
+                </div>
+                <div class="pt-4 flex gap-3">
+                    <button type="button" onclick="closeModalArea()" class="flex-1 py-2 text-slate-400 hover:text-white text-sm font-bold">Cancelar</button>
+                    <button type="submit" class="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-900/20">Crear</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-inscripcion" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh]">
+            <div class="p-6 border-b border-slate-800 flex justify-between items-center">
+                <div>
+                    <h3 class="text-lg font-bold text-white" id="modal-course-name">Gestión Alumnos</h3>
+                    <p class="text-xs text-slate-500">Base de datos del curso</p>
+                </div>
+                <button onclick="cerrarModalInscripcion()" class="text-slate-400 hover:text-white"><i data-lucide="x"></i></button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-950/50">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-slate-900 p-5 rounded-xl border border-slate-800">
+                        <h4 class="font-bold text-slate-400 text-xs uppercase mb-3"><i data-lucide="user-plus" class="w-3 h-3 inline"></i> Individual</h4>
+                        <div class="space-y-2">
+                            <input type="text" id="ins-dni" placeholder="DNI" class="w-full p-2 text-xs bg-slate-950 border border-slate-800 rounded text-white">
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="text" id="ins-nombre" placeholder="Nombre" class="w-full p-2 text-xs bg-slate-950 border border-slate-800 rounded text-white">
+                                <input type="text" id="ins-apellido" placeholder="Apellido" class="w-full p-2 text-xs bg-slate-950 border border-slate-800 rounded text-white">
+                            </div>
+                            <button onclick="inscribirManual()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-2 rounded text-xs transition">Guardar</button>
+                        </div>
+                    </div>
+                    <div class="bg-blue-900/10 p-5 rounded-xl border border-blue-500/20">
+                        <h4 class="font-bold text-blue-400 text-xs uppercase mb-3"><i data-lucide="table" class="w-3 h-3 inline"></i> Masiva (Excel)</h4>
+                        <input type="file" id="ins-excel" accept=".xlsx" class="block w-full text-xs text-slate-500 mb-2 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500">
+                        <div id="preview-area" class="hidden mt-2">
+                            <button onclick="confirmarCargaMasiva()" class="w-full bg-blue-600 text-white font-bold py-2 rounded text-xs hover:bg-blue-500 transition">Confirmar <span id="count-preview">0</span></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
+                    <table class="w-full text-xs text-left text-slate-400">
+                        <thead class="bg-slate-950 text-slate-500 font-bold uppercase">
+                            <tr><th class="px-4 py-3">DNI</th><th class="px-4 py-3">Alumno</th><th class="px-4 py-3 text-right">Acciones</th></tr>
+                        </thead>
+                        <tbody id="lista-alumnos-body" class="divide-y divide-slate-800"></tbody>
+                    </table>
+                </div>
+            </div>
+            <input type="hidden" id="modal-course-id"><input type="hidden" id="modal-course-real-name"><input type="hidden" id="modal-registro-id">
+        </div>
+    </div>
+
+    <script>
+        const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
+        const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
+        const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
+
+        let currentAreas = [];
+        let activeArea = null;
+        let currentCourses = [];
+        let currentProfile = null;
+        let datosExcel = [];
+
+        // --- INICIALIZACIÓN ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            await checkSession();
+            await loadAreas();
+            renderDashboardView(); // Vista inicial
+            
+            document.getElementById('ins-excel').addEventListener('change', procesarExcel);
+        });
+
+        async function checkSession() {
+            const { data: { session } } = await db.auth.getSession();
+            if(!session) return window.location.href = '../index.html';
+            const { data: perfil } = await db.from('perfiles').select('*, instituciones(*)').eq('id', session.user.id).single();
+            if(perfil) {
+                currentProfile = perfil;
+                document.getElementById('user-name').innerText = perfil.nombre_completo;
+                if(perfil.instituciones) {
+                    document.getElementById('inst-name').innerText = perfil.instituciones.nombre;
+                }
+            }
+        }
+
+        // --- CORE: CARGA DE DATOS ---
+        async function loadAreas() {
+            const list = document.getElementById('areas-list-sidebar');
+            // Hardcode para admin/dev: Si no hay institution_id, buscar la primera.
+            let instId = currentProfile.institucion_id;
+            if(!instId && currentProfile.rol === 'superadmin') {
+                const {data} = await db.from('instituciones').select('id').limit(1).single();
+                if(data) instId = data.id;
+            }
+
+            const { data, error } = await db.from('areas').select('*').eq('institution_id', instId).order('created_at');
+            if(error) { console.error(error); return; }
+            
+            currentAreas = data || [];
+            document.getElementById('stat-areas').innerText = currentAreas.length;
+            
+            // Render Sidebar
+            list.innerHTML = "";
+            if(currentAreas.length === 0) document.getElementById('empty-state-areas').classList.remove('hidden');
+            else document.getElementById('empty-state-areas').classList.add('hidden');
+
+            currentAreas.forEach(area => {
+                const btn = document.createElement('button');
+                btn.className = "w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-400 rounded-lg hover:bg-slate-800 hover:text-white transition-all group border-l-2 border-transparent";
+                btn.id = `nav-area-${area.id}`;
+                btn.onclick = () => selectArea(area);
+                btn.innerHTML = `
+                    <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${area.color_tema}"></span>
+                    <span class="truncate flex-1 text-left">${area.nombre}</span>
+                `;
+                list.appendChild(btn);
+            });
+            
+            // Cargar conteo global de cursos
+            const { count } = await db.from('cursos_oficiales').select('*', { count: 'exact', head: true }).eq('institution_id', instId);
+            document.getElementById('stat-cursos').innerText = count || 0;
+        }
+
+        // --- VISTAS ---
+        function resetNav() {
+            document.querySelectorAll('nav button').forEach(b => {
+                b.classList.remove('active-nav', 'bg-slate-800', 'text-white');
+                b.style.borderLeftColor = 'transparent';
+            });
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-area').classList.add('hidden');
+        }
+
+        function renderDashboardView() {
+            resetNav();
+            document.getElementById('nav-dashboard').classList.add('active-nav');
+            document.getElementById('view-dashboard').classList.remove('hidden');
+            document.getElementById('view-title').innerText = "Dashboard General";
+            document.getElementById('view-breadcrumbs').innerHTML = "<span>Inicio</span>";
+            document.getElementById('header-actions').innerHTML = ""; // Limpiar botones
+        }
+
+        async function selectArea(area) {
+            resetNav();
+            activeArea = area;
+            
+            // Activar botón sidebar
+            const btn = document.getElementById(`nav-area-${area.id}`);
+            btn.classList.add('bg-slate-800', 'text-white');
+            btn.style.borderLeftColor = area.color_tema;
+
+            // Mostrar vista área
+            document.getElementById('view-area').classList.remove('hidden');
+            
+            // Configurar Header
+            document.getElementById('view-title').innerText = area.nombre;
+            document.getElementById('view-breadcrumbs').innerHTML = `<span onclick="renderDashboardView()" class="cursor-pointer hover:text-white">Inicio</span> <i data-lucide="chevron-right" class="w-3 h-3"></i> <span>${area.nombre}</span>`;
+            
+            // Botón "Crear Curso" en el header
+            document.getElementById('header-actions').innerHTML = `
+                <a href="editor-curso.html?area_id=${area.id}" class="bg-white text-slate-900 hover:bg-slate-200 px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition">
+                    <i data-lucide="plus-circle" class="w-3 h-3"></i> Crear Curso Aquí
+                </a>
+            `;
+
+            // Llenar Datos IA
+            document.getElementById('area-dossier').value = area.dossier_txt || "";
+            document.getElementById('area-prompt-display').innerText = `"${area.prompt_especifico || 'Prompt genérico'}"`;
+
+            // Cargar Cursos
+            await loadCoursesForArea(area.id);
+            lucide.createIcons();
+        }
+
+        async function loadCoursesForArea(areaId) {
+            const grid = document.getElementById('area-courses-grid');
+            grid.innerHTML = `<div class="col-span-3 text-center py-10 text-slate-500"><i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto"></i></div>`;
+            lucide.createIcons();
+
+            const { data } = await db.from('cursos_oficiales').select('*').eq('area_id', areaId).order('created_at', {ascending: false});
+            currentCourses = data || [];
+
+            grid.innerHTML = "";
+            if(currentCourses.length === 0) {
+                grid.innerHTML = `<div class="col-span-3 p-8 border border-slate-800 border-dashed rounded-xl text-center text-slate-500 text-sm">No hay cursos en esta área.<br>Crea uno usando el botón superior.</div>`;
+                return;
+            }
+
+            currentCourses.forEach(c => {
+                // Card de curso "SaaS Style"
+                const div = document.createElement('div');
+                div.className = "bg-slate-900 border border-slate-800 rounded-xl overflow-hidden hover:border-slate-600 transition group flex flex-col";
+                div.innerHTML = `
+                    <div class="h-24 bg-slate-800 relative overflow-hidden">
+                        <img src="${c.imagen_portada_url || ''}" class="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition duration-500">
+                        <div class="absolute top-2 left-2 bg-black/60 backdrop-blur px-2 py-0.5 rounded text-[10px] text-white font-bold uppercase">${c.registro_id || 'ID'}</div>
+                    </div>
+                    <div class="p-4 flex-1 flex flex-col">
+                        <h4 class="font-bold text-white text-sm mb-1 leading-tight">${c.nombre}</h4>
+                        <div class="mt-auto pt-3 flex gap-2">
+                             <button onclick="abrirModalGestion('${c.id}', '${c.nombre}', '${c.registro_id}')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 py-1.5 rounded text-xs font-bold border border-slate-700 transition">Alumnos</button>
+                             <a href="editor-curso.html?id=${c.id}" class="px-2 py-1.5 bg-slate-800 hover:text-white text-slate-400 rounded border border-slate-700"><i data-lucide="edit-2" class="w-3 h-3"></i></a>
+                             <a href="../student/aula.html?id=${c.id}" target="_blank" class="px-2 py-1.5 bg-slate-800 hover:text-blue-400 text-slate-400 rounded border border-slate-700"><i data-lucide="eye" class="w-3 h-3"></i></a>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(div);
+            });
+            lucide.createIcons();
+        }
+
+        // --- GESTIÓN DE ÁREAS (CREAR / EDITAR) ---
+        function openModalArea() { document.getElementById('modal-area').classList.remove('hidden'); }
+        function closeModalArea() { document.getElementById('modal-area').classList.add('hidden'); }
+        
+        document.getElementById('form-create-area').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const f = new FormData(e.target);
+            
+            // Buscar ID inst (fallback)
+            let instId = currentProfile.institucion_id;
+            if(!instId && currentProfile.rol === 'superadmin') {
+                const {data} = await db.from('instituciones').select('id').limit(1).single();
+                if(data) instId = data.id;
+            }
+
+            const payload = {
+                nombre: f.get('nombre'),
+                slug: f.get('slug').toLowerCase().replace(/\s+/g, '-'),
+                color_tema: f.get('color'),
+                prompt_especifico: f.get('prompt'),
+                institution_id: instId
+            };
+
+            const { error } = await db.from('areas').insert(payload);
+            if(error) alert("Error: " + error.message);
+            else {
+                closeModalArea();
+                e.target.reset();
+                loadAreas(); // Recargar sidebar
+            }
+        });
+
+        async function guardarDossier() {
+            if(!activeArea) return;
+            const txt = document.getElementById('area-dossier').value;
+            const { error } = await db.from('areas').update({ dossier_txt: txt }).eq('id', activeArea.id);
+            if(error) alert("Error al guardar");
+            else alert("¡Dossier guardado! El bot ahora tiene este conocimiento.");
+        }
+
+        // --- GESTIÓN ALUMNOS (MODAL HEREDADO) ---
+        // (Misma lógica que tenías, adaptada visualmente al tema oscuro)
+        function abrirModalGestion(id, nombre, reg) {
+            document.getElementById('modal-course-id').value = id;
+            document.getElementById('modal-course-real-name').value = nombre;
+            document.getElementById('modal-registro-id').value = reg;
+            document.getElementById('modal-course-name').innerText = nombre;
+            document.getElementById('modal-inscripcion').classList.remove('hidden');
+            cargarAlumnosDelCurso(nombre);
+        }
+        function cerrarModalInscripcion() { document.getElementById('modal-inscripcion').classList.add('hidden'); }
+
+        async function cargarAlumnosDelCurso(nombreCurso) {
+            const tbody = document.getElementById('lista-alumnos-body');
+            tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500"><i data-lucide="loader-2" class="w-4 h-4 animate-spin mx-auto"></i></td></tr>`;
+            lucide.createIcons();
+            const { data } = await db.from('matriculas').select('*').eq('curso', nombreCurso).eq('estado', 'ACTIVO').order('created_at', { ascending: false });
+            
+            tbody.innerHTML = "";
+            if(!data || data.length === 0) { tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-600 italic">Sin alumnos aún.</td></tr>`; return; }
+            
+            data.forEach(a => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-800/50 group border-b border-slate-800/50">
+                        <td class="px-4 py-2 font-mono text-slate-400">${a.dni_alumno}</td>
+                        <td class="px-4 py-2 text-white">${a.nombre} ${a.apellido}</td>
+                        <td class="px-4 py-2 text-right">
+                            <button onclick="borrarAlumno('${a.id}')" class="text-red-500 hover:text-red-400 p-1"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+            lucide.createIcons();
+        }
+
+        async function inscribirManual() {
+            const dni = document.getElementById('ins-dni').value;
+            const nom = document.getElementById('ins-nombre').value;
+            const ape = document.getElementById('ins-apellido').value;
+            const curso = document.getElementById('modal-course-real-name').value;
+            if(!dni || !nom) return alert("Faltan datos");
+
+            const { error } = await db.from('matriculas').insert({
+                dni_alumno: dni, nombre: nom, apellido: ape, curso: curso, 
+                registro_id: document.getElementById('modal-registro-id').value,
+                institution_id: currentProfile.institucion_id, estado: 'ACTIVO'
+            });
+            if(error) alert(error.message);
+            else { cargarAlumnosDelCurso(curso); document.getElementById('ins-dni').value=""; }
+        }
+
+        async function borrarAlumno(id) {
+            if(!confirm("¿Eliminar?")) return;
+            await db.from('matriculas').delete().eq('id', id);
+            cargarAlumnosDelCurso(document.getElementById('modal-course-real-name').value);
+        }
+
+        // Excel Logic (Simplificada)
+        function procesarExcel() {
+            const input = document.getElementById('ins-excel');
+            const r = new FileReader();
+            r.onload = e => {
+                const workbook = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
+                const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                datosExcel = json.map(r => ({ dni: r.DNI||r.dni, nombre: r.NOMBRE||r.nombre, apellido: r.APELLIDO||r.apellido})).filter(x=>x.dni);
+                document.getElementById('preview-area').classList.remove('hidden');
+                document.getElementById('count-preview').innerText = datosExcel.length;
+            };
+            r.readAsArrayBuffer(input.files[0]);
+        }
+        async function confirmarCargaMasiva() {
+            const curso = document.getElementById('modal-course-real-name').value;
+            const payload = datosExcel.map(d => ({ dni_alumno: d.dni, nombre: d.nombre, apellido: d.apellido, curso: curso, institution_id: currentProfile.institucion_id, estado: 'ACTIVO' }));
+            const { error } = await db.from('matriculas').insert(payload);
+            if(error) alert(error.message);
+            else { alert("Cargados!"); cargarAlumnosDelCurso(curso); }
+        }
+    </script>
+</body>
+</html>
