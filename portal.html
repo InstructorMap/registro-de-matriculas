@@ -316,7 +316,6 @@
             }
         }
 
-        // --- SISTEMA HÍBRIDO DE INTELIGENCIA ---
         async function enviarMensaje(e) {
             e.preventDefault();
             const input = document.getElementById('chat-input');
@@ -328,7 +327,6 @@
             const loadId = addBubble("...", 'bot');
 
             try {
-                // 1. Obtener Key
                 const { data: secret, error } = await db.from('app_secrets').select('value').eq('name', 'gemini_api_key').single();
                 if(error || !secret) throw new Error("Offline Mode");
 
@@ -337,29 +335,27 @@
                 USUARIO: "${text}".
                 OBJETIVO: Vender. Sé breve, usa emojis y dirige al WhatsApp para cerrar.`;
 
-                // 2. Lógica Híbrida: Probar modelos en orden de "Mejor" a "Más Estable"
-                // gemini-2.0-flash (Nuevo/Potente) -> Si falla -> gemini-1.5-flash (Estable)
-                const models = ['gemini-2.0-flash', 'gemini-1.5-flash'];
+                // ESTRATEGIA: Lite (más cupo) -> Estándar 2.0 -> Estándar 1.5 Legacy (Fijar versión)
+                const models = ['gemini-2.0-flash-lite', 'gemini-2.0-flash', 'gemini-1.5-flash-latest'];
                 let reply = null;
 
                 for (const model of models) {
                     try {
+                        console.log("Intentando con modelo:", model);
                         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${secret.value}`, {
                             method: 'POST',
                             headers: {'Content-Type': 'application/json'},
                             body: JSON.stringify({ contents: [{ parts: [{ text: systemPrompt }] }] })
                         });
                         
-                        // Si da error 429 o similar, saltará al catch
                         if (!res.ok) throw new Error(`Model ${model} failed: ${res.status}`);
                         
                         const json = await res.json();
                         reply = json.candidates?.[0]?.content?.parts?.[0]?.text;
-                        if (reply) break; // Si tuvimos éxito, salimos del bucle
+                        if (reply) break; 
 
                     } catch (modelError) {
                         console.warn(`Intento fallido con ${model}:`, modelError);
-                        // Continúa con el siguiente modelo del array
                     }
                 }
 
@@ -370,7 +366,6 @@
                 botonWpp(text);
 
             } catch (err) {
-                // FALLBACK FINAL (Modo WhatsApp Directo)
                 console.error("Fallo Total IA:", err);
                 removeLoader(loadId);
                 addBubble(`¡Excelente interés! Para darte detalles precisos sobre precios y fechas de "${text}", escríbenos.`, 'bot');
