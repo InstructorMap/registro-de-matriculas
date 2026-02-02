@@ -12,42 +12,129 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     
     <style>
-        /* CONFIGURACIÓN BASE - MODO CLARO & AZULES */
         :root {
             --primary-color: #4f46e5;
-            --text-heading: #1e1b4b; 
-            --text-body: #475569;    
-            --bg-page: #f8fafc;      
+            --text-heading: #1e1b4b;
+            --text-body: #475569;
+            --bg-page: #f8fafc;
         }
 
         body { 
             font-family: 'Inter', sans-serif; 
             background-color: var(--bg-page); 
             color: var(--text-body);
-            transition: all 0.5s ease;
+            transition: all 0.3s ease;
         }
 
         h1, h2, h3, h4, h5, h6 { color: var(--text-heading); }
 
-        /* NAVBAR & BANNER */
-        .nav-banner-bg { position: absolute; inset: 0; z-index: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity 0.5s ease; }
-        .nav-overlay { position: absolute; inset: 0; z-index: 1; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+        /* BÚHO CON CORBATA STYLES */
+        .buho-avatar {
+            background: linear-gradient(135deg, #8B5A2B 0%, #D2691E 100%);
+            border: 2px solid #F4A460;
+            box-shadow: 0 4px 10px rgba(139, 90, 43, 0.25);
+        }
 
-        /* ANIMACIONES */
-        .fade-in-up { animation: fadeInUp 0.6s ease-out forwards; opacity: 0; transform: translateY(20px); }
-        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
-        .hover-lift { transition: transform 0.2s, box-shadow 0.2s; }
-        .hover-lift:hover { transform: translateY(-5px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
+        .burbuja-buho {
+            background: white;
+            border-left: 4px solid #8B5A2B;
+            position: relative;
+            animation: slideIn 0.3s ease-out;
+        }
 
-        /* CHATBOT */
-        .chat-widget { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.2); }
-        .chat-open { width: 350px; height: 500px; border-radius: 16px; }
-        .chat-closed { width: 60px; height: 60px; border-radius: 50%; overflow: hidden; cursor: pointer; }
+        @keyframes slideIn {
+            from { transform: translateX(-10px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
 
-        /* SCROLLBAR */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .nav-banner-bg { 
+            position: absolute; 
+            inset: 0; 
+            z-index: 0; 
+            background-size: cover; 
+            background-position: center; 
+            opacity: 0; 
+            transition: opacity 0.5s ease; 
+        }
+        
+        .nav-overlay { 
+            position: absolute; 
+            inset: 0; 
+            z-index: 1; 
+            background: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(8px); 
+            border-bottom: 1px solid rgba(0,0,0,0.05); 
+        }
+
+        .fade-in-up { 
+            animation: fadeInUp 0.6s ease-out forwards; 
+            opacity: 0; 
+            transform: translateY(20px); 
+        }
+        
+        @keyframes fadeInUp { 
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            } 
+        }
+        
+        .hover-lift { 
+            transition: transform 0.2s, box-shadow 0.2s; 
+        }
+        
+        .hover-lift:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); 
+        }
+
+        .chat-widget { 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.2); 
+            z-index: 1000;
+        }
+        
+        .chat-open { 
+            width: 380px; 
+            height: 560px; 
+            border-radius: 16px; 
+        }
+        
+        .chat-closed { 
+            width: 60px; 
+            height: 60px; 
+            border-radius: 50%; 
+            overflow: hidden; 
+            cursor: pointer; 
+        }
+
+        ::-webkit-scrollbar { 
+            width: 6px; 
+        }
+        
+        ::-webkit-scrollbar-track { 
+            background: transparent; 
+        }
+        
+        ::-webkit-scrollbar-thumb { 
+            background: #cbd5e1; 
+            border-radius: 3px; 
+        }
+
+        /* BADGE CRM */
+        .lead-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -122,16 +209,21 @@
         </div>
     </footer>
 
+    <!-- CHATBOT BÚHO CON CORBATA -->
     <div id="chat-widget" class="fixed bottom-6 right-6 z-50 bg-white shadow-2xl chat-widget chat-closed overflow-hidden flex flex-col font-sans border border-slate-200">
         <div class="h-16 bg-slate-900 flex items-center justify-between px-4 cursor-pointer shrink-0 transition-colors" onclick="toggleChat()" id="chat-header-bg">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center p-0.5 shadow-sm border border-slate-100 relative overflow-hidden">
-                    <img src="https://cdn-icons-png.flaticon.com/512/3468/3468306.png" class="w-full h-full object-contain">
-                    <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></span>
+                <div class="w-10 h-10 rounded-full flex items-center justify-center p-0.5 shadow-sm border-2 border-amber-200 relative overflow-hidden buho-avatar">
+                    <!-- BÚHO CON CORBATA -->
+                    <img src="https://cdn-icons-png.flaticon.com/512/4323/4323003.png" class="w-full h-full object-contain p-0.5">
+                    <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
+                    <div class="absolute -bottom-1 -right-1 w-4 h-2 bg-red-500 rounded-full transform rotate-45"></div>
                 </div>
-                <div class="opacity-0 transition-opacity duration-200" id="chat-title-container">
-                    <p class="font-bold text-white text-sm">Admisión</p>
-                    <p class="text-[10px] text-white/80">Inteligencia Activa</p>
+                <div class="opacity-0 transition-opacity duration-300" id="chat-title-container">
+                    <p class="font-bold text-white text-sm flex items-center gap-1">
+                        Don Búho <span class="lead-badge">CRM</span>
+                    </p>
+                    <p class="text-[10px] text-white/80">Asesor Académico</p>
                 </div>
             </div>
             <i data-lucide="chevron-up" class="text-white w-5 h-5 transition-transform duration-300" id="chat-toggle-icon"></i>
@@ -141,7 +233,7 @@
             <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 text-sm"></div>
             <div class="p-3 bg-white border-t border-slate-100">
                 <form class="flex gap-2" onsubmit="enviarMensaje(event)">
-                    <input type="text" id="chat-input" class="flex-1 bg-slate-50 border border-slate-200 rounded-full px-4 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none transition" placeholder="Consultar..." autocomplete="off">
+                    <input type="text" id="chat-input" class="flex-1 bg-slate-50 border border-slate-200 rounded-full px-4 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none transition" placeholder="Pregunta al búho..." autocomplete="off">
                     <button type="submit" class="w-9 h-9 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full flex items-center justify-center transition shadow-md" id="btn-send">
                         <i data-lucide="send" class="w-4 h-4"></i>
                     </button>
@@ -157,11 +249,15 @@
 
         let institutionData = null;
         let chatOpen = false;
-        let catalogContext = ""; 
+        let catalogContext = "";
+        let currentUserEmail = null;
+        let conversationId = null;
+        const responseCache = new Map();
 
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
             await loadInstitution();
+            detectUserIdentity();
         });
 
         async function loadInstitution() {
@@ -173,17 +269,17 @@
                 if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(busqueda)) {
                     query = query.eq('id', busqueda);
                 } else {
-                    query = query.ilike('sigla', busqueda); 
+                    query = query.ilike('sigla', busqueda);
                 }
             } else {
-                query = query.eq('id', '00000000-0000-0000-0000-000000000000'); 
+                query = query.eq('id', '00000000-0000-0000-0000-000000000000');
             }
 
             const { data } = await query.limit(1).maybeSingle();
 
             if (!data) {
-                 const { data: fallback } = await db.from('instituciones').select('*').eq('activo', true).limit(1).single();
-                 institutionData = fallback;
+                const { data: fallback } = await db.from('instituciones').select('*').eq('activo', true).limit(1).single();
+                institutionData = fallback;
             } else {
                 institutionData = data;
             }
@@ -259,7 +355,7 @@
                     if(cursos && cursos.length > 0) {
                         let cards = "";
                         cursos.forEach(c => {
-                            catalogContext += `Curso: ${c.nombre} (Área: ${area.nombre}). `;
+                            catalogContext += `Curso: ${c.nombre} (Área: ${area.nombre}). Duración: ${c.duracion}. Modalidad: ${c.modalidad}. `;
                             const img = c.imagen_portada_url || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&q=80&w=600';
                             cards += `
                             <div class="group bg-white rounded-xl shadow-sm hover:shadow-xl transition border border-slate-100 overflow-hidden hover-lift">
@@ -289,14 +385,144 @@
             lucide.createIcons();
         }
 
+        function detectUserIdentity() {
+            // Intentar detectar email de usuario (simplificado)
+            const params = new URLSearchParams(window.location.search);
+            currentUserEmail = params.get('email') || localStorage.getItem('visitor_email');
+            
+            if (!currentUserEmail) {
+                currentUserEmail = `visitante_${Date.now()}@${institutionData?.sigla?.toLowerCase() || 'portal'}.com`;
+                localStorage.setItem('visitor_email', currentUserEmail);
+            }
+            
+            // Crear ID de conversación
+            conversationId = `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        }
+
+        async function registrarLead(interes, mensaje) {
+            try {
+                const leadData = {
+                    email: currentUserEmail,
+                    nombre: 'Por identificar',
+                    telefono: null,
+                    curso_interes: interes,
+                    institution_id: institutionData.id,
+                    status: 'nuevo',
+                    fuente: 'chatbot_buho',
+                    conversacion_id: conversationId,
+                    ultimo_mensaje: mensaje.substring(0, 200)
+                };
+
+                // Verificar si ya existe
+                const { data: existing } = await db
+                    .from('leads')
+                    .select('id')
+                    .eq('email', currentUserEmail)
+                    .eq('institution_id', institutionData.id)
+                    .maybeSingle();
+
+                if (existing) {
+                    // Actualizar lead existente
+                    await db
+                        .from('leads')
+                        .update({
+                            curso_interes: interes,
+                            ultimo_mensaje: mensaje.substring(0, 200),
+                            updated_at: new Date().toISOString()
+                        })
+                        .eq('id', existing.id);
+                } else {
+                    // Crear nuevo lead
+                    await db
+                        .from('leads')
+                        .insert([leadData]);
+                }
+
+                // Registrar interacción
+                await db
+                    .from('interacciones_chat')
+                    .insert([{
+                        conversacion_id: conversationId,
+                        email: currentUserEmail,
+                        mensaje_usuario: mensaje,
+                        institution_id: institutionData.id,
+                        timestamp: new Date().toISOString()
+                    }]);
+
+            } catch (error) {
+                console.error("Error CRM:", error);
+            }
+        }
+
+        async function obtenerRespuestaGemini(prompt, apiKey) {
+            // Cache simple
+            const cacheKey = prompt.substring(0, 100);
+            if (responseCache.has(cacheKey)) {
+                return responseCache.get(cacheKey);
+            }
+
+            const modelos = [
+                'gemini-1.5-flash',      // Principal - más rápido y económico
+                'gemini-1.5-pro',        // Secundario - más inteligente
+                'gemini-1.5-flash-8b'    // Fallback - ligero
+            ];
+
+            for (const modelo of modelos) {
+                try {
+                    console.log(`🦉 Intentando modelo: ${modelo}`);
+                    
+                    const response = await fetch(
+                        `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${apiKey}`,
+                        {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                contents: [{
+                                    parts: [{ text: prompt }]
+                                }],
+                                generationConfig: {
+                                    temperature: 0.7,
+                                    topP: 0.9,
+                                    topK: 40,
+                                    maxOutputTokens: 300
+                                }
+                            }),
+                            signal: AbortSignal.timeout(10000) // Timeout 10s
+                        }
+                    );
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        const respuesta = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                        
+                        if (respuesta) {
+                            responseCache.set(cacheKey, respuesta);
+                            return respuesta;
+                        }
+                    }
+                } catch (error) {
+                    console.warn(`Modelo ${modelo} falló:`, error.message);
+                    continue;
+                }
+            }
+            
+            throw new Error("Todos los modelos de Gemini fallaron");
+        }
+
         function iniciarChat() {
             const msgs = document.getElementById('chat-messages');
-            const owl = "https://cdn-icons-png.flaticon.com/512/3468/3468306.png";
             msgs.innerHTML = `
             <div class="flex gap-3">
-                <div class="w-8 h-8 rounded-full border border-slate-200 p-1 bg-white shrink-0"><img src="${owl}" class="w-full h-full object-contain"></div>
-                <div class="bg-white border border-slate-100 p-3 rounded-2xl rounded-tl-none shadow-sm text-slate-600 text-sm">
-                    Hola 👋 Bienvenido a <b>${institutionData.nombre}</b>. ¿En qué curso estás interesado?
+                <div class="w-8 h-8 rounded-full border-2 border-amber-200 p-1 bg-gradient-to-br from-amber-700 to-amber-900 shrink-0">
+                    <img src="https://cdn-icons-png.flaticon.com/512/4323/4323003.png" class="w-full h-full object-contain">
+                </div>
+                <div class="burbuja-buho p-3 text-slate-600 text-sm max-w-[85%]">
+                    <div class="font-bold text-amber-800 flex items-center gap-1 mb-1">
+                        🦉 Don Búho <span class="text-xs font-normal text-slate-500">• Asesor oficial</span>
+                    </div>
+                    ¡Hola! Soy <b>Don Búho</b>, tu asesor académico en <b>${institutionData.nombre}</b>. 
+                    Conozco todo nuestro catálogo y puedo guiarte hacia la mejor opción para tu carrera. 
+                    ¿En qué área te interesa formarte?
                 </div>
             </div>`;
         }
@@ -305,12 +531,14 @@
             const w = document.getElementById('chat-widget');
             chatOpen = !chatOpen;
             if(chatOpen) {
-                w.classList.remove('chat-closed'); w.classList.add('chat-open');
+                w.classList.remove('chat-closed'); 
+                w.classList.add('chat-open');
                 document.getElementById('chat-title-container').classList.remove('opacity-0');
                 document.getElementById('chat-toggle-icon').style.transform = "rotate(180deg)";
                 setTimeout(() => document.getElementById('chat-input').focus(), 300);
             } else {
-                w.classList.remove('chat-open'); w.classList.add('chat-closed');
+                w.classList.remove('chat-open'); 
+                w.classList.add('chat-closed');
                 document.getElementById('chat-title-container').classList.add('opacity-0');
                 document.getElementById('chat-toggle-icon').style.transform = "rotate(0deg)";
             }
@@ -324,52 +552,78 @@
 
             addBubble(text, 'user');
             input.value = "";
-            const loadId = addBubble("...", 'bot');
+            
+            // Registrar en CRM
+            await registrarLead(text, text);
+            
+            const loadId = addBubble("<div class='flex items-center gap-2'><div class='w-2 h-2 bg-amber-600 rounded-full animate-bounce'></div><div class='w-2 h-2 bg-amber-600 rounded-full animate-bounce' style='animation-delay:0.2s'></div><div class='w-2 h-2 bg-amber-600 rounded-full animate-bounce' style='animation-delay:0.4s'></div></div>", 'bot');
 
             try {
                 const { data: secret, error } = await db.from('app_secrets').select('value').eq('name', 'gemini_api_key').single();
-                if(error || !secret) throw new Error("Offline Mode");
+                if(error || !secret) throw new Error("API Key no configurada");
 
-                const systemPrompt = `ERES UN ASESOR DE VENTAS DE: ${institutionData.nombre}.
-                CATÁLOGO: ${catalogContext}.
-                USUARIO: "${text}".
-                OBJETIVO: Vender. Sé breve, usa emojis y dirige al WhatsApp para cerrar.`;
+                const prompt = `Eres "Don Búho" 🦉, el asesor académico oficial de ${institutionData.nombre}.
+                
+                PERSONALIDAD: Eres un búho sabio con años de experiencia. Formal pero cercano, persuasivo sin ser agresivo. Usas emojis discretos (🦉📚🎓). Vistes corbata y eres meticuloso.
 
-                // ESTRATEGIA: Lite (más cupo) -> Estándar 2.0 -> Estándar 1.5 Legacy (Fijar versión)
-                const models = ['gemini-2.0-flash-lite', 'gemini-2.0-flash', 'gemini-1.5-flash-latest'];
-                let reply = null;
+                OBJETIVO: Convertir consultas en inscripciones. Resalta beneficios, no solo características.
 
-                for (const model of models) {
-                    try {
-                        console.log("Intentando con modelo:", model);
-                        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${secret.value}`, {
-                            method: 'POST',
-                            headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({ contents: [{ parts: [{ text: systemPrompt }] }] })
-                        });
-                        
-                        if (!res.ok) throw new Error(`Model ${model} failed: ${res.status}`);
-                        
-                        const json = await res.json();
-                        reply = json.candidates?.[0]?.content?.parts?.[0]?.text;
-                        if (reply) break; 
+                CATÁLOGO ACTUAL: ${catalogContext}
 
-                    } catch (modelError) {
-                        console.warn(`Intento fallido con ${model}:`, modelError);
-                    }
-                }
+                CONSULTA DEL USUARIO: "${text}"
 
-                if (!reply) throw new Error("Todos los modelos fallaron");
+                INSTRUCCIONES:
+                1. Responde en español latino, máximo 3 líneas
+                2. Si mencionan precios, di "varía según modalidad" y sugiere contacto
+                3. Destaca UN beneficio principal del curso/seminario mencionado
+                4. Termina con pregunta o llamado a acción sutil
+                5. NO inventes precios exactos
+                6. Si no sabes, reconócelo y ofrece ayuda personalizada
 
+                EJEMPLO BUENA RESPUESTA:
+                "Excelente elección. Ese curso tiene alta empleabilidad por su enfoque práctico. ¿Te gustaría saber las próximas fechas de inicio?"
+
+                EJEMPLO MALA RESPUESTA:
+                "Cuesta $500 y empieza el lunes."`;
+
+                const respuestaIA = await obtenerRespuestaGemini(prompt, secret.value);
+                
                 removeLoader(loadId);
-                addBubble(marked.parse(reply), 'bot');
-                botonWpp(text);
+                addBubble(marked.parse(respuestaIA), 'bot');
+                
+                // Mostrar botón WhatsApp personalizado
+                setTimeout(() => {
+                    const mensajeWpp = encodeURIComponent(`🦉 Hola, soy ${currentUserEmail}. Vi en ${institutionData.nombre} información sobre: "${text}". Don Búho me recomendó contactarlos.`);
+                    const whatsappNumber = institutionData.telefono_contacto || institutionData.telefono || '';
+                    
+                    const wppButton = `
+                    <div class="mt-3">
+                        <a href="https://wa.me/${whatsappNumber}?text=${mensajeWpp}" 
+                           target="_blank" 
+                           class="block text-center bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white py-2.5 px-4 rounded-lg font-semibold transition-all shadow-md flex items-center justify-center gap-2 animate-pulse">
+                            <i data-lucide="message-circle" class="w-4 h-4"></i>
+                            Hablar con asesor humano
+                        </a>
+                        <p class="text-xs text-slate-500 text-center mt-1">Te atenderá un especialista</p>
+                    </div>`;
+                    
+                    addBubble(wppButton, 'bot');
+                    lucide.createIcons();
+                }, 800);
 
             } catch (err) {
-                console.error("Fallo Total IA:", err);
+                console.error("Error IA:", err);
                 removeLoader(loadId);
-                addBubble(`¡Excelente interés! Para darte detalles precisos sobre precios y fechas de "${text}", escríbenos.`, 'bot');
-                botonWpp(text);
+                
+                const respuestasFallback = [
+                    `🦉 Interesante consulta sobre "${text}". Para darte información precisa con las promociones vigentes, te recomiendo hablar directamente con nuestro equipo de admisiones. ¿Te parece?`,
+                    `📚 Excelente elección. "${text}" es uno de nuestros programas más demandados. Para detalles sobre horarios y financiamiento, un asesor especializado puede ayudarte mejor.`,
+                    `🎓 Me encanta tu interés en "${text}". Este programa tiene beneficios específicos según tu perfil. ¿Te gustaría una asesoría personalizada sin costo?`
+                ];
+                
+                const respuesta = respuestasFallback[Math.floor(Math.random() * respuestasFallback.length)];
+                addBubble(respuesta, 'bot');
+                botonWppFallback(text);
             }
         }
 
@@ -378,23 +632,43 @@
             if (el) el.remove();
         }
 
-        function botonWpp(text) {
+        function botonWppFallback(text) {
             setTimeout(() => {
-                const wpp = encodeURIComponent(`Hola, vi en la web el curso: ${text}. Quiero info.`);
-                addBubble(`<a href="https://wa.me/?text=${wpp}" target="_blank" class="block text-center bg-green-500 text-white py-2 rounded-lg font-bold hover:bg-green-600 transition shadow-sm flex items-center justify-center gap-2"><i data-lucide="message-circle" class="w-4 h-4"></i> Hablar con Asesor</a>`, 'bot');
+                const mensaje = encodeURIComponent(`Consulta sobre: ${text} - Portal ${institutionData.nombre}`);
+                const wppButton = `
+                <a href="https://wa.me/?text=${mensaje}" 
+                   target="_blank" 
+                   class="block text-center bg-green-500 hover:bg-green-600 text-white py-2.5 rounded-lg font-bold transition shadow-sm flex items-center justify-center gap-2 mt-2">
+                    <i data-lucide="message-circle" class="w-4 h-4"></i>
+                    Contactar por WhatsApp
+                </a>`;
+                addBubble(wppButton, 'bot');
                 lucide.createIcons();
-            }, 600);
+            }, 500);
         }
 
         function addBubble(html, type) {
             const c = document.getElementById('chat-messages');
-            const owl = "https://cdn-icons-png.flaticon.com/512/3468/3468306.png";
-            const id = 'msg-' + Date.now() + Math.random(); 
-
-            const content = type === 'user' 
-                ? `<div class="flex gap-2 flex-row-reverse w-full"><div class="bg-indigo-600 text-white px-4 py-2 rounded-2xl rounded-tr-none max-w-[85%] shadow-sm">${html}</div></div>`
-                : `<div class="flex gap-3 w-full"><div class="w-8 h-8 rounded-full border border-slate-200 p-1 bg-white shrink-0"><img src="${owl}" class="w-full h-full object-contain"></div><div class="bg-white text-slate-700 border border-slate-100 px-4 py-2 rounded-2xl rounded-tl-none max-w-[85%] shadow-sm prose prose-sm">${html}</div></div>`;
-
+            const id = 'msg-' + Date.now() + Math.random();
+            
+            let content;
+            if (type === 'user') {
+                content = `<div class="flex gap-2 flex-row-reverse w-full">
+                    <div class="bg-indigo-600 text-white px-4 py-2 rounded-2xl rounded-tr-none max-w-[85%] shadow-sm">
+                        ${html}
+                    </div>
+                </div>`;
+            } else {
+                content = `<div class="flex gap-3 w-full">
+                    <div class="w-8 h-8 rounded-full border-2 border-amber-200 p-1 bg-gradient-to-br from-amber-700 to-amber-900 shrink-0">
+                        <img src="https://cdn-icons-png.flaticon.com/512/4323/4323003.png" class="w-full h-full object-contain">
+                    </div>
+                    <div class="burbuja-buho px-4 py-2 rounded-2xl rounded-tl-none max-w-[85%] shadow-sm prose prose-sm">
+                        ${html}
+                    </div>
+                </div>`;
+            }
+            
             const div = document.createElement('div');
             div.id = id;
             div.innerHTML = content;
@@ -403,11 +677,21 @@
             return id;
         }
 
-        function consultar(n) {
+        function consultar(nombre) {
             if(!chatOpen) toggleChat();
-            document.getElementById('chat-input').value = "Info sobre " + n;
-            document.getElementById('btn-send').click();
+            
+            // Debounce para múltiples clicks
+            if (window.consultaTimeout) clearTimeout(window.consultaTimeout);
+            
+            window.consultaTimeout = setTimeout(() => {
+                document.getElementById('chat-input').value = "Me interesa el curso: " + nombre;
+                document.getElementById('btn-send').click();
+            }, 300);
         }
+
+        // Exponer funciones para debugging
+        window.mostrarCache = () => console.log(responseCache);
+        window.limpiarCache = () => { responseCache.clear(); console.log("Cache limpiado"); };
     </script>
 </body>
 </html>
