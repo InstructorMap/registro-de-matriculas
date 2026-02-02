@@ -7,11 +7,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: white; }
+        
         /* Efecto Ruido de Fondo */
         .bg-noise { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.05; pointer-events: none; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); }
         
@@ -25,6 +25,8 @@
         .chat-widget { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .chat-open { width: 350px; height: 500px; border-radius: 16px; }
         .chat-closed { width: 60px; height: 60px; border-radius: 50%; overflow: hidden; cursor: pointer; }
+        
+        /* Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
@@ -54,8 +56,8 @@
 
     <header id="inicio" class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-bold mb-6 fade-in-up" style="animation-delay: 0.1s">
-                <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span> Inscripciones Abiertas 2026
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-slate-300 text-xs font-bold mb-6 fade-in-up" style="animation-delay: 0.1s">
+                <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> Inscripciones Abiertas 2026
             </div>
             <h1 class="text-5xl md:text-7xl font-black tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400 fade-in-up" style="animation-delay: 0.2s">
                 Tu futuro profesional <br>
@@ -70,7 +72,7 @@
     <section id="seminarios" class="py-10 bg-slate-800/30 border-y border-white/5 hidden">
         <div class="max-w-7xl mx-auto px-4">
             <div class="flex items-center gap-3 mb-8">
-                <div class="p-2 bg-rose-500 rounded-lg"><i data-lucide="radio" class="text-white w-6 h-6"></i></div>
+                <div class="p-2 bg-rose-500 rounded-lg shadow-lg shadow-rose-500/20"><i data-lucide="radio" class="text-white w-6 h-6"></i></div>
                 <div>
                     <h2 class="text-2xl font-bold text-white">Eventos & Masterclasses</h2>
                     <p class="text-slate-400 text-sm">Contenido exclusivo en vivo y on-demand</p>
@@ -107,7 +109,7 @@
                 </div>
                 <div class="opacity-0 transition-opacity duration-200" id="chat-title-container">
                     <p class="font-bold text-white text-sm">Asistente de Admisión</p>
-                    <p class="text-[10px] text-indigo-200 flex items-center gap-1"><span class="w-1.5 h-1.5 bg-green-400 rounded-full"></span> En línea</p>
+                    <p class="text-[10px] text-white/80 flex items-center gap-1"><span class="w-1.5 h-1.5 bg-green-400 rounded-full"></span> En línea</p>
                 </div>
             </div>
             <i data-lucide="chevron-up" class="text-white w-5 h-5 transition-transform duration-300" id="chat-toggle-icon"></i>
@@ -118,7 +120,7 @@
                 <div class="flex gap-2">
                     <div class="w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center shrink-0 text-indigo-600 font-bold text-xs">IA</div>
                     <div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 text-slate-600">
-                        ¡Hola! 👋 Soy la IA del instituto. ¿En qué curso estás interesado o qué te gustaría aprender hoy?
+                        ¡Hola! 👋 Soy el asistente virtual. ¿En qué curso estás interesado hoy?
                     </div>
                 </div>
             </div>
@@ -140,7 +142,6 @@
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
         let institutionData = null;
-        let institutionContext = ""; 
         let chatOpen = false;
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -148,25 +149,39 @@
             await loadInstitution();
         });
 
-        // 1. CARGAR IDENTIDAD (BRANDING + SEMINARIOS)
+        // 1. CARGAR IDENTIDAD (VERSIÓN BLINDADA V3)
         async function loadInstitution() {
             const params = new URLSearchParams(window.location.search);
-            const siglaUrl = params.get('inst');
+            const busqueda = params.get('inst'); // Lo que viene en el link (ej: 'ic' o 'colbert')
+
+            console.log("Buscando institución:", busqueda); 
 
             let query = db.from('instituciones').select('*');
-            if (siglaUrl) {
-                // Buscamos por sigla (ej: colbert) o por ID si es un UUID
-                query = query.or(`sigla.eq.${siglaUrl},id.eq.${siglaUrl}`);
+
+            if (busqueda) {
+                // DETECTOR INTELIGENTE DE UUID vs TEXTO
+                // Regex para saber si es un ID tipo '123e4567-e89b-12d3-a456-426614174000'
+                const pareceID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(busqueda);
+                
+                if (pareceID) {
+                    query = query.eq('id', busqueda);
+                } else {
+                    // Si es texto, buscamos en SIGLA ignorando mayúsculas
+                    query = query.ilike('sigla', busqueda); 
+                }
             } else {
-                // Fallback para pruebas si no hay param
-                query = query.limit(1); 
+                // Si no hay parámetro, forzamos un fallo controlado para ir al default
+                console.log("Sin parámetro en URL");
+                query = query.eq('id', '00000000-0000-0000-0000-000000000000'); 
             }
 
             const { data, error } = await query.maybeSingle();
             
-            // Si no encuentra, carga uno por defecto (ASARI Master)
+            if (error) console.error("Error DB:", error.message);
+
+            // FALLBACK: Si no encuentra nada, carga la institución por defecto (ASARI/Primera activa)
             if (!data) {
-                console.warn("No se especificó institución. Cargando default.");
+                console.warn("No se encontró institución. Cargando Default.");
                 const { data: fallback } = await db.from('instituciones').select('*').eq('activo', true).limit(1).single();
                 institutionData = fallback;
             } else {
@@ -174,42 +189,55 @@
             }
 
             if(institutionData) {
-                // A. Pintar Branding
+                console.log("Institución Cargada:", institutionData.nombre);
+                
+                // A. Pintar Textos y Títulos
                 document.getElementById('nombre-inst').innerText = institutionData.nombre;
                 document.getElementById('footer-inst-name').innerText = institutionData.nombre;
-                document.title = institutionData.nombre + " | Portal";
-                institutionContext = `Actúas como asistente de ventas de ${institutionData.nombre}.`;
+                document.title = institutionData.nombre;
 
+                // B. Pintar Logo
                 if(institutionData.logo_url) {
                     const img = document.getElementById('logo-inst');
                     img.src = institutionData.logo_url;
                     img.classList.remove('hidden');
                 }
 
+                // C. Pintar Colores Personalizados
                 if(institutionData.color_primario) {
                     const color = institutionData.color_primario;
-                    document.getElementById('navbar').style.borderTop = `4px solid ${color}`;
+                    
+                    // Elementos clave a pintar
+                    document.getElementById('navbar').style.borderColor = color;
                     document.getElementById('hero-highlight').style.color = color;
                     document.getElementById('chat-header-bg').style.backgroundColor = color;
-                    document.getElementById('btn-campus').style.backgroundColor = color;
+                    
+                    // Botón Campus
+                    const btnCampus = document.getElementById('btn-campus');
+                    if(btnCampus) {
+                        btnCampus.style.backgroundColor = color;
+                        // Hover manual (simple JS para cambiar color al pasar mouse)
+                        btnCampus.onmouseover = () => btnCampus.style.opacity = "0.9";
+                        btnCampus.onmouseout = () => btnCampus.style.opacity = "1";
+                    }
                 }
 
-                // B. Botón Campus Inteligente (Redirige a la Carpeta STUDENT)
+                // D. Configurar Enlace del Campus (Apunta a student/index.html)
                 const btnCampus = document.getElementById('btn-campus');
                 if(btnCampus) {
                     const slug = institutionData.sigla || institutionData.id;
                     btnCampus.href = `student/index.html?inst=${slug}`; 
                 }
 
-                // C. Cargar Contenido
-                loadSeminars(); // <--- NUEVA ESTRATEGIA
+                // E. Cargar Contenidos Dinámicos
+                loadSeminars(); 
                 loadAreasAndCourses();
             }
         }
 
-        // 2. CARGAR SEMINARIOS (ESTRATEGIA DOBLE VÍA)
+        // 2. CARGAR SEMINARIOS (DOBLE VÍA: WALLET + WEB)
         async function loadSeminars() {
-            // Buscamos seminarios ACTIVOS de esta institución
+            // Busca seminarios activos de esta institución
             const { data: seminarios } = await db.from('seminarios')
                 .select('*')
                 .eq('institution_id', institutionData.id)
@@ -219,8 +247,9 @@
             if(seminarios && seminarios.length > 0) {
                 const section = document.getElementById('seminarios');
                 const grid = document.getElementById('grid-seminarios');
-                section.classList.remove('hidden'); // Mostrar sección
-                document.getElementById('nav-seminarios').classList.remove('hidden'); // Mostrar en menú
+                
+                section.classList.remove('hidden'); // Hacer visible la sección
+                document.getElementById('nav-seminarios').classList.remove('hidden'); // Botón menú
 
                 seminarios.forEach(sem => {
                     const thumb = sem.id_video ? `https://img.youtube.com/vi/${sem.id_video}/hqdefault.jpg` : (sem.imagen_url || 'https://via.placeholder.com/400x225?text=Evento');
@@ -236,7 +265,7 @@
                             <p class="text-slate-400 text-sm line-clamp-2 mb-4">${sem.descripcion || 'Seminario de especialización profesional.'}</p>
                             <div class="flex justify-between items-center border-t border-white/5 pt-4">
                                 <span class="text-lg font-bold text-indigo-400">$${sem.precio || 'GRATIS'}</span>
-                                <button class="px-4 py-2 bg-white text-slate-900 text-xs font-bold rounded-lg hover:bg-slate-200 transition">Ver Info</button>
+                                <button onclick="consultarCurso('${sem.titulo}')" class="px-4 py-2 bg-white text-slate-900 text-xs font-bold rounded-lg hover:bg-slate-200 transition">Me Interesa</button>
                             </div>
                         </div>
                     </div>`;
@@ -244,7 +273,7 @@
             }
         }
 
-        // 3. CARGAR CURSOS (Lógica Original)
+        // 3. CARGAR CURSOS POR ÁREAS
         async function loadAreasAndCourses() {
             const container = document.getElementById('areas-container');
             container.innerHTML = "";
@@ -271,7 +300,6 @@
                     .order('nombre');
 
                 if (cursos && cursos.length > 0) {
-                    // HTML del Área
                     let cardsHtml = "";
                     cursos.forEach(c => {
                         const img = c.imagen_portada_url || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&q=80&w=1000';
@@ -295,7 +323,7 @@
                     const areaBlock = `
                     <div class="fade-in-up">
                         <div class="flex items-center gap-4 mb-8">
-                            <div class="w-1.5 h-8 bg-[${area.color_tema || '#6366f1'}] rounded-full"></div>
+                            <div class="w-1.5 h-8 rounded-full" style="background-color: ${area.color_tema || '#6366f1'}"></div>
                             <h3 class="text-3xl font-bold text-white">${area.nombre}</h3>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -309,7 +337,7 @@
             lucide.createIcons();
         }
 
-        // 4. CHATBOT SIMPLE (VENTAS)
+        // 4. CHATBOT SIMPLE
         function toggleChat() {
             const w = document.getElementById('chat-widget');
             const title = document.getElementById('chat-title-container');
@@ -339,24 +367,17 @@
             addBubble(text, 'user');
             input.value = "";
             
-            // Simulación de IA (Aquí conectarías con Gemini real si quisieras, 
-            // pero para ventas públicas a veces es mejor un script simple o WhatsApp)
-            
-            // Prompt simulado para Gemini
-            const prompt = `Eres un vendedor de ${institutionData.nombre}. Usuario pregunta: "${text}". Responde corto e invita a inscribirse.`;
-            
-            // Loading
+            // Simulación de respuesta inmediata
             const loadId = addBubble("...", 'bot');
             
-            try {
-                // Aquí usamos la misma lógica segura de llamar a la IA via Supabase Secrets si fuera necesario
-                // Por ahora, respuesta genérica elegante para no gastar tokens en público sin auth
-                setTimeout(() => {
-                    document.getElementById(loadId).remove();
-                    addBubble(`Excelente pregunta sobre "${text}". Para darte detalles precisos de costos y fechas, lo mejor es hablar con un asesor humano ahora mismo.`, 'bot');
-                    addBubble(`<a href="https://wa.me/?text=Hola, quiero info sobre: ${text}" target="_blank" class="block text-center bg-green-500 text-white py-2 rounded-lg font-bold hover:bg-green-600 transition">Chatear por WhatsApp</a>`, 'bot');
-                }, 1000);
-            } catch(e) { console.error(e); }
+            setTimeout(() => {
+                document.getElementById(loadId).remove();
+                addBubble(`Gracias por tu interés en "${text}". Para enviarte el temario completo, costos y fechas de inicio, por favor contáctanos por WhatsApp:`, 'bot');
+                
+                const wppText = encodeURIComponent(`Hola, vi en la web el curso "${text}" y quisiera más info.`);
+                addBubble(`<a href="https://wa.me/?text=${wppText}" target="_blank" class="block text-center bg-green-500 text-white py-2 rounded-lg font-bold hover:bg-green-600 transition flex items-center justify-center gap-2"><i data-lucide="message-circle" class="w-4 h-4"></i> Abrir WhatsApp</a>`, 'bot');
+                lucide.createIcons();
+            }, 1000);
         }
 
         function addBubble(html, type) {
@@ -377,9 +398,13 @@
 
         function consultarCurso(nombre) {
             if(!chatOpen) toggleChat();
-            addBubble(`Hola, me interesa saber más sobre el curso de **${nombre}**.`, 'user');
+            addBubble(`Hola, me interesa saber más sobre **${nombre}**.`, 'user');
+            
+            // Auto-respuesta rápida
             setTimeout(() => {
-                addBubble(`¡Excelente elección! El curso de **${nombre}** es uno de los más demandados. ¿Te gustaría recibir el plan de estudios por WhatsApp?`, 'bot');
+               addBubble(`¡Perfecto! **${nombre}** es una excelente opción. Haz clic abajo para hablar con un asesor humano.`, 'bot');
+               const wppText = encodeURIComponent(`Hola, quiero info sobre el curso: ${nombre}`);
+               addBubble(`<a href="https://wa.me/?text=${wppText}" target="_blank" class="block text-center bg-green-500 text-white py-2 rounded-lg font-bold hover:bg-green-600 transition">Ir a WhatsApp</a>`, 'bot');
             }, 800);
         }
     </script>
