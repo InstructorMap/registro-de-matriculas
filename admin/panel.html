@@ -19,11 +19,15 @@
         /* Inputs bonitos */
         .input-dark { background: #1e293b; border: 1px solid #334155; color: white; padding: 10px; border-radius: 8px; width: 100%; outline: none; transition: all 0.2s; }
         .input-dark:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden">
 
-    <aside class="w-72 bg-slate-900 border-r border-slate-800 flex flex-col z-20">
+    <aside class="w-72 bg-slate-900 border-r border-slate-800 flex flex-col z-20 shadow-2xl">
         <div class="h-20 flex items-center px-6 border-b border-slate-800 gap-3">
             <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
                 <i data-lucide="layout-template" class="text-white w-5 h-5"></i>
@@ -38,7 +42,7 @@
             
             <div>
                 <p class="px-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Marca & Estilo</p>
-                <button onclick="switchView('branding')" id="nav-branding" class="w-full flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-400 rounded-lg hover:bg-slate-800 transition-all">
+                <button onclick="switchView('branding')" id="nav-branding" class="w-full flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-400 rounded-lg hover:bg-slate-800 transition-all active-nav">
                     <i data-lucide="palette" class="w-4 h-4"></i> Identidad Visual
                 </button>
             </div>
@@ -46,10 +50,10 @@
             <div>
                 <div class="flex items-center justify-between px-2 mb-2">
                     <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Universos / Áreas</p>
-                    <button onclick="abrirModalArea()" class="text-slate-500 hover:text-white transition"><i data-lucide="plus-circle" class="w-4 h-4"></i></button>
+                    <button onclick="abrirModalArea()" class="text-slate-500 hover:text-white transition bg-slate-800 p-1 rounded"><i data-lucide="plus" class="w-3 h-3"></i></button>
                 </div>
                 <div id="areas-list-sidebar" class="space-y-1">
-                    <div class="text-xs text-slate-600 px-3">Cargando...</div>
+                    <div class="text-xs text-slate-600 px-3 flex items-center gap-2"><i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i> Cargando...</div>
                 </div>
             </div>
 
@@ -57,10 +61,12 @@
 
         <div class="p-4 border-t border-slate-800 bg-slate-900/50">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center text-xs font-bold" id="user-avatar">U</div>
+                <div class="w-9 h-9 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center text-xs font-bold overflow-hidden" id="user-avatar">
+                    <i data-lucide="user" class="w-4 h-4 text-slate-400"></i>
+                </div>
                 <div class="overflow-hidden">
                     <p class="text-xs font-bold text-white truncate" id="user-name">Usuario</p>
-                    <p class="text-[10px] text-slate-500 truncate" id="inst-name">Institución</p>
+                    <p class="text-[10px] text-slate-500 truncate" id="inst-name">Cargando...</p>
                 </div>
             </div>
         </div>
@@ -68,13 +74,13 @@
 
     <main class="flex-1 flex flex-col relative overflow-hidden bg-[#0b1121] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]">
         
-        <header class="h-20 border-b border-slate-800/50 flex items-center justify-between px-8 bg-slate-900/50 backdrop-blur z-10">
+        <header class="h-20 border-b border-slate-800/50 flex items-center justify-between px-8 bg-slate-900/80 backdrop-blur z-10 sticky top-0">
             <div>
                 <h2 id="view-title" class="text-xl font-bold text-white">Configuración</h2>
                 <p id="view-subtitle" class="text-xs text-slate-400">Gestiona la cara visible de tu instituto</p>
             </div>
             <div>
-                <a href="../portal.html" target="_blank" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition shadow-lg shadow-indigo-500/20 flex items-center gap-2">
+                <a id="btn-portal-live" href="../portal.html" target="_blank" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition shadow-lg shadow-indigo-500/20 flex items-center gap-2 border border-indigo-400/20">
                     <i data-lucide="external-link" class="w-3 h-3"></i> Ver Portal en Vivo
                 </a>
             </div>
@@ -82,18 +88,22 @@
 
         <div id="main-content" class="flex-1 overflow-y-auto p-8">
 
-            <div id="view-branding" class="max-w-4xl mx-auto space-y-8 fade-in hidden">
+            <div id="view-branding" class="max-w-4xl mx-auto space-y-8 fade-in">
                 <div class="glass p-8 rounded-2xl">
-                    <h3 class="text-lg font-bold text-white mb-6 border-b border-slate-700 pb-4">Identidad Institucional</h3>
+                    <div class="flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
+                        <h3 class="text-lg font-bold text-white">Identidad Institucional</h3>
+                        <span class="text-[10px] bg-blue-900/30 text-blue-400 px-2 py-1 rounded border border-blue-500/20">Configuración Global</span>
+                    </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                         <div class="col-span-1">
                             <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Logo del Portal</label>
                             <div class="aspect-square bg-slate-900 border-2 border-dashed border-slate-700 rounded-xl flex flex-col items-center justify-center relative overflow-hidden group hover:border-indigo-500 transition cursor-pointer" onclick="document.getElementById('logo-upload').click()">
                                 <img id="preview-logo" class="w-3/4 h-3/4 object-contain absolute z-10 hidden">
-                                <div class="z-0 text-center">
+                                <div class="z-0 text-center p-4">
                                     <i data-lucide="upload-cloud" class="w-8 h-8 text-slate-600 mx-auto mb-2 group-hover:text-indigo-400 transition"></i>
-                                    <p class="text-xs text-slate-500 font-bold">Subir Logo</p>
+                                    <p class="text-xs text-slate-500 font-bold">Clic para subir</p>
+                                    <p class="text-[10px] text-slate-600 mt-1">PNG Transparente</p>
                                 </div>
                                 <input type="file" id="logo-upload" accept="image/*" class="hidden" onchange="subirLogo(this)">
                             </div>
@@ -109,17 +119,18 @@
                                 <div>
                                     <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Color Primario</label>
                                     <div class="flex items-center gap-3 bg-slate-900 p-2 rounded-lg border border-slate-700">
-                                        <input type="color" id="brand-color-input" class="w-8 h-8 rounded bg-transparent cursor-pointer border-none p-0">
+                                        <input type="color" id="brand-color-input" class="w-8 h-8 rounded bg-transparent cursor-pointer border-none p-0 h-full">
                                         <span class="text-xs font-mono text-slate-300" id="color-hex">#000000</span>
                                     </div>
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Sigla / URL</label>
-                                    <input type="text" id="brand-slug-input" class="input-dark font-mono text-slate-400" disabled>
+                                    <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Sigla / ID (Vital para el Link)</label>
+                                    <input type="text" id="brand-slug-input" class="input-dark font-mono text-indigo-400 font-bold" placeholder="ej: colbert">
+                                    <p class="text-[10px] text-slate-500 mt-1">Esto define tu enlace: portal.html?inst=<b>colbert</b></p>
                                 </div>
                             </div>
 
-                            <button onclick="guardarIdentidad()" class="px-6 py-3 bg-white text-slate-900 font-bold rounded-xl text-sm hover:bg-slate-200 transition flex items-center gap-2">
+                            <button onclick="guardarIdentidad()" class="px-6 py-3 bg-white text-slate-900 font-bold rounded-xl text-sm hover:bg-slate-200 transition flex items-center gap-2 shadow-lg shadow-white/10">
                                 <i data-lucide="save" class="w-4 h-4"></i> Guardar Cambios
                             </button>
                         </div>
@@ -133,32 +144,34 @@
                         <div>
                             <div class="flex items-center gap-3 mb-1">
                                 <h2 class="text-3xl font-black text-white" id="area-title">Nombre Área</h2>
-                                <button onclick="editarAreaActual()" class="text-slate-500 hover:text-white"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                                <button onclick="editarAreaActual()" class="text-slate-500 hover:text-white p-1 rounded hover:bg-slate-800 transition" title="Renombrar"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
                             </div>
                             <p class="text-sm text-slate-400 font-mono" id="area-slug">/url-slug</p>
                         </div>
                         <div class="flex gap-2">
-                            <button onclick="eliminarAreaActual()" class="p-2 text-slate-500 hover:text-red-500 bg-slate-900/50 rounded-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            <button onclick="eliminarAreaActual()" class="px-3 py-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 bg-slate-900/50 rounded-lg text-xs font-bold flex items-center gap-2 transition border border-red-900/30">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i> Eliminar Área
+                            </button>
                         </div>
                     </div>
 
                     <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6 pt-6 border-t border-slate-700/50">
                         <div>
                             <label class="block text-xs font-bold text-indigo-400 uppercase mb-2 flex items-center gap-2">
-                                <i data-lucide="bot" class="w-3 h-3"></i> Cerebro IA (Dossier)
+                                <i data-lucide="brain-circuit" class="w-3 h-3"></i> Cerebro IA (Dossier)
                             </label>
-                            <textarea id="area-dossier" class="input-dark h-24 text-xs font-mono resize-none" placeholder="Pega aquí el texto institucional, temarios o información clave de esta área. El Bot usará esto para vender."></textarea>
+                            <textarea id="area-dossier" class="input-dark h-24 text-xs font-mono resize-none leading-relaxed" placeholder="Pega aquí el texto institucional, temarios o información clave de esta área. El Bot usará esto para responder dudas."></textarea>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-indigo-400 uppercase mb-2 flex items-center gap-2">
                                 <i data-lucide="message-square" class="w-3 h-3"></i> Personalidad del Vendedor
                             </label>
-                            <textarea id="area-prompt" class="input-dark h-24 text-xs resize-none" placeholder="Ej: Eres un experto en Criminalística. Sé serio, técnico y persuasivo."></textarea>
+                            <textarea id="area-prompt" class="input-dark h-24 text-xs resize-none leading-relaxed" placeholder="Ej: Eres un experto en Criminalística. Sé serio, técnico y persuasivo al vender."></textarea>
                         </div>
                     </div>
                     <div class="flex justify-end mt-4">
-                        <button onclick="guardarCerebroIA()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition shadow-lg flex items-center gap-2">
-                            <i data-lucide="brain-circuit" class="w-3 h-3"></i> Actualizar IA
+                        <button onclick="guardarCerebroIA()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition shadow-lg flex items-center gap-2 border border-indigo-400/20">
+                            <i data-lucide="save" class="w-3 h-3"></i> Guardar Cerebro IA
                         </button>
                     </div>
                 </div>
@@ -166,9 +179,9 @@
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
                     
                     <div class="lg:col-span-2 flex flex-col">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="font-bold text-white flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i> Cursos Publicados</h3>
-                            <span class="text-xs text-slate-500" id="count-area-courses">0 cursos</span>
+                        <div class="flex justify-between items-center mb-4 px-2">
+                            <h3 class="font-bold text-white flex items-center gap-2 text-sm"><i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i> Cursos en este Universo</h3>
+                            <span class="text-xs text-slate-500 font-mono bg-slate-900 px-2 py-1 rounded" id="count-area-courses">0</span>
                         </div>
                         <div id="grid-area-courses" class="grid grid-cols-1 md:grid-cols-2 gap-3 overflow-y-auto pr-2 pb-10">
                             </div>
@@ -176,11 +189,11 @@
 
                     <div class="lg:col-span-1 flex flex-col bg-slate-900/50 rounded-2xl border border-slate-800 p-4">
                         <div class="mb-4">
-                            <h3 class="font-bold text-slate-300 flex items-center gap-2 text-sm"><i data-lucide="inbox" class="w-4 h-4 text-slate-500"></i> Sin Clasificar</h3>
-                            <p class="text-[10px] text-slate-500 mt-1">Arrastra o haz clic para asignar a esta área.</p>
+                            <h3 class="font-bold text-slate-300 flex items-center gap-2 text-sm"><i data-lucide="inbox" class="w-4 h-4 text-orange-400"></i> Repositorio General</h3>
+                            <p class="text-[10px] text-slate-500 mt-1">Cursos sin asignar. Haz clic para mover aquí.</p>
                         </div>
                         <div id="grid-unassigned" class="space-y-2 overflow-y-auto flex-1 pr-1">
-                            <div class="text-center py-10 text-slate-600 text-xs">Todos los cursos están organizados.</div>
+                            <div class="text-center py-10 text-slate-600 text-xs">No hay cursos pendientes.</div>
                         </div>
                     </div>
 
@@ -191,23 +204,33 @@
     </main>
 
     <div id="modal-area" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-700 w-full max-w-sm rounded-2xl p-6 shadow-2xl">
-            <h3 class="text-lg font-bold text-white mb-4">Nuevo Universo</h3>
+        <div class="bg-slate-900 border border-slate-700 w-full max-w-sm rounded-2xl p-6 shadow-2xl transform transition-all scale-100">
+            <h3 class="text-lg font-bold text-white mb-1">Nuevo Universo</h3>
+            <p class="text-xs text-slate-400 mb-4">Crea una categoría para agrupar cursos.</p>
             <form id="form-area" class="space-y-4">
-                <input type="text" name="nombre" class="input-dark" placeholder="Nombre (Ej: Salud)" required>
-                <div class="flex gap-2">
-                    <input type="text" name="slug" class="input-dark text-slate-400" placeholder="slug-url" required>
-                    <input type="color" name="color" value="#3b82f6" class="h-11 w-14 bg-transparent cursor-pointer rounded">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre</label>
+                    <input type="text" name="nombre" class="input-dark" placeholder="Ej: Escuela de Salud" required>
                 </div>
-                <div class="flex gap-2 pt-2">
-                    <button type="button" onclick="document.getElementById('modal-area').classList.add('hidden')" class="flex-1 py-2 text-slate-400 text-xs font-bold hover:text-white">Cancelar</button>
-                    <button type="submit" class="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold shadow-lg">Crear</button>
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="col-span-2">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Slug URL</label>
+                        <input type="text" name="slug" class="input-dark text-slate-400 font-mono text-xs" placeholder="salud" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Color</label>
+                        <input type="color" name="color" value="#3b82f6" class="h-10 w-full bg-transparent cursor-pointer rounded border border-slate-700">
+                    </div>
+                </div>
+                <div class="flex gap-2 pt-4">
+                    <button type="button" onclick="document.getElementById('modal-area').classList.add('hidden')" class="flex-1 py-2.5 text-slate-400 text-xs font-bold hover:text-white transition">Cancelar</button>
+                    <button type="submit" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold shadow-lg shadow-blue-500/20 transition">Crear Área</button>
                 </div>
             </form>
         </div>
     </div>
 
-<script>
+    <script>
         const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
@@ -215,7 +238,7 @@
         let currentProfile = null;
         let currentInstId = null;
         let activeArea = null;
-        let generalAreaId = null; // ID de la carpeta General para mover cosas
+        let generalAreaId = null;
 
         // --- INICIO ---
         document.addEventListener('DOMContentLoaded', async () => {
@@ -223,21 +246,22 @@
             await checkSession();
             if(currentInstId) {
                 await loadAreasSidebar();
-                // Intentar buscar el ID del área General para usarlo luego
+                
+                // Buscar ID de carpeta general para mover cosas
                 const { data } = await db.from('areas').select('id').eq('institution_id', currentInstId).eq('slug', 'general').single();
                 if(data) generalAreaId = data.id;
-                
-                switchView('branding'); 
+
+                switchView('branding');
             }
         });
 
-        // 1. SESIÓN
+        // 1. SESIÓN Y VINCULACIÓN AL PORTAL
         async function checkSession() {
             const { data: { session } } = await db.auth.getSession();
             if(!session) return window.location.href = '../index.html';
             
             const { data: perfil } = await db.from('perfiles').select('*, instituciones(*)').eq('id', session.user.id).single();
-            if(!perfil) return alert("Error de perfil");
+            if(!perfil) return alert("Error crítico: No se pudo cargar el perfil.");
 
             currentProfile = perfil;
             document.getElementById('user-name').innerText = perfil.nombre_completo;
@@ -245,13 +269,25 @@
             if(perfil.instituciones) {
                 currentInstId = perfil.instituciones.id;
                 document.getElementById('inst-name').innerText = perfil.instituciones.nombre;
-                // Cargar avatar si hay logo
+                
+                // --- FIX: ACTUALIZAR BOTÓN PORTAL ---
+                const slug = perfil.instituciones.sigla || perfil.instituciones.id;
+                const btnPortal = document.getElementById('btn-portal-live');
+                if(btnPortal) btnPortal.href = `../portal.html?inst=${slug}`;
+                // ------------------------------------
+
                 if(perfil.instituciones.logo_url) {
-                    document.getElementById('user-avatar').innerHTML = `<img src="${perfil.instituciones.logo_url}" class="w-full h-full object-cover rounded-full">`;
+                    document.getElementById('user-avatar').innerHTML = `<img src="${perfil.instituciones.logo_url}" class="w-full h-full object-cover">`;
                 }
             } else if (perfil.rol === 'superadmin') {
                 const { data } = await db.from('instituciones').select('*').limit(1).single();
-                if(data) { currentInstId = data.id; document.getElementById('inst-name').innerText = "Modo Superadmin"; }
+                if(data) { 
+                    currentInstId = data.id; 
+                    document.getElementById('inst-name').innerText = "Modo Superadmin (" + data.nombre + ")";
+                    // Link para superadmin
+                    const btnPortal = document.getElementById('btn-portal-live');
+                    if(btnPortal && data.sigla) btnPortal.href = `../portal.html?inst=${data.sigla}`;
+                }
             }
         }
 
@@ -279,7 +315,7 @@
             document.getElementById('brand-name-input').value = data.nombre;
             document.getElementById('brand-color-input').value = data.color_primario || '#000000';
             document.getElementById('color-hex').innerText = data.color_primario || '#000000';
-            document.getElementById('brand-slug-input').value = data.sigla || 'sin-sigla';
+            document.getElementById('brand-slug-input').value = data.sigla || '';
             
             if(data.logo_url) {
                 const img = document.getElementById('preview-logo');
@@ -296,8 +332,10 @@
             if(input.files.length === 0) return;
             const file = input.files[0];
             const fileName = `logo_${currentInstId}_${Date.now()}`;
+            
             const { data, error } = await db.storage.from('logos-instituciones').upload(fileName, file);
             if(error) return alert("Error: " + error.message);
+
             const { data: publicUrl } = db.storage.from('logos-instituciones').getPublicUrl(fileName);
             const img = document.getElementById('preview-logo');
             img.src = publicUrl.publicUrl;
@@ -308,12 +346,20 @@
         async function guardarIdentidad() {
             const nombre = document.getElementById('brand-name-input').value;
             const color = document.getElementById('brand-color-input').value;
+            const sigla = document.getElementById('brand-slug-input').value.toLowerCase().trim();
             const img = document.getElementById('preview-logo');
-            const updates = { nombre, color_primario: color };
+            
+            const updates = { nombre, color_primario: color, sigla };
             if(img.dataset.newUrl) updates.logo_url = img.dataset.newUrl;
+
             const { error } = await db.from('instituciones').update(updates).eq('id', currentInstId);
-            if(error) alert("Error: " + error.message);
-            else alert("Identidad guardada.");
+            if(error) alert("Error al guardar: " + error.message);
+            else {
+                alert("Identidad guardada. El botón 'Ver Portal' se actualizará al recargar.");
+                // Actualizar botón en caliente
+                const btnPortal = document.getElementById('btn-portal-live');
+                if(btnPortal && sigla) btnPortal.href = `../portal.html?inst=${sigla}`;
+            }
         }
 
         // 4. GESTIÓN DE ÁREAS (UNIVERSOS)
@@ -322,11 +368,10 @@
             const { data } = await db.from('areas').select('*').eq('institution_id', currentInstId).order('nombre');
             
             list.innerHTML = "";
-            if(!data || data.length === 0) { list.innerHTML = `<div class="px-3 text-xs text-slate-500 italic">Sin áreas. Crea una.</div>`; return; }
+            if(!data || data.length === 0) { list.innerHTML = `<div class="px-3 text-xs text-slate-500 italic">Sin áreas definidas.</div>`; return; }
 
             data.forEach(area => {
-                // Guardar ID general si lo encontramos
-                if(area.slug === 'general') generalAreaId = area.id;
+                if(area.slug === 'general') generalAreaId = area.id; // Asegurar ID general
 
                 const btn = document.createElement('button');
                 btn.className = "w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-400 rounded-lg hover:bg-slate-800 hover:text-white transition-all text-left group";
@@ -359,7 +404,7 @@
             loadGeneralCourses(); // Cargar la columna derecha
         }
 
-        // 5. GESTOR DE CURSOS (LA CORRECCIÓN CLAVE)
+        // 5. GESTOR DE CURSOS (MOVIMIENTOS)
         async function loadCoursesOfArea() {
             const grid = document.getElementById('grid-area-courses');
             grid.innerHTML = `<div class="text-xs text-slate-500">Cargando...</div>`;
@@ -367,7 +412,7 @@
             const { data } = await db.from('cursos_oficiales').select('*').eq('area_id', activeArea.id).order('nombre');
             
             grid.innerHTML = "";
-            document.getElementById('count-area-courses').innerText = `${data?.length || 0} cursos`;
+            document.getElementById('count-area-courses').innerText = `${data?.length || 0}`;
 
             if(!data || data.length === 0) {
                 grid.innerHTML = `<div class="col-span-2 p-6 border border-dashed border-slate-700 rounded-xl text-center text-slate-500 text-sm">Esta área está vacía.</div>`;
@@ -384,28 +429,25 @@
                         <h4 class="font-bold text-white text-xs truncate mb-0.5">${c.nombre}</h4>
                         <p class="text-[10px] text-slate-500 font-mono">${c.registro_id || 'ID?'}</p>
                     </div>
-                    <button onclick="moverACursoGeneral('${c.id}')" class="absolute top-2 right-2 text-slate-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition" title="Mover a General"><i data-lucide="x-circle" class="w-4 h-4"></i></button>
+                    <button onclick="moverACursoGeneral('${c.id}')" class="absolute top-2 right-2 text-slate-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition" title="Devolver a General"><i data-lucide="x-circle" class="w-4 h-4"></i></button>
                 </div>`;
             });
             lucide.createIcons();
         }
 
-        // --- COLUMNA DERECHA: CURSOS DISPONIBLES EN GENERAL ---
         async function loadGeneralCourses() {
             const list = document.getElementById('grid-unassigned');
             list.innerHTML = `<div class="text-xs text-slate-500">Buscando...</div>`;
 
-            // Si estamos EN el área general, no mostramos la columna derecha (no tiene sentido moverse a sí mismo)
             if (activeArea.slug === 'general') {
                 list.innerHTML = `<div class="text-center py-8 text-slate-600 text-xs italic">Estás en la carpeta General.<br>Crea otra área para organizar.</div>`;
                 return;
             }
 
-            // BUSCAMOS CURSOS QUE ESTÉN EN 'GENERAL' O QUE TENGAN AREA NULL
+            // Buscar cursos en GENERAL o NULOS
             let query = db.from('cursos_oficiales').select('*').eq('institution_id', currentInstId);
             
             if (generalAreaId) {
-                // Buscar en general O nulos (usamos OR manual en lógica si Supabase complica el OR mixto)
                 query = query.or(`area_id.eq.${generalAreaId},area_id.is.null`);
             } else {
                 query = query.is('area_id', null);
@@ -415,7 +457,7 @@
 
             list.innerHTML = "";
             if(!data || data.length === 0) {
-                list.innerHTML = `<div class="text-center py-8 text-slate-600 text-xs italic">No hay cursos pendientes en General.</div>`;
+                list.innerHTML = `<div class="text-center py-8 text-slate-600 text-xs italic">No hay cursos pendientes.</div>`;
                 return;
             }
 
@@ -432,26 +474,17 @@
             lucide.createIcons();
         }
 
-        // --- ACCIONES DE MOVIMIENTO ---
         async function traerCursoAqui(cursoId) {
-            // Mover curso del General -> Área Activa
             const { error } = await db.from('cursos_oficiales').update({ area_id: activeArea.id }).eq('id', cursoId);
             if(error) alert("Error: " + error.message);
-            else {
-                loadCoursesOfArea();
-                loadGeneralCourses();
-            }
+            else { loadCoursesOfArea(); loadGeneralCourses(); }
         }
 
         async function moverACursoGeneral(cursoId) {
             if(!generalAreaId) return alert("No encuentro la carpeta General para devolverlo.");
-            // Devolver curso al General
             const { error } = await db.from('cursos_oficiales').update({ area_id: generalAreaId }).eq('id', cursoId);
             if(error) alert("Error: " + error.message);
-            else {
-                loadCoursesOfArea();
-                loadGeneralCourses();
-            }
+            else { loadCoursesOfArea(); loadGeneralCourses(); }
         }
 
         async function guardarCerebroIA() {
@@ -470,7 +503,7 @@
             const f = new FormData(e.target);
             const { error } = await db.from('areas').insert({
                 nombre: f.get('nombre'),
-                slug: f.get('slug').toLowerCase(),
+                slug: f.get('slug').toLowerCase().replace(/\s+/g, '-'),
                 color_tema: f.get('color'),
                 institution_id: currentInstId
             });
@@ -482,22 +515,20 @@
             }
         });
         
-        // 7. BOTONES DE EDICION DE ÁREA
+        // 7. EDICIÓN DE ÁREA
         async function editarAreaActual() {
             const nuevoNombre = prompt("Nuevo nombre para el área:", activeArea.nombre);
             if(nuevoNombre) {
                 await db.from('areas').update({ nombre: nuevoNombre }).eq('id', activeArea.id);
-                location.reload(); // Recarga simple para actualizar todo
+                location.reload(); 
             }
         }
         
         async function eliminarAreaActual() {
-            if(confirm("¿Estás seguro? Los cursos volverán a General.")) {
-                // Primero mover cursos a General
+            if(confirm("¿Seguro? Los cursos volverán a la carpeta General.")) {
                 if(generalAreaId) {
                     await db.from('cursos_oficiales').update({ area_id: generalAreaId }).eq('area_id', activeArea.id);
                 }
-                // Borrar área
                 await db.from('areas').delete().eq('id', activeArea.id);
                 location.reload();
             }
