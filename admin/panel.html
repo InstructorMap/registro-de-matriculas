@@ -10,20 +10,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #e2e8f0; }
-        /* Efecto Cristal */
         .glass { background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
         .glass-active { background: rgba(59, 130, 246, 0.15); border-left: 3px solid #3b82f6; color: white; }
-        /* Animaciones */
         .fade-in { animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        /* Inputs bonitos */
         .input-dark { background: #1e293b; border: 1px solid #334155; color: white; padding: 10px; border-radius: 8px; width: 100%; outline: none; transition: all 0.2s; }
         .input-dark:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
-        /* Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        /* Toast Notifications */
         .toast-success { background: rgba(21, 128, 61, 0.9); border: 1px solid rgba(34, 197, 94, 0.3); }
         .toast-error { background: rgba(185, 28, 28, 0.9); border: 1px solid rgba(248, 113, 113, 0.3); }
         .toast-info { background: rgba(30, 64, 175, 0.9); border: 1px solid rgba(96, 165, 250, 0.3); }
@@ -344,875 +339,883 @@
         </div>
     </div>
 
-<script>
-    // ============================================
-    // CONFIGURACIÓN IDÉNTICA AL DASHBOARD V8.0
-    // ============================================
-    const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
-    const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
-    const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
-    
-    // ============================================
-    // VARIABLES GLOBALES (IGUAL QUE V8.0)
-    // ============================================
-    let currentUser = null;
-    let currentProfile = null;
-    let currentInstId = null;
-    let activeArea = null;
-    let generalAreaId = null;
-    let statsRefreshInterval = null;
-    let cursosCache = [];
-
-    // ============================================
-    // FUNCIONES DE UTILIDAD (V8.0 COMPATIBLE)
-    // ============================================
-
-    /**
-     * Muestra notificación toast (igual que V8.0)
-     */
-    function toast(msg, type='success') {
-        const container = document.getElementById('toast-container');
-        const el = document.createElement('div');
-        el.className = `glass p-3 rounded-lg shadow-lg transform transition-all fade-in ${type === 'success' ? 'toast-success' : type === 'error' ? 'toast-error' : 'toast-info'}`;
-        el.innerHTML = `
-            <div class="flex items-center gap-2">
-                <i data-lucide="${type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info'}" class="w-4 h-4"></i>
-                <span class="text-xs font-medium">${msg}</span>
-            </div>
-        `;
-        container.appendChild(el);
-        lucide.createIcons();
-        setTimeout(() => el.remove(), 4000);
-    }
-
-    /**
-     * Establece estado de carga en botón
-     */
-    function setLoading(button, isLoading, originalText = null) {
-        if (isLoading) {
-            button.dataset.originalText = button.innerHTML;
-            button.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Procesando...`;
-            button.disabled = true;
-        } else {
-            button.innerHTML = originalText || button.dataset.originalText || '';
-            button.disabled = false;
-        }
-        lucide.createIcons();
-    }
-
-    // ============================================
-    // 1. INICIALIZACIÓN Y SESIÓN (CORREGIDO)
-    // ============================================
-    document.addEventListener('DOMContentLoaded', async () => {
-        lucide.createIcons();
+    <script>
+        // ============================================
+        // CONFIGURACIÓN IDÉNTICA AL DASHBOARD V8.0
+        // ============================================
+        const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
+        const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
+        const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
         
-        // VERIFICAR SESIÓN (USANDO LÓGICA V8.0)
-        const { data: { session } } = await db.auth.getSession();
-        if (!session) {
-            window.location.href = '../index.html';
-            return;
-        }
-        
-        currentUser = session.user;
-        await cargarPerfilYInstitucion(); // ¡ESTA ES LA FUNCIÓN CRÍTICA!
-        
-        if(currentInstId) {
-            await loadAreasSidebar();
-            await ensureGeneralArea();
-            await cargarCursosParaCache(); // Cargar cursos para filtros
-            switchView('branding');
-            startStatsRefresh();
-        }
-    });
+        // ============================================
+        // VARIABLES GLOBALES (IGUAL QUE V8.0)
+        // ============================================
+        let currentUser = null;
+        let currentProfile = null;
+        let currentInstId = null;
+        let activeArea = null;
+        let generalAreaId = null;
+        let statsRefreshInterval = null;
+        let cursosCache = [];
 
-    /**
-     * ¡¡FUNCIÓN CRÍTICA CORREGIDA!!
-     * Usa EXACTAMENTE la misma lógica que dashboard.html V8.0
-     */
-    async function cargarPerfilYInstitucion() {
-        try {
-            // PASO 1: Obtener perfil CON institución (¡CORREGIDO!)
-            const { data: perfil, error: perfilError } = await db
-                .from('perfiles')
-                .select('*, instituciones(*)')
-                .eq('id', currentUser.id)  // ← ¡¡CORRECCIÓN!! Usar 'id', NO 'user_id'
-                .single();
-                
-            if (perfilError) throw new Error(`Error perfil: ${perfilError.message}`);
-            if (!perfil) throw new Error("Perfil no encontrado");
+        // ============================================
+        // FUNCIONES DE UTILIDAD (V8.0 COMPATIBLE)
+        // ============================================
 
-            currentProfile = perfil;
+        /**
+         * Muestra notificación toast (igual que V8.0)
+         */
+        function toast(msg, type='success') {
+            const container = document.getElementById('toast-container');
+            const el = document.createElement('div');
+            el.className = `glass p-3 rounded-lg shadow-lg transform transition-all fade-in ${type === 'success' ? 'toast-success' : type === 'error' ? 'toast-error' : 'toast-info'}`;
+            el.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <i data-lucide="${type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info'}" class="w-4 h-4"></i>
+                    <span class="text-xs font-medium">${msg}</span>
+                </div>
+            `;
+            container.appendChild(el);
+            lucide.createIcons();
+            setTimeout(() => el.remove(), 4000);
+        }
+
+        /**
+         * Establece estado de carga en botón
+         */
+        function setLoading(button, isLoading, originalText = null) {
+            if (isLoading) {
+                button.dataset.originalText = button.innerHTML;
+                button.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Procesando...`;
+                button.disabled = true;
+            } else {
+                button.innerHTML = originalText || button.dataset.originalText || '';
+                button.disabled = false;
+            }
+            lucide.createIcons();
+        }
+
+        // ============================================
+        // 1. INICIALIZACIÓN Y SESIÓN (CORREGIDO)
+        // ============================================
+        document.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
             
-            // Mostrar datos de usuario
-            document.getElementById('user-name').innerText = perfil.nombre_completo || perfil.email || 'Usuario';
-            
-            // PASO 2: Validar institución activa (igual que V8.0)
-            if (perfil.instituciones && perfil.instituciones.activo === false && perfil.rol !== 'superadmin') {
-                alert("⛔ SU CUENTA ESTÁ SUSPENDIDA. Contacte a soporte.");
-                await db.auth.signOut();
+            // VERIFICAR SESIÓN (USANDO LÓGICA V8.0)
+            const { data: { session } } = await db.auth.getSession();
+            if (!session) {
                 window.location.href = '../index.html';
                 return;
             }
+            
+            currentUser = session.user;
+            await cargarPerfilYInstitucion();
+            
+            if(currentInstId) {
+                await loadAreasSidebar();
+                await ensureGeneralArea();
+                await cargarCursosParaCache();
+                switchView('branding');
+                startStatsRefresh();
+            }
+        });
 
-            // PASO 3: Configurar institución actual
-            if (perfil.instituciones) {
-                currentInstId = perfil.instituciones.id;
-                document.getElementById('inst-name').innerText = perfil.instituciones.nombre;
+        /**
+         * ¡¡FUNCIÓN CRÍTICA CORREGIDA!!
+         * Usa EXACTAMENTE la misma lógica que dashboard.html V8.0
+         */
+        async function cargarPerfilYInstitucion() {
+            try {
+                // PASO 1: Obtener perfil CON institución (¡CORREGIDO!)
+                const { data: perfilResult, error: perfilError } = await db
+                    .from('perfiles')
+                    .select('*, instituciones(*)')
+                    .eq('id', currentUser.id);  // ← ¡¡CORRECCIÓN!! Usar 'id', NO 'user_id'
+                    
+                if (perfilError) throw new Error(`Error perfil: ${perfilError.message}`);
+                if (!perfilResult || perfilResult.length === 0) throw new Error("Perfil no encontrado");
+
+                const perfil = perfilResult[0];
+                currentProfile = perfil;
                 
-                // Configurar botón portal en vivo (igual que V8.0)
-                const slug = perfil.instituciones.sigla || perfil.instituciones.id;
-                const btnPortal = document.getElementById('btn-portal-live');
-                if (btnPortal) btnPortal.href = `../portal.html?inst=${encodeURIComponent(slug)}`;
+                // Mostrar datos de usuario
+                document.getElementById('user-name').innerText = perfil.nombre_completo || perfil.email || 'Usuario';
                 
-                // Mostrar logo en avatar (si existe)
-                if (perfil.instituciones.logo_url) {
-                    document.getElementById('user-avatar').innerHTML = `<img src="${perfil.instituciones.logo_url}" class="w-full h-full object-cover">`;
+                // PASO 2: Validar institución activa (igual que V8.0)
+                if (perfil.instituciones && perfil.instituciones.activo === false && perfil.rol !== 'superadmin') {
+                    alert("⛔ SU CUENTA ESTÁ SUSPENDIDA. Contacte a soporte.");
+                    await db.auth.signOut();
+                    window.location.href = '../index.html';
+                    return;
                 }
-                
-                // Aplicar branding automático (igual que V8.0)
-                aplicarBrandingPanel(perfil.instituciones);
-                
-            } else if (perfil.rol === 'superadmin') {
-                // Lógica para superadmin (igual que V8.0)
-                const { data: institucionDefault } = await db
-                    .from('instituciones')
-                    .select('*')
-                    .limit(1)
-                    .single();
+
+                // PASO 3: Configurar institución actual
+                if (perfil.instituciones) {
+                    currentInstId = perfil.instituciones.id;
+                    document.getElementById('inst-name').innerText = perfil.instituciones.nombre;
                     
-                if (institucionDefault) { 
-                    currentInstId = institucionDefault.id; 
-                    document.getElementById('inst-name').innerText = `Superadmin (${institucionDefault.nombre})`;
-                    
+                    // Configurar botón portal en vivo (igual que V8.0)
+                    const slug = perfil.instituciones.sigla || perfil.instituciones.id;
                     const btnPortal = document.getElementById('btn-portal-live');
-                    if (btnPortal && institucionDefault.sigla) {
-                        btnPortal.href = `../portal.html?inst=${encodeURIComponent(institucionDefault.sigla)}`;
+                    if (btnPortal) btnPortal.href = `../portal.html?inst=${encodeURIComponent(slug)}`;
+                    
+                    // Mostrar logo en avatar (si existe)
+                    if (perfil.instituciones.logo_url) {
+                        document.getElementById('user-avatar').innerHTML = `<img src="${perfil.instituciones.logo_url}" class="w-full h-full object-cover">`;
+                    }
+                    
+                    // Aplicar branding automático (igual que V8.0)
+                    aplicarBrandingPanel(perfil.instituciones);
+                    
+                } else if (perfil.rol === 'superadmin') {
+                    // Lógica para superadmin (igual que V8.0)
+                    const { data: institucionDefault } = await db
+                        .from('instituciones')
+                        .select('*')
+                        .limit(1);
+                        
+                    if (institucionDefault && institucionDefault.length > 0) { 
+                        currentInstId = institucionDefault[0].id; 
+                        document.getElementById('inst-name').innerText = `Superadmin (${institucionDefault[0].nombre})`;
+                        
+                        const btnPortal = document.getElementById('btn-portal-live');
+                        if (btnPortal && institucionDefault[0].sigla) {
+                            btnPortal.href = `../portal.html?inst=${encodeURIComponent(institucionDefault[0].sigla)}`;
+                        }
                     }
                 }
+                
+                toast("Sesión iniciada correctamente", 'success');
+                
+            } catch (error) {
+                console.error("Error crítico en login:", error);
+                toast(`Error: ${error.message}`, 'error');
+                setTimeout(() => window.location.href = '../index.html', 2000);
+            }
+        }
+
+        /**
+         * Aplicar branding automático (igual que V8.0)
+         */
+        function aplicarBrandingPanel(inst) {
+            if (!inst) return;
+            
+            // Aplicar color primario al sidebar
+            if (inst.color_primario) {
+                document.querySelector('aside').style.backgroundColor = inst.color_primario;
             }
             
-            toast("Sesión iniciada correctamente", 'success');
-            
-        } catch (error) {
-            console.error("Error crítico en login:", error);
-            toast(`Error: ${error.message}`, 'error');
-            setTimeout(() => window.location.href = '../index.html', 2000);
-        }
-    }
-
-    /**
-     * Aplicar branding automático (igual que V8.0)
-     */
-    function aplicarBrandingPanel(inst) {
-        if (!inst) return;
-        
-        // Aplicar color primario al sidebar
-        if (inst.color_primario) {
-            document.querySelector('aside').style.backgroundColor = inst.color_primario;
-        }
-        
-        // Aplicar logo si existe
-        const brandLogo = document.getElementById('preview-logo');
-        if (inst.logo_url && brandLogo) {
-            brandLogo.src = inst.logo_url;
-            brandLogo.classList.remove('hidden');
-            brandLogo.dataset.newUrl = inst.logo_url;
-        }
-    }
-
-    /**
-     * Cargar cursos para cache (necesario para filtros)
-     */
-    async function cargarCursosParaCache() {
-        try {
-            const { data } = await db.from('cursos_oficiales').select('*').order('nombre');
-            
-            if (currentProfile.rol !== 'superadmin') {
-                const myId = currentProfile.institucion_id;
-                cursosCache = data.filter(c => {
-                    const cInst = c.institution_id || c.institucion_id; 
-                    return cInst === myId || cInst === null; 
-                });
-            } else {
-                cursosCache = data;
+            // Aplicar logo si existe
+            const brandLogo = document.getElementById('preview-logo');
+            if (inst.logo_url && brandLogo) {
+                brandLogo.src = inst.logo_url;
+                brandLogo.classList.remove('hidden');
+                brandLogo.dataset.newUrl = inst.logo_url;
             }
-        } catch (error) {
-            console.error("Error cargando cursos:", error);
         }
-    }
 
-    // ============================================
-    // 2. GARANTIZAR ÁREA GENERAL (SI EXISTE LA TABLA)
-    // ============================================
-    async function ensureGeneralArea() {
-        try {
-            // Verificar si tabla 'areas' existe
-            const { error } = await db.from('areas').select('id').limit(1);
-            if (error) {
-                console.warn("Tabla 'areas' no existe, omitiendo...");
+        /**
+         * Cargar cursos para cache (necesario para filtros)
+         */
+        async function cargarCursosParaCache() {
+            try {
+                const { data } = await db.from('cursos_oficiales').select('*').order('nombre');
+                
+                if (currentProfile.rol !== 'superadmin') {
+                    const myId = currentProfile.institucion_id;
+                    cursosCache = data.filter(c => {
+                        const cInst = c.institution_id || c.institucion_id; 
+                        return cInst === myId || cInst === null; 
+                    });
+                } else {
+                    cursosCache = data;
+                }
+            } catch (error) {
+                console.error("Error cargando cursos:", error);
+            }
+        }
+
+        // ============================================
+        // 2. GARANTIZAR ÁREA GENERAL (SI EXISTE LA TABLA)
+        // ============================================
+        async function ensureGeneralArea() {
+            try {
+                // Verificar si tabla 'areas' existe
+                const { error } = await db.from('areas').select('id').limit(1);
+                if (error) {
+                    console.warn("Tabla 'areas' no existe, omitiendo...");
+                    return;
+                }
+                
+                // Buscar área general
+                const { data: existing } = await db
+                    .from('areas')
+                    .select('id')
+                    .eq('institution_id', currentInstId)
+                    .eq('slug', 'general');
+                    
+                if (existing && existing.length > 0) {
+                    generalAreaId = existing[0].id;
+                    return;
+                }
+                
+                // Crear área general si no existe
+                const { data: newArea } = await db
+                    .from('areas')
+                    .insert({
+                        nombre: 'General',
+                        slug: 'general',
+                        color_tema: '#6b7280',
+                        institution_id: currentInstId,
+                        orden: 0
+                    })
+                    .select();
+                    
+                if (newArea && newArea.length > 0) {
+                    generalAreaId = newArea[0].id;
+                    toast('Área General creada automáticamente', 'info');
+                    await loadAreasSidebar();
+                }
+                
+            } catch (error) {
+                console.warn("Área general:", error.message);
+            }
+        }
+
+        // ============================================
+        // 3. NAVEGACIÓN ENTRE VISTAS (MANTENER ORIGINAL)
+        // ============================================
+        function switchView(viewName) {
+            document.getElementById('view-branding').classList.add('hidden');
+            document.getElementById('view-area-detail').classList.add('hidden');
+            document.getElementById('view-crm').classList.add('hidden');
+            
+            document.querySelectorAll('#areas-list-sidebar button').forEach(b => b.classList.remove('glass-active'));
+            document.getElementById('nav-branding').classList.remove('glass-active', 'text-white');
+            document.getElementById('nav-crm').classList.remove('glass-active', 'text-white');
+            
+            switch(viewName) {
+                case 'branding':
+                    document.getElementById('view-branding').classList.remove('hidden');
+                    document.getElementById('nav-branding').classList.add('glass-active', 'text-white');
+                    document.getElementById('view-title').innerText = "Identidad Visual";
+                    document.getElementById('view-subtitle').innerText = "Configuración global del portal";
+                    loadBranding();
+                    break;
+                    
+                case 'crm':
+                    document.getElementById('view-crm').classList.remove('hidden');
+                    document.getElementById('nav-crm').classList.add('glass-active', 'text-white');
+                    document.getElementById('view-title').innerText = "CRM & Analytics";
+                    document.getElementById('view-subtitle').innerText = "Gestión de leads y conversiones";
+                    loadCRMData();
+                    break;
+                    
+                default:
+                    break;
+            }
+        }
+
+        // ============================================
+        // 4. GESTIÓN DE IDENTIDAD (ACTUALIZADO)
+        // ============================================
+        async function loadBranding() {
+            try {
+                const { data } = await db
+                    .from('instituciones')
+                    .select('*')
+                    .eq('id', currentInstId);
+                    
+                if(!data || data.length === 0) return;
+
+                const institucion = data[0];
+                document.getElementById('brand-name-input').value = institucion.nombre;
+                document.getElementById('brand-color-input').value = institucion.color_primario || '#000000';
+                document.getElementById('color-hex').innerText = institucion.color_primario || '#000000';
+                document.getElementById('brand-slug-input').value = institucion.sigla || '';
+                document.getElementById('brand-phone-input').value = institucion.telefono_contacto || '';
+                document.getElementById('brand-banner-input').value = institucion.banner_url || '';
+                
+                if(institucion.logo_url) {
+                    const img = document.getElementById('preview-logo');
+                    img.src = institucion.logo_url;
+                    img.classList.remove('hidden');
+                    img.dataset.newUrl = institucion.logo_url;
+                }
+            } catch (error) {
+                console.error("Error cargando branding:", error);
+            }
+        }
+
+        document.getElementById('brand-color-input').addEventListener('input', (e) => {
+            document.getElementById('color-hex').innerText = e.target.value;
+        });
+
+        async function subirLogo(input) {
+            if(input.files.length === 0) return;
+            
+            const file = input.files[0];
+            if(file.size > 5 * 1024 * 1024) {
+                toast('Archivo demasiado grande (máx 5MB)', 'error');
                 return;
             }
             
-            // Buscar área general
-            const { data: existing } = await db
-                .from('areas')
-                .select('id')
-                .eq('institution_id', currentInstId)
-                .eq('slug', 'general')
-                .single();
-                
-            if (existing) {
-                generalAreaId = existing.id;
-                return;
-            }
+            const fileName = `logo_${currentInstId}_${Date.now()}_${file.name}`;
             
-            // Crear área general si no existe
-            const { data: newArea } = await db
-                .from('areas')
-                .insert({
-                    nombre: 'General',
-                    slug: 'general',
-                    color_tema: '#6b7280',
-                    institution_id: currentInstId,
-                    orden: 0
-                })
-                .select()
-                .single();
+            try {
+                const { data, error } = await db.storage
+                    .from('logos-instituciones')
+                    .upload(fileName, file);
+                    
+                if(error) throw error;
                 
-            if (newArea) {
-                generalAreaId = newArea.id;
-                toast('Área General creada automáticamente', 'info');
-                await loadAreasSidebar();
-            }
-            
-        } catch (error) {
-            console.warn("Área general:", error.message);
-        }
-    }
-
-    // ============================================
-    // 3. NAVEGACIÓN ENTRE VISTAS (MANTENER ORIGINAL)
-    // ============================================
-    function switchView(viewName) {
-        document.getElementById('view-branding').classList.add('hidden');
-        document.getElementById('view-area-detail').classList.add('hidden');
-        document.getElementById('view-crm').classList.add('hidden');
-        
-        document.querySelectorAll('#areas-list-sidebar button').forEach(b => b.classList.remove('glass-active'));
-        document.getElementById('nav-branding').classList.remove('glass-active', 'text-white');
-        document.getElementById('nav-crm').classList.remove('glass-active', 'text-white');
-        
-        switch(viewName) {
-            case 'branding':
-                document.getElementById('view-branding').classList.remove('hidden');
-                document.getElementById('nav-branding').classList.add('glass-active', 'text-white');
-                document.getElementById('view-title').innerText = "Identidad Visual";
-                document.getElementById('view-subtitle').innerText = "Configuración global del portal";
-                loadBranding();
-                break;
-                
-            case 'crm':
-                document.getElementById('view-crm').classList.remove('hidden');
-                document.getElementById('nav-crm').classList.add('glass-active', 'text-white');
-                document.getElementById('view-title').innerText = "CRM & Analytics";
-                document.getElementById('view-subtitle').innerText = "Gestión de leads y conversiones";
-                loadCRMData();
-                break;
-                
-            default:
-                break;
-        }
-    }
-
-    // ============================================
-    // 4. GESTIÓN DE IDENTIDAD (ACTUALIZADO)
-    // ============================================
-    async function loadBranding() {
-        try {
-            const { data } = await db
-                .from('instituciones')
-                .select('*')
-                .eq('id', currentInstId)
-                .single();
-                
-            if(!data) return;
-
-            document.getElementById('brand-name-input').value = data.nombre;
-            document.getElementById('brand-color-input').value = data.color_primario || '#000000';
-            document.getElementById('color-hex').innerText = data.color_primario || '#000000';
-            document.getElementById('brand-slug-input').value = data.sigla || '';
-            document.getElementById('brand-phone-input').value = data.telefono_contacto || '';
-            document.getElementById('brand-banner-input').value = data.banner_url || '';
-            
-            if(data.logo_url) {
+                const { data: publicUrl } = db.storage
+                    .from('logos-instituciones')
+                    .getPublicUrl(fileName);
+                    
                 const img = document.getElementById('preview-logo');
-                img.src = data.logo_url;
+                img.src = publicUrl.publicUrl;
                 img.classList.remove('hidden');
-                img.dataset.newUrl = data.logo_url;
+                img.dataset.newUrl = publicUrl.publicUrl;
+                
+                toast('Logo subido correctamente', 'success');
+            } catch (error) {
+                console.error("Error subiendo logo:", error);
+                toast('Error subiendo logo: ' + error.message, 'error');
             }
-        } catch (error) {
-            console.error("Error cargando branding:", error);
         }
-    }
 
-    document.getElementById('brand-color-input').addEventListener('input', (e) => {
-        document.getElementById('color-hex').innerText = e.target.value;
-    });
-
-    async function subirLogo(input) {
-        if(input.files.length === 0) return;
-        
-        const file = input.files[0];
-        if(file.size > 5 * 1024 * 1024) {
-            toast('Archivo demasiado grande (máx 5MB)', 'error');
-            return;
-        }
-        
-        const fileName = `logo_${currentInstId}_${Date.now()}_${file.name}`;
-        
-        try {
-            const { data, error } = await db.storage
-                .from('logos-instituciones')
-                .upload(fileName, file);
-                
-            if(error) throw error;
+        async function guardarIdentidad() {
+            const button = document.getElementById('btn-save-branding');
+            setLoading(button, true);
             
-            const { data: publicUrl } = db.storage
-                .from('logos-instituciones')
-                .getPublicUrl(fileName);
-                
+            const nombre = document.getElementById('brand-name-input').value.trim();
+            const color = document.getElementById('brand-color-input').value;
+            const sigla = document.getElementById('brand-slug-input').value.toLowerCase().trim().replace(/\s+/g, '-');
+            const telefono = document.getElementById('brand-phone-input').value.trim();
+            const banner = document.getElementById('brand-banner-input').value.trim();
             const img = document.getElementById('preview-logo');
-            img.src = publicUrl.publicUrl;
-            img.classList.remove('hidden');
-            img.dataset.newUrl = publicUrl.publicUrl;
             
-            toast('Logo subido correctamente', 'success');
-        } catch (error) {
-            console.error("Error subiendo logo:", error);
-            toast('Error subiendo logo: ' + error.message, 'error');
-        }
-    }
-
-    async function guardarIdentidad() {
-        const button = document.getElementById('btn-save-branding');
-        setLoading(button, true);
-        
-        const nombre = document.getElementById('brand-name-input').value.trim();
-        const color = document.getElementById('brand-color-input').value;
-        const sigla = document.getElementById('brand-slug-input').value.toLowerCase().trim().replace(/\s+/g, '-');
-        const telefono = document.getElementById('brand-phone-input').value.trim();
-        const banner = document.getElementById('brand-banner-input').value.trim();
-        const img = document.getElementById('preview-logo');
-        
-        if(!nombre) {
-            toast('El nombre es requerido', 'error');
-            setLoading(button, false);
-            return;
-        }
-        
-        const updates = { 
-            nombre, 
-            color_primario: color, 
-            sigla,
-            telefono_contacto: telefono,
-            banner_url: banner
-        };
-        
-        if(img.dataset.newUrl) {
-            updates.logo_url = img.dataset.newUrl;
-        }
-        
-        try {
-            const { error } = await db.from('instituciones').update(updates).eq('id', currentInstId);
-            if(error) throw error;
-            
-            toast('Identidad guardada exitosamente', 'success');
-            
-            // Actualizar botón portal en vivo
-            const btnPortal = document.getElementById('btn-portal-live');
-            if(btnPortal && sigla) btnPortal.href = `../portal.html?inst=${encodeURIComponent(sigla)}`;
-            
-            // Aplicar branding inmediato
-            aplicarBrandingPanel(updates);
-            
-        } catch (error) {
-            toast('Error guardando identidad: ' + error.message, 'error');
-        }
-        
-        setLoading(button, false);
-    }
-
-    // ============================================
-    // 5. GESTIÓN DE ÁREAS (SOLO SI TABLA EXISTE)
-    // ============================================
-    async function loadAreasSidebar() {
-        const list = document.getElementById('areas-list-sidebar');
-        try {
-            // Verificar si tabla existe
-            const { error: tableCheck } = await db.from('areas').select('id').limit(1);
-            if (tableCheck) {
-                list.innerHTML = `<div class="px-3 text-xs text-slate-500 italic">Módulo áreas no disponible</div>`;
-                return;
-            }
-            
-            const { data } = await db
-                .from('areas')
-                .select('*')
-                .eq('institution_id', currentInstId)
-                .order('orden');
-            
-            list.innerHTML = "";
-            
-            if(!data || data.length === 0) { 
-                list.innerHTML = `<div class="px-3 text-xs text-slate-500 italic">Sin áreas definidas.</div>`; 
-                return; 
-            }
-
-            data.forEach(area => {
-                if(area.slug === 'general') generalAreaId = area.id;
-
-                const btn = document.createElement('button');
-                btn.className = "w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-400 rounded-lg hover:bg-slate-800 hover:text-white transition-all text-left group";
-                btn.id = `btn-area-${area.id}`;
-                btn.innerHTML = `
-                    <span class="w-2.5 h-2.5 rounded-full shadow-lg" style="background-color: ${area.color_tema}"></span> 
-                    <span class="truncate flex-1">${area.nombre}</span>
-                    <span class="text-[10px] text-slate-600 group-hover:text-slate-400">${area.slug}</span>
-                `;
-                btn.onclick = () => abrirAreaDetalle(area);
-                list.appendChild(btn);
-            });
-        } catch (error) {
-            console.error("Error cargando áreas:", error);
-            list.innerHTML = `<div class="px-3 text-xs text-red-400">Error cargando áreas</div>`;
-        }
-    }
-
-    async function abrirAreaDetalle(area) {
-        // Verificar si tabla areas existe
-        try {
-            const { error } = await db.from('areas').select('id').limit(1);
-            if (error) {
-                toast("Módulo áreas no disponible", 'error');
-                return;
-            }
-        } catch (e) {
-            return;
-        }
-        
-        activeArea = area;
-        switchView('none'); 
-        document.getElementById('view-area-detail').classList.remove('hidden');
-        
-        document.querySelectorAll('#areas-list-sidebar button').forEach(b => b.classList.remove('glass-active'));
-        const activeBtn = document.getElementById(`btn-area-${area.id}`);
-        if(activeBtn) activeBtn.classList.add('glass-active');
-
-        // Llenar Datos
-        document.getElementById('view-title').innerText = "Gestión de Universo";
-        document.getElementById('view-subtitle').innerText = area.nombre;
-        document.getElementById('area-title').innerText = area.nombre;
-        document.getElementById('area-slug').innerText = `/${area.slug}`;
-        document.getElementById('area-card-header').style.borderLeftColor = area.color_tema;
-        document.getElementById('area-dossier').value = area.dossier_txt || "";
-        document.getElementById('area-prompt').value = area.prompt_especifico || "";
-
-        await loadCoursesOfArea();
-        await loadGeneralCourses();
-    }
-
-    // ============================================
-    // 6. GESTIÓN DE CURSOS (COMPATIBLE)
-    // ============================================
-    async function loadCoursesOfArea() {
-        const grid = document.getElementById('grid-area-courses');
-        grid.innerHTML = `<div class="col-span-2 p-6 text-center"><i data-lucide="loader-2" class="w-4 h-4 animate-spin mx-auto mb-2"></i><p class="text-xs text-slate-500">Cargando cursos...</p></div>`;
-        
-        try {
-            // Verificar si columna area_id existe
-            const { data } = await db
-                .from('cursos_oficiales')
-                .select('*')
-                .eq('area_id', activeArea.id)
-                .order('nombre');
-            
-            grid.innerHTML = "";
-            document.getElementById('count-area-courses').innerText = `${data?.length || 0}`;
-
-            if(!data || data.length === 0) {
-                grid.innerHTML = `
-                <div class="col-span-2 p-6 border border-dashed border-slate-700 rounded-xl text-center">
-                    <i data-lucide="book-open" class="w-8 h-8 text-slate-600 mx-auto mb-2"></i>
-                    <p class="text-sm text-slate-400">Esta área está vacía</p>
-                    <p class="text-xs text-slate-500 mt-1">Arrastra cursos desde el repositorio</p>
-                </div>`;
-                return;
-            }
-
-            data.forEach(c => {
-                grid.innerHTML += `
-                <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 flex gap-3 hover:border-slate-600 transition group relative">
-                    <div class="w-12 h-12 bg-slate-950 rounded overflow-hidden shrink-0">
-                        ${c.imagen_portada_url ? 
-                            `<img src="${c.imagen_portada_url}" class="w-full h-full object-cover" alt="${c.nombre}">` : 
-                            `<div class="w-full h-full flex items-center justify-center text-slate-700 text-xs">IMG</div>`
-                        }
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <h4 class="font-bold text-white text-xs truncate mb-0.5">${c.nombre}</h4>
-                        <p class="text-[10px] text-slate-500 font-mono">${c.registro_id || 'ID?'}</p>
-                    </div>
-                    <button onclick="moverACursoGeneral('${c.id}')" class="absolute top-2 right-2 text-slate-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition" title="Devolver a General">
-                        <i data-lucide="x-circle" class="w-4 h-4"></i>
-                    </button>
-                </div>`;
-            });
-            lucide.createIcons();
-        } catch (error) {
-            console.error("Error cargando cursos:", error);
-            grid.innerHTML = `<div class="col-span-2 p-6 text-center text-slate-500 text-sm">No hay cursos asignados</div>`;
-        }
-    }
-
-    async function loadGeneralCourses() {
-        const list = document.getElementById('grid-unassigned');
-        
-        if (activeArea.slug === 'general') {
-            list.innerHTML = `<div class="text-center py-8 text-slate-600 text-xs italic">Estás en la carpeta General.<br>Crea otra área para organizar.</div>`;
-            return;
-        }
-
-        list.innerHTML = `<div class="text-center py-4"><i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i></div>`;
-
-        try {
-            let query = db.from('cursos_oficiales').select('*').eq('institution_id', currentInstId);
-            
-            if (generalAreaId) {
-                query = query.or(`area_id.eq.${generalAreaId},area_id.is.null`);
-            } else {
-                query = query.is('area_id', null);
-            }
-            
-            const { data } = await query.order('nombre');
-
-            list.innerHTML = "";
-            
-            if(!data || data.length === 0) {
-                list.innerHTML = `<div class="text-center py-8 text-slate-600 text-xs italic">No hay cursos pendientes.</div>`;
-                return;
-            }
-
-            data.forEach(c => {
-                const div = document.createElement('div');
-                div.className = "p-2 bg-slate-800/50 rounded-lg border border-slate-700 hover:bg-indigo-900/20 hover:border-indigo-500/50 cursor-pointer transition flex items-center justify-between group mb-2";
-                div.onclick = () => traerCursoAqui(c.id);
-                div.innerHTML = `
-                    <span class="text-xs text-slate-300 font-medium truncate pr-2 flex-1" title="${c.nombre}">${c.nombre}</span>
-                    <i data-lucide="arrow-left-circle" class="w-4 h-4 text-indigo-500 opacity-0 group-hover:opacity-100 transition"></i>
-                `;
-                list.appendChild(div);
-            });
-            lucide.createIcons();
-        } catch (error) {
-            console.error("Error cargando cursos generales:", error);
-            list.innerHTML = `<div class="text-center py-8 text-slate-500 text-xs">No hay cursos disponibles</div>`;
-        }
-    }
-
-    async function traerCursoAqui(cursoId) {
-        try {
-            const { error } = await db.from('cursos_oficiales').update({ area_id: activeArea.id }).eq('id', cursoId);
-            if(error) throw error;
-            
-            toast('Curso movido al área actual', 'success');
-            await loadCoursesOfArea();
-            await loadGeneralCourses();
-        } catch (error) {
-            toast('Error moviendo curso: ' + error.message, 'error');
-        }
-    }
-
-    async function moverACursoGeneral(cursoId) {
-        if(!generalAreaId) {
-            toast('No se encontró área General', 'error');
-            return;
-        }
-        
-        try {
-            const { error } = await db.from('cursos_oficiales').update({ area_id: generalAreaId }).eq('id', cursoId);
-            if(error) throw error;
-            
-            toast('Curso devuelto al repositorio', 'success');
-            await loadCoursesOfArea();
-            await loadGeneralCourses();
-        } catch (error) {
-            toast('Error devolviendo curso: ' + error.message, 'error');
-        }
-    }
-
-    async function guardarCerebroIA() {
-        const button = document.getElementById('btn-save-ia');
-        setLoading(button, true);
-        
-        const dossier = document.getElementById('area-dossier').value;
-        const prompt = document.getElementById('area-prompt').value;
-        
-        try {
-            const { error } = await db.from('areas').update({ 
-                dossier_txt: dossier, 
-                prompt_especifico: prompt 
-            }).eq('id', activeArea.id);
-            
-            if(error) throw error;
-            
-            toast('Configuración IA guardada', 'success');
-        } catch (error) {
-            toast('Error guardando configuración IA: ' + error.message, 'error');
-        }
-        
-        setLoading(button, false);
-    }
-
-    // ============================================
-    // 7. MODAL CREAR ÁREA
-    // ============================================
-    function abrirModalArea() { 
-        document.getElementById('modal-area').classList.remove('hidden');
-        document.getElementById('form-area').reset();
-    }
-    
-    document.getElementById('form-area').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const button = document.getElementById('btn-create-area');
-        setLoading(button, true);
-        
-        const f = new FormData(e.target);
-        const nombre = f.get('nombre').trim();
-        const slug = f.get('slug').toLowerCase().trim().replace(/\s+/g, '-');
-        const color = f.get('color');
-        
-        if(!nombre || !slug) {
-            toast('Nombre y slug son requeridos', 'error');
-            setLoading(button, false);
-            return;
-        }
-        
-        try {
-            // Verificar si tabla existe
-            const { error: tableCheck } = await db.from('areas').select('id').limit(1);
-            if (tableCheck) throw new Error("Tabla 'areas' no existe");
-            
-            // Validar slug único
-            const { data: existing } = await db
-                .from('areas')
-                .select('id')
-                .eq('slug', slug)
-                .eq('institution_id', currentInstId)
-                .single();
-                
-            if(existing) {
-                toast('El slug ya existe, usa otro', 'error');
+            if(!nombre) {
+                toast('El nombre es requerido', 'error');
                 setLoading(button, false);
                 return;
             }
             
-            const { error } = await db.from('areas').insert({
-                nombre: nombre,
-                slug: slug,
-                color_tema: color,
-                institution_id: currentInstId,
-                orden: 999
-            });
+            const updates = { 
+                nombre, 
+                color_primario: color, 
+                sigla,
+                telefono_contacto: telefono,
+                banner_url: banner
+            };
             
-            if(error) throw error;
+            if(img.dataset.newUrl) {
+                updates.logo_url = img.dataset.newUrl;
+            }
             
-            document.getElementById('modal-area').classList.add('hidden');
-            e.target.reset();
-            await loadAreasSidebar();
-            toast(`Área "${nombre}" creada`, 'success');
-            
-        } catch (error) {
-            toast('Error creando área: ' + error.message, 'error');
-        }
-        
-        setLoading(button, false);
-    });
-
-    // ============================================
-    // 8. EDICIÓN Y ELIMINACIÓN DE ÁREAS
-    // ============================================
-    async function editarAreaActual() {
-        const nuevoNombre = prompt("Nuevo nombre para el área:", activeArea.nombre);
-        if(!nuevoNombre || nuevoNombre.trim() === '') return;
-        
-        try {
-            const { error } = await db.from('areas').update({ nombre: nuevoNombre.trim() }).eq('id', activeArea.id);
-            if(error) throw error;
-            
-            await loadAreasSidebar();
-            activeArea.nombre = nuevoNombre.trim();
-            document.getElementById('area-title').innerText = nuevoNombre.trim();
-            toast('Área renombrada', 'success');
-        } catch (error) {
-            toast('Error renombrando área: ' + error.message, 'error');
-        }
-    }
-    
-    async function eliminarAreaActual() {
-        if(!confirm(`¿Seguro de eliminar el área "${activeArea.nombre}"? Los cursos volverán a la carpeta General.`)) {
-            return;
-        }
-        
-        if(!generalAreaId) {
-            toast('No se puede eliminar: área General no encontrada', 'error');
-            return;
-        }
-        
-        try {
-            // Mover cursos a general primero
-            const { error: moveError } = await db.from('cursos_oficiales')
-                .update({ area_id: generalAreaId })
-                .eq('area_id', activeArea.id);
+            try {
+                const { error } = await db.from('instituciones').update(updates).eq('id', currentInstId);
+                if(error) throw error;
                 
-            if(moveError) throw new Error(`Moviendo cursos: ${moveError.message}`);
+                toast('Identidad guardada exitosamente', 'success');
+                
+                // Actualizar botón portal en vivo
+                const btnPortal = document.getElementById('btn-portal-live');
+                if(btnPortal && sigla) btnPortal.href = `../portal.html?inst=${encodeURIComponent(sigla)}`;
+                
+                // Aplicar branding inmediato
+                aplicarBrandingPanel(updates);
+                
+            } catch (error) {
+                toast('Error guardando identidad: ' + error.message, 'error');
+            }
             
-            // Eliminar área
-            const { error: deleteError } = await db.from('areas').delete().eq('id', activeArea.id);
-            if(deleteError) throw new Error(`Eliminando área: ${deleteError.message}`);
-            
-            switchView('branding');
-            await loadAreasSidebar();
-            toast('Área eliminada', 'success');
-        } catch (error) {
-            toast('Error eliminando área: ' + error.message, 'error');
+            setLoading(button, false);
         }
-    }
 
-    // ============================================
-    // 9. CRM & ANALYTICS (COMPATIBLE CON V8.0)
-    // ============================================
-    async function loadCRMData() {
-        await refreshStats();
-        await loadRecentLeads();
-    }
+        // ============================================
+        // 5. GESTIÓN DE ÁREAS (SOLO SI TABLA EXISTE)
+        // ============================================
+        async function loadAreasSidebar() {
+            const list = document.getElementById('areas-list-sidebar');
+            try {
+                // Verificar si tabla existe
+                const { error: tableCheck } = await db.from('areas').select('id').limit(1);
+                if (tableCheck) {
+                    list.innerHTML = `<div class="px-3 text-xs text-slate-500 italic">Módulo áreas no disponible</div>`;
+                    return;
+                }
+                
+                const { data } = await db
+                    .from('areas')
+                    .select('*')
+                    .eq('institution_id', currentInstId)
+                    .order('orden');
+                
+                list.innerHTML = "";
+                
+                if(!data || data.length === 0) { 
+                    list.innerHTML = `<div class="px-3 text-xs text-slate-500 italic">Sin áreas definidas.</div>`; 
+                    return; 
+                }
 
-    async function refreshStats() {
-        try {
-            // Leads totales (usando tabla leads de V8.0)
-            const { count: totalLeads } = await db
-                .from('leads')
-                .select('*', { count: 'exact', head: true })
-                .eq('institution_id', currentInstId);
-            
-            // Leads hoy
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const { count: newToday } = await db
-                .from('leads')
-                .select('*', { count: 'exact', head: true })
-                .eq('institution_id', currentInstId)
-                .gte('created_at', today.toISOString());
-            
-            // Actualizar UI
-            document.getElementById('stats-leads-today').innerText = newToday || '0';
-            document.getElementById('crm-total-leads').innerText = totalLeads || '0';
-            document.getElementById('crm-new-today').innerText = newToday || '0';
-            
-            // Chats activos (simulado si no existe la tabla)
-            document.getElementById('stats-active-chats').innerText = '0';
-            document.getElementById('crm-active-chats').innerText = '0';
-            
-            // Tasa de conversión (simulada)
-            const conversionRate = totalLeads > 0 ? Math.round((Math.min(newToday, 5) / totalLeads) * 100) : 0;
-            document.getElementById('crm-conversion-rate').innerText = `${conversionRate}%`;
-            
-        } catch (error) {
-            console.error("Error actualizando stats:", error);
-            // Valores por defecto
-            document.getElementById('stats-leads-today').innerText = '0';
-            document.getElementById('stats-active-chats').innerText = '0';
+                data.forEach(area => {
+                    if(area.slug === 'general') generalAreaId = area.id;
+
+                    const btn = document.createElement('button');
+                    btn.className = "w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-400 rounded-lg hover:bg-slate-800 hover:text-white transition-all text-left group";
+                    btn.id = `btn-area-${area.id}`;
+                    btn.innerHTML = `
+                        <span class="w-2.5 h-2.5 rounded-full shadow-lg" style="background-color: ${area.color_tema}"></span> 
+                        <span class="truncate flex-1">${area.nombre}</span>
+                        <span class="text-[10px] text-slate-600 group-hover:text-slate-400">${area.slug}</span>
+                    `;
+                    btn.onclick = () => abrirAreaDetalle(area);
+                    list.appendChild(btn);
+                });
+            } catch (error) {
+                console.error("Error cargando áreas:", error);
+                list.innerHTML = `<div class="px-3 text-xs text-slate-500 italic">Error cargando áreas</div>`;
+            }
         }
-    }
 
-    async function loadRecentLeads() {
-        const tbody = document.getElementById('crm-leads-body');
-        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center"><i data-lucide="loader-2" class="w-4 h-4 animate-spin mx-auto"></i></td></tr>`;
-        
-        try {
-            const { data: leads } = await db
-                .from('leads')
-                .select('*')
-                .eq('institution_id', currentInstId)
-                .order('created_at', { ascending: false })
-                .limit(10);
-            
-            tbody.innerHTML = '';
-            
-            if(!leads || leads.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">No hay leads todavía</td></tr>`;
+        async function abrirAreaDetalle(area) {
+            // Verificar si tabla areas existe
+            try {
+                const { error } = await db.from('areas').select('id').limit(1);
+                if (error) {
+                    toast("Módulo áreas no disponible", 'error');
+                    return;
+                }
+            } catch (e) {
                 return;
             }
             
-            leads.forEach(lead => {
-                const statusColors = {
-                    'nuevo': 'bg-blue-900/30 text-blue-400',
-                    'contactado': 'bg-yellow-900/30 text-yellow-400',
-                    'calificado': 'bg-green-900/30 text-green-400',
-                    'inscrito': 'bg-purple-900/30 text-purple-400',
-                    'perdido': 'bg-red-900/30 text-red-400'
-                };
-                
-                const row = document.createElement('tr');
-                row.className = 'border-b border-slate-800 hover:bg-slate-800/50';
-                row.innerHTML = `
-                    <td class="p-3">
-                        <div class="font-medium text-slate-300 text-xs">${lead.email || 'Sin email'}</div>
-                        <div class="text-[10px] text-slate-500">${lead.nombre || 'Sin nombre'}</div>
-                    </td>
-                    <td class="p-3 text-xs text-slate-300">${lead.interes_carrera_id || 'General'}</td>
-                    <td class="p-3">
-                        <span class="text-xs px-2 py-1 rounded ${statusColors[lead.estado] || 'bg-slate-800 text-slate-300'}">
-                            ${lead.estado || 'nuevo'}
-                        </span>
-                    </td>
-                    <td class="p-3 text-xs text-slate-400">${new Date(lead.created_at).toLocaleDateString('es-ES')}</td>
-                    <td class="p-3">
-                        <button onclick="verLead('${lead.id}')" class="text-slate-400 hover:text-white p-1">
-                            <i data-lucide="eye" class="w-4 h-4"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
+            activeArea = area;
+            switchView('none'); 
+            document.getElementById('view-area-detail').classList.remove('hidden');
             
-            lucide.createIcons();
-        } catch (error) {
-            console.error("Error cargando leads:", error);
-            tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">Error cargando leads</td></tr>`;
+            document.querySelectorAll('#areas-list-sidebar button').forEach(b => b.classList.remove('glass-active'));
+            const activeBtn = document.getElementById(`btn-area-${area.id}`);
+            if(activeBtn) activeBtn.classList.add('glass-active');
+
+            // Llenar Datos
+            document.getElementById('view-title').innerText = "Gestión de Universo";
+            document.getElementById('view-subtitle').innerText = area.nombre;
+            document.getElementById('area-title').innerText = area.nombre;
+            document.getElementById('area-slug').innerText = `/${area.slug}`;
+            document.getElementById('area-card-header').style.borderLeftColor = area.color_tema;
+            document.getElementById('area-dossier').value = area.dossier_txt || "";
+            document.getElementById('area-prompt').value = area.prompt_especifico || "";
+
+            await loadCoursesOfArea();
+            await loadGeneralCourses();
         }
-    }
 
-    function verLead(leadId) {
-        window.open(`../dashboard.html?lead=${leadId}`, '_blank');
-    }
+        // ============================================
+        // 6. GESTIÓN DE CURSOS (COMPATIBLE)
+        // ============================================
+        async function loadCoursesOfArea() {
+            const grid = document.getElementById('grid-area-courses');
+            grid.innerHTML = `<div class="col-span-2 p-6 text-center"><i data-lucide="loader-2" class="w-4 h-4 animate-spin mx-auto mb-2"></i><p class="text-xs text-slate-500">Cargando cursos...</p></div>`;
+            
+            try {
+                // Verificar si columna area_id existe
+                const { data } = await db
+                    .from('cursos_oficiales')
+                    .select('*')
+                    .eq('area_id', activeArea.id)
+                    .order('nombre');
+                
+                grid.innerHTML = "";
+                document.getElementById('count-area-courses').innerText = `${data?.length || 0}`;
 
-    // ============================================
-    // 10. AUTO-REFRESH DE ESTADÍSTICAS
-    // ============================================
-    function startStatsRefresh() {
-        statsRefreshInterval = setInterval(async () => {
-            const activeView = document.querySelector('#main-content > div:not(.hidden)').id;
-            if(activeView === 'view-crm') {
-                await refreshStats();
+                if(!data || data.length === 0) {
+                    grid.innerHTML = `
+                    <div class="col-span-2 p-6 border border-dashed border-slate-700 rounded-xl text-center">
+                        <i data-lucide="book-open" class="w-8 h-8 text-slate-600 mx-auto mb-2"></i>
+                        <p class="text-sm text-slate-400">Esta área está vacía</p>
+                        <p class="text-xs text-slate-500 mt-1">Arrastra cursos desde el repositorio</p>
+                    </div>`;
+                    return;
+                }
+
+                data.forEach(c => {
+                    grid.innerHTML += `
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 flex gap-3 hover:border-slate-600 transition group relative">
+                        <div class="w-12 h-12 bg-slate-950 rounded overflow-hidden shrink-0">
+                            ${c.imagen_portada_url ? 
+                                `<img src="${c.imagen_portada_url}" class="w-full h-full object-cover" alt="${c.nombre}">` : 
+                                `<div class="w-full h-full flex items-center justify-center text-slate-700 text-xs">IMG</div>`
+                            }
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="font-bold text-white text-xs truncate mb-0.5">${c.nombre}</h4>
+                            <p class="text-[10px] text-slate-500 font-mono">${c.registro_id || 'ID?'}</p>
+                        </div>
+                        <button onclick="moverACursoGeneral('${c.id}')" class="absolute top-2 right-2 text-slate-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition" title="Devolver a General">
+                            <i data-lucide="x-circle" class="w-4 h-4"></i>
+                        </button>
+                    </div>`;
+                });
+                lucide.createIcons();
+            } catch (error) {
+                console.error("Error cargando cursos:", error);
+                grid.innerHTML = `<div class="col-span-2 p-6 text-center text-slate-500 text-sm">No hay cursos asignados</div>`;
             }
-        }, 30000);
-    }
+        }
 
-    // Limpiar intervalo al salir
-    window.addEventListener('beforeunload', () => {
-        if(statsRefreshInterval) clearInterval(statsRefreshInterval);
-    });
+        async function loadGeneralCourses() {
+            const list = document.getElementById('grid-unassigned');
+            
+            if (activeArea.slug === 'general') {
+                list.innerHTML = `<div class="text-center py-8 text-slate-600 text-xs italic">Estás en la carpeta General.<br>Crea otra área para organizar.</div>`;
+                return;
+            }
 
-</script>
+            list.innerHTML = `<div class="text-center py-4"><i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i></div>`;
+
+            try {
+                let query = db.from('cursos_oficiales').select('*').eq('institution_id', currentInstId);
+                
+                if (generalAreaId) {
+                    query = query.or(`area_id.eq.${generalAreaId},area_id.is.null`);
+                } else {
+                    query = query.is('area_id', null);
+                }
+                
+                const { data } = await query.order('nombre');
+
+                list.innerHTML = "";
+                
+                if(!data || data.length === 0) {
+                    list.innerHTML = `<div class="text-center py-8 text-slate-600 text-xs italic">No hay cursos pendientes.</div>`;
+                    return;
+                }
+
+                data.forEach(c => {
+                    const div = document.createElement('div');
+                    div.className = "p-2 bg-slate-800/50 rounded-lg border border-slate-700 hover:bg-indigo-900/20 hover:border-indigo-500/50 cursor-pointer transition flex items-center justify-between group mb-2";
+                    div.onclick = () => traerCursoAqui(c.id);
+                    div.innerHTML = `
+                        <span class="text-xs text-slate-300 font-medium truncate pr-2 flex-1" title="${c.nombre}">${c.nombre}</span>
+                        <i data-lucide="arrow-left-circle" class="w-4 h-4 text-indigo-500 opacity-0 group-hover:opacity-100 transition"></i>
+                    `;
+                    list.appendChild(div);
+                });
+                lucide.createIcons();
+            } catch (error) {
+                console.error("Error cargando cursos generales:", error);
+                list.innerHTML = `<div class="text-center py-8 text-slate-500 text-xs">No hay cursos disponibles</div>`;
+            }
+        }
+
+        async function traerCursoAqui(cursoId) {
+            try {
+                const { error } = await db.from('cursos_oficiales').update({ area_id: activeArea.id }).eq('id', cursoId);
+                if(error) throw error;
+                
+                toast('Curso movido al área actual', 'success');
+                await loadCoursesOfArea();
+                await loadGeneralCourses();
+            } catch (error) {
+                toast('Error moviendo curso: ' + error.message, 'error');
+            }
+        }
+
+        async function moverACursoGeneral(cursoId) {
+            if(!generalAreaId) {
+                toast('No se encontró área General', 'error');
+                return;
+            }
+            
+            try {
+                const { error } = await db.from('cursos_oficiales').update({ area_id: generalAreaId }).eq('id', cursoId);
+                if(error) throw error;
+                
+                toast('Curso devuelto al repositorio', 'success');
+                await loadCoursesOfArea();
+                await loadGeneralCourses();
+            } catch (error) {
+                toast('Error devolviendo curso: ' + error.message, 'error');
+            }
+        }
+
+        async function guardarCerebroIA() {
+            const button = document.getElementById('btn-save-ia');
+            setLoading(button, true);
+            
+            const dossier = document.getElementById('area-dossier').value;
+            const prompt = document.getElementById('area-prompt').value;
+            
+            try {
+                const { error } = await db.from('areas').update({ 
+                    dossier_txt: dossier, 
+                    prompt_especifico: prompt 
+                }).eq('id', activeArea.id);
+                
+                if(error) throw error;
+                
+                toast('Configuración IA guardada', 'success');
+            } catch (error) {
+                toast('Error guardando configuración IA: ' + error.message, 'error');
+            }
+            
+            setLoading(button, false);
+        }
+
+        // ============================================
+        // 7. MODAL CREAR ÁREA (CORREGIDO - SIN .single())
+        // ============================================
+        function abrirModalArea() { 
+            document.getElementById('modal-area').classList.remove('hidden');
+            document.getElementById('form-area').reset();
+        }
+        
+        document.getElementById('form-area').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const button = document.getElementById('btn-create-area');
+            setLoading(button, true);
+            
+            const f = new FormData(e.target);
+            const nombre = f.get('nombre').trim();
+            const slug = f.get('slug').toLowerCase().trim().replace(/\s+/g, '-');
+            const color = f.get('color');
+            
+            if(!nombre || !slug) {
+                toast('Nombre y slug son requeridos', 'error');
+                setLoading(button, false);
+                return;
+            }
+            
+            try {
+                // Verificar si tabla existe
+                const { error: tableCheck } = await db.from('areas').select('id').limit(1);
+                if (tableCheck) {
+                    toast('Tabla áreas no disponible', 'error');
+                    setLoading(button, false);
+                    return;
+                }
+                
+                // Validar slug único (SIN .single())
+                const { data: existing, error: checkError } = await db
+                    .from('areas')
+                    .select('id')
+                    .eq('slug', slug)
+                    .eq('institution_id', currentInstId);
+                    
+                if (checkError) {
+                    console.warn("Error verificando slug:", checkError);
+                }
+                
+                // Si hay resultados, el slug ya existe
+                if (existing && existing.length > 0) {
+                    toast('El slug ya existe, usa otro', 'error');
+                    setLoading(button, false);
+                    return;
+                }
+                
+                // CREAR ÁREA
+                const { error: insertError } = await db.from('areas').insert({
+                    nombre: nombre,
+                    slug: slug,
+                    color_tema: color,
+                    institution_id: currentInstId,
+                    orden: 999,
+                    created_at: new Date().toISOString()
+                });
+                
+                if(insertError) throw insertError;
+                
+                document.getElementById('modal-area').classList.add('hidden');
+                e.target.reset();
+                await loadAreasSidebar();
+                toast(`Área "${nombre}" creada`, 'success');
+                
+            } catch (error) {
+                console.error("Error creando área:", error);
+                toast('Error creando área: ' + error.message, 'error');
+            }
+            
+            setLoading(button, false);
+        });
+
+        // ============================================
+        // 8. EDICIÓN Y ELIMINACIÓN DE ÁREAS
+        // ============================================
+        async function editarAreaActual() {
+            const nuevoNombre = prompt("Nuevo nombre para el área:", activeArea.nombre);
+            if(!nuevoNombre || nuevoNombre.trim() === '') return;
+            
+            try {
+                const { error } = await db.from('areas').update({ nombre: nuevoNombre.trim() }).eq('id', activeArea.id);
+                if(error) throw error;
+                
+                await loadAreasSidebar();
+                activeArea.nombre = nuevoNombre.trim();
+                document.getElementById('area-title').innerText = nuevoNombre.trim();
+                toast('Área renombrada', 'success');
+            } catch (error) {
+                toast('Error renombrando área: ' + error.message, 'error');
+            }
+        }
+        
+        async function eliminarAreaActual() {
+            if(!confirm(`¿Seguro de eliminar el área "${activeArea.nombre}"? Los cursos volverán a la carpeta General.`)) {
+                return;
+            }
+            
+            if(!generalAreaId) {
+                toast('No se puede eliminar: área General no encontrada', 'error');
+                return;
+            }
+            
+            try {
+                // Mover cursos a general primero
+                const { error: moveError } = await db.from('cursos_oficiales')
+                    .update({ area_id: generalAreaId })
+                    .eq('area_id', activeArea.id);
+                    
+                if(moveError) throw new Error(`Moviendo cursos: ${moveError.message}`);
+                
+                // Eliminar área
+                const { error: deleteError } = await db.from('areas').delete().eq('id', activeArea.id);
+                if(deleteError) throw new Error(`Eliminando área: ${deleteError.message}`);
+                
+                switchView('branding');
+                await loadAreasSidebar();
+                toast('Área eliminada', 'success');
+            } catch (error) {
+                toast('Error eliminando área: ' + error.message, 'error');
+            }
+        }
+
+        // ============================================
+        // 9. CRM & ANALYTICS (COMPATIBLE CON V8.0)
+        // ============================================
+        async function loadCRMData() {
+            await refreshStats();
+            await loadRecentLeads();
+        }
+
+        async function refreshStats() {
+            try {
+                // Leads totales (usando tabla leads de V8.0)
+                const { count: totalLeads } = await db
+                    .from('leads')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('institution_id', currentInstId);
+                
+                // Leads hoy
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const { count: newToday } = await db
+                    .from('leads')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('institution_id', currentInstId)
+                    .gte('created_at', today.toISOString());
+                
+                // Actualizar UI
+                document.getElementById('stats-leads-today').innerText = newToday || '0';
+                document.getElementById('crm-total-leads').innerText = totalLeads || '0';
+                document.getElementById('crm-new-today').innerText = newToday || '0';
+                
+                // Chats activos (simulado si no existe la tabla)
+                document.getElementById('stats-active-chats').innerText = '0';
+                document.getElementById('crm-active-chats').innerText = '0';
+                
+                // Tasa de conversión (simulada)
+                const conversionRate = totalLeads > 0 ? Math.round((Math.min(newToday, 5) / totalLeads) * 100) : 0;
+                document.getElementById('crm-conversion-rate').innerText = `${conversionRate}%`;
+                
+            } catch (error) {
+                console.error("Error actualizando stats:", error);
+                // Valores por defecto
+                document.getElementById('stats-leads-today').innerText = '0';
+                document.getElementById('stats-active-chats').innerText = '0';
+            }
+        }
+
+        async function loadRecentLeads() {
+            const tbody = document.getElementById('crm-leads-body');
+            tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center"><i data-lucide="loader-2" class="w-4 h-4 animate-spin mx-auto"></i></td></tr>`;
+            
+            try {
+                const { data: leads } = await db
+                    .from('leads')
+                    .select('*')
+                    .eq('institution_id', currentInstId)
+                    .order('created_at', { ascending: false })
+                    .limit(10);
+                
+                tbody.innerHTML = '';
+                
+                if(!leads || leads.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">No hay leads todavía</td></tr>`;
+                    return;
+                }
+                
+                leads.forEach(lead => {
+                    const statusColors = {
+                        'nuevo': 'bg-blue-900/30 text-blue-400',
+                        'contactado': 'bg-yellow-900/30 text-yellow-400',
+                        'calificado': 'bg-green-900/30 text-green-400',
+                        'inscrito': 'bg-purple-900/30 text-purple-400',
+                        'perdido': 'bg-red-900/30 text-red-400'
+                    };
+                    
+                    const row = document.createElement('tr');
+                    row.className = 'border-b border-slate-800 hover:bg-slate-800/50';
+                    row.innerHTML = `
+                        <td class="p-3">
+                            <div class="font-medium text-slate-300 text-xs">${lead.email || 'Sin email'}</div>
+                            <div class="text-[10px] text-slate-500">${lead.nombre || 'Sin nombre'}</div>
+                    </td>
+                        <td class="p-3 text-xs text-slate-300">${lead.interes_carrera_id || 'General'}</td>
+                        <td class="p-3">
+                            <span class="text-xs px-2 py-1 rounded ${statusColors[lead.estado] || 'bg-slate-800 text-slate-300'}">
+                                ${lead.estado || 'nuevo'}
+                            </span>
+                        </td>
+                        <td class="p-3 text-xs text-slate-400">${new Date(lead.created_at).toLocaleDateString('es-ES')}</td>
+                        <td class="p-3">
+                            <button onclick="verLead('${lead.id}')" class="text-slate-400 hover:text-white p-1">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                
+                lucide.createIcons();
+            } catch (error) {
+                console.error("Error cargando leads:", error);
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">Error cargando leads</td></tr>`;
+            }
+        }
+
+        function verLead(leadId) {
+            window.open(`../dashboard.html?lead=${leadId}`, '_blank');
+        }
+
+        // ============================================
+        // 10. AUTO-REFRESH DE ESTADÍSTICAS
+        // ============================================
+        function startStatsRefresh() {
+            statsRefreshInterval = setInterval(async () => {
+                const activeView = document.querySelector('#main-content > div:not(.hidden)').id;
+                if(activeView === 'view-crm') {
+                    await refreshStats();
+                }
+            }, 30000);
+        }
+
+        // Limpiar intervalo al salir
+        window.addEventListener('beforeunload', () => {
+            if(statsRefreshInterval) clearInterval(statsRefreshInterval);
+        });
+
+    </script>
 </body>
 </html>
