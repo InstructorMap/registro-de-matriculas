@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acceso Campus Virtual</title>
+    <title>Acceso Estudiantes</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -19,23 +19,25 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
         .hidden-field { display: none; }
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body id="page-body" class="bg-campus h-screen flex items-center justify-center font-sans text-slate-200 p-4 transition-all duration-700">
 
-    <div class="glass-panel p-8 rounded-2xl shadow-2xl w-full max-w-md relative overflow-hidden">
+    <div class="glass-panel p-8 rounded-2xl shadow-2xl w-full max-w-md relative overflow-hidden fade-in">
         <div id="top-bar" class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
 
         <div class="text-center mb-6">
             <div id="default-logo" class="w-16 h-16 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-900/50">
                 <span class="font-bold text-2xl text-white">A</span>
             </div>
-            <div id="logo-container" class="w-20 h-20 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg p-2 hidden">
+            <div id="logo-container" class="w-24 h-24 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg p-2 hidden backdrop-blur-md border border-white/10">
                 <img id="inst-logo" src="" class="w-full h-full object-contain">
             </div>
 
-            <h1 class="text-2xl font-black text-white tracking-tight" id="welcome-title">Campus Virtual</h1>
-            <p class="text-slate-400 text-sm mt-1" id="welcome-subtitle">Ingresa tus credenciales</p>
+            <h1 class="text-2xl font-black text-white tracking-tight" id="welcome-title">Zona Alumnos</h1>
+            <p class="text-slate-400 text-sm mt-1" id="welcome-subtitle">Acceso exclusivo estudiantes</p>
         </div>
 
         <form id="auth-form" class="space-y-4">
@@ -46,7 +48,7 @@
                     <i data-lucide="id-card" class="absolute left-3 top-3 w-5 h-5 text-yellow-400"></i>
                     <input type="text" id="dni" placeholder="Ej: 30123456" class="w-full bg-slate-900/80 border border-yellow-500/50 rounded-xl py-3 pl-10 pr-4 text-white placeholder-slate-500 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition font-mono">
                 </div>
-                <p class="text-[10px] text-slate-400 mt-1 ml-1">Validaremos que estés inscripto en el instituto.</p>
+                <p class="text-[10px] text-slate-400 mt-1 ml-1">🔒 Verificaremos tu inscripción en el padrón.</p>
             </div>
 
             <div>
@@ -71,7 +73,7 @@
         </form>
 
         <div class="mt-6 text-center border-t border-white/10 pt-4">
-            <p class="text-xs text-slate-400 mb-2" id="toggle-text">¿Primera vez aquí?</p>
+            <p class="text-xs text-slate-400 mb-2" id="toggle-text">¿Es tu primera vez?</p>
             <button onclick="toggleMode()" id="toggle-btn" class="text-white text-sm font-bold hover:underline transition">
                 Validar mi Matrícula y Crear Cuenta
             </button>
@@ -86,56 +88,50 @@
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
         let isLogin = true;
-        let brandingColor = '#2563eb';
+        let institutionId = null; // ID Real (UUID) para validación
 
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
+            
+            // 1. Verificar Sesión
             const { data: { session } } = await db.auth.getSession();
-            if (session) window.location.href = 'student/dashboard.html';
-            aplicarBranding();
+            // CORRECCIÓN RUTA: Como estamos en /student/index.html, el dashboard está al lado.
+            if (session) window.location.href = 'dashboard.html';
+            
+            // 2. Aplicar Branding (Detectar ?inst=colbert o ?inst=UUID)
+            await aplicarBranding();
         });
 
-        // --- VALIDACIÓN DE IDENTIDAD ---
-        
+        // --- INTERFAZ LOGIN/REGISTRO ---
         function toggleMode() {
             isLogin = !isLogin;
             const btn = document.getElementById('btn-submit');
-            const toggleText = document.getElementById('toggle-text');
-            const toggleBtn = document.getElementById('toggle-btn');
             const dniField = document.getElementById('dni-field');
-            const welcomeSub = document.getElementById('welcome-subtitle');
             
             if(isLogin) {
-                // MODO LOGIN
                 dniField.classList.add('hidden-field');
                 btn.innerHTML = `Ingresar al Aula <i data-lucide="log-in" class="w-4 h-4 ml-2"></i>`;
-                toggleText.innerText = "¿Primera vez aquí?";
-                toggleBtn.innerText = "Validar mi Matrícula y Crear Cuenta";
-                welcomeSub.innerText = "Ingresa tus credenciales";
+                document.getElementById('toggle-text').innerText = "¿Es tu primera vez?";
+                document.getElementById('toggle-btn').innerText = "Validar mi Matrícula y Crear Cuenta";
                 document.getElementById('dni').required = false;
             } else {
-                // MODO REGISTRO
                 dniField.classList.remove('hidden-field');
-                dniField.classList.add('animate-pulse'); // Efecto visual
-                setTimeout(() => dniField.classList.remove('animate-pulse'), 500);
-                
-                btn.innerHTML = `Verificar y Registrarme <i data-lucide="user-check" class="w-4 h-4 ml-2"></i>`;
-                toggleText.innerText = "¿Ya tienes usuario?";
-                toggleBtn.innerText = "Volver a Iniciar Sesión";
-                welcomeSub.innerText = "Validación de Alumno";
+                btn.innerHTML = `Verificar Matrícula <i data-lucide="shield-check" class="w-4 h-4 ml-2"></i>`;
+                document.getElementById('toggle-text').innerText = "¿Ya tienes usuario?";
+                document.getElementById('toggle-btn').innerText = "Volver a Iniciar Sesión";
                 document.getElementById('dni').required = true;
             }
             lucide.createIcons();
         }
 
+        // --- PROCESO DE AUTENTICACIÓN ---
         document.getElementById('auth-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const dni = document.getElementById('dni').value.trim();
-            
-            const msgError = document.getElementById('msg-error');
             const btn = document.getElementById('btn-submit');
+            const msgError = document.getElementById('msg-error');
 
             msgError.classList.add('hidden');
             btn.disabled = true;
@@ -143,74 +139,84 @@
 
             try {
                 if (isLogin) {
-                    // --- FLUJO LOGIN ---
+                    // --- MODO LOGIN ---
                     const { error } = await db.auth.signInWithPassword({ email, password });
                     if (error) throw error;
-                    window.location.href = 'student/dashboard.html';
+                    // ÉXITO: Ir al Living del Alumno
+                    window.location.href = 'dashboard.html';
 
                 } else {
-                    // --- FLUJO REGISTRO SEGURO ---
-                    if(dni.length < 6) throw new Error("Ingresa un DNI válido");
+                    // --- MODO REGISTRO BLINDADO ---
+                    if(dni.length < 6) throw new Error("DNI inválido.");
 
-                    // 1. EL CANDADO: Verificar si existe en Matriculas
-                    const { data: matricula, error: errMat } = await db
-                        .from('matriculas')
-                        .select('id')
-                        .eq('dni_alumno', dni)
-                        .limit(1);
+                    // PASO 1: VERIFICAR LISTA BLANCA
+                    let query = db.from('matriculas').select('id').eq('dni_alumno', dni);
+                    
+                    // SEGURIDAD DE ÁMBITO: Si sabemos la institución, validamos que pertenezca a ella.
+                    if(institutionId) {
+                        query = query.eq('institution_id', institutionId);
+                    }
+
+                    const { data: matricula, error: errMat } = await query.limit(1);
 
                     if (errMat) throw errMat;
                     
-                    // Si el array está vacío, NO ES ALUMNO -> BLOQUEAR
+                    // EL CANDADO: Si no devuelve nada, bloqueamos.
                     if (!matricula || matricula.length === 0) {
-                        throw new Error(`El DNI ${dni} no figura en el padrón de alumnos habilitados. Contacta a administración.`);
+                        throw new Error(`Acceso denegado: El DNI ${dni} no figura en el padrón de alumnos habilitados para esta institución.`);
                     }
 
-                    // 2. Si pasó el candado, CREAR USUARIO
+                    // PASO 2: CREAR USUARIO
                     const { data: authData, error: authError } = await db.auth.signUp({ 
                         email, 
                         password,
-                        options: { data: { rol: 'alumno' } }
+                        options: { data: { rol: 'alumno' } } 
                     });
 
                     if (authError) throw authError;
-                    if (!authData.user) throw new Error("Error creando usuario. Intenta nuevamente.");
+                    if (!authData.user) throw new Error("No se pudo crear el usuario. Intenta nuevamente.");
 
-                    // 3. GUARDAR DNI EN PERFIL (Vincular)
-                    // Esperamos un segundo para asegurar que el trigger de Supabase haya creado el perfil
+                    // PASO 3: VINCULAR DNI AL PERFIL
+                    // Esperamos brevemente para asegurar consistencia
                     await new Promise(r => setTimeout(r, 1000));
-                    
-                    const { error: updateError } = await db
-                        .from('perfiles')
-                        .update({ dni: dni })
-                        .eq('id', authData.user.id);
+                    const { error: updateError } = await db.from('perfiles').update({ dni: dni }).eq('id', authData.user.id);
 
-                    if(updateError) console.error("Error guardando DNI en perfil", updateError);
+                    if(updateError) console.error("Warning: DNI update delayed", updateError);
 
-                    // 4. ÉXITO
-                    alert("¡Bienvenido! Tu identidad ha sido validada correctamente.");
-                    window.location.href = 'student/dashboard.html';
+                    alert("✅ Identidad validada correctamente. Bienvenido.");
+                    window.location.href = 'dashboard.html';
                 }
 
             } catch (error) {
                 let msg = error.message;
-                if(msg.includes("Invalid login")) msg = "Usuario o contraseña incorrectos.";
-                if(msg.includes("already registered")) msg = "Este email ya está registrado. Intenta iniciar sesión.";
+                // Mensajes amigables
+                if(msg.includes("Invalid login")) msg = "Credenciales incorrectas.";
+                if(msg.includes("already registered")) msg = "Este correo ya está registrado. Intenta iniciar sesión.";
                 
                 msgError.innerText = msg;
                 msgError.classList.remove('hidden');
                 btn.disabled = false;
-                btn.innerHTML = isLogin ? `Ingresar` : `Reintentar Registro`;
+                btn.innerHTML = isLogin ? "Ingresar" : "Intentar Registro";
             }
         });
 
-        // Branding (Copia del anterior)
+        // --- BRANDING INTELIGENTE ---
         async function aplicarBranding() {
             const params = new URLSearchParams(window.location.search);
-            const instId = params.get('inst');
-            if (!instId) return;
-            const { data: inst } = await db.from('instituciones').select('*').eq('id', instId).single();
+            const instParam = params.get('inst'); // Puede ser 'colbert' o UUID
+            
+            if (!instParam) return;
+
+            // Busca por Sigla O por ID
+            const { data: inst } = await db.from('instituciones')
+                .select('*')
+                .or(`sigla.eq.${instParam},id.eq.${instParam}`) 
+                .limit(1)
+                .maybeSingle();
+
             if (inst) {
+                institutionId = inst.id; // Guardamos el UUID para la validación estricta
+                
                 if (inst.logo_url) {
                     document.getElementById('default-logo').classList.add('hidden');
                     document.getElementById('logo-container').classList.remove('hidden');
@@ -221,10 +227,9 @@
                     document.title = `Acceso | ${inst.nombre}`;
                 }
                 if (inst.color_primario) {
-                    brandingColor = inst.color_primario;
-                    const btn = document.getElementById('btn-submit');
-                    btn.style.backgroundColor = brandingColor;
-                    document.getElementById('top-bar').style.background = brandingColor;
+                    const color = inst.color_primario;
+                    document.getElementById('btn-submit').style.backgroundColor = color;
+                    document.getElementById('top-bar').style.background = color;
                 }
             }
         }
