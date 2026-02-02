@@ -158,6 +158,7 @@
             
             <div class="hidden md:flex items-center space-x-6">
                 <a href="#inicio" class="text-sm font-semibold hover:text-indigo-600 transition">Inicio</a>
+                <a href="#curso-detalle" class="text-sm font-semibold hover:text-indigo-600 transition">Curso</a>
                 <a href="#areas" class="text-sm font-semibold hover:text-indigo-600 transition">Oferta Académica</a>
                 <a id="btn-campus" href="student/index.html" class="text-sm font-bold text-white bg-slate-900 px-6 py-2.5 rounded-full hover:shadow-lg transition transform hover:-translate-y-0.5">
                     Campus Alumnos
@@ -184,6 +185,9 @@
             <div class="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-indigo-100 blur-3xl"></div>
         </div>
     </header>
+
+    <!-- SECCIÓN DETALLE DEL CURSO (se inserta dinámicamente) -->
+    <div id="curso-detalle-container"></div>
 
     <!-- SEMINARIOS -->
     <section id="seminarios" class="py-16 border-t border-slate-100 hidden bg-white">
@@ -218,6 +222,9 @@
         </div>
     </footer>
 
+    <!-- BOTÓN WHATSAPP FLOTANTE (se inserta dinámicamente) -->
+    <div id="whatsapp-button-container"></div>
+
     <!-- CHATBOT DON BÚHO -->
     <div id="chat-widget" class="fixed bottom-6 right-6 z-50 bg-white shadow-2xl chat-widget chat-closed overflow-hidden flex flex-col font-sans border border-slate-200">
         <div class="h-16 bg-slate-900 flex items-center justify-between px-4 cursor-pointer shrink-0 transition-colors" onclick="toggleChat()" id="chat-header-bg">
@@ -251,13 +258,18 @@
 
     <script>
         // ============================================
-        // CONFIGURACIÓN INICIAL
+        // CONFIGURACIÓN SUPABASE
         // ============================================
         const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
+        // ============================================
+        // VARIABLES GLOBALES
+        // ============================================
         let institutionData = null;
+        let courseData = null;
+        let areaData = null;
         let chatOpen = false;
         let catalogContext = "";
         let currentUserEmail = null;
@@ -270,54 +282,93 @@
         // ============================================
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
-            await loadInstitution();
+            await loadCourseAndInstitution();
             detectUserIdentity();
         });
 
         // ============================================
-        // 1. CARGAR INSTITUCIÓN
+        // 1. CARGAR CURSO E INSTITUCIÓN (POR ID)
         // ============================================
-        async function loadInstitution() {
+        async function loadCourseAndInstitution() {
             const params = new URLSearchParams(window.location.search);
-            const busqueda = params.get('inst');
-            let query = db.from('instituciones').select('*');
+            const courseId = params.get('id'); // ← RECIBE ?id=UUID-DEL-CURSO
+            
+            if (!courseId) {
+                // Si no hay ID, mostrar error
+                mostrarError("No se especificó curso. Usa portal.html?id=UUID-DEL-CURSO");
+                return;
+            }
 
-            if (busqueda) {
-                if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(busqueda)) {
-                    query = query.eq('id', busqueda);
-                } else {
-                    query = query.ilike('sigla', busqueda);
+            try {
+                // CONSULTA ÚNICA CON JOINS
+                const { data: cursoResult, error: cursoError } = await db
+                    .from('cursos_oficiales')
+                    .select(`
+                        *,
+                        instituciones (*),
+                        areas (*)
+                    `)
+                    .or(`id.eq.${courseId},institution_id.eq.${courseId},institucion_id.eq.${courseId}`)
+                    .single();
+
+                if (cursoError || !cursoResult) {
+                    throw new Error(`Curso no encontrado: ${cursoError?.message || 'ID inválido'}`);
                 }
-            } else {
-                query = query.eq('id', '00000000-0000-0000-0000-000000000000');
-            }
 
-            const { data } = await query.limit(1).maybeSingle();
+                // Asignar datos
+                courseData = cursoResult;
+                institutionData = cursoResult.instituciones;
+                areaData = cursoResult.areas;
 
-            if (!data) {
-                const { data: fallback } = await db.from('instituciones').select('*').eq('activo', true).limit(1).single();
-                institutionData = fallback;
-            } else {
-                institutionData = data;
-            }
+                // Validar datos mínimos
+                if (!institutionData) {
+                    throw new Error("Institución no vinculada al curso");
+                }
 
-            if(institutionData) {
+                // Aplicar estética y contenido
                 aplicarEstetica();
-                loadContent();
+                mostrarCursoDetalle();
+                loadRelatedContent();
                 iniciarChat();
+
+            } catch (error) {
+                console.error("Error cargando curso:", error);
+                mostrarError(error.message);
             }
         }
 
+        function mostrarError(mensaje) {
+            const hero = document.querySelector('header');
+            hero.innerHTML = `
+                <div class="max-w-7xl mx-auto px-4 text-center py-20">
+                    <i data-lucide="alert-circle" class="w-16 h-16 text-red-500 mx-auto mb-4"></i>
+                    <h1 class="text-3xl font-bold text-slate-800 mb-4">Error al cargar el curso</h1>
+                    <p class="text-slate-600 mb-6">${mensaje}</p>
+                    <a href="index.html" class="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-indigo-700 transition">
+                        <i data-lucide="home" class="w-4 h-4"></i> Volver al inicio
+                    </a>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
         function aplicarEstetica() {
+            // 1. Actualizar título y metadata
             document.getElementById('nombre-inst').innerText = institutionData.nombre;
             document.getElementById('footer-inst-name').innerText = institutionData.nombre;
-            document.title = institutionData.nombre + " - Portal Académico";
+            document.title = `${courseData.nombre} - ${institutionData.nombre}`;
 
+            // 2. Logo institucional
             if(institutionData.logo_url) {
-                document.getElementById('logo-inst').src = institutionData.logo_url;
+                const logo = document.getElementById('logo-inst');
+                logo.src = institutionData.logo_url;
+                logo.onerror = () => {
+                    document.getElementById('logo-container').style.display = 'none';
+                };
                 document.getElementById('logo-container').style.display = 'flex';
             }
 
+            // 3. Colores dinámicos
             if(institutionData.color_primario) {
                 const color = institutionData.color_primario;
                 document.getElementById('btn-campus').style.backgroundColor = color;
@@ -326,140 +377,436 @@
                 document.documentElement.style.setProperty('--primary-color', color);
             }
 
+            // 4. Banner si existe
             if(institutionData.banner_url) {
                 const banner = document.getElementById('navbar-banner');
                 banner.style.backgroundImage = `url('${institutionData.banner_url}')`;
                 banner.style.opacity = '1';
                 document.getElementById('navbar-overlay').style.backgroundColor = 'rgba(255,255,255,0.9)';
             }
+
+            // 5. Botón WhatsApp flotante
+            crearBotonWhatsApp();
+        }
+
+        function crearBotonWhatsApp() {
+            if (!institutionData.telefono_contacto) return;
+            
+            const whatsappNumber = institutionData.telefono_contacto.replace(/\D/g, '');
+            const mensajeDefault = encodeURIComponent(
+                `Hola ${institutionData.nombre}, me interesa el curso "${courseData.nombre}" que vi en su portal web. ` +
+                `¿Podrían enviarme más información sobre horarios, costos y modalidad?`
+            );
+            
+            const whatsappBtn = document.createElement('a');
+            whatsappBtn.href = `https://wa.me/${whatsappNumber}?text=${mensajeDefault}`;
+            whatsappBtn.target = '_blank';
+            whatsappBtn.className = 'fixed bottom-24 left-6 z-40 bg-green-600 text-white p-4 rounded-full shadow-2xl hover:bg-green-700 transition-all hover:scale-110 flex items-center justify-center';
+            whatsappBtn.innerHTML = '<i data-lucide="message-circle" class="w-6 h-6"></i>';
+            whatsappBtn.title = 'Consultar por WhatsApp';
+            whatsappBtn.id = 'whatsapp-floating-btn';
+            
+            document.getElementById('whatsapp-button-container').appendChild(whatsappBtn);
+            lucide.createIcons();
         }
 
         // ============================================
-        // 2. DETECTAR USUARIO
+        // 2. MOSTRAR DETALLE DEL CURSO
         // ============================================
-        function detectUserIdentity() {
-            const params = new URLSearchParams(window.location.search);
-            currentUserEmail = params.get('email') || localStorage.getItem('visitor_email');
+        function mostrarCursoDetalle() {
+            // Actualizar hero section
+            document.querySelector('header h1').innerHTML = `
+                ${courseData.nombre}
+            `;
             
-            if (!currentUserEmail) {
-                currentUserEmail = `visitante_${Date.now()}@portal.com`;
-                localStorage.setItem('visitor_email', currentUserEmail);
+            document.querySelector('header p').textContent = courseData.descripcion || 'Formación de excelencia con certificación oficial.';
+            
+            // Crear sección de detalle del curso
+            const container = document.getElementById('curso-detalle-container');
+            container.innerHTML = `
+                <!-- SECCIÓN DETALLE DEL CURSO -->
+                <section id="curso-detalle" class="py-16 bg-white">
+                    <div class="max-w-6xl mx-auto px-4">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                            <!-- Columna izquierda: Información -->
+                            <div>
+                                <div class="mb-8">
+                                    <h2 class="text-3xl font-bold text-slate-900 mb-4">${courseData.nombre}</h2>
+                                    <p class="text-slate-600 text-lg">${courseData.descripcion || 'Sin descripción disponible.'}</p>
+                                </div>
+                                
+                                <!-- Información clave -->
+                                <div class="grid grid-cols-2 gap-4 mb-8">
+                                    ${courseData.duracion ? `
+                                    <div class="bg-slate-50 p-4 rounded-lg">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <i data-lucide="clock" class="w-4 h-4 text-indigo-600"></i>
+                                            <span class="text-sm font-semibold text-slate-700">Duración</span>
+                                        </div>
+                                        <p class="text-slate-900 font-bold">${courseData.duracion}</p>
+                                    </div>
+                                    ` : ''}
+                                    
+                                    ${courseData.modalidad ? `
+                                    <div class="bg-slate-50 p-4 rounded-lg">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <i data-lucide="monitor" class="w-4 h-4 text-indigo-600"></i>
+                                            <span class="text-sm font-semibold text-slate-700">Modalidad</span>
+                                        </div>
+                                        <p class="text-slate-900 font-bold">${courseData.modalidad}</p>
+                                    </div>
+                                    ` : ''}
+                                    
+                                    ${courseData.registro_id ? `
+                                    <div class="bg-slate-50 p-4 rounded-lg">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <i data-lucide="shield-check" class="w-4 h-4 text-indigo-600"></i>
+                                            <span class="text-sm font-semibold text-slate-700">Certificación</span>
+                                        </div>
+                                        <p class="text-slate-900 font-bold">${courseData.registro_id}</p>
+                                    </div>
+                                    ` : ''}
+                                    
+                                    ${areaData ? `
+                                    <div class="bg-slate-50 p-4 rounded-lg">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <i data-lucide="layers" class="w-4 h-4 text-indigo-600"></i>
+                                            <span class="text-sm font-semibold text-slate-700">Área</span>
+                                        </div>
+                                        <p class="text-slate-900 font-bold">${areaData.nombre}</p>
+                                    </div>
+                                    ` : ''}
+                                </div>
+                                
+                                <!-- TEMARIO (Accordion) -->
+                                <div class="mb-8">
+                                    <h3 class="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                        <i data-lucide="list-checks" class="w-5 h-5"></i>
+                                        Temario del Curso
+                                    </h3>
+                                    ${renderizarTemarioAccordion()}
+                                </div>
+                            </div>
+                            
+                            <!-- Columna derecha: Formulario & Certificación -->
+                            <div class="space-y-8">
+                                <!-- Formulario de inscripción -->
+                                <div class="bg-slate-900 text-white rounded-2xl p-8 shadow-xl">
+                                    <h3 class="text-2xl font-bold mb-2">Inscripción Rápida</h3>
+                                    <p class="text-slate-300 mb-6">Completa el formulario y te contactaremos en menos de 24 horas.</p>
+                                    
+                                    <form id="form-inscripcion" class="space-y-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-slate-300 mb-1">Nombre completo *</label>
+                                            <input type="text" name="nombre" required 
+                                                   class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition"
+                                                   placeholder="Ej: Juan Pérez">
+                                        </div>
+                                        
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-slate-300 mb-1">Email *</label>
+                                                <input type="email" name="email" required 
+                                                       class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition"
+                                                       placeholder="ejemplo@email.com">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-slate-300 mb-1">Teléfono *</label>
+                                                <input type="tel" name="telefono" required 
+                                                       class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition"
+                                                       pattern="[0-9+\s]+"
+                                                       placeholder="+54 9 11 1234-5678">
+                                                <p class="text-xs text-slate-400 mt-1">Incluir código de país</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <input type="hidden" name="curso_interes" value="${courseData.nombre}">
+                                        <input type="hidden" name="institution_id" value="${institutionData.id}">
+                                        
+                                        <button type="submit" 
+                                                class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-lg transition flex items-center justify-center gap-2 action-button">
+                                            <i data-lucide="send" class="w-4 h-4"></i>
+                                            Solicitar información
+                                        </button>
+                                        
+                                        <p class="text-xs text-slate-400 text-center mt-4">
+                                            Al enviar, aceptas nuestras políticas de privacidad.
+                                        </p>
+                                    </form>
+                                </div>
+                                
+                                <!-- Sección de certificación -->
+                                <div class="bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 rounded-2xl p-8">
+                                    <div class="flex items-center gap-3 mb-4">
+                                        <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
+                                            <i data-lucide="award" class="w-6 h-6 text-indigo-600"></i>
+                                        </div>
+                                        <h3 class="text-xl font-bold text-slate-900">Certificación Oficial</h3>
+                                    </div>
+                                    
+                                    <div class="space-y-3">
+                                        <div class="flex items-start gap-2">
+                                            <i data-lucide="check-circle" class="w-5 h-5 text-green-500 mt-0.5"></i>
+                                            <p class="text-slate-700">Diploma con validez nacional</p>
+                                        </div>
+                                        <div class="flex items-start gap-2">
+                                            <i data-lucide="check-circle" class="w-5 h-5 text-green-500 mt-0.5"></i>
+                                            <p class="text-slate-700">Registro en base de datos oficial</p>
+                                        </div>
+                                        <div class="flex items-start gap-2">
+                                            <i data-lucide="check-circle" class="w-5 h-5 text-green-500 mt-0.5"></i>
+                                            <p class="text-slate-700">Acceso a bolsa de trabajo</p>
+                                        </div>
+                                    </div>
+                                    
+                                    ${courseData.diploma_bg_url ? `
+                                    <div class="mt-6 border-2 border-dashed border-indigo-200 rounded-lg p-4 bg-white">
+                                        <p class="text-sm font-semibold text-slate-700 mb-2">Ejemplo de diploma:</p>
+                                        <img src="${courseData.diploma_bg_url}" 
+                                             alt="Diploma de ejemplo" 
+                                             class="w-full rounded-lg shadow-sm hover:shadow-md transition cursor-pointer"
+                                             onclick="window.open('${courseData.diploma_bg_url}', '_blank')">
+                                    </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            `;
+            
+            // Añadir evento al formulario
+            document.getElementById('form-inscripcion').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await enviarInscripcion(e.target);
+            });
+            
+            // Aplicar color al botón de acción
+            if (institutionData.color_primario) {
+                const actionButtons = document.querySelectorAll('.action-button');
+                actionButtons.forEach(btn => {
+                    btn.style.backgroundColor = institutionData.color_primario;
+                    btn.addEventListener('mouseover', () => {
+                        btn.style.backgroundColor = darkenColor(institutionData.color_primario, 10);
+                    });
+                    btn.addEventListener('mouseout', () => {
+                        btn.style.backgroundColor = institutionData.color_primario;
+                    });
+                });
             }
             
-            conversationId = `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            lucide.createIcons();
+            
+            // Construir contexto para el chatbot
+            catalogContext = `Curso principal: ${courseData.nombre}. ${courseData.descripcion || ''}. `;
+            if (areaData) {
+                catalogContext += `Área: ${areaData.nombre}. ${areaData.dossier_txt || ''} `;
+            }
+        }
+
+        function renderizarTemarioAccordion() {
+            if (!courseData.contenido || typeof courseData.contenido !== 'object') {
+                return `
+                    <div class="bg-slate-50 rounded-lg p-6 text-center">
+                        <i data-lucide="book-open" class="w-12 h-12 text-slate-300 mx-auto mb-3"></i>
+                        <p class="text-slate-600">Temario en proceso de actualización</p>
+                        <p class="text-sm text-slate-500 mt-1">Consultá el programa completo con nuestro asesor</p>
+                    </div>
+                `;
+            }
+            
+            let html = '<div class="space-y-2">';
+            
+            if (Array.isArray(courseData.contenido)) {
+                courseData.contenido.forEach((modulo, modIndex) => {
+                    html += `
+                        <div class="border border-slate-200 rounded-lg overflow-hidden">
+                            <button class="w-full flex items-center justify-between p-4 bg-white hover:bg-slate-50 transition text-left"
+                                    onclick="toggleModulo(${modIndex})" id="mod-btn-${modIndex}">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-indigo-600 font-bold">Módulo ${modIndex + 1}</span>
+                                    <h4 class="font-semibold text-slate-900">${modulo.titulo || 'Módulo sin título'}</h4>
+                                </div>
+                                <i data-lucide="chevron-down" class="w-5 h-5 text-slate-400 transition" id="mod-icon-${modIndex}"></i>
+                            </button>
+                            
+                            <div class="hidden px-4 pb-4" id="mod-content-${modIndex}">
+                                <div class="pl-4 border-l-2 border-indigo-200 space-y-3 pt-2">
+                                    ${modulo.lecciones && Array.isArray(modulo.lecciones) ? 
+                                        modulo.lecciones.map((leccion, lecIndex) => `
+                                            <div class="flex items-start gap-3">
+                                                <i data-lucide="${leccion.tipo === 'PDF' ? 'file-text' : leccion.tipo === 'LIVE' ? 'video' : 'play-circle'}" 
+                                                   class="w-4 h-4 text-slate-400 mt-0.5"></i>
+                                                <div>
+                                                    <p class="font-medium text-slate-800">${leccion.titulo || 'Lección sin título'}</p>
+                                                    ${leccion.descripcion ? `<p class="text-sm text-slate-600 mt-1">${leccion.descripcion}</p>` : ''}
+                                                </div>
+                                            </div>
+                                        `).join('') : 
+                                        '<p class="text-slate-500 text-sm">Sin lecciones definidas</p>'
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                html = `
+                    <div class="bg-slate-50 rounded-lg p-6">
+                        <p class="text-slate-600">Estructura del temario no disponible en formato estándar.</p>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            return html;
+        }
+
+        function toggleModulo(index) {
+            const content = document.getElementById(`mod-content-${index}`);
+            const icon = document.getElementById(`mod-icon-${index}`);
+            
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                content.classList.add('hidden');
+                icon.style.transform = 'rotate(0deg)';
+            }
+            lucide.createIcons();
+        }
+
+        function darkenColor(color, percent) {
+            const num = parseInt(color.replace("#", ""), 16);
+            const amt = Math.round(2.55 * percent);
+            const R = (num >> 16) - amt;
+            const G = (num >> 8 & 0x00FF) - amt;
+            const B = (num & 0x0000FF) - amt;
+            return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+                (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+                (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
         }
 
         // ============================================
-        // 3. CRM: REGISTRAR LEAD
+        // 3. ENVÍO DE INSCRIPCIÓN (CRM)
         // ============================================
-        async function registrarLead(interes, mensaje) {
+        async function enviarInscripcion(form) {
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData);
+            
+            // Validar teléfono
+            const telefonoValido = validarTelefono(data.telefono);
+            if (!telefonoValido) {
+                alert('Por favor, ingresa un número de teléfono válido con código de país (ej: +54 9 11 1234-5678)');
+                return;
+            }
+            
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Procesando...';
+            submitBtn.disabled = true;
+            
             try {
-                const leadData = {
-                    email: currentUserEmail,
-                    nombre: 'Visitante Web',
-                    curso_interes: interes.substring(0, 100),
-                    institution_id: institutionData.id,
-                    status: 'nuevo',
-                    fuente: 'chatbot_buho',
-                    conversacion_id: conversationId,
-                    ultimo_mensaje: mensaje.substring(0, 200),
-                    landing_page_url: window.location.href,
-                    metadata: {
-                        user_agent: navigator.userAgent,
-                        referrer: document.referrer || 'direct',
-                        screen_resolution: `${window.screen.width}x${window.screen.height}`,
-                        timestamp: new Date().toISOString()
-                    }
-                };
-
-                // Intentar insertar nuevo lead
-                const { data: newLead, error: insertError } = await db
+                // 1. Insertar en tabla leads
+                const { data: lead, error } = await db
                     .from('leads')
-                    .insert([leadData])
+                    .insert([{
+                        nombre: data.nombre,
+                        email: data.email,
+                        telefono: data.telefono,
+                        curso_interes: data.curso_interes,
+                        institution_id: data.institution_id,
+                        status: 'nuevo',
+                        fuente: 'formulario_portal',
+                        landing_page_url: window.location.href,
+                        metadata: {
+                            user_agent: navigator.userAgent,
+                            timestamp: new Date().toISOString(),
+                            course_id: courseData.id
+                        }
+                    }])
                     .select()
                     .single();
-
-                if (insertError && insertError.code === '23505') {
-                    // Si ya existe, actualizarlo
-                    const { data: existing } = await db
-                        .from('leads')
-                        .select('id')
-                        .eq('email', currentUserEmail)
-                        .eq('institution_id', institutionData.id)
-                        .single();
-
-                    if (existing) {
-                        await db
-                            .from('leads')
-                            .update({
-                                curso_interes: interes.substring(0, 100),
-                                ultimo_mensaje: mensaje.substring(0, 200),
-                                updated_at: new Date().toISOString()
-                            })
-                            .eq('id', existing.id);
-                        currentLeadId = existing.id;
-                        return existing.id;
+                
+                if (error) throw error;
+                
+                // 2. Actualizar email global
+                currentUserEmail = data.email;
+                localStorage.setItem('visitor_email', data.email);
+                
+                // 3. Preparar mensaje para WhatsApp
+                const whatsappNumber = institutionData.telefono_contacto?.replace(/\D/g, '');
+                const mensaje = encodeURIComponent(
+                    `🦉 NUEVO LEAD - ${institutionData.nombre}\n\n` +
+                    `📝 Nombre: ${data.nombre}\n` +
+                    `📧 Email: ${data.email}\n` +
+                    `📱 Teléfono: ${data.telefono}\n` +
+                    `🎓 Curso: ${data.curso_interes}\n` +
+                    `🔗 Fuente: Portal Web\n` +
+                    `🆔 ID Lead: ${lead.id}\n\n` +
+                    `📍 URL: ${window.location.href}`
+                );
+                
+                // 4. Mostrar éxito y redirigir
+                submitBtn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i> ¡Enviado!';
+                submitBtn.style.backgroundColor = '#10b981';
+                
+                setTimeout(() => {
+                    if (whatsappNumber) {
+                        window.open(`https://wa.me/${whatsappNumber}?text=${mensaje}`, '_blank');
                     }
-                }
-
-                if (newLead) {
-                    currentLeadId = newLead.id;
-                    return newLead.id;
-                }
-                return null;
-
+                    
+                    // Resetear formulario
+                    form.reset();
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                    submitBtn.style.backgroundColor = '';
+                    
+                    // Mostrar mensaje de éxito
+                    alert(`¡Gracias ${data.nombre}! Tu solicitud ha sido enviada. Un asesor te contactará pronto al número ${data.telefono}.`);
+                    
+                }, 1500);
+                
             } catch (error) {
-                console.warn("Error no crítico en CRM:", error);
-                return null;
+                console.error('Error enviando inscripción:', error);
+                submitBtn.innerHTML = '<i data-lucide="alert-circle" class="w-4 h-4"></i> Error';
+                submitBtn.style.backgroundColor = '#ef4444';
+                
+                setTimeout(() => {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                    submitBtn.style.backgroundColor = '';
+                    alert('Hubo un error al enviar tu solicitud. Por favor, intenta nuevamente o contacta directamente por WhatsApp.');
+                }, 2000);
             }
         }
 
-        // ============================================
-        // 4. CRM: REGISTRAR INTERACCIÓN BOT
-        // ============================================
-        async function registrarInteraccionBot(respuestaIA, exito = true, metadata = {}) {
-            if (!currentLeadId) return;
-            
-            try {
-                await db
-                    .from('interacciones_chat')
-                    .insert([{
-                        lead_id: currentLeadId,
-                        conversacion_id: conversationId,
-                        institution_id: institutionData.id,
-                        rol: 'assistant',
-                        mensaje: '',
-                        respuesta_modelo: respuestaIA,
-                        mensaje_procesado: respuestaIA.substring(0, 500),
-                        exito: exito,
-                        timestamp: new Date().toISOString(),
-                        metadata: {
-                            ...metadata,
-                            modelo_usado: metadata.modelo || 'gemini-1.5-flash'
-                        }
-                    }]);
-            } catch (error) {
-                console.warn("Error registrando interacción:", error);
-            }
+        function validarTelefono(telefono) {
+            // Validación básica de teléfono internacional
+            const regex = /^\+?[\d\s\-\(\)]{8,}$/;
+            const tieneCodigoPais = /^\+?\d{1,4}/.test(telefono);
+            return regex.test(telefono) && tieneCodigoPais;
         }
 
         // ============================================
-        // 5. CARGAR CONTENIDO ACADÉMICO
+        // 4. CARGAR CONTENIDO RELACIONADO
         // ============================================
-        async function loadContent() {
-            // Seminarios
+        async function loadRelatedContent() {
+            // Seminarios de la misma institución
             const { data: sems } = await db.from('seminarios')
                 .select('*')
                 .eq('institution_id', institutionData.id)
                 .eq('activo', true)
-                .order('fecha', { ascending: true });
+                .order('created_at', { ascending: false })
+                .limit(3);
 
             if(sems && sems.length > 0) {
                 document.getElementById('seminarios').classList.remove('hidden');
                 const grid = document.getElementById('grid-seminarios');
+                grid.innerHTML = '';
                 
                 sems.forEach(s => {
-                    catalogContext += `Seminario: ${s.titulo} ($${s.precio}). `;
+                    catalogContext += `Seminario relacionado: ${s.titulo} ($${s.precio}). `;
                     const img = s.imagen_url || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=600';
                     
                     grid.innerHTML += `
@@ -481,74 +828,103 @@
                 });
             }
 
-            // Áreas y Cursos
+            // Otras áreas de la institución
             const { data: areas } = await db.from('areas')
                 .select('*')
                 .eq('institution_id', institutionData.id)
+                .neq('slug', 'general')
                 .order('orden');
 
             const container = document.getElementById('areas-container');
             container.innerHTML = "";
 
             if(areas && areas.length > 0) {
-                for (const area of areas) {
-                    if(area.slug === 'general') continue;
-                    
-                    const { data: cursos } = await db.from('cursos_oficiales')
-                        .select('*')
-                        .eq('area_id', area.id)
-                        .eq('activo', true);
-
-                    if(cursos && cursos.length > 0) {
-                        let cards = "";
-                        
-                        cursos.forEach(c => {
-                            catalogContext += `Curso: ${c.nombre} (Área: ${area.nombre}). Duración: ${c.duracion}. Modalidad: ${c.modalidad}. `;
-                            
-                            const img = c.imagen_portada_url || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&q=80&w=600';
-                            
-                            cards += `
-                            <div class="group bg-white rounded-xl shadow-sm hover:shadow-xl transition border border-slate-100 overflow-hidden hover-lift">
-                                <div class="h-48 overflow-hidden relative">
-                                    <img src="${img}" alt="${c.nombre}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                                </div>
-                                <div class="p-6">
-                                    <h4 class="font-bold text-slate-900 text-lg mb-2 leading-tight">${c.nombre}</h4>
-                                    <p class="text-sm text-slate-500 line-clamp-2">${c.descripcion || ''}</p>
-                                    <button onclick="consultar('${c.nombre.replace(/'/g, "\\'")}')" class="mt-4 w-full py-2.5 rounded-lg border border-slate-200 text-sm font-bold text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition flex items-center justify-center gap-2">
-                                        Ver Programa <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                                    </button>
-                                </div>
-                            </div>`;
-                        });
-                        
-                        container.innerHTML += `
-                        <div class="fade-in-up">
-                            <div class="flex items-center gap-4 mb-8">
-                                <span class="w-10 h-1 rounded-full" style="background-color: ${area.color_tema || '#4f46e5'}"></span>
-                                <h3 class="text-2xl font-bold text-slate-800">${area.nombre}</h3>
+                areas.forEach(area => {
+                    container.innerHTML += `
+                    <div class="fade-in-up">
+                        <div class="flex items-center gap-4 mb-8">
+                            <span class="w-10 h-1 rounded-full" style="background-color: ${area.color_tema || '#4f46e5'}"></span>
+                            <h3 class="text-2xl font-bold text-slate-800">${area.nombre}</h3>
+                            <a href="portal.html?inst=${institutionData.sigla || institutionData.id}&area=${area.id}" 
+                               class="ml-auto text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
+                                Ver más <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                            </a>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <div class="bg-gradient-to-br from-slate-50 to-white border border-slate-200 rounded-xl p-6">
+                                <i data-lucide="book-open" class="w-8 h-8 text-indigo-600 mb-4"></i>
+                                <h4 class="font-bold text-slate-900 mb-2">${area.nombre}</h4>
+                                <p class="text-slate-600 text-sm mb-4">${area.dossier_txt ? area.dossier_txt.substring(0, 120) + '...' : 'Explora nuestros programas en esta área.'}</p>
+                                <button onclick="consultar('${area.nombre.replace(/'/g, "\\'")}')" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
+                                    Consultar programas <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                                </button>
                             </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">${cards}</div>
-                        </div>`;
-                    }
-                }
-                
-                // Si no hay cursos, mostrar mensaje
-                if (container.innerHTML === "") {
-                    container.innerHTML = `
-                    <div class="text-center py-20">
-                        <i data-lucide="book-open" class="w-16 h-16 mx-auto text-slate-300 mb-4"></i>
-                        <h3 class="text-xl font-bold text-slate-700 mb-2">Catálogo en preparación</h3>
-                        <p class="text-slate-500 max-w-md mx-auto">Estamos actualizando nuestra oferta académica. Pronto tendremos novedades.</p>
+                            <div class="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="bg-white border border-slate-200 rounded-xl p-4">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                                        <span class="text-xs font-bold text-slate-700">Programas activos</span>
+                                    </div>
+                                    <p class="text-slate-600 text-sm">Cursos certificados con salida laboral inmediata.</p>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-xl p-4">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                                        <span class="text-xs font-bold text-slate-700">Modalidad flexible</span>
+                                    </div>
+                                    <p class="text-slate-600 text-sm">Online, presencial o híbrido según tu disponibilidad.</p>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-xl p-4">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <div class="w-2 h-2 rounded-full bg-purple-500"></div>
+                                        <span class="text-xs font-bold text-slate-700">Certificación oficial</span>
+                                    </div>
+                                    <p class="text-slate-600 text-sm">Diplomas con validez nacional e internacional.</p>
+                                </div>
+                                <div class="bg-white border border-slate-200 rounded-xl p-4">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <div class="w-2 h-2 rounded-full bg-amber-500"></div>
+                                        <span class="text-xs font-bold text-slate-700">Bolsa de trabajo</span>
+                                    </div>
+                                    <p class="text-slate-600 text-sm">Acceso exclusivo a oportunidades laborales.</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>`;
-                }
+                });
+                
+                lucide.createIcons();
+            } else {
+                container.innerHTML = `
+                <div class="text-center py-20">
+                    <i data-lucide="book-open" class="w-16 h-16 mx-auto text-slate-300 mb-4"></i>
+                    <h3 class="text-xl font-bold text-slate-700 mb-2">Oferta académica completa</h3>
+                    <p class="text-slate-500 max-w-md mx-auto">Consulta con nuestro asesor sobre otras áreas de formación disponibles.</p>
+                    <button onclick="consultar('Otras áreas de formación')" class="mt-4 bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-700 transition">
+                        Consultar otras áreas
+                    </button>
+                </div>`;
+                lucide.createIcons();
             }
-            
-            lucide.createIcons();
         }
 
         // ============================================
-        // 6. CHATBOT: INICIALIZAR
+        // 5. DETECTAR USUARIO
+        // ============================================
+        function detectUserIdentity() {
+            const params = new URLSearchParams(window.location.search);
+            currentUserEmail = params.get('email') || localStorage.getItem('visitor_email');
+            
+            if (!currentUserEmail) {
+                currentUserEmail = `visitante_${Date.now()}@portal.com`;
+                localStorage.setItem('visitor_email', currentUserEmail);
+            }
+            
+            conversationId = `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        }
+
+        // ============================================
+        // 6. FUNCIONES DE CHATBOT
         // ============================================
         function iniciarChat() {
             const msgs = document.getElementById('chat-messages');
@@ -562,15 +938,12 @@
                         🦉 Don Búho <span class="text-xs font-normal text-slate-500">• Asesor oficial</span>
                     </div>
                     ¡Hola! Soy <b>Don Búho</b>, tu asesor académico en <b>${institutionData.nombre}</b>. 
-                    Conozco todo nuestro catálogo y puedo guiarte hacia la mejor opción para tu carrera. 
-                    ¿En qué área te interesa formarte?
+                    Te estoy ayudando con información sobre: <b>${courseData.nombre}</b>.
+                    ¿En qué puedo ayudarte específicamente?
                 </div>
             </div>`;
         }
 
-        // ============================================
-        // 7. CHATBOT: TOGGLE VISIBILIDAD
-        // ============================================
         function toggleChat() {
             const w = document.getElementById('chat-widget');
             chatOpen = !chatOpen;
@@ -589,27 +962,18 @@
             }
         }
 
-        // ============================================
-        // 8. CHATBOT: ENVIAR MENSAJE
-        // ============================================
         async function enviarMensaje(e) {
             e.preventDefault();
             const input = document.getElementById('chat-input');
             const text = input.value.trim();
             if(!text) return;
 
-            // 1. Mostrar mensaje usuario
             addBubble(text, 'user');
             input.value = "";
             
-            // 2. Registrar en CRM
-            const leadId = await registrarLead(text, text);
-            
-            // 3. Mostrar loader
             const loadId = addBubble('<div class="buho-loader"><div></div><div></div><div></div></div>', 'bot');
 
             try {
-                // 4. Obtener API Key de Gemini
                 const { data: secret, error: keyError } = await db
                     .from('app_secrets')
                     .select('value')
@@ -618,45 +982,37 @@
                 
                 if(keyError || !secret) throw new Error("API Key no configurada");
 
-                // 5. Preparar prompt para Gemini
                 const prompt = `Eres "Don Búho" 🦉, el asesor académico oficial de ${institutionData.nombre}.
                 
-PERSONALIDAD: Eres un búho sabio con años de experiencia. Formal pero cercano, persuasivo sin ser agresivo. Usas emojis discretos (🦉📚🎓). Vistes corbata y eres meticuloso.
+CONTEXTO DEL CURSO ACTUAL: ${courseData.nombre}. ${courseData.descripcion || ''}
 
-OBJETIVO: Convertir consultas en inscripciones. Resalta beneficios, no solo características.
+CONTEXTO DEL ÁREA: ${areaData ? areaData.dossier_txt || '' : ''}
 
-CATÁLOGO ACTUAL: ${catalogContext}
+OTROS PROGRAMAS: ${catalogContext}
 
 CONSULTA DEL USUARIO: "${text}"
 
-INSTRUCCIONES:
-1. Responde en español latino, máximo 3 líneas
-2. Si mencionan precios, di "varía según modalidad" y sugiere contacto
-3. Destaca UN beneficio principal
-4. Termina con pregunta o llamado a acción sutil
-5. NO inventes precios exactos
-6. Si no sabes, reconócelo y ofrece ayuda personalizada`;
+RESPONDE COMO DON BÚHO:
+1. Sé específico sobre el curso actual
+2. Ofrece información real (no inventes)
+3. Sugiere beneficios concretos
+4. Termina con pregunta o llamado a acción
+5. Máximo 4 líneas`;
 
-                // 6. Llamar a Gemini
                 const respuestaIA = await obtenerRespuestaGemini(prompt, secret.value);
-                
-                // 7. Remover loader y mostrar respuesta
                 removeLoader(loadId);
                 addBubble(marked.parse(respuestaIA), 'bot');
-                
-                // 8. Registrar respuesta en CRM
-                await registrarInteraccionBot(respuestaIA, true, {
-                    modelo: 'gemini-1.5-flash',
-                    prompt_length: prompt.length,
-                    response_length: respuestaIA.length
-                });
-                
-                // 9. Mostrar botón WhatsApp después de 1 segundo
+
+                // Mostrar botón WhatsApp después de respuesta
                 setTimeout(() => {
-                    const mensajeWpp = encodeURIComponent(`🦉 Hola, soy ${currentUserEmail}. Vi en ${institutionData.nombre} información sobre: "${text}". Don Búho me recomendó contactarlos.`);
-                    const whatsappNumber = institutionData.telefono_contacto || institutionData.telefono || '';
-                    
+                    const whatsappNumber = institutionData.telefono_contacto?.replace(/\D/g, '');
                     if (whatsappNumber) {
+                        const mensajeWpp = encodeURIComponent(
+                            `🦉 [Don Búho] Consulta sobre "${text}"\n\n` +
+                            `Curso: ${courseData.nombre}\n` +
+                            `Usuario: ${currentUserEmail}\n` +
+                            `URL: ${window.location.href}`
+                        );
                         const wppButton = `
                         <div class="mt-3">
                             <a href="https://wa.me/${whatsappNumber}?text=${mensajeWpp}" 
@@ -665,7 +1021,6 @@ INSTRUCCIONES:
                                 <i data-lucide="message-circle" class="w-4 h-4"></i>
                                 Hablar con asesor humano
                             </a>
-                            <p class="text-xs text-slate-500 text-center mt-1">Te atenderá un especialista</p>
                         </div>`;
                         
                         addBubble(wppButton, 'bot');
@@ -677,27 +1032,17 @@ INSTRUCCIONES:
                 console.error("Error IA:", err);
                 removeLoader(loadId);
                 
-                // Respuesta de fallback
                 const respuestasFallback = [
-                    `🦉 Interesante consulta sobre "${text}". Para darte información precisa con las promociones vigentes, te recomiendo hablar directamente con nuestro equipo de admisiones. ¿Te parece?`,
-                    `📚 Excelente elección. "${text}" es uno de nuestros programas más demandados. Para detalles sobre horarios y financiamiento, un asesor especializado puede ayudarte mejor.`,
-                    `🎓 Me encanta tu interés en "${text}". Este programa tiene beneficios específicos según tu perfil. ¿Te gustaría una asesoría personalizada sin costo?`
+                    `🦉 Interesante pregunta sobre "${text}". Para detalles específicos del curso "${courseData.nombre}", te recomiendo hablar con nuestro equipo de admisiones.`,
+                    `📚 Excelente consulta. En relación a "${courseData.nombre}", un asesor especializado puede darte información actualizada sobre modalidades y promociones.`,
+                    `🎓 Me encanta tu interés en este tema. Para información precisa sobre "${courseData.nombre}", ¿te gustaría una asesoría personalizada?`
                 ];
                 
                 const respuesta = respuestasFallback[Math.floor(Math.random() * respuestasFallback.length)];
                 addBubble(respuesta, 'bot');
-                
-                // Registrar fallo en CRM
-                await registrarInteraccionBot(respuesta, false, {
-                    error: err.message,
-                    fallback: true
-                });
             }
         }
 
-        // ============================================
-        // 9. GEMINI: OBTENER RESPUESTA
-        // ============================================
         async function obtenerRespuestaGemini(prompt, apiKey) {
             const cacheKey = prompt.substring(0, 150);
             if (responseCache.has(cacheKey)) {
@@ -708,8 +1053,6 @@ INSTRUCCIONES:
             
             for (const modelo of modelos) {
                 try {
-                    console.log(`🦉 Intentando modelo: ${modelo}`);
-                    
                     const response = await fetch(
                         `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${apiKey}`,
                         {
@@ -746,9 +1089,6 @@ INSTRUCCIONES:
             throw new Error("No se pudo obtener respuesta de Gemini");
         }
 
-        // ============================================
-        // 10. FUNCIONES AUXILIARES CHAT
-        // ============================================
         function removeLoader(id) {
             const el = document.getElementById(id);
             if (el) el.remove();
@@ -784,9 +1124,6 @@ INSTRUCCIONES:
             return id;
         }
 
-        // ============================================
-        // 11. FUNCIÓN PARA CONSULTAR DESDE BOTONES
-        // ============================================
         function consultar(nombre) {
             if(!chatOpen) toggleChat();
             
@@ -799,20 +1136,12 @@ INSTRUCCIONES:
         }
 
         // ============================================
-        // 12. DEBUGGING (opcional)
+        // EXPORTAR FUNCIONES GLOBALES
         // ============================================
-        window.debugCRM = {
-            mostrarCache: () => console.log(responseCache),
-            limpiarCache: () => { responseCache.clear(); console.log("Cache limpiado"); },
-            verLead: () => console.log({ currentUserEmail, currentLeadId, conversationId }),
-            testGemini: async () => {
-                const { data: secret } = await db.from('app_secrets').select('value').eq('name', 'gemini_api_key').single();
-                if (secret) {
-                    const test = await obtenerRespuestaGemini("Hola, ¿cómo estás?", secret.value);
-                    console.log("Test Gemini:", test);
-                }
-            }
-        };
+        window.toggleModulo = toggleModulo;
+        window.consultar = consultar;
+        window.toggleChat = toggleChat;
+        window.enviarMensaje = enviarMensaje;
     </script>
 </body>
 </html>
