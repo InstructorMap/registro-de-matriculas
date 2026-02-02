@@ -207,7 +207,7 @@
         </div>
     </div>
 
-    <script>
+<script>
         const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
@@ -215,6 +215,7 @@
         let currentProfile = null;
         let currentInstId = null;
         let activeArea = null;
+        let generalAreaId = null; // ID de la carpeta General para mover cosas
 
         // --- INICIO ---
         document.addEventListener('DOMContentLoaded', async () => {
@@ -222,7 +223,11 @@
             await checkSession();
             if(currentInstId) {
                 await loadAreasSidebar();
-                switchView('branding'); // Vista inicial
+                // Intentar buscar el ID del área General para usarlo luego
+                const { data } = await db.from('areas').select('id').eq('institution_id', currentInstId).eq('slug', 'general').single();
+                if(data) generalAreaId = data.id;
+                
+                switchView('branding'); 
             }
         });
 
@@ -240,8 +245,11 @@
             if(perfil.instituciones) {
                 currentInstId = perfil.instituciones.id;
                 document.getElementById('inst-name').innerText = perfil.instituciones.nombre;
+                // Cargar avatar si hay logo
+                if(perfil.instituciones.logo_url) {
+                    document.getElementById('user-avatar').innerHTML = `<img src="${perfil.instituciones.logo_url}" class="w-full h-full object-cover rounded-full">`;
+                }
             } else if (perfil.rol === 'superadmin') {
-                // Fallback para dev/superadmin: toma la primera institución activa
                 const { data } = await db.from('instituciones').select('*').limit(1).single();
                 if(data) { currentInstId = data.id; document.getElementById('inst-name').innerText = "Modo Superadmin"; }
             }
@@ -288,31 +296,24 @@
             if(input.files.length === 0) return;
             const file = input.files[0];
             const fileName = `logo_${currentInstId}_${Date.now()}`;
-            
-            // Subir a Supabase Storage (Bucket 'logos-instituciones')
             const { data, error } = await db.storage.from('logos-instituciones').upload(fileName, file);
-            if(error) return alert("Error subiendo imagen: " + error.message);
-
+            if(error) return alert("Error: " + error.message);
             const { data: publicUrl } = db.storage.from('logos-instituciones').getPublicUrl(fileName);
-            
-            // Mostrar preview
             const img = document.getElementById('preview-logo');
             img.src = publicUrl.publicUrl;
             img.classList.remove('hidden');
-            img.dataset.newUrl = publicUrl.publicUrl; // Guardar temporalmente
+            img.dataset.newUrl = publicUrl.publicUrl; 
         }
 
         async function guardarIdentidad() {
             const nombre = document.getElementById('brand-name-input').value;
             const color = document.getElementById('brand-color-input').value;
             const img = document.getElementById('preview-logo');
-            
             const updates = { nombre, color_primario: color };
             if(img.dataset.newUrl) updates.logo_url = img.dataset.newUrl;
-
             const { error } = await db.from('instituciones').update(updates).eq('id', currentInstId);
             if(error) alert("Error: " + error.message);
-            else alert("Identidad actualizada correctamente.");
+            else alert("Identidad guardada.");
         }
 
         // 4. GESTIÓN DE ÁREAS (UNIVERSOS)
@@ -321,13 +322,16 @@
             const { data } = await db.from('areas').select('*').eq('institution_id', currentInstId).order('nombre');
             
             list.innerHTML = "";
-            if(!data || data.length === 0) { list.innerHTML = `<div class="px-3 text-xs text-slate-500 italic">Sin áreas creadas.</div>`; return; }
+            if(!data || data.length === 0) { list.innerHTML = `<div class="px-3 text-xs text-slate-500 italic">Sin áreas. Crea una.</div>`; return; }
 
             data.forEach(area => {
+                // Guardar ID general si lo encontramos
+                if(area.slug === 'general') generalAreaId = area.id;
+
                 const btn = document.createElement('button');
                 btn.className = "w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-400 rounded-lg hover:bg-slate-800 hover:text-white transition-all text-left group";
                 btn.id = `btn-area-${area.id}`;
-                btn.innerHTML = `<span class="w-2.5 h-2.5 rounded-full" style="background-color: ${area.color_tema}"></span> <span class="truncate flex-1">${area.nombre}</span>`;
+                btn.innerHTML = `<span class="w-2.5 h-2.5 rounded-full shadow-lg" style="background-color: ${area.color_tema}"></span> <span class="truncate flex-1">${area.nombre}</span>`;
                 btn.onclick = () => abrirAreaDetalle(area);
                 list.appendChild(btn);
             });
@@ -335,30 +339,27 @@
 
         async function abrirAreaDetalle(area) {
             activeArea = area;
-            switchView('none'); // Ocultar otras vistas
+            switchView('none'); 
             document.getElementById('view-area-detail').classList.remove('hidden');
             
-            // Highlight sidebar
             document.querySelectorAll('#areas-list-sidebar button').forEach(b => b.classList.remove('glass-active'));
-            document.getElementById(`btn-area-${area.id}`).classList.add('glass-active');
+            const activeBtn = document.getElementById(`btn-area-${area.id}`);
+            if(activeBtn) activeBtn.classList.add('glass-active');
 
-            // Header Info
+            // Llenar Datos
             document.getElementById('view-title').innerText = "Gestión de Universo";
             document.getElementById('view-subtitle').innerText = area.nombre;
             document.getElementById('area-title').innerText = area.nombre;
             document.getElementById('area-slug').innerText = `/${area.slug}`;
             document.getElementById('area-card-header').style.borderLeftColor = area.color_tema;
-
-            // Inputs IA
             document.getElementById('area-dossier').value = area.dossier_txt || "";
             document.getElementById('area-prompt').value = area.prompt_especifico || "";
 
-            // Cargar Cursos
             loadCoursesOfArea();
-            loadUnassignedCourses();
+            loadGeneralCourses(); // Cargar la columna derecha
         }
 
-        // 5. GESTOR DE CURSOS (CLASIFICACIÓN)
+        // 5. GESTOR DE CURSOS (LA CORRECCIÓN CLAVE)
         async function loadCoursesOfArea() {
             const grid = document.getElementById('grid-area-courses');
             grid.innerHTML = `<div class="text-xs text-slate-500">Cargando...</div>`;
@@ -369,7 +370,7 @@
             document.getElementById('count-area-courses').innerText = `${data?.length || 0} cursos`;
 
             if(!data || data.length === 0) {
-                grid.innerHTML = `<div class="col-span-2 p-6 border border-dashed border-slate-700 rounded-xl text-center text-slate-500 text-sm">Esta área está vacía.<br>Asigna cursos desde la derecha.</div>`;
+                grid.innerHTML = `<div class="col-span-2 p-6 border border-dashed border-slate-700 rounded-xl text-center text-slate-500 text-sm">Esta área está vacía.</div>`;
                 return;
             }
 
@@ -383,35 +384,47 @@
                         <h4 class="font-bold text-white text-xs truncate mb-0.5">${c.nombre}</h4>
                         <p class="text-[10px] text-slate-500 font-mono">${c.registro_id || 'ID?'}</p>
                     </div>
-                    <button onclick="desasignarCurso('${c.id}')" class="absolute top-2 right-2 text-slate-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition" title="Quitar del área"><i data-lucide="x-circle" class="w-4 h-4"></i></button>
+                    <button onclick="moverACursoGeneral('${c.id}')" class="absolute top-2 right-2 text-slate-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition" title="Mover a General"><i data-lucide="x-circle" class="w-4 h-4"></i></button>
                 </div>`;
             });
             lucide.createIcons();
         }
 
-        async function loadUnassignedCourses() {
+        // --- COLUMNA DERECHA: CURSOS DISPONIBLES EN GENERAL ---
+        async function loadGeneralCourses() {
             const list = document.getElementById('grid-unassigned');
             list.innerHTML = `<div class="text-xs text-slate-500">Buscando...</div>`;
 
-            // Buscar cursos de esta institución que NO tengan area_id
-            const { data } = await db.from('cursos_oficiales')
-                .select('*')
-                .eq('institution_id', currentInstId)
-                .is('area_id', null)
-                .order('nombre');
+            // Si estamos EN el área general, no mostramos la columna derecha (no tiene sentido moverse a sí mismo)
+            if (activeArea.slug === 'general') {
+                list.innerHTML = `<div class="text-center py-8 text-slate-600 text-xs italic">Estás en la carpeta General.<br>Crea otra área para organizar.</div>`;
+                return;
+            }
+
+            // BUSCAMOS CURSOS QUE ESTÉN EN 'GENERAL' O QUE TENGAN AREA NULL
+            let query = db.from('cursos_oficiales').select('*').eq('institution_id', currentInstId);
+            
+            if (generalAreaId) {
+                // Buscar en general O nulos (usamos OR manual en lógica si Supabase complica el OR mixto)
+                query = query.or(`area_id.eq.${generalAreaId},area_id.is.null`);
+            } else {
+                query = query.is('area_id', null);
+            }
+            
+            const { data } = await query.order('nombre');
 
             list.innerHTML = "";
             if(!data || data.length === 0) {
-                list.innerHTML = `<div class="text-center py-8 text-slate-600 text-xs italic">No hay cursos sueltos.</div>`;
+                list.innerHTML = `<div class="text-center py-8 text-slate-600 text-xs italic">No hay cursos pendientes en General.</div>`;
                 return;
             }
 
             data.forEach(c => {
                 const div = document.createElement('div');
-                div.className = "p-2 bg-slate-800/50 rounded-lg border border-slate-700 hover:bg-indigo-900/20 hover:border-indigo-500/50 cursor-pointer transition flex items-center justify-between group";
-                div.onclick = () => asignarCurso(c.id);
+                div.className = "p-2 bg-slate-800/50 rounded-lg border border-slate-700 hover:bg-indigo-900/20 hover:border-indigo-500/50 cursor-pointer transition flex items-center justify-between group mb-2";
+                div.onclick = () => traerCursoAqui(c.id);
                 div.innerHTML = `
-                    <span class="text-xs text-slate-300 font-medium truncate pr-2">${c.nombre}</span>
+                    <span class="text-xs text-slate-300 font-medium truncate pr-2 flex-1" title="${c.nombre}">${c.nombre}</span>
                     <i data-lucide="arrow-left-circle" class="w-4 h-4 text-indigo-500 opacity-0 group-hover:opacity-100 transition"></i>
                 `;
                 list.appendChild(div);
@@ -419,29 +432,34 @@
             lucide.createIcons();
         }
 
-        // --- ACCIONES DE ASIGNACIÓN (EL MOTOR SAAS) ---
-        async function asignarCurso(cursoId) {
-            // Mover curso al área activa
-            await db.from('cursos_oficiales').update({ area_id: activeArea.id }).eq('id', cursoId);
-            // Recargar listas
-            loadCoursesOfArea();
-            loadUnassignedCourses();
+        // --- ACCIONES DE MOVIMIENTO ---
+        async function traerCursoAqui(cursoId) {
+            // Mover curso del General -> Área Activa
+            const { error } = await db.from('cursos_oficiales').update({ area_id: activeArea.id }).eq('id', cursoId);
+            if(error) alert("Error: " + error.message);
+            else {
+                loadCoursesOfArea();
+                loadGeneralCourses();
+            }
         }
 
-        async function desasignarCurso(cursoId) {
-            // Devolver curso al limbo (null)
-            await db.from('cursos_oficiales').update({ area_id: null }).eq('id', cursoId);
-            loadCoursesOfArea();
-            loadUnassignedCourses();
+        async function moverACursoGeneral(cursoId) {
+            if(!generalAreaId) return alert("No encuentro la carpeta General para devolverlo.");
+            // Devolver curso al General
+            const { error } = await db.from('cursos_oficiales').update({ area_id: generalAreaId }).eq('id', cursoId);
+            if(error) alert("Error: " + error.message);
+            else {
+                loadCoursesOfArea();
+                loadGeneralCourses();
+            }
         }
 
         async function guardarCerebroIA() {
             const dossier = document.getElementById('area-dossier').value;
             const prompt = document.getElementById('area-prompt').value;
             const { error } = await db.from('areas').update({ dossier_txt: dossier, prompt_especifico: prompt }).eq('id', activeArea.id);
-            
             if(error) alert("Error guardando IA");
-            else alert("¡Cerebro actualizado! El bot ahora sabe más.");
+            else alert("¡Cerebro actualizado!");
         }
 
         // 6. CREAR ÁREA MODAL
@@ -463,6 +481,27 @@
                 loadAreasSidebar();
             }
         });
+        
+        // 7. BOTONES DE EDICION DE ÁREA
+        async function editarAreaActual() {
+            const nuevoNombre = prompt("Nuevo nombre para el área:", activeArea.nombre);
+            if(nuevoNombre) {
+                await db.from('areas').update({ nombre: nuevoNombre }).eq('id', activeArea.id);
+                location.reload(); // Recarga simple para actualizar todo
+            }
+        }
+        
+        async function eliminarAreaActual() {
+            if(confirm("¿Estás seguro? Los cursos volverán a General.")) {
+                // Primero mover cursos a General
+                if(generalAreaId) {
+                    await db.from('cursos_oficiales').update({ area_id: generalAreaId }).eq('area_id', activeArea.id);
+                }
+                // Borrar área
+                await db.from('areas').delete().eq('id', activeArea.id);
+                location.reload();
+            }
+        }
 
     </script>
 </body>
