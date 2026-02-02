@@ -12,12 +12,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     
     <style>
-        /* CONFIGURACIÓN BASE - TONOS AZULES INSTITUCIONALES */
+        /* BASE & TEMA DINÁMICO */
         :root {
             --primary-color: #4f46e5;
-            --text-heading: #1e1b4b; /* Indigo 950 (Azul muy oscuro) */
-            --text-body: #475569;    /* Slate 600 (Gris azulado) */
-            --bg-page: #f8fafc;      /* Slate 50 (Blanco azulado muy suave) */
+            --text-heading: #1e1b4b; 
+            --text-body: #475569;    
+            --bg-page: #f8fafc;      
         }
 
         body { 
@@ -30,22 +30,12 @@
         h1, h2, h3, h4, h5, h6 { color: var(--text-heading); }
 
         /* NAVBAR & BANNER */
-        .nav-banner-bg {
-            position: absolute; inset: 0; z-index: 0;
-            background-size: cover; background-position: center;
-            opacity: 0; transition: opacity 0.5s ease;
-        }
-        .nav-overlay {
-            position: absolute; inset: 0; z-index: 1;
-            background: rgba(255, 255, 255, 0.95); /* Blanco translúcido por defecto */
-            backdrop-filter: blur(8px);
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-        }
+        .nav-banner-bg { position: absolute; inset: 0; z-index: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity 0.5s ease; }
+        .nav-overlay { position: absolute; inset: 0; z-index: 1; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(0,0,0,0.05); }
 
         /* ANIMACIONES */
         .fade-in-up { animation: fadeInUp 0.6s ease-out forwards; opacity: 0; transform: translateY(20px); }
         @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
-        
         .hover-lift { transition: transform 0.2s, box-shadow 0.2s; }
         .hover-lift:hover { transform: translateY(-5px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
 
@@ -87,25 +77,18 @@
     <header id="inicio" class="relative pt-40 pb-20 lg:pt-52 lg:pb-32 overflow-hidden">
         <div class="max-w-7xl mx-auto px-4 text-center relative z-10">
             <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-blue-800 text-xs font-bold mb-8 fade-in-up">
-                <span class="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span> Admisiones Abiertas 2026
+                <span class="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span> Inscripciones Abiertas
             </div>
-            
             <h1 class="text-5xl md:text-7xl font-black tracking-tight mb-6 fade-in-up" style="animation-delay: 0.1s; color: var(--text-heading);">
                 Tu futuro profesional <br>
-                <span id="hero-highlight" class="text-indigo-600 relative inline-block">
-                    comienza aquí
-                    <svg class="absolute w-full h-3 -bottom-1 left-0 text-indigo-200 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M0 5 Q 50 10 100 5" stroke="currentColor" stroke-width="8" fill="none" /></svg>
-                </span>
+                <span id="hero-highlight" class="text-indigo-600 relative inline-block">comienza aquí</span>
             </h1>
-            
             <p class="mt-6 max-w-2xl mx-auto text-lg md:text-xl fade-in-up" style="animation-delay: 0.2s; color: var(--text-body);">
-                Plataforma educativa de vanguardia con certificación oficial. Accede a cursos, seminarios y especializaciones desde cualquier lugar.
+                Formación de excelencia con certificación oficial.
             </p>
         </div>
-        
         <div class="absolute top-0 left-0 w-full h-full -z-10 overflow-hidden opacity-40">
             <div class="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-indigo-100 blur-3xl"></div>
-            <div class="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] rounded-full bg-blue-50 blur-3xl"></div>
         </div>
     </header>
 
@@ -135,9 +118,7 @@
 
     <footer class="bg-white border-t border-slate-200 py-12 mt-auto">
         <div class="max-w-7xl mx-auto px-4 text-center">
-            <p class="text-slate-500 text-sm font-medium">© 2026 <span id="footer-inst-name">Institución</span>. Todos los derechos reservados.</p>
-            <div class="mt-4 flex justify-center gap-4 opacity-50 grayscale hover:grayscale-0 transition">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" class="h-4"> </div>
+            <p class="text-slate-500 text-sm font-medium">© 2026 <span id="footer-inst-name">Institución</span>.</p>
         </div>
     </footer>
 
@@ -150,7 +131,7 @@
                 </div>
                 <div class="opacity-0 transition-opacity duration-200" id="chat-title-container">
                     <p class="font-bold text-white text-sm">Admisión</p>
-                    <p class="text-[10px] text-white/80">En línea ahora</p>
+                    <p class="text-[10px] text-white/80">Inteligencia Activa</p>
                 </div>
             </div>
             <i data-lucide="chevron-up" class="text-white w-5 h-5 transition-transform duration-300" id="chat-toggle-icon"></i>
@@ -199,65 +180,49 @@
             }
 
             const { data } = await query.limit(1).maybeSingle();
+            institutionData = data || null;
 
-            if (!data) {
-                const { data: fallback } = await db.from('instituciones').select('*').eq('activo', true).limit(1).single();
-                institutionData = fallback;
-            } else {
-                institutionData = data;
+            if (!institutionData) {
+                 const { data: fallback } = await db.from('instituciones').select('*').eq('activo', true).limit(1).single();
+                 institutionData = fallback;
             }
 
             if(institutionData) {
-                aplicarEsteticaCamaleon();
+                aplicarEstetica();
                 loadContent();
                 iniciarChat();
             }
         }
 
-        // --- LÓGICA DE APARIENCIA (CAMALEÓN + BANNER) ---
-        function aplicarEsteticaCamaleon() {
-            // 1. Textos
+        function aplicarEstetica() {
             document.getElementById('nombre-inst').innerText = institutionData.nombre;
             document.getElementById('footer-inst-name').innerText = institutionData.nombre;
             document.title = institutionData.nombre;
 
-            // 2. Logo (Caja Blanca Garantizada)
             if(institutionData.logo_url) {
-                const img = document.getElementById('logo-inst');
-                img.src = institutionData.logo_url;
+                document.getElementById('logo-inst').src = institutionData.logo_url;
                 document.getElementById('logo-container').style.display = 'flex';
             }
 
-            // 3. Colores Institucionales
             if(institutionData.color_primario) {
                 const color = institutionData.color_primario;
-                
-                // Botones y Acentos
                 document.getElementById('btn-campus').style.backgroundColor = color;
                 document.getElementById('hero-highlight').style.color = color;
                 document.getElementById('chat-header-bg').style.backgroundColor = color;
-                
-                // Actualizar CSS Var para headings si es necesario
                 document.documentElement.style.setProperty('--primary-color', color);
             }
 
-            // 4. LÓGICA DEL BANNER (Nuevo)
             if(institutionData.banner_url) {
-                // Si hay banner, lo ponemos de fondo y hacemos el overlay blanco semitransparente
                 const banner = document.getElementById('navbar-banner');
                 banner.style.backgroundImage = `url('${institutionData.banner_url}')`;
                 banner.style.opacity = '1';
-                
-                // Overlay blanco para asegurar que el texto negro se lea (o podemos invertir colores)
                 document.getElementById('navbar-overlay').style.backgroundColor = 'rgba(255,255,255,0.9)';
             } else {
-                // Si NO hay banner, usamos el color primario muy suave o blanco
                 document.getElementById('navbar-overlay').style.backgroundColor = 'rgba(255,255,255,0.95)';
             }
         }
 
         async function loadContent() {
-            // Seminarios
             const { data: sems } = await db.from('seminarios').select('*').eq('institution_id', institutionData.id).eq('activo', true);
             if(sems && sems.length > 0) {
                 document.getElementById('seminarios').classList.remove('hidden');
@@ -282,7 +247,6 @@
                 });
             }
 
-            // Cursos
             const { data: areas } = await db.from('areas').select('*').eq('institution_id', institutionData.id).order('nombre');
             const container = document.getElementById('areas-container');
             container.innerHTML = "";
@@ -294,7 +258,7 @@
                     if(cursos && cursos.length > 0) {
                         let cards = "";
                         cursos.forEach(c => {
-                            catalogContext += `Curso: ${c.nombre} (${area.nombre}). `;
+                            catalogContext += `Curso: ${c.nombre} (Área: ${area.nombre}). `;
                             const img = c.imagen_portada_url || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&q=80&w=600';
                             cards += `
                             <div class="group bg-white rounded-xl shadow-sm hover:shadow-xl transition border border-slate-100 overflow-hidden hover-lift">
@@ -324,7 +288,6 @@
             lucide.createIcons();
         }
 
-        // --- CHATBOT (BÚHO FIXED) ---
         function iniciarChat() {
             const msgs = document.getElementById('chat-messages');
             const owl = "https://cdn-icons-png.flaticon.com/512/3468/3468306.png";
@@ -332,7 +295,7 @@
             <div class="flex gap-3">
                 <div class="w-8 h-8 rounded-full border border-slate-200 p-1 bg-white shrink-0"><img src="${owl}" class="w-full h-full object-contain"></div>
                 <div class="bg-white border border-slate-100 p-3 rounded-2xl rounded-tl-none shadow-sm text-slate-600 text-sm">
-                    Hola 👋 Bienvenido a <b>${institutionData.nombre}</b>. ¿En qué curso estás interesado?
+                    Hola 👋 Bienvenido a <b>${institutionData.nombre}</b>. ¿Buscas algún curso en especial?
                 </div>
             </div>`;
         }
@@ -352,6 +315,7 @@
             }
         }
 
+        // --- SOLUCIÓN DEL ERROR "CANNOT READ PROPERTIES OF NULL" ---
         async function enviarMensaje(e) {
             e.preventDefault();
             const input = document.getElementById('chat-input');
@@ -360,16 +324,23 @@
 
             addBubble(text, 'user');
             input.value = "";
+            
+            // Guardamos el ID de la burbuja "Escribiendo..." para borrarla luego
             const loadId = addBubble("...", 'bot');
 
             try {
-                // 1. Buscamos Key
-                const { data: secret } = await db.from('app_secrets').select('value').eq('name', 'gemini_api_key').single();
-                if(!secret) throw new Error("Offline");
-
-                // 2. Prompt Venta
-                const prompt = `ERES UN VENDEDOR PARA: ${institutionData.nombre}. CATÁLOGO: ${catalogContext}. PREGUNTA: "${text}". RESPONDE CORTO, AMABLE Y PERSUASIVO.`;
+                // Paso 1: Intentar obtener la Key
+                const { data: secret, error } = await db.from('app_secrets').select('value').eq('name', 'gemini_api_key').single();
                 
+                // Si hay error en la DB o no hay key, saltar al catch
+                if(error || !secret) throw new Error("Offline Mode");
+
+                // Paso 2: Conectar a Gemini
+                const prompt = `ERES UN ASESOR DE VENTAS DE: ${institutionData.nombre}.
+                CATÁLOGO: ${catalogContext}.
+                USUARIO: "${text}".
+                OBJETIVO: Vender. Sé breve, usa emojis y dirige al WhatsApp para cerrar.`;
+
                 const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${secret.value}`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
@@ -377,23 +348,36 @@
                 });
 
                 const json = await res.json();
-                const reply = json.candidates?.[0]?.content?.parts?.[0]?.text;
                 
-                document.getElementById(loadId).remove();
+                // Si Gemini devuelve error
+                if (json.error) throw new Error(json.error.message);
+
+                const reply = json.candidates?.[0]?.content?.parts?.[0]?.text || "No entendí.";
+                
+                // Borrar loading
+                removeLoader(loadId);
                 addBubble(marked.parse(reply), 'bot');
                 botonWpp(text);
 
             } catch (err) {
-                // Fallback WPP
-                document.getElementById(loadId).remove();
-                addBubble(`¡Excelente elección! Tenemos promociones disponibles para eso.`, 'bot');
+                // FALLBACK ROBUSTO: Si algo falla, borrar loading y pasar a modo WPP
+                console.warn("IA Error:", err);
+                removeLoader(loadId);
+                
+                addBubble(`¡Excelente interés! Para darte detalles precisos sobre precios y fechas de "${text}", escríbenos.`, 'bot');
                 botonWpp(text);
             }
         }
 
+        // Función segura para borrar el loader sin que explote
+        function removeLoader(id) {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        }
+
         function botonWpp(text) {
             setTimeout(() => {
-                const wpp = encodeURIComponent(`Hola, info sobre: ${text}`);
+                const wpp = encodeURIComponent(`Hola, vi en la web el curso: ${text}. Quiero info.`);
                 addBubble(`<a href="https://wa.me/?text=${wpp}" target="_blank" class="block text-center bg-green-500 text-white py-2 rounded-lg font-bold hover:bg-green-600 transition shadow-sm flex items-center justify-center gap-2"><i data-lucide="message-circle" class="w-4 h-4"></i> Hablar con Asesor</a>`, 'bot');
                 lucide.createIcons();
             }, 600);
@@ -402,22 +386,23 @@
         function addBubble(html, type) {
             const c = document.getElementById('chat-messages');
             const owl = "https://cdn-icons-png.flaticon.com/512/3468/3468306.png";
-            
+            const id = 'msg-' + Date.now() + Math.random(); // ID Único
+
             const content = type === 'user' 
                 ? `<div class="flex gap-2 flex-row-reverse w-full"><div class="bg-indigo-600 text-white px-4 py-2 rounded-2xl rounded-tr-none max-w-[85%] shadow-sm">${html}</div></div>`
                 : `<div class="flex gap-3 w-full"><div class="w-8 h-8 rounded-full border border-slate-200 p-1 bg-white shrink-0"><img src="${owl}" class="w-full h-full object-contain"></div><div class="bg-white text-slate-700 border border-slate-100 px-4 py-2 rounded-2xl rounded-tl-none max-w-[85%] shadow-sm prose prose-sm">${html}</div></div>`;
 
             const div = document.createElement('div');
-            div.id = 'msg-'+Date.now();
+            div.id = id;
             div.innerHTML = content;
             c.appendChild(div);
             c.scrollTop = c.scrollHeight;
-            return div.id;
+            return id;
         }
 
         function consultar(n) {
             if(!chatOpen) toggleChat();
-            document.getElementById('chat-input').value = n;
+            document.getElementById('chat-input').value = "Info sobre " + n;
             document.getElementById('btn-send').click();
         }
     </script>
