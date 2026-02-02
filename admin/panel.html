@@ -23,9 +23,16 @@
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        /* Toast Notifications */
+        .toast-success { background: rgba(21, 128, 61, 0.9); border: 1px solid rgba(34, 197, 94, 0.3); }
+        .toast-error { background: rgba(185, 28, 28, 0.9); border: 1px solid rgba(248, 113, 113, 0.3); }
+        .toast-info { background: rgba(30, 64, 175, 0.9); border: 1px solid rgba(96, 165, 250, 0.3); }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden">
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
 
     <aside class="w-72 bg-slate-900 border-r border-slate-800 flex flex-col z-20 shadow-2xl">
         <div class="h-20 flex items-center px-6 border-b border-slate-800 gap-3">
@@ -50,11 +57,24 @@
             <div>
                 <div class="flex items-center justify-between px-2 mb-2">
                     <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Universos / Áreas</p>
-                    <button onclick="abrirModalArea()" class="text-slate-500 hover:text-white transition bg-slate-800 p-1 rounded"><i data-lucide="plus" class="w-3 h-3"></i></button>
+                    <button onclick="abrirModalArea()" class="text-slate-500 hover:text-white transition bg-slate-800 p-1 rounded" id="btn-new-area">
+                        <i data-lucide="plus" class="w-3 h-3"></i>
+                    </button>
                 </div>
                 <div id="areas-list-sidebar" class="space-y-1">
                     <div class="text-xs text-slate-600 px-3 flex items-center gap-2"><i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i> Cargando...</div>
                 </div>
+            </div>
+
+            <!-- NUEVA SECCIÓN: CRM & ANALYTICS -->
+            <div>
+                <p class="px-2 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">CRM & Analytics</p>
+                <button onclick="switchView('crm')" id="nav-crm" class="w-full flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-400 rounded-lg hover:bg-slate-800 transition-all">
+                    <i data-lucide="users" class="w-4 h-4"></i> Leads & Conversiones
+                </button>
+                <button onclick="window.open('../dashboard.html', '_blank')" class="w-full flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-400 rounded-lg hover:bg-slate-800 transition-all mt-1">
+                    <i data-lucide="bar-chart-3" class="w-4 h-4"></i> Dashboard Live
+                </button>
             </div>
 
         </nav>
@@ -79,7 +99,19 @@
                 <h2 id="view-title" class="text-xl font-bold text-white">Configuración</h2>
                 <p id="view-subtitle" class="text-xs text-slate-400">Gestiona la cara visible de tu instituto</p>
             </div>
-            <div>
+            <div class="flex items-center gap-4">
+                <!-- ESTADÍSTICAS RÁPIDAS -->
+                <div class="hidden md:flex items-center gap-4 text-xs">
+                    <div class="px-3 py-1.5 bg-slate-800/50 rounded-lg border border-slate-700">
+                        <div class="text-slate-400">Leads Hoy</div>
+                        <div class="font-bold text-white" id="stats-leads-today">0</div>
+                    </div>
+                    <div class="px-3 py-1.5 bg-slate-800/50 rounded-lg border border-slate-700">
+                        <div class="text-slate-400">Chats Activos</div>
+                        <div class="font-bold text-green-400" id="stats-active-chats">0</div>
+                    </div>
+                </div>
+                
                 <a id="btn-portal-live" href="../portal.html" target="_blank" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition shadow-lg shadow-indigo-500/20 flex items-center gap-2 border border-indigo-400/20">
                     <i data-lucide="external-link" class="w-3 h-3"></i> Ver Portal en Vivo
                 </a>
@@ -88,6 +120,7 @@
 
         <div id="main-content" class="flex-1 overflow-y-auto p-8">
 
+            <!-- VISTA: BRANDING -->
             <div id="view-branding" class="max-w-4xl mx-auto space-y-8 fade-in">
                 <div class="glass p-8 rounded-2xl">
                     <div class="flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
@@ -124,20 +157,44 @@
                                     </div>
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Sigla / ID (Vital para el Link)</label>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Sigla / ID (Vital para el Link)</label>
                                     <input type="text" id="brand-slug-input" class="input-dark font-mono text-indigo-400 font-bold" placeholder="ej: colbert">
                                     <p class="text-[10px] text-slate-500 mt-1">Esto define tu enlace: portal.html?inst=<b>colbert</b></p>
                                 </div>
                             </div>
 
-                            <button onclick="guardarIdentidad()" class="px-6 py-3 bg-white text-slate-900 font-bold rounded-xl text-sm hover:bg-slate-200 transition flex items-center gap-2 shadow-lg shadow-white/10">
-                                <i data-lucide="save" class="w-4 h-4"></i> Guardar Cambios
-                            </button>
+                            <div class="pt-4 border-t border-slate-700">
+                                <button onclick="guardarIdentidad()" id="btn-save-branding" class="px-6 py-3 bg-white text-slate-900 font-bold rounded-xl text-sm hover:bg-slate-200 transition flex items-center gap-2 shadow-lg shadow-white/10">
+                                    <i data-lucide="save" class="w-4 h-4"></i> Guardar Cambios
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NUEVA SECCIÓN: CONFIGURACIÓN AVANZADA -->
+                <div class="glass p-6 rounded-2xl">
+                    <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                        <i data-lucide="settings-2" class="w-5 h-5 text-blue-400"></i> Configuración Avanzada
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-2">Teléfono de Contacto</label>
+                            <input type="text" id="brand-phone-input" class="input-dark" placeholder="+54 9 11 1234-5678">
+                            <p class="text-[10px] text-slate-500 mt-1">Usado en botones WhatsApp</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase mb-2">URL Banner (opcional)</label>
+                            <input type="text" id="brand-banner-input" class="input-dark" placeholder="https://ejemplo.com/banner.jpg">
+                            <p class="text-[10px] text-slate-500 mt-1">Imagen para header del portal</p>
                         </div>
                     </div>
                 </div>
             </div>
 
+            <!-- VISTA: ÁREA DETALLE -->
             <div id="view-area-detail" class="hidden fade-in h-full flex flex-col">
                 <div class="glass p-6 rounded-2xl mb-6 border-l-4 transition-all" id="area-card-header">
                     <div class="flex justify-between items-start">
@@ -170,7 +227,7 @@
                         </div>
                     </div>
                     <div class="flex justify-end mt-4">
-                        <button onclick="guardarCerebroIA()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition shadow-lg flex items-center gap-2 border border-indigo-400/20">
+                        <button onclick="guardarCerebroIA()" id="btn-save-ia" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition shadow-lg flex items-center gap-2 border border-indigo-400/20">
                             <i data-lucide="save" class="w-3 h-3"></i> Guardar Cerebro IA
                         </button>
                     </div>
@@ -184,7 +241,8 @@
                             <span class="text-xs text-slate-500 font-mono bg-slate-900 px-2 py-1 rounded" id="count-area-courses">0</span>
                         </div>
                         <div id="grid-area-courses" class="grid grid-cols-1 md:grid-cols-2 gap-3 overflow-y-auto pr-2 pb-10">
-                            </div>
+                            <!-- Cursos se cargan aquí -->
+                        </div>
                     </div>
 
                     <div class="lg:col-span-1 flex flex-col bg-slate-900/50 rounded-2xl border border-slate-800 p-4">
@@ -193,16 +251,70 @@
                             <p class="text-[10px] text-slate-500 mt-1">Cursos sin asignar. Haz clic para mover aquí.</p>
                         </div>
                         <div id="grid-unassigned" class="space-y-2 overflow-y-auto flex-1 pr-1">
-                            <div class="text-center py-10 text-slate-600 text-xs">No hay cursos pendientes.</div>
+                            <div class="text-center py-10 text-slate-600 text-xs">Cargando cursos...</div>
                         </div>
                     </div>
 
                 </div>
             </div>
 
+            <!-- NUEVA VISTA: CRM -->
+            <div id="view-crm" class="hidden fade-in">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-white mb-2">Gestión de Leads & Conversiones</h2>
+                    <p class="text-slate-400">Monitoriza prospectos capturados por Don Búho</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="glass p-4 rounded-xl">
+                        <div class="text-slate-400 text-xs mb-1">Leads Totales</div>
+                        <div class="text-2xl font-bold text-white" id="crm-total-leads">0</div>
+                    </div>
+                    <div class="glass p-4 rounded-xl">
+                        <div class="text-slate-400 text-xs mb-1">Nuevos Hoy</div>
+                        <div class="text-2xl font-bold text-green-400" id="crm-new-today">0</div>
+                    </div>
+                    <div class="glass p-4 rounded-xl">
+                        <div class="text-slate-400 text-xs mb-1">Tasa Conversión</div>
+                        <div class="text-2xl font-bold text-blue-400" id="crm-conversion-rate">0%</div>
+                    </div>
+                    <div class="glass p-4 rounded-xl">
+                        <div class="text-slate-400 text-xs mb-1">Chats Activos</div>
+                        <div class="text-2xl font-bold text-orange-400" id="crm-active-chats">0</div>
+                    </div>
+                </div>
+
+                <div class="glass p-4 rounded-xl mb-4">
+                    <h3 class="font-bold text-white mb-3">Últimos Leads</h3>
+                    <div id="crm-leads-table" class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-slate-700">
+                                    <th class="text-left p-3 text-slate-400">Email</th>
+                                    <th class="text-left p-3 text-slate-400">Curso Interés</th>
+                                    <th class="text-left p-3 text-slate-400">Estado</th>
+                                    <th class="text-left p-3 text-slate-400">Fecha</th>
+                                    <th class="text-left p-3 text-slate-400">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="crm-leads-body">
+                                <tr><td colspan="5" class="p-4 text-center text-slate-500">Cargando leads...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="flex justify-end">
+                    <button onclick="window.open('../dashboard.html', '_blank')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-lg transition flex items-center gap-2">
+                        <i data-lucide="bar-chart-3" class="w-4 h-4"></i> Ver Dashboard Completo
+                    </button>
+                </div>
+            </div>
+
         </div>
     </main>
 
+    <!-- MODAL CREAR ÁREA -->
     <div id="modal-area" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-700 w-full max-w-sm rounded-2xl p-6 shadow-2xl transform transition-all scale-100">
             <h3 class="text-lg font-bold text-white mb-1">Nuevo Universo</h3>
@@ -224,103 +336,279 @@
                 </div>
                 <div class="flex gap-2 pt-4">
                     <button type="button" onclick="document.getElementById('modal-area').classList.add('hidden')" class="flex-1 py-2.5 text-slate-400 text-xs font-bold hover:text-white transition">Cancelar</button>
-                    <button type="submit" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold shadow-lg shadow-blue-500/20 transition">Crear Área</button>
+                    <button type="submit" id="btn-create-area" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold shadow-lg shadow-blue-500/20 transition flex items-center justify-center gap-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Crear Área
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
+        // ============================================
+        // CONFIGURACIÓN SEGURA
+        // ============================================
+        // NOTA: En producción, usa variables de entorno o API endpoint
+        // para obtener las credenciales de forma segura
         const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
+        // ============================================
+        // VARIABLES GLOBALES
+        // ============================================
         let currentProfile = null;
         let currentInstId = null;
         let activeArea = null;
         let generalAreaId = null;
+        let statsRefreshInterval = null;
 
-        // --- INICIO ---
+        // ============================================
+        // FUNCIONES DE UTILIDAD
+        // ============================================
+
+        /**
+         * Muestra notificación toast
+         * @param {string} message - Mensaje a mostrar
+         * @param {string} type - 'success', 'error', 'info'
+         * @param {number} duration - Duración en ms
+         */
+        function showToast(message, type = 'success', duration = 3000) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const icons = {
+                success: 'check-circle',
+                error: 'alert-circle',
+                info: 'info'
+            };
+            
+            toast.className = `glass p-3 rounded-lg shadow-lg transform transition-all fade-in ${type === 'success' ? 'toast-success' : type === 'error' ? 'toast-error' : 'toast-info'}`;
+            toast.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <i data-lucide="${icons[type]}" class="w-4 h-4"></i>
+                    <span class="text-xs font-medium">${message}</span>
+                </div>
+            `;
+            
+            container.appendChild(toast);
+            lucide.createIcons();
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(20px)';
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+
+        /**
+         * Establece estado de carga en un botón
+         * @param {HTMLElement} button - Elemento botón
+         * @param {boolean} isLoading - Si está cargando
+         * @param {string} originalText - Texto original (opcional)
+         */
+        function setLoading(button, isLoading, originalText = null) {
+            if (isLoading) {
+                button.dataset.originalText = button.innerHTML;
+                button.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Procesando...`;
+                button.disabled = true;
+            } else {
+                button.innerHTML = originalText || button.dataset.originalText || '';
+                button.disabled = false;
+            }
+            lucide.createIcons();
+        }
+
+        /**
+         * Operación segura a base de datos
+         * @param {Function} operation - Función async que ejecuta la operación
+         * @param {string} successMessage - Mensaje en caso de éxito
+         * @param {string} errorMessage - Mensaje en caso de error
+         * @returns {Promise} Resultado de la operación
+         */
+        async function safeDbOperation(operation, successMessage = null, errorMessage = 'Error') {
+            try {
+                const result = await operation();
+                if (successMessage) showToast(successMessage, 'success');
+                return { success: true, data: result };
+            } catch (error) {
+                console.error(`${errorMessage}:`, error);
+                showToast(`${errorMessage}: ${error.message}`, 'error');
+                return { success: false, error };
+            }
+        }
+
+        // ============================================
+        // 1. INICIALIZACIÓN Y SESIÓN
+        // ============================================
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
             await checkSession();
             if(currentInstId) {
                 await loadAreasSidebar();
-                
-                // Buscar ID de carpeta general para mover cosas
-                const { data } = await db.from('areas').select('id').eq('institution_id', currentInstId).eq('slug', 'general').single();
-                if(data) generalAreaId = data.id;
-
+                await ensureGeneralArea();
                 switchView('branding');
+                startStatsRefresh();
             }
         });
 
-        // 1. SESIÓN Y VINCULACIÓN AL PORTAL
         async function checkSession() {
-            const { data: { session } } = await db.auth.getSession();
-            if(!session) return window.location.href = '../index.html';
-            
-            const { data: perfil } = await db.from('perfiles').select('*, instituciones(*)').eq('id', session.user.id).single();
-            if(!perfil) return alert("Error crítico: No se pudo cargar el perfil.");
-
-            currentProfile = perfil;
-            document.getElementById('user-name').innerText = perfil.nombre_completo;
-            
-            if(perfil.instituciones) {
-                currentInstId = perfil.instituciones.id;
-                document.getElementById('inst-name').innerText = perfil.instituciones.nombre;
+            try {
+                const { data: { session } } = await db.auth.getSession();
+                if(!session) {
+                    window.location.href = '../index.html';
+                    return;
+                }
                 
-                // --- FIX: ACTUALIZAR BOTÓN PORTAL ---
-                const slug = perfil.instituciones.sigla || perfil.instituciones.id;
-                const btnPortal = document.getElementById('btn-portal-live');
-                if(btnPortal) btnPortal.href = `../portal.html?inst=${slug}`;
-                // ------------------------------------
+                // FIX CRÍTICO: Usar user_id en lugar de id
+                const { data: perfil } = await db
+                    .from('perfiles')
+                    .select('*, instituciones(*)')
+                    .eq('user_id', session.user.id)  // ← CAMBIO IMPORTANTE
+                    .single();
+                    
+                if(!perfil) {
+                    showToast("Error: Perfil no encontrado", 'error');
+                    return;
+                }
 
-                if(perfil.instituciones.logo_url) {
-                    document.getElementById('user-avatar').innerHTML = `<img src="${perfil.instituciones.logo_url}" class="w-full h-full object-cover">`;
-                }
-            } else if (perfil.rol === 'superadmin') {
-                const { data } = await db.from('instituciones').select('*').limit(1).single();
-                if(data) { 
-                    currentInstId = data.id; 
-                    document.getElementById('inst-name').innerText = "Modo Superadmin (" + data.nombre + ")";
-                    // Link para superadmin
+                currentProfile = perfil;
+                document.getElementById('user-name').innerText = perfil.nombre_completo;
+                
+                if(perfil.instituciones) {
+                    currentInstId = perfil.instituciones.id;
+                    document.getElementById('inst-name').innerText = perfil.instituciones.nombre;
+                    
+                    // Actualizar botón portal en vivo
+                    const slug = perfil.instituciones.sigla || perfil.instituciones.id;
                     const btnPortal = document.getElementById('btn-portal-live');
-                    if(btnPortal && data.sigla) btnPortal.href = `../portal.html?inst=${data.sigla}`;
+                    if(btnPortal) btnPortal.href = `../portal.html?inst=${encodeURIComponent(slug)}`;
+                    
+                    if(perfil.instituciones.logo_url) {
+                        document.getElementById('user-avatar').innerHTML = `<img src="${perfil.instituciones.logo_url}" class="w-full h-full object-cover">`;
+                    }
+                } else if (perfil.rol === 'superadmin') {
+                    const { data } = await db.from('instituciones').select('*').limit(1).single();
+                    if(data) { 
+                        currentInstId = data.id; 
+                        document.getElementById('inst-name').innerText = `Superadmin (${data.nombre})`;
+                        const btnPortal = document.getElementById('btn-portal-live');
+                        if(btnPortal && data.sigla) btnPortal.href = `../portal.html?inst=${encodeURIComponent(data.sigla)}`;
+                    }
                 }
+                
+            } catch (error) {
+                console.error("Error en sesión:", error);
+                showToast("Error al verificar sesión", 'error');
             }
         }
 
-        // 2. NAVEGACIÓN
+        // ============================================
+        // 2. GARANTIZAR ÁREA GENERAL
+        // ============================================
+        async function ensureGeneralArea() {
+            try {
+                // Buscar área general
+                const { data: existing } = await db
+                    .from('areas')
+                    .select('id')
+                    .eq('institution_id', currentInstId)
+                    .eq('slug', 'general')
+                    .single();
+                    
+                if (existing) {
+                    generalAreaId = existing.id;
+                    return;
+                }
+                
+                // Crear área general si no existe
+                const { data: newArea } = await db
+                    .from('areas')
+                    .insert({
+                        nombre: 'General',
+                        slug: 'general',
+                        color_tema: '#6b7280',
+                        institution_id: currentInstId,
+                        orden: 0
+                    })
+                    .select()
+                    .single();
+                    
+                if (newArea) {
+                    generalAreaId = newArea.id;
+                    showToast('Área General creada automáticamente', 'info');
+                    await loadAreasSidebar(); // Refrescar sidebar
+                }
+                
+            } catch (error) {
+                console.warn("Error creando área general:", error);
+            }
+        }
+
+        // ============================================
+        // 3. NAVEGACIÓN ENTRE VISTAS
+        // ============================================
         function switchView(viewName) {
+            // Ocultar todas las vistas
             document.getElementById('view-branding').classList.add('hidden');
             document.getElementById('view-area-detail').classList.add('hidden');
+            document.getElementById('view-crm').classList.add('hidden');
+            
+            // Resetear navegación activa
             document.querySelectorAll('#areas-list-sidebar button').forEach(b => b.classList.remove('glass-active'));
-            document.getElementById('nav-branding').classList.remove('active-nav', 'text-white', 'bg-slate-800');
-
-            if(viewName === 'branding') {
-                document.getElementById('view-branding').classList.remove('hidden');
-                document.getElementById('nav-branding').classList.add('active-nav', 'text-white', 'bg-slate-800');
-                document.getElementById('view-title').innerText = "Identidad Visual";
-                document.getElementById('view-subtitle').innerText = "Configuración global del portal";
-                loadBranding();
+            document.getElementById('nav-branding').classList.remove('glass-active', 'text-white');
+            document.getElementById('nav-crm').classList.remove('glass-active', 'text-white');
+            
+            switch(viewName) {
+                case 'branding':
+                    document.getElementById('view-branding').classList.remove('hidden');
+                    document.getElementById('nav-branding').classList.add('glass-active', 'text-white');
+                    document.getElementById('view-title').innerText = "Identidad Visual";
+                    document.getElementById('view-subtitle').innerText = "Configuración global del portal";
+                    loadBranding();
+                    break;
+                    
+                case 'crm':
+                    document.getElementById('view-crm').classList.remove('hidden');
+                    document.getElementById('nav-crm').classList.add('glass-active', 'text-white');
+                    document.getElementById('view-title').innerText = "CRM & Analytics";
+                    document.getElementById('view-subtitle').innerText = "Gestión de leads y conversiones";
+                    loadCRMData();
+                    break;
+                    
+                default:
+                    // Vista de área se maneja en abrirAreaDetalle
+                    break;
             }
         }
 
-        // 3. GESTIÓN DE IDENTIDAD (BRANDING)
+        // ============================================
+        // 4. GESTIÓN DE IDENTIDAD (BRANDING)
+        // ============================================
         async function loadBranding() {
-            const { data } = await db.from('instituciones').select('*').eq('id', currentInstId).single();
-            if(!data) return;
+            try {
+                const { data } = await db
+                    .from('instituciones')
+                    .select('*')
+                    .eq('id', currentInstId)
+                    .single();
+                    
+                if(!data) return;
 
-            document.getElementById('brand-name-input').value = data.nombre;
-            document.getElementById('brand-color-input').value = data.color_primario || '#000000';
-            document.getElementById('color-hex').innerText = data.color_primario || '#000000';
-            document.getElementById('brand-slug-input').value = data.sigla || '';
-            
-            if(data.logo_url) {
-                const img = document.getElementById('preview-logo');
-                img.src = data.logo_url;
-                img.classList.remove('hidden');
+                document.getElementById('brand-name-input').value = data.nombre;
+                document.getElementById('brand-color-input').value = data.color_primario || '#000000';
+                document.getElementById('color-hex').innerText = data.color_primario || '#000000';
+                document.getElementById('brand-slug-input').value = data.sigla || '';
+                document.getElementById('brand-phone-input').value = data.telefono_contacto || '';
+                document.getElementById('brand-banner-input').value = data.banner_url || '';
+                
+                if(data.logo_url) {
+                    const img = document.getElementById('preview-logo');
+                    img.src = data.logo_url;
+                    img.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error("Error cargando branding:", error);
             }
         }
 
@@ -330,56 +618,123 @@
 
         async function subirLogo(input) {
             if(input.files.length === 0) return;
+            
             const file = input.files[0];
-            const fileName = `logo_${currentInstId}_${Date.now()}`;
+            if(file.size > 5 * 1024 * 1024) { // 5MB max
+                showToast('Archivo demasiado grande (máx 5MB)', 'error');
+                return;
+            }
             
-            const { data, error } = await db.storage.from('logos-instituciones').upload(fileName, file);
-            if(error) return alert("Error: " + error.message);
-
-            const { data: publicUrl } = db.storage.from('logos-instituciones').getPublicUrl(fileName);
-            const img = document.getElementById('preview-logo');
-            img.src = publicUrl.publicUrl;
-            img.classList.remove('hidden');
-            img.dataset.newUrl = publicUrl.publicUrl; 
-        }
-
-        async function guardarIdentidad() {
-            const nombre = document.getElementById('brand-name-input').value;
-            const color = document.getElementById('brand-color-input').value;
-            const sigla = document.getElementById('brand-slug-input').value.toLowerCase().trim();
-            const img = document.getElementById('preview-logo');
+            const fileName = `logo_${currentInstId}_${Date.now()}_${file.name}`;
+            const button = input;
             
-            const updates = { nombre, color_primario: color, sigla };
-            if(img.dataset.newUrl) updates.logo_url = img.dataset.newUrl;
-
-            const { error } = await db.from('instituciones').update(updates).eq('id', currentInstId);
-            if(error) alert("Error al guardar: " + error.message);
-            else {
-                alert("Identidad guardada. El botón 'Ver Portal' se actualizará al recargar.");
-                // Actualizar botón en caliente
-                const btnPortal = document.getElementById('btn-portal-live');
-                if(btnPortal && sigla) btnPortal.href = `../portal.html?inst=${sigla}`;
+            try {
+                const { data, error } = await db.storage
+                    .from('logos-instituciones')
+                    .upload(fileName, file);
+                    
+                if(error) throw error;
+                
+                const { data: publicUrl } = db.storage
+                    .from('logos-instituciones')
+                    .getPublicUrl(fileName);
+                    
+                const img = document.getElementById('preview-logo');
+                img.src = publicUrl.publicUrl;
+                img.classList.remove('hidden');
+                img.dataset.newUrl = publicUrl.publicUrl;
+                
+                showToast('Logo subido correctamente', 'success');
+            } catch (error) {
+                console.error("Error subiendo logo:", error);
+                showToast('Error subiendo logo: ' + error.message, 'error');
             }
         }
 
-        // 4. GESTIÓN DE ÁREAS (UNIVERSOS)
+        async function guardarIdentidad() {
+            const button = document.getElementById('btn-save-branding');
+            setLoading(button, true);
+            
+            const nombre = document.getElementById('brand-name-input').value.trim();
+            const color = document.getElementById('brand-color-input').value;
+            const sigla = document.getElementById('brand-slug-input').value.toLowerCase().trim().replace(/\s+/g, '-');
+            const telefono = document.getElementById('brand-phone-input').value.trim();
+            const banner = document.getElementById('brand-banner-input').value.trim();
+            const img = document.getElementById('preview-logo');
+            
+            if(!nombre) {
+                showToast('El nombre es requerido', 'error');
+                setLoading(button, false);
+                return;
+            }
+            
+            const updates = { 
+                nombre, 
+                color_primario: color, 
+                sigla,
+                telefono_contacto: telefono,
+                banner_url: banner
+            };
+            
+            if(img.dataset.newUrl) {
+                updates.logo_url = img.dataset.newUrl;
+            }
+            
+            const result = await safeDbOperation(
+                () => db.from('instituciones').update(updates).eq('id', currentInstId),
+                'Identidad guardada exitosamente',
+                'Error guardando identidad'
+            );
+            
+            if(result.success) {
+                // Actualizar botón portal en vivo
+                const btnPortal = document.getElementById('btn-portal-live');
+                if(btnPortal && sigla) btnPortal.href = `../portal.html?inst=${encodeURIComponent(sigla)}`;
+                
+                // Actualizar stats
+                await refreshStats();
+            }
+            
+            setLoading(button, false);
+        }
+
+        // ============================================
+        // 5. GESTIÓN DE ÁREAS (UNIVERSOS)
+        // ============================================
         async function loadAreasSidebar() {
             const list = document.getElementById('areas-list-sidebar');
-            const { data } = await db.from('areas').select('*').eq('institution_id', currentInstId).order('nombre');
-            
-            list.innerHTML = "";
-            if(!data || data.length === 0) { list.innerHTML = `<div class="px-3 text-xs text-slate-500 italic">Sin áreas definidas.</div>`; return; }
+            try {
+                const { data } = await db
+                    .from('areas')
+                    .select('*')
+                    .eq('institution_id', currentInstId)
+                    .order('orden');
+                
+                list.innerHTML = "";
+                
+                if(!data || data.length === 0) { 
+                    list.innerHTML = `<div class="px-3 text-xs text-slate-500 italic">Sin áreas definidas.</div>`; 
+                    return; 
+                }
 
-            data.forEach(area => {
-                if(area.slug === 'general') generalAreaId = area.id; // Asegurar ID general
+                data.forEach(area => {
+                    if(area.slug === 'general') generalAreaId = area.id;
 
-                const btn = document.createElement('button');
-                btn.className = "w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-400 rounded-lg hover:bg-slate-800 hover:text-white transition-all text-left group";
-                btn.id = `btn-area-${area.id}`;
-                btn.innerHTML = `<span class="w-2.5 h-2.5 rounded-full shadow-lg" style="background-color: ${area.color_tema}"></span> <span class="truncate flex-1">${area.nombre}</span>`;
-                btn.onclick = () => abrirAreaDetalle(area);
-                list.appendChild(btn);
-            });
+                    const btn = document.createElement('button');
+                    btn.className = "w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-400 rounded-lg hover:bg-slate-800 hover:text-white transition-all text-left group";
+                    btn.id = `btn-area-${area.id}`;
+                    btn.innerHTML = `
+                        <span class="w-2.5 h-2.5 rounded-full shadow-lg" style="background-color: ${area.color_tema}"></span> 
+                        <span class="truncate flex-1">${area.nombre}</span>
+                        <span class="text-[10px] text-slate-600 group-hover:text-slate-400">${area.slug}</span>
+                    `;
+                    btn.onclick = () => abrirAreaDetalle(area);
+                    list.appendChild(btn);
+                });
+            } catch (error) {
+                console.error("Error cargando áreas:", error);
+                list.innerHTML = `<div class="px-3 text-xs text-red-400">Error cargando áreas</div>`;
+            }
         }
 
         async function abrirAreaDetalle(area) {
@@ -400,139 +755,405 @@
             document.getElementById('area-dossier').value = area.dossier_txt || "";
             document.getElementById('area-prompt').value = area.prompt_especifico || "";
 
-            loadCoursesOfArea();
-            loadGeneralCourses(); // Cargar la columna derecha
+            await loadCoursesOfArea();
+            await loadGeneralCourses();
         }
 
-        // 5. GESTOR DE CURSOS (MOVIMIENTOS)
+        // ============================================
+        // 6. GESTIÓN DE CURSOS (OPTIMIZADA)
+        // ============================================
         async function loadCoursesOfArea() {
             const grid = document.getElementById('grid-area-courses');
-            grid.innerHTML = `<div class="text-xs text-slate-500">Cargando...</div>`;
+            grid.innerHTML = `<div class="col-span-2 p-6 text-center"><i data-lucide="loader-2" class="w-4 h-4 animate-spin mx-auto mb-2"></i><p class="text-xs text-slate-500">Cargando cursos...</p></div>`;
             
-            const { data } = await db.from('cursos_oficiales').select('*').eq('area_id', activeArea.id).order('nombre');
-            
-            grid.innerHTML = "";
-            document.getElementById('count-area-courses').innerText = `${data?.length || 0}`;
+            try {
+                const { data } = await db
+                    .from('cursos_oficiales')
+                    .select('*')
+                    .eq('area_id', activeArea.id)
+                    .order('nombre');
+                
+                grid.innerHTML = "";
+                document.getElementById('count-area-courses').innerText = `${data?.length || 0}`;
 
-            if(!data || data.length === 0) {
-                grid.innerHTML = `<div class="col-span-2 p-6 border border-dashed border-slate-700 rounded-xl text-center text-slate-500 text-sm">Esta área está vacía.</div>`;
-                return;
+                if(!data || data.length === 0) {
+                    grid.innerHTML = `
+                    <div class="col-span-2 p-6 border border-dashed border-slate-700 rounded-xl text-center">
+                        <i data-lucide="book-open" class="w-8 h-8 text-slate-600 mx-auto mb-2"></i>
+                        <p class="text-sm text-slate-400">Esta área está vacía</p>
+                        <p class="text-xs text-slate-500 mt-1">Arrastra cursos desde el repositorio</p>
+                    </div>`;
+                    return;
+                }
+
+                data.forEach(c => {
+                    grid.innerHTML += `
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 flex gap-3 hover:border-slate-600 transition group relative">
+                        <div class="w-12 h-12 bg-slate-950 rounded overflow-hidden shrink-0">
+                            ${c.imagen_portada_url ? 
+                                `<img src="${c.imagen_portada_url}" class="w-full h-full object-cover" alt="${c.nombre}">` : 
+                                `<div class="w-full h-full flex items-center justify-center text-slate-700 text-xs">IMG</div>`
+                            }
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="font-bold text-white text-xs truncate mb-0.5">${c.nombre}</h4>
+                            <p class="text-[10px] text-slate-500 font-mono">${c.registro_id || 'ID?'}</p>
+                        </div>
+                        <button onclick="moverACursoGeneral('${c.id}')" class="absolute top-2 right-2 text-slate-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition" title="Devolver a General">
+                            <i data-lucide="x-circle" class="w-4 h-4"></i>
+                        </button>
+                    </div>`;
+                });
+                lucide.createIcons();
+            } catch (error) {
+                console.error("Error cargando cursos:", error);
+                grid.innerHTML = `<div class="col-span-2 p-6 text-center text-red-400 text-sm">Error cargando cursos</div>`;
             }
-
-            data.forEach(c => {
-                grid.innerHTML += `
-                <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 flex gap-3 hover:border-slate-600 transition group relative">
-                    <div class="w-12 h-12 bg-slate-950 rounded overflow-hidden shrink-0">
-                        ${c.imagen_portada_url ? `<img src="${c.imagen_portada_url}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-slate-700 text-xs">IMG</div>`}
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <h4 class="font-bold text-white text-xs truncate mb-0.5">${c.nombre}</h4>
-                        <p class="text-[10px] text-slate-500 font-mono">${c.registro_id || 'ID?'}</p>
-                    </div>
-                    <button onclick="moverACursoGeneral('${c.id}')" class="absolute top-2 right-2 text-slate-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition" title="Devolver a General"><i data-lucide="x-circle" class="w-4 h-4"></i></button>
-                </div>`;
-            });
-            lucide.createIcons();
         }
 
         async function loadGeneralCourses() {
             const list = document.getElementById('grid-unassigned');
-            list.innerHTML = `<div class="text-xs text-slate-500">Buscando...</div>`;
-
+            
             if (activeArea.slug === 'general') {
                 list.innerHTML = `<div class="text-center py-8 text-slate-600 text-xs italic">Estás en la carpeta General.<br>Crea otra área para organizar.</div>`;
                 return;
             }
 
-            // Buscar cursos en GENERAL o NULOS
-            let query = db.from('cursos_oficiales').select('*').eq('institution_id', currentInstId);
-            
-            if (generalAreaId) {
-                query = query.or(`area_id.eq.${generalAreaId},area_id.is.null`);
-            } else {
-                query = query.is('area_id', null);
-            }
-            
-            const { data } = await query.order('nombre');
+            list.innerHTML = `<div class="text-center py-4"><i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i></div>`;
 
-            list.innerHTML = "";
-            if(!data || data.length === 0) {
-                list.innerHTML = `<div class="text-center py-8 text-slate-600 text-xs italic">No hay cursos pendientes.</div>`;
-                return;
-            }
+            try {
+                let query = db.from('cursos_oficiales').select('*').eq('institution_id', currentInstId);
+                
+                if (generalAreaId) {
+                    query = query.or(`area_id.eq.${generalAreaId},area_id.is.null`);
+                } else {
+                    query = query.is('area_id', null);
+                }
+                
+                const { data } = await query.order('nombre');
 
-            data.forEach(c => {
-                const div = document.createElement('div');
-                div.className = "p-2 bg-slate-800/50 rounded-lg border border-slate-700 hover:bg-indigo-900/20 hover:border-indigo-500/50 cursor-pointer transition flex items-center justify-between group mb-2";
-                div.onclick = () => traerCursoAqui(c.id);
-                div.innerHTML = `
-                    <span class="text-xs text-slate-300 font-medium truncate pr-2 flex-1" title="${c.nombre}">${c.nombre}</span>
-                    <i data-lucide="arrow-left-circle" class="w-4 h-4 text-indigo-500 opacity-0 group-hover:opacity-100 transition"></i>
-                `;
-                list.appendChild(div);
-            });
-            lucide.createIcons();
+                list.innerHTML = "";
+                
+                if(!data || data.length === 0) {
+                    list.innerHTML = `<div class="text-center py-8 text-slate-600 text-xs italic">No hay cursos pendientes.</div>`;
+                    return;
+                }
+
+                data.forEach(c => {
+                    const div = document.createElement('div');
+                    div.className = "p-2 bg-slate-800/50 rounded-lg border border-slate-700 hover:bg-indigo-900/20 hover:border-indigo-500/50 cursor-pointer transition flex items-center justify-between group mb-2";
+                    div.onclick = () => traerCursoAqui(c.id);
+                    div.innerHTML = `
+                        <span class="text-xs text-slate-300 font-medium truncate pr-2 flex-1" title="${c.nombre}">${c.nombre}</span>
+                        <i data-lucide="arrow-left-circle" class="w-4 h-4 text-indigo-500 opacity-0 group-hover:opacity-100 transition"></i>
+                    `;
+                    list.appendChild(div);
+                });
+                lucide.createIcons();
+            } catch (error) {
+                console.error("Error cargando cursos generales:", error);
+                list.innerHTML = `<div class="text-center py-8 text-red-400 text-xs">Error cargando cursos</div>`;
+            }
         }
 
         async function traerCursoAqui(cursoId) {
-            const { error } = await db.from('cursos_oficiales').update({ area_id: activeArea.id }).eq('id', cursoId);
-            if(error) alert("Error: " + error.message);
-            else { loadCoursesOfArea(); loadGeneralCourses(); }
+            const result = await safeDbOperation(
+                () => db.from('cursos_oficiales').update({ area_id: activeArea.id }).eq('id', cursoId),
+                'Curso movido al área actual',
+                'Error moviendo curso'
+            );
+            
+            if(result.success) {
+                await loadCoursesOfArea();
+                await loadGeneralCourses();
+            }
         }
 
         async function moverACursoGeneral(cursoId) {
-            if(!generalAreaId) return alert("No encuentro la carpeta General para devolverlo.");
-            const { error } = await db.from('cursos_oficiales').update({ area_id: generalAreaId }).eq('id', cursoId);
-            if(error) alert("Error: " + error.message);
-            else { loadCoursesOfArea(); loadGeneralCourses(); }
+            if(!generalAreaId) {
+                showToast('No se encontró área General', 'error');
+                return;
+            }
+            
+            const result = await safeDbOperation(
+                () => db.from('cursos_oficiales').update({ area_id: generalAreaId }).eq('id', cursoId),
+                'Curso devuelto al repositorio',
+                'Error devolviendo curso'
+            );
+            
+            if(result.success) {
+                await loadCoursesOfArea();
+                await loadGeneralCourses();
+            }
         }
 
         async function guardarCerebroIA() {
+            const button = document.getElementById('btn-save-ia');
+            setLoading(button, true);
+            
             const dossier = document.getElementById('area-dossier').value;
             const prompt = document.getElementById('area-prompt').value;
-            const { error } = await db.from('areas').update({ dossier_txt: dossier, prompt_especifico: prompt }).eq('id', activeArea.id);
-            if(error) alert("Error guardando IA");
-            else alert("¡Cerebro actualizado!");
+            
+            const result = await safeDbOperation(
+                () => db.from('areas').update({ dossier_txt: dossier, prompt_especifico: prompt }).eq('id', activeArea.id),
+                'Configuración IA guardada',
+                'Error guardando configuración IA'
+            );
+            
+            setLoading(button, false);
         }
 
-        // 6. CREAR ÁREA MODAL
-        function abrirModalArea() { document.getElementById('modal-area').classList.remove('hidden'); }
+        // ============================================
+        // 7. MODAL CREAR ÁREA (MEJORADO)
+        // ============================================
+        function abrirModalArea() { 
+            document.getElementById('modal-area').classList.remove('hidden');
+            document.getElementById('form-area').reset();
+        }
         
         document.getElementById('form-area').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const button = document.getElementById('btn-create-area');
+            setLoading(button, true);
+            
             const f = new FormData(e.target);
-            const { error } = await db.from('areas').insert({
-                nombre: f.get('nombre'),
-                slug: f.get('slug').toLowerCase().replace(/\s+/g, '-'),
-                color_tema: f.get('color'),
-                institution_id: currentInstId
-            });
-            if(error) alert(error.message);
-            else {
+            const nombre = f.get('nombre').trim();
+            const slug = f.get('slug').toLowerCase().trim().replace(/\s+/g, '-');
+            const color = f.get('color');
+            
+            if(!nombre || !slug) {
+                showToast('Nombre y slug son requeridos', 'error');
+                setLoading(button, false);
+                return;
+            }
+            
+            // Validar slug único
+            try {
+                const { data: existing } = await db
+                    .from('areas')
+                    .select('id')
+                    .eq('slug', slug)
+                    .eq('institution_id', currentInstId)
+                    .single();
+                    
+                if(existing) {
+                    showToast('El slug ya existe, usa otro', 'error');
+                    setLoading(button, false);
+                    return;
+                }
+            } catch (error) {
+                // No existe, continuar
+            }
+            
+            const result = await safeDbOperation(
+                () => db.from('areas').insert({
+                    nombre: nombre,
+                    slug: slug,
+                    color_tema: color,
+                    institution_id: currentInstId,
+                    orden: 999 // Al final por defecto
+                }),
+                `Área "${nombre}" creada`,
+                'Error creando área'
+            );
+            
+            if(result.success) {
                 document.getElementById('modal-area').classList.add('hidden');
                 e.target.reset();
-                loadAreasSidebar();
+                await loadAreasSidebar();
             }
+            
+            setLoading(button, false);
         });
-        
-        // 7. EDICIÓN DE ÁREA
+
+        // ============================================
+        // 8. EDICIÓN Y ELIMINACIÓN DE ÁREAS
+        // ============================================
         async function editarAreaActual() {
             const nuevoNombre = prompt("Nuevo nombre para el área:", activeArea.nombre);
-            if(nuevoNombre) {
-                await db.from('areas').update({ nombre: nuevoNombre }).eq('id', activeArea.id);
-                location.reload(); 
+            if(!nuevoNombre || nuevoNombre.trim() === '') return;
+            
+            const result = await safeDbOperation(
+                () => db.from('areas').update({ nombre: nuevoNombre.trim() }).eq('id', activeArea.id),
+                'Área renombrada',
+                'Error renombrando área'
+            );
+            
+            if(result.success) {
+                await loadAreasSidebar();
+                activeArea.nombre = nuevoNombre.trim();
+                document.getElementById('area-title').innerText = nuevoNombre.trim();
             }
         }
         
         async function eliminarAreaActual() {
-            if(confirm("¿Seguro? Los cursos volverán a la carpeta General.")) {
-                if(generalAreaId) {
-                    await db.from('cursos_oficiales').update({ area_id: generalAreaId }).eq('area_id', activeArea.id);
-                }
-                await db.from('areas').delete().eq('id', activeArea.id);
-                location.reload();
+            if(!confirm(`¿Seguro de eliminar el área "${activeArea.nombre}"? Los cursos volverán a la carpeta General.`)) {
+                return;
+            }
+            
+            if(!generalAreaId) {
+                showToast('No se puede eliminar: área General no encontrada', 'error');
+                return;
+            }
+            
+            // Mover cursos a general primero
+            const moveResult = await safeDbOperation(
+                () => db.from('cursos_oficiales').update({ area_id: generalAreaId }).eq('area_id', activeArea.id),
+                null,
+                'Error moviendo cursos'
+            );
+            
+            if(!moveResult.success) return;
+            
+            // Eliminar área
+            const deleteResult = await safeDbOperation(
+                () => db.from('areas').delete().eq('id', activeArea.id),
+                'Área eliminada',
+                'Error eliminando área'
+            );
+            
+            if(deleteResult.success) {
+                switchView('branding');
+                await loadAreasSidebar();
             }
         }
+
+        // ============================================
+        // 9. CRM & ANALYTICS
+        // ============================================
+        async function loadCRMData() {
+            await refreshStats();
+            await loadRecentLeads();
+        }
+
+        async function refreshStats() {
+            try {
+                // Leads totales
+                const { count: totalLeads } = await db
+                    .from('leads')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('institution_id', currentInstId);
+                
+                // Leads hoy
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const { count: newToday } = await db
+                    .from('leads')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('institution_id', currentInstId)
+                    .gte('created_at', today.toISOString());
+                
+                // Conversiones
+                const { count: conversions } = await db
+                    .from('conversiones')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('institution_id', currentInstId)
+                    .eq('estado', 'confirmada');
+                
+                // Conversiones activas (últimas 24h)
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                const { count: activeChats } = await db
+                    .from('interacciones_chat')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('institution_id', currentInstId)
+                    .gte('timestamp', yesterday.toISOString());
+                
+                // Actualizar UI
+                document.getElementById('stats-leads-today').innerText = newToday || '0';
+                document.getElementById('stats-active-chats').innerText = activeChats || '0';
+                document.getElementById('crm-total-leads').innerText = totalLeads || '0';
+                document.getElementById('crm-new-today').innerText = newToday || '0';
+                document.getElementById('crm-active-chats').innerText = activeChats || '0';
+                
+                // Calcular tasa de conversión
+                const conversionRate = totalLeads > 0 ? Math.round((conversions / totalLeads) * 100) : 0;
+                document.getElementById('crm-conversion-rate').innerText = `${conversionRate}%`;
+                
+            } catch (error) {
+                console.error("Error actualizando stats:", error);
+            }
+        }
+
+        async function loadRecentLeads() {
+            const tbody = document.getElementById('crm-leads-body');
+            tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center"><i data-lucide="loader-2" class="w-4 h-4 animate-spin mx-auto"></i></td></tr>`;
+            
+            try {
+                const { data: leads } = await db
+                    .from('leads')
+                    .select('*')
+                    .eq('institution_id', currentInstId)
+                    .order('created_at', { ascending: false })
+                    .limit(10);
+                
+                tbody.innerHTML = '';
+                
+                if(!leads || leads.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">No hay leads todavía</td></tr>`;
+                    return;
+                }
+                
+                leads.forEach(lead => {
+                    const statusColors = {
+                        'nuevo': 'bg-blue-900/30 text-blue-400',
+                        'contactado': 'bg-yellow-900/30 text-yellow-400',
+                        'calificado': 'bg-green-900/30 text-green-400',
+                        'inscrito': 'bg-purple-900/30 text-purple-400',
+                        'perdido': 'bg-red-900/30 text-red-400'
+                    };
+                    
+                    const row = document.createElement('tr');
+                    row.className = 'border-b border-slate-800 hover:bg-slate-800/50';
+                    row.innerHTML = `
+                        <td class="p-3">
+                            <div class="font-medium text-slate-300 text-xs">${lead.email}</div>
+                            <div class="text-[10px] text-slate-500">${lead.nombre || 'Sin nombre'}</div>
+                        </td>
+                        <td class="p-3 text-xs text-slate-300">${lead.curso_interes || 'General'}</td>
+                        <td class="p-3">
+                            <span class="text-xs px-2 py-1 rounded ${statusColors[lead.status] || 'bg-slate-800 text-slate-300'}">
+                                ${lead.status}
+                            </span>
+                        </td>
+                        <td class="p-3 text-xs text-slate-400">${new Date(lead.created_at).toLocaleDateString('es-ES')}</td>
+                        <td class="p-3">
+                            <button onclick="verLead('${lead.id}')" class="text-slate-400 hover:text-white p-1">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                
+                lucide.createIcons();
+            } catch (error) {
+                console.error("Error cargando leads:", error);
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-400">Error cargando leads</td></tr>`;
+            }
+        }
+
+        function verLead(leadId) {
+            window.open(`../dashboard.html?lead=${leadId}`, '_blank');
+        }
+
+        // ============================================
+        // 10. AUTO-REFRESH DE ESTADÍSTICAS
+        // ============================================
+        function startStatsRefresh() {
+            // Actualizar cada 30 segundos si estamos en vista CRM
+            statsRefreshInterval = setInterval(async () => {
+                const activeView = document.querySelector('#main-content > div:not(.hidden)').id;
+                if(activeView === 'view-crm') {
+                    await refreshStats();
+                }
+            }, 30000);
+        }
+
+        // Limpiar intervalo al salir
+        window.addEventListener('beforeunload', () => {
+            if(statsRefreshInterval) clearInterval(statsRefreshInterval);
+        });
 
     </script>
 </body>
