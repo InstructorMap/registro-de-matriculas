@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     
     <style>
-        /* BASE & TEMA DINÁMICO */
+        /* CONFIGURACIÓN BASE - MODO CLARO & AZULES */
         :root {
             --primary-color: #4f46e5;
             --text-heading: #1e1b4b; 
@@ -180,11 +180,12 @@
             }
 
             const { data } = await query.limit(1).maybeSingle();
-            institutionData = data || null;
 
-            if (!institutionData) {
+            if (!data) {
                  const { data: fallback } = await db.from('instituciones').select('*').eq('activo', true).limit(1).single();
                  institutionData = fallback;
+            } else {
+                institutionData = data;
             }
 
             if(institutionData) {
@@ -295,7 +296,7 @@
             <div class="flex gap-3">
                 <div class="w-8 h-8 rounded-full border border-slate-200 p-1 bg-white shrink-0"><img src="${owl}" class="w-full h-full object-contain"></div>
                 <div class="bg-white border border-slate-100 p-3 rounded-2xl rounded-tl-none shadow-sm text-slate-600 text-sm">
-                    Hola 👋 Bienvenido a <b>${institutionData.nombre}</b>. ¿Buscas algún curso en especial?
+                    Hola 👋 Bienvenido a <b>${institutionData.nombre}</b>. ¿En qué curso estás interesado?
                 </div>
             </div>`;
         }
@@ -315,7 +316,7 @@
             }
         }
 
-        // --- SOLUCIÓN DEL ERROR "CANNOT READ PROPERTIES OF NULL" ---
+        // --- SISTEMA HÍBRIDO DE INTELIGENCIA ---
         async function enviarMensaje(e) {
             e.preventDefault();
             const input = document.getElementById('chat-input');
@@ -324,52 +325,59 @@
 
             addBubble(text, 'user');
             input.value = "";
-            
-            // Guardamos el ID de la burbuja "Escribiendo..." para borrarla luego
             const loadId = addBubble("...", 'bot');
 
             try {
-                // Paso 1: Intentar obtener la Key
+                // 1. Obtener Key
                 const { data: secret, error } = await db.from('app_secrets').select('value').eq('name', 'gemini_api_key').single();
-                
-                // Si hay error en la DB o no hay key, saltar al catch
                 if(error || !secret) throw new Error("Offline Mode");
 
-                // Paso 2: Conectar a Gemini
-                const prompt = `ERES UN ASESOR DE VENTAS DE: ${institutionData.nombre}.
+                const systemPrompt = `ERES UN ASESOR DE VENTAS DE: ${institutionData.nombre}.
                 CATÁLOGO: ${catalogContext}.
                 USUARIO: "${text}".
                 OBJETIVO: Vender. Sé breve, usa emojis y dirige al WhatsApp para cerrar.`;
 
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${secret.value}`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-                });
+                // 2. Lógica Híbrida: Probar modelos en orden de "Mejor" a "Más Estable"
+                // gemini-2.0-flash (Nuevo/Potente) -> Si falla -> gemini-1.5-flash (Estable)
+                const models = ['gemini-2.0-flash', 'gemini-1.5-flash'];
+                let reply = null;
 
-                const json = await res.json();
-                
-                // Si Gemini devuelve error
-                if (json.error) throw new Error(json.error.message);
+                for (const model of models) {
+                    try {
+                        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${secret.value}`, {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({ contents: [{ parts: [{ text: systemPrompt }] }] })
+                        });
+                        
+                        // Si da error 429 o similar, saltará al catch
+                        if (!res.ok) throw new Error(`Model ${model} failed: ${res.status}`);
+                        
+                        const json = await res.json();
+                        reply = json.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (reply) break; // Si tuvimos éxito, salimos del bucle
 
-                const reply = json.candidates?.[0]?.content?.parts?.[0]?.text || "No entendí.";
-                
-                // Borrar loading
+                    } catch (modelError) {
+                        console.warn(`Intento fallido con ${model}:`, modelError);
+                        // Continúa con el siguiente modelo del array
+                    }
+                }
+
+                if (!reply) throw new Error("Todos los modelos fallaron");
+
                 removeLoader(loadId);
                 addBubble(marked.parse(reply), 'bot');
                 botonWpp(text);
 
             } catch (err) {
-                // FALLBACK ROBUSTO: Si algo falla, borrar loading y pasar a modo WPP
-                console.warn("IA Error:", err);
+                // FALLBACK FINAL (Modo WhatsApp Directo)
+                console.error("Fallo Total IA:", err);
                 removeLoader(loadId);
-                
                 addBubble(`¡Excelente interés! Para darte detalles precisos sobre precios y fechas de "${text}", escríbenos.`, 'bot');
                 botonWpp(text);
             }
         }
 
-        // Función segura para borrar el loader sin que explote
         function removeLoader(id) {
             const el = document.getElementById(id);
             if (el) el.remove();
@@ -386,7 +394,7 @@
         function addBubble(html, type) {
             const c = document.getElementById('chat-messages');
             const owl = "https://cdn-icons-png.flaticon.com/512/3468/3468306.png";
-            const id = 'msg-' + Date.now() + Math.random(); // ID Único
+            const id = 'msg-' + Date.now() + Math.random(); 
 
             const content = type === 'user' 
                 ? `<div class="flex gap-2 flex-row-reverse w-full"><div class="bg-indigo-600 text-white px-4 py-2 rounded-2xl rounded-tr-none max-w-[85%] shadow-sm">${html}</div></div>`
