@@ -4,142 +4,164 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portal Académico</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     
     <style>
-        /* BASE & TEMA DINÁMICO */
+        /* CONFIGURACIÓN BASE - TONOS AZULES INSTITUCIONALES */
         :root {
-            --primary-color: #4f46e5; /* Color default (Indigo) si no hay DB */
-            --bg-base: #0f172a;       /* Slate 900 */
+            --primary-color: #4f46e5;
+            --text-heading: #1e1b4b; /* Indigo 950 (Azul muy oscuro) */
+            --text-body: #475569;    /* Slate 600 (Gris azulado) */
+            --bg-page: #f8fafc;      /* Slate 50 (Blanco azulado muy suave) */
         }
 
         body { 
             font-family: 'Inter', sans-serif; 
-            background-color: var(--bg-base); 
-            color: white; 
-            /* Transición suave para el efecto Camaleón */
-            transition: background 0.8s ease, color 0.5s ease;
+            background-color: var(--bg-page); 
+            color: var(--text-body);
+            transition: all 0.5s ease;
         }
-        
-        /* Efecto Ruido para textura profesional */
-        .bg-noise { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            z-index: -1; opacity: 0.04; pointer-events: none; 
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); 
+
+        h1, h2, h3, h4, h5, h6 { color: var(--text-heading); }
+
+        /* NAVBAR & BANNER */
+        .nav-banner-bg {
+            position: absolute; inset: 0; z-index: 0;
+            background-size: cover; background-position: center;
+            opacity: 0; transition: opacity 0.5s ease;
         }
-        
-        /* Animaciones */
+        .nav-overlay {
+            position: absolute; inset: 0; z-index: 1;
+            background: rgba(255, 255, 255, 0.95); /* Blanco translúcido por defecto */
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        /* ANIMACIONES */
         .fade-in-up { animation: fadeInUp 0.6s ease-out forwards; opacity: 0; transform: translateY(20px); }
         @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
         
         .hover-lift { transition: transform 0.2s, box-shadow 0.2s; }
-        .hover-lift:hover { transform: translateY(-5px); box-shadow: 0 10px 30px -10px rgba(0,0,0,0.3); }
-        
-        /* Widget Chat */
-        .chat-widget { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .hover-lift:hover { transform: translateY(-5px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
+
+        /* CHATBOT */
+        .chat-widget { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.2); }
         .chat-open { width: 350px; height: 500px; border-radius: 16px; }
         .chat-closed { width: 60px; height: 60px; border-radius: 50%; overflow: hidden; cursor: pointer; }
-        
-        /* Scrollbars */
+
+        /* SCROLLBAR */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
-    <div class="bg-noise"></div>
 
-    <nav id="navbar" class="fixed w-full z-50 transition-all duration-500 bg-slate-900/80 backdrop-blur-md border-b border-white/5">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-20">
-                <div class="flex items-center gap-4">
-                    <div id="logo-wrapper" style="display: none; background: rgba(255,255,255,0.95); padding: 5px 8px; border-radius: 8px; box-shadow: 0 0 15px rgba(255,255,255,0.1); align-items: center; justify-content: center;">
-                        <img id="logo-inst" src="" class="h-10 w-auto object-contain">
-                    </div>
-                    <span id="nombre-inst" class="font-black text-xl tracking-tight text-white hidden md:block">Cargando...</span>
+    <nav id="navbar" class="fixed w-full z-50 transition-all duration-300 h-24">
+        <div id="navbar-banner" class="nav-banner-bg"></div>
+        <div id="navbar-overlay" class="nav-overlay"></div>
+        
+        <div class="relative z-10 max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div id="logo-container" style="display: none; background: white; padding: 6px 12px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); height: 50px; align-items: center;">
+                    <img id="logo-inst" src="" class="h-full w-auto object-contain">
                 </div>
-                
-                <div class="hidden md:flex items-center space-x-8">
-                    <a href="#inicio" class="text-sm font-medium text-slate-300 hover:text-white transition">Inicio</a>
-                    <a href="#areas" class="text-sm font-medium text-slate-300 hover:text-white transition">Cursos</a>
-                    <a id="btn-campus" href="student/index.html" class="text-sm font-bold text-white bg-indigo-600 px-6 py-2.5 rounded-full hover:brightness-110 transition shadow-lg">
-                        Campus Alumnos
-                    </a>
-                </div>
+                <span id="nombre-inst" class="font-black text-xl tracking-tight hidden md:block" style="color: var(--text-heading)">Cargando...</span>
+            </div>
+            
+            <div class="hidden md:flex items-center space-x-6">
+                <a href="#inicio" class="text-sm font-semibold hover:text-indigo-600 transition">Inicio</a>
+                <a href="#areas" class="text-sm font-semibold hover:text-indigo-600 transition">Oferta Académica</a>
+                <a id="btn-campus" href="student/index.html" class="text-sm font-bold text-white bg-slate-900 px-6 py-2.5 rounded-full hover:shadow-lg transition transform hover:-translate-y-0.5">
+                    Campus Alumnos
+                </a>
             </div>
         </div>
     </nav>
 
-    <header id="inicio" class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
-        <div class="max-w-7xl mx-auto px-4 relative z-10 text-center">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-slate-300 text-xs font-bold mb-6 fade-in-up" style="animation-delay: 0.1s">
-                <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> Inscripciones Abiertas
+    <header id="inicio" class="relative pt-40 pb-20 lg:pt-52 lg:pb-32 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 text-center relative z-10">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-blue-800 text-xs font-bold mb-8 fade-in-up">
+                <span class="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span> Admisiones Abiertas 2026
             </div>
-            <h1 class="text-5xl md:text-7xl font-black tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400 fade-in-up" style="animation-delay: 0.2s">
+            
+            <h1 class="text-5xl md:text-7xl font-black tracking-tight mb-6 fade-in-up" style="animation-delay: 0.1s; color: var(--text-heading);">
                 Tu futuro profesional <br>
-                <span id="hero-highlight" class="text-indigo-500">comienza aquí.</span>
+                <span id="hero-highlight" class="text-indigo-600 relative inline-block">
+                    comienza aquí
+                    <svg class="absolute w-full h-3 -bottom-1 left-0 text-indigo-200 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M0 5 Q 50 10 100 5" stroke="currentColor" stroke-width="8" fill="none" /></svg>
+                </span>
             </h1>
-            <p class="mt-4 max-w-2xl mx-auto text-xl text-slate-400 fade-in-up" style="animation-delay: 0.3s">
-                Formación de excelencia con certificación oficial y tecnología educativa de vanguardia.
+            
+            <p class="mt-6 max-w-2xl mx-auto text-lg md:text-xl fade-in-up" style="animation-delay: 0.2s; color: var(--text-body);">
+                Plataforma educativa de vanguardia con certificación oficial. Accede a cursos, seminarios y especializaciones desde cualquier lugar.
             </p>
+        </div>
+        
+        <div class="absolute top-0 left-0 w-full h-full -z-10 overflow-hidden opacity-40">
+            <div class="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-indigo-100 blur-3xl"></div>
+            <div class="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] rounded-full bg-blue-50 blur-3xl"></div>
         </div>
     </header>
 
-    <section id="seminarios" class="py-10 bg-slate-800/30 border-y border-white/5 hidden">
+    <section id="seminarios" class="py-16 border-t border-slate-100 hidden bg-white">
         <div class="max-w-7xl mx-auto px-4">
-            <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-                <i data-lucide="radio" class="text-red-500"></i> Eventos Destacados
-            </h2>
-            <div id="grid-seminarios" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            <div class="flex items-center gap-3 mb-10">
+                <div class="p-2 bg-rose-100 rounded-lg"><i data-lucide="zap" class="text-rose-600 w-6 h-6"></i></div>
+                <div>
+                    <h2 class="text-2xl font-bold">Eventos Destacados</h2>
+                    <p class="text-sm text-slate-500">Masterclasses y Seminarios en vivo</p>
+                </div>
+            </div>
+            <div id="grid-seminarios" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
         </div>
     </section>
 
-    <section id="areas" class="py-24 relative">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div id="areas-container" class="space-y-20">
+    <section id="areas" class="py-24 relative bg-slate-50/50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div id="areas-container" class="space-y-24">
                 <div class="text-center py-20">
-                    <i data-lucide="loader-2" class="w-10 h-10 animate-spin mx-auto text-slate-500 mb-4"></i>
-                    <p class="text-slate-500">Cargando oferta académica...</p>
+                    <i data-lucide="loader-2" class="w-10 h-10 animate-spin mx-auto text-indigo-600 mb-4"></i>
+                    <p class="text-slate-500 font-medium">Cargando catálogo...</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <footer class="bg-slate-950 py-12 border-t border-slate-900">
+    <footer class="bg-white border-t border-slate-200 py-12 mt-auto">
         <div class="max-w-7xl mx-auto px-4 text-center">
-            <p class="text-slate-500 text-sm">© 2026 <span id="footer-inst-name">Institución</span>.</p>
-            <p class="text-slate-600 text-xs mt-2">Powered by <span class="font-bold text-slate-500">ASARI Cloud</span></p>
+            <p class="text-slate-500 text-sm font-medium">© 2026 <span id="footer-inst-name">Institución</span>. Todos los derechos reservados.</p>
+            <div class="mt-4 flex justify-center gap-4 opacity-50 grayscale hover:grayscale-0 transition">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" class="h-4"> </div>
         </div>
     </footer>
 
-    <div id="chat-widget" class="fixed bottom-6 right-6 z-50 bg-indigo-600 shadow-2xl chat-widget chat-closed overflow-hidden flex flex-col font-sans border border-white/10">
-        <div class="h-16 bg-indigo-600 flex items-center justify-between px-4 cursor-pointer shrink-0" onclick="toggleChat()" id="chat-header-bg">
+    <div id="chat-widget" class="fixed bottom-6 right-6 z-50 bg-white shadow-2xl chat-widget chat-closed overflow-hidden flex flex-col font-sans border border-slate-200">
+        <div class="h-16 bg-slate-900 flex items-center justify-between px-4 cursor-pointer shrink-0 transition-colors" onclick="toggleChat()" id="chat-header-bg">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center border-2 border-white/20 p-1 overflow-hidden relative">
+                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center p-0.5 shadow-sm border border-slate-100 relative overflow-hidden">
                     <img src="https://cdn-icons-png.flaticon.com/512/3468/3468306.png" class="w-full h-full object-contain">
-                    <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border border-white rounded-full"></span>
+                    <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></span>
                 </div>
                 <div class="opacity-0 transition-opacity duration-200" id="chat-title-container">
                     <p class="font-bold text-white text-sm">Admisión</p>
-                    <p class="text-[10px] text-white/80">En línea</p>
+                    <p class="text-[10px] text-white/80">En línea ahora</p>
                 </div>
             </div>
             <i data-lucide="chevron-up" class="text-white w-5 h-5 transition-transform duration-300" id="chat-toggle-icon"></i>
         </div>
 
-        <div class="flex-1 bg-slate-900 flex flex-col min-h-0 relative">
-            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-3 text-sm text-slate-200">
-                </div>
-            
-            <div class="p-3 bg-slate-950 border-t border-slate-800">
-                <form id="chat-form" class="flex gap-2" onsubmit="enviarMensaje(event)">
-                    <input type="text" id="chat-input" class="flex-1 bg-slate-900 border border-slate-700 rounded-full px-4 py-2 text-sm text-white focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Consultar..." autocomplete="off">
-                    <button type="submit" class="w-9 h-9 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full flex items-center justify-center transition" id="btn-send">
+        <div class="flex-1 bg-slate-50 flex flex-col min-h-0 relative">
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 text-sm"></div>
+            <div class="p-3 bg-white border-t border-slate-100">
+                <form class="flex gap-2" onsubmit="enviarMensaje(event)">
+                    <input type="text" id="chat-input" class="flex-1 bg-slate-50 border border-slate-200 rounded-full px-4 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none transition" placeholder="Consultar..." autocomplete="off">
+                    <button type="submit" class="w-9 h-9 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full flex items-center justify-center transition shadow-md" id="btn-send">
                         <i data-lucide="send" class="w-4 h-4"></i>
                     </button>
                 </form>
@@ -154,20 +176,18 @@
 
         let institutionData = null;
         let chatOpen = false;
-        let catalogContext = ""; // Memoria del Bot
+        let catalogContext = ""; 
 
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
             await loadInstitution();
         });
 
-        // 1. CARGA INTELIGENTE Y CAMALEÓNICA
         async function loadInstitution() {
             const params = new URLSearchParams(window.location.search);
             const busqueda = params.get('inst');
-            
-            // Lógica de búsqueda flexible (ID o Sigla)
             let query = db.from('instituciones').select('*');
+
             if (busqueda) {
                 if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(busqueda)) {
                     query = query.eq('id', busqueda);
@@ -175,12 +195,11 @@
                     query = query.ilike('sigla', busqueda); 
                 }
             } else {
-                query = query.eq('id', '00000000-0000-0000-0000-000000000000'); // Fallback
+                query = query.eq('id', '00000000-0000-0000-0000-000000000000'); 
             }
 
             const { data } = await query.limit(1).maybeSingle();
 
-            // Si no encuentra, carga la default activa
             if (!data) {
                 const { data: fallback } = await db.from('instituciones').select('*').eq('activo', true).limit(1).single();
                 institutionData = fallback;
@@ -189,55 +208,54 @@
             }
 
             if(institutionData) {
-                aplicarIdentidadVisual();
+                aplicarEsteticaCamaleon();
                 loadContent();
-                iniciarChatBot();
+                iniciarChat();
             }
         }
 
-        // 2. APLICAR ESTÉTICA CAMALEÓNICA
-        function aplicarIdentidadVisual() {
-            // Textos
+        // --- LÓGICA DE APARIENCIA (CAMALEÓN + BANNER) ---
+        function aplicarEsteticaCamaleon() {
+            // 1. Textos
             document.getElementById('nombre-inst').innerText = institutionData.nombre;
             document.getElementById('footer-inst-name').innerText = institutionData.nombre;
             document.title = institutionData.nombre;
 
-            // LOGO (Lógica de Contraste Forzado)
+            // 2. Logo (Caja Blanca Garantizada)
             if(institutionData.logo_url) {
-                document.getElementById('logo-inst').src = institutionData.logo_url;
-                // Forzamos display flex para que aparezca la caja blanca
-                document.getElementById('logo-wrapper').style.display = 'flex'; 
+                const img = document.getElementById('logo-inst');
+                img.src = institutionData.logo_url;
+                document.getElementById('logo-container').style.display = 'flex';
             }
 
-            // COLOR INTELIGENTE (Ambient Glow)
+            // 3. Colores Institucionales
             if(institutionData.color_primario) {
                 const color = institutionData.color_primario;
                 
-                // Actualizar variables CSS (si las hubiera)
-                document.documentElement.style.setProperty('--primary-color', color);
-
-                // 1. Tinte Ambiental en el fondo (Magia Camaleónica)
-                // Crea un gradiente radial sutil desde arriba con el color de la marca
-                document.body.style.background = `radial-gradient(circle at 50% -20%, ${color}40 0%, #0f172a 60%)`;
-                
-                // 2. Bordes y Acentos
-                document.getElementById('navbar').style.borderColor = `${color}40`; // 40 = transparencia hex
+                // Botones y Acentos
+                document.getElementById('btn-campus').style.backgroundColor = color;
                 document.getElementById('hero-highlight').style.color = color;
-                
-                // 3. Botones y Chat
-                const btnCampus = document.getElementById('btn-campus');
-                if(btnCampus) {
-                    btnCampus.style.backgroundColor = color;
-                    btnCampus.style.boxShadow = `0 10px 20px -5px ${color}60`;
-                    // Link dinámico
-                    const slug = institutionData.sigla || institutionData.id;
-                    btnCampus.href = `student/index.html?inst=${slug}`; 
-                }
                 document.getElementById('chat-header-bg').style.backgroundColor = color;
+                
+                // Actualizar CSS Var para headings si es necesario
+                document.documentElement.style.setProperty('--primary-color', color);
+            }
+
+            // 4. LÓGICA DEL BANNER (Nuevo)
+            if(institutionData.banner_url) {
+                // Si hay banner, lo ponemos de fondo y hacemos el overlay blanco semitransparente
+                const banner = document.getElementById('navbar-banner');
+                banner.style.backgroundImage = `url('${institutionData.banner_url}')`;
+                banner.style.opacity = '1';
+                
+                // Overlay blanco para asegurar que el texto negro se lea (o podemos invertir colores)
+                document.getElementById('navbar-overlay').style.backgroundColor = 'rgba(255,255,255,0.9)';
+            } else {
+                // Si NO hay banner, usamos el color primario muy suave o blanco
+                document.getElementById('navbar-overlay').style.backgroundColor = 'rgba(255,255,255,0.95)';
             }
         }
 
-        // 3. CARGAR CONTENIDO (Cursos y Seminarios)
         async function loadContent() {
             // Seminarios
             const { data: sems } = await db.from('seminarios').select('*').eq('institution_id', institutionData.id).eq('activo', true);
@@ -245,110 +263,92 @@
                 document.getElementById('seminarios').classList.remove('hidden');
                 const grid = document.getElementById('grid-seminarios');
                 sems.forEach(s => {
-                    catalogContext += `Seminario: ${s.titulo} ($${s.precio}). `; // Alimentar Bot
-                    grid.innerHTML += cardSeminario(s);
+                    catalogContext += `Seminario: ${s.titulo} ($${s.precio}). `;
+                    const img = s.imagen_url || 'https://via.placeholder.com/400x225?text=Evento';
+                    grid.innerHTML += `
+                    <div class="group bg-white rounded-xl shadow-sm hover:shadow-xl transition border border-slate-100 overflow-hidden hover-lift">
+                        <div class="h-40 overflow-hidden relative">
+                            <img src="${img}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                        </div>
+                        <div class="p-5">
+                            <h3 class="font-bold text-slate-800 mb-1">${s.titulo}</h3>
+                            <p class="text-sm text-slate-500 mb-4 line-clamp-2">${s.descripcion||''}</p>
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-indigo-600">$${s.precio || 'Consultar'}</span>
+                                <button onclick="consultar('${s.titulo}')" class="text-xs font-bold bg-slate-100 px-3 py-1.5 rounded-lg hover:bg-slate-200 text-slate-700">Info</button>
+                            </div>
+                        </div>
+                    </div>`;
                 });
             }
 
-            // Cursos por Áreas
+            // Cursos
             const { data: areas } = await db.from('areas').select('*').eq('institution_id', institutionData.id).order('nombre');
-            const areasContainer = document.getElementById('areas-container');
-            areasContainer.innerHTML = ""; // Limpiar loader
+            const container = document.getElementById('areas-container');
+            container.innerHTML = "";
 
             if(areas) {
                 for (const area of areas) {
                     if(area.slug === 'general') continue;
-                    
                     const { data: cursos } = await db.from('cursos_oficiales').select('*').eq('area_id', area.id);
                     if(cursos && cursos.length > 0) {
                         let cards = "";
                         cursos.forEach(c => {
-                            catalogContext += `Curso: ${c.nombre} (Área: ${area.nombre}). `; // Alimentar Bot
-                            cards += cardCurso(c);
+                            catalogContext += `Curso: ${c.nombre} (${area.nombre}). `;
+                            const img = c.imagen_portada_url || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&q=80&w=600';
+                            cards += `
+                            <div class="group bg-white rounded-xl shadow-sm hover:shadow-xl transition border border-slate-100 overflow-hidden hover-lift">
+                                <div class="h-48 overflow-hidden relative">
+                                    <img src="${img}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                                </div>
+                                <div class="p-6">
+                                    <h4 class="font-bold text-slate-900 text-lg mb-2 leading-tight">${c.nombre}</h4>
+                                    <button onclick="consultar('${c.nombre}')" class="mt-4 w-full py-2.5 rounded-lg border border-slate-200 text-sm font-bold text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition flex items-center justify-center gap-2">
+                                        Ver Programa <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>`;
                         });
-                        areasContainer.innerHTML += blockArea(area, cards);
+                        
+                        container.innerHTML += `
+                        <div class="fade-in-up">
+                            <div class="flex items-center gap-4 mb-8">
+                                <span class="w-10 h-1 rounded-full" style="background-color: ${area.color_tema || '#4f46e5'}"></span>
+                                <h3 class="text-2xl font-bold text-slate-800">${area.nombre}</h3>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">${cards}</div>
+                        </div>`;
                     }
                 }
             }
+            lucide.createIcons();
         }
 
-        // --- TEMPLATES HTML ---
-        function cardSeminario(s) {
-            const img = s.imagen_url || 'https://via.placeholder.com/400x225?text=Evento';
-            return `
-            <div class="bg-slate-700/40 rounded-2xl overflow-hidden border border-white/5 hover:border-white/20 transition group">
-                <div class="h-40 bg-slate-800 overflow-hidden relative">
-                    <img src="${img}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition duration-500">
-                </div>
-                <div class="p-5">
-                    <h3 class="font-bold text-white mb-2 line-clamp-1">${s.titulo}</h3>
-                    <div class="flex justify-between items-center pt-2">
-                        <span class="text-indigo-400 font-bold">$${s.precio || 'GRATIS'}</span>
-                        <button onclick="consultar('${s.titulo}')" class="text-xs bg-white text-slate-900 px-3 py-1.5 rounded-lg font-bold hover:bg-slate-200">Info</button>
-                    </div>
-                </div>
-            </div>`;
-        }
-
-        function cardCurso(c) {
-            const img = c.imagen_portada_url || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&q=80&w=600';
-            return `
-            <div class="bg-slate-800/40 rounded-2xl overflow-hidden border border-white/5 hover:border-white/20 transition hover-lift group">
-                <div class="h-36 overflow-hidden relative">
-                    <img src="${img}" class="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition duration-500">
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent"></div>
-                </div>
-                <div class="p-5">
-                    <h4 class="font-bold text-white mb-3 line-clamp-2 min-h-[3rem] group-hover:text-indigo-400 transition">${c.nombre}</h4>
-                    <button onclick="consultar('${c.nombre}')" class="w-full py-2.5 rounded-lg border border-white/10 text-xs font-bold text-slate-300 hover:bg-white hover:text-slate-900 transition flex items-center justify-center gap-2">
-                        Ver Detalles <i data-lucide="arrow-right" class="w-3 h-3"></i>
-                    </button>
-                </div>
-            </div>`;
-        }
-
-        function blockArea(area, cards) {
-            return `
-            <div class="fade-in-up mb-16">
-                <div class="flex items-center gap-3 mb-6 border-l-4 pl-4" style="border-color: ${area.color_tema || '#6366f1'}">
-                    <h3 class="text-2xl font-bold text-white">${area.nombre}</h3>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${cards}</div>
-            </div>`;
-        }
-
-        // 4. CHATBOT INTELIGENTE (BÚHO DE VENTAS)
-        function iniciarChatBot() {
-            const chatMsgs = document.getElementById('chat-messages');
-            const owlImg = "https://cdn-icons-png.flaticon.com/512/3468/3468306.png";
-            
-            chatMsgs.innerHTML = `
-            <div class="flex gap-2">
-                <div class="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-indigo-200 p-1 bg-white">
-                    <img src="${owlImg}" class="w-full h-full object-contain">
-                </div>
-                <div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 text-slate-600 text-sm">
-                    Hola 👋 Bienvenido a <b>${institutionData.nombre}</b>. Soy el Asesor de Admisiones. 
-                    <br>¿Te ayudo con información de algún curso?
+        // --- CHATBOT (BÚHO FIXED) ---
+        function iniciarChat() {
+            const msgs = document.getElementById('chat-messages');
+            const owl = "https://cdn-icons-png.flaticon.com/512/3468/3468306.png";
+            msgs.innerHTML = `
+            <div class="flex gap-3">
+                <div class="w-8 h-8 rounded-full border border-slate-200 p-1 bg-white shrink-0"><img src="${owl}" class="w-full h-full object-contain"></div>
+                <div class="bg-white border border-slate-100 p-3 rounded-2xl rounded-tl-none shadow-sm text-slate-600 text-sm">
+                    Hola 👋 Bienvenido a <b>${institutionData.nombre}</b>. ¿En qué curso estás interesado?
                 </div>
             </div>`;
         }
 
         function toggleChat() {
             const w = document.getElementById('chat-widget');
-            const title = document.getElementById('chat-title-container');
-            const icon = document.getElementById('chat-toggle-icon');
             chatOpen = !chatOpen;
-
             if(chatOpen) {
                 w.classList.remove('chat-closed'); w.classList.add('chat-open');
-                title.classList.remove('opacity-0');
-                icon.style.transform = "rotate(180deg)";
+                document.getElementById('chat-title-container').classList.remove('opacity-0');
+                document.getElementById('chat-toggle-icon').style.transform = "rotate(180deg)";
                 setTimeout(() => document.getElementById('chat-input').focus(), 300);
             } else {
                 w.classList.remove('chat-open'); w.classList.add('chat-closed');
-                title.classList.add('opacity-0');
-                icon.style.transform = "rotate(0deg)";
+                document.getElementById('chat-title-container').classList.add('opacity-0');
+                document.getElementById('chat-toggle-icon').style.transform = "rotate(0deg)";
             }
         }
 
@@ -363,16 +363,13 @@
             const loadId = addBubble("...", 'bot');
 
             try {
-                // INTENTO DE CONEXIÓN A GEMINI
+                // 1. Buscamos Key
                 const { data: secret } = await db.from('app_secrets').select('value').eq('name', 'gemini_api_key').single();
-                
                 if(!secret) throw new Error("Offline");
 
-                const prompt = `ERES UN VENDEDOR DE CURSOS PARA: ${institutionData.nombre}.
-                CATÁLOGO DISPONIBLE: ${catalogContext}.
-                USUARIO DICE: "${text}".
-                OBJETIVO: Responder corto (max 40 palabras), amable y persuasivo. Invita a WhatsApp para precios exactos.`;
-
+                // 2. Prompt Venta
+                const prompt = `ERES UN VENDEDOR PARA: ${institutionData.nombre}. CATÁLOGO: ${catalogContext}. PREGUNTA: "${text}". RESPONDE CORTO, AMABLE Y PERSUASIVO.`;
+                
                 const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${secret.value}`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
@@ -384,42 +381,43 @@
                 
                 document.getElementById(loadId).remove();
                 addBubble(marked.parse(reply), 'bot');
-                botonWhatsapp(text);
+                botonWpp(text);
 
             } catch (err) {
-                // FALLBACK SI NO HAY IA: MODO DIRECTO
+                // Fallback WPP
                 document.getElementById(loadId).remove();
-                addBubble(`¡Qué buena elección! Tenemos cupos disponibles para eso.`, 'bot');
-                botonWhatsapp(text);
+                addBubble(`¡Excelente elección! Tenemos promociones disponibles para eso.`, 'bot');
+                botonWpp(text);
             }
         }
 
-        function botonWhatsapp(tema) {
+        function botonWpp(text) {
             setTimeout(() => {
-                const wppText = encodeURIComponent(`Hola, me interesa: ${tema}`);
-                addBubble(`<a href="https://wa.me/?text=${wppText}" target="_blank" class="block text-center bg-green-600 text-white py-2 rounded-lg font-bold hover:bg-green-500 transition shadow-lg flex items-center justify-center gap-2"><i data-lucide="message-circle" class="w-4 h-4"></i> Hablar con Asesor Humano</a>`, 'bot');
+                const wpp = encodeURIComponent(`Hola, info sobre: ${text}`);
+                addBubble(`<a href="https://wa.me/?text=${wpp}" target="_blank" class="block text-center bg-green-500 text-white py-2 rounded-lg font-bold hover:bg-green-600 transition shadow-sm flex items-center justify-center gap-2"><i data-lucide="message-circle" class="w-4 h-4"></i> Hablar con Asesor</a>`, 'bot');
                 lucide.createIcons();
             }, 600);
         }
 
         function addBubble(html, type) {
             const c = document.getElementById('chat-messages');
-            const owlImg = "https://cdn-icons-png.flaticon.com/512/3468/3468306.png";
+            const owl = "https://cdn-icons-png.flaticon.com/512/3468/3468306.png";
             
             const content = type === 'user' 
-                ? `<div class="flex gap-2 flex-row-reverse w-full"><div class="bg-indigo-600 text-white px-4 py-2 rounded-2xl rounded-tr-none max-w-[85%] text-sm shadow-md">${html}</div></div>`
-                : `<div class="flex gap-2 w-full"><div class="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-indigo-200 p-1 bg-white"><img src="${owlImg}" class="w-full h-full object-contain"></div><div class="bg-white text-slate-700 px-4 py-2 rounded-2xl rounded-tl-none max-w-[85%] text-sm shadow-sm prose prose-sm">${html}</div></div>`;
+                ? `<div class="flex gap-2 flex-row-reverse w-full"><div class="bg-indigo-600 text-white px-4 py-2 rounded-2xl rounded-tr-none max-w-[85%] shadow-sm">${html}</div></div>`
+                : `<div class="flex gap-3 w-full"><div class="w-8 h-8 rounded-full border border-slate-200 p-1 bg-white shrink-0"><img src="${owl}" class="w-full h-full object-contain"></div><div class="bg-white text-slate-700 border border-slate-100 px-4 py-2 rounded-2xl rounded-tl-none max-w-[85%] shadow-sm prose prose-sm">${html}</div></div>`;
 
             const div = document.createElement('div');
+            div.id = 'msg-'+Date.now();
             div.innerHTML = content;
             c.appendChild(div);
             c.scrollTop = c.scrollHeight;
-            return div.id = 'msg-'+Date.now();
+            return div.id;
         }
 
         function consultar(n) {
             if(!chatOpen) toggleChat();
-            document.getElementById('chat-input').value = "Información sobre " + n;
+            document.getElementById('chat-input').value = n;
             document.getElementById('btn-send').click();
         }
     </script>
