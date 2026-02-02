@@ -10,7 +10,7 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: white; }
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: white; transition: background-color 0.5s ease; }
         
         /* Efecto Ruido de Fondo */
         .bg-noise { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.05; pointer-events: none; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); }
@@ -39,7 +39,9 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
                 <div class="flex items-center gap-3">
-                    <img id="logo-inst" src="" class="h-10 w-auto hidden object-contain">
+                    <div id="logo-container" class="hidden rounded-lg p-1 transition-all">
+                        <img id="logo-inst" src="" class="h-10 w-auto object-contain">
+                    </div>
                     <span id="nombre-inst" class="font-black text-xl tracking-tight text-white">Cargando...</span>
                 </div>
                 <div class="hidden md:flex items-center space-x-8">
@@ -104,8 +106,8 @@
     <div id="chat-widget" class="fixed bottom-6 right-6 z-50 bg-indigo-600 shadow-2xl chat-widget chat-closed overflow-hidden flex flex-col font-sans">
         <div class="h-16 bg-indigo-600 flex items-center justify-between px-4 cursor-pointer shrink-0" onclick="toggleChat()" id="chat-header-bg">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                    <i data-lucide="bot" class="text-white w-5 h-5"></i>
+                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center overflow-hidden border-2 border-white/20">
+                    <img id="bot-avatar-img" src="" class="w-full h-full object-cover">
                 </div>
                 <div class="opacity-0 transition-opacity duration-200" id="chat-title-container">
                     <p class="font-bold text-white text-sm">Asistente de Admisión</p>
@@ -118,7 +120,9 @@
         <div class="flex-1 bg-slate-50 flex flex-col min-h-0 relative">
             <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-3 text-sm text-slate-800">
                 <div class="flex gap-2">
-                    <div class="w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center shrink-0 text-indigo-600 font-bold text-xs">IA</div>
+                    <div class="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-indigo-200">
+                        <img id="bot-avatar-msg" src="" class="w-full h-full object-cover">
+                    </div>
                     <div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 text-slate-600">
                         ¡Hola! 👋 Soy el asistente virtual. ¿En qué curso estás interesado hoy?
                     </div>
@@ -149,37 +153,28 @@
             await loadInstitution();
         });
 
-        // 1. CARGAR IDENTIDAD (VERSIÓN BLINDADA V3)
+        // 1. CARGAR IDENTIDAD (VERSIÓN BLINDADA V3 + ESTÉTICA CAMALEÓN)
         async function loadInstitution() {
             const params = new URLSearchParams(window.location.search);
-            const busqueda = params.get('inst'); // Lo que viene en el link (ej: 'ic' o 'colbert')
-
-            console.log("Buscando institución:", busqueda); 
+            const busqueda = params.get('inst'); 
 
             let query = db.from('instituciones').select('*');
 
             if (busqueda) {
-                // DETECTOR INTELIGENTE DE UUID vs TEXTO
-                // Regex para saber si es un ID tipo '123e4567-e89b-12d3-a456-426614174000'
                 const pareceID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(busqueda);
-                
                 if (pareceID) {
                     query = query.eq('id', busqueda);
                 } else {
-                    // Si es texto, buscamos en SIGLA ignorando mayúsculas
                     query = query.ilike('sigla', busqueda); 
                 }
             } else {
-                // Si no hay parámetro, forzamos un fallo controlado para ir al default
-                console.log("Sin parámetro en URL");
                 query = query.eq('id', '00000000-0000-0000-0000-000000000000'); 
             }
 
-            const { data, error } = await query.maybeSingle();
+            const { data, error } = await query.limit(1).maybeSingle();
             
             if (error) console.error("Error DB:", error.message);
 
-            // FALLBACK: Si no encuentra nada, carga la institución por defecto (ASARI/Primera activa)
             if (!data) {
                 console.warn("No se encontró institución. Cargando Default.");
                 const { data: fallback } = await db.from('instituciones').select('*').eq('activo', true).limit(1).single();
@@ -189,26 +184,34 @@
             }
 
             if(institutionData) {
-                console.log("Institución Cargada:", institutionData.nombre);
                 
-                // A. Pintar Textos y Títulos
+                // A. Textos Básicos
                 document.getElementById('nombre-inst').innerText = institutionData.nombre;
                 document.getElementById('footer-inst-name').innerText = institutionData.nombre;
                 document.title = institutionData.nombre;
 
-                // B. Pintar Logo
+                // B. Logo Inteligente (Con fondo blanco suave para contraste)
                 if(institutionData.logo_url) {
                     const img = document.getElementById('logo-inst');
+                    const cont = document.getElementById('logo-container');
+                    
                     img.src = institutionData.logo_url;
-                    img.classList.remove('hidden');
+                    cont.classList.remove('hidden');
+                    
+                    // Aplicar el "Nubecita Effect" para que resalte
+                    cont.style.backgroundColor = "rgba(255, 255, 255, 0.9)";
+                    cont.style.boxShadow = "0 4px 15px rgba(0,0,0,0.2)";
                 }
 
-                // C. Pintar Colores Personalizados
+                // C. CAMALEÓN: Adaptar Colores del Tema
                 if(institutionData.color_primario) {
                     const color = institutionData.color_primario;
                     
-                    // Elementos clave a pintar
+                    // Navbar & Fondo Global (Tintado sutil)
                     document.getElementById('navbar').style.borderColor = color;
+                    document.getElementById('navbar').style.background = `linear-gradient(to bottom, #0f172a 0%, ${color}20 100%)`; // Degradado oscuro
+                    
+                    // Detalles
                     document.getElementById('hero-highlight').style.color = color;
                     document.getElementById('chat-header-bg').style.backgroundColor = color;
                     
@@ -216,28 +219,36 @@
                     const btnCampus = document.getElementById('btn-campus');
                     if(btnCampus) {
                         btnCampus.style.backgroundColor = color;
-                        // Hover manual (simple JS para cambiar color al pasar mouse)
+                        btnCampus.style.boxShadow = `0 10px 20px -5px ${color}60`; 
                         btnCampus.onmouseover = () => btnCampus.style.opacity = "0.9";
                         btnCampus.onmouseout = () => btnCampus.style.opacity = "1";
                     }
                 }
 
-                // D. Configurar Enlace del Campus (Apunta a student/index.html)
+                // D. Bot Personalizado (Búho/Robot según Sigla)
+                // Usamos la API de DiceBear 'bottts' que genera robots lindos.
+                // Si quieres búhos específicos, podríamos usar una imagen fija, pero esto es más dinámico.
+                const seed = institutionData.sigla || 'asari';
+                const avatarUrl = `https://api.dicebear.com/7.x/bottts/svg?seed=${seed}&backgroundColor=transparent`;
+                
+                document.getElementById('bot-avatar-img').src = avatarUrl;
+                document.getElementById('bot-avatar-msg').src = avatarUrl;
+
+                // E. Configurar Enlace del Campus
                 const btnCampus = document.getElementById('btn-campus');
                 if(btnCampus) {
                     const slug = institutionData.sigla || institutionData.id;
                     btnCampus.href = `student/index.html?inst=${slug}`; 
                 }
 
-                // E. Cargar Contenidos Dinámicos
+                // F. Cargar Contenidos
                 loadSeminars(); 
                 loadAreasAndCourses();
             }
         }
 
-        // 2. CARGAR SEMINARIOS (DOBLE VÍA: WALLET + WEB)
+        // 2. CARGAR SEMINARIOS
         async function loadSeminars() {
-            // Busca seminarios activos de esta institución
             const { data: seminarios } = await db.from('seminarios')
                 .select('*')
                 .eq('institution_id', institutionData.id)
@@ -248,8 +259,8 @@
                 const section = document.getElementById('seminarios');
                 const grid = document.getElementById('grid-seminarios');
                 
-                section.classList.remove('hidden'); // Hacer visible la sección
-                document.getElementById('nav-seminarios').classList.remove('hidden'); // Botón menú
+                section.classList.remove('hidden');
+                document.getElementById('nav-seminarios').classList.remove('hidden');
 
                 seminarios.forEach(sem => {
                     const thumb = sem.id_video ? `https://img.youtube.com/vi/${sem.id_video}/hqdefault.jpg` : (sem.imagen_url || 'https://via.placeholder.com/400x225?text=Evento');
@@ -278,7 +289,6 @@
             const container = document.getElementById('areas-container');
             container.innerHTML = "";
 
-            // 1. Traer Áreas
             const { data: areas } = await db.from('areas')
                 .select('*')
                 .eq('institution_id', institutionData.id)
@@ -289,11 +299,9 @@
                 return;
             }
 
-            // 2. Iterar Áreas
             for (const area of areas) {
-                if(area.slug === 'general') continue; // Ocultar carpeta interna
+                if(area.slug === 'general') continue; 
 
-                // Traer Cursos de esta área
                 const { data: cursos } = await db.from('cursos_oficiales')
                     .select('*')
                     .eq('area_id', area.id)
@@ -319,7 +327,6 @@
                         </div>`;
                     });
 
-                    // Inyectar Bloque de Área
                     const areaBlock = `
                     <div class="fade-in-up">
                         <div class="flex items-center gap-4 mb-8">
@@ -337,7 +344,7 @@
             lucide.createIcons();
         }
 
-        // 4. CHATBOT SIMPLE
+        // 4. CHATBOT
         function toggleChat() {
             const w = document.getElementById('chat-widget');
             const title = document.getElementById('chat-title-container');
@@ -367,7 +374,6 @@
             addBubble(text, 'user');
             input.value = "";
             
-            // Simulación de respuesta inmediata
             const loadId = addBubble("...", 'bot');
             
             setTimeout(() => {
@@ -386,8 +392,14 @@
             const align = type === 'user' ? 'justify-end' : 'justify-start';
             const bg = type === 'user' ? 'bg-indigo-600 text-white' : 'bg-white border border-slate-100 text-slate-600';
             
+            // Usar Avatar Dinámico en mensajes también
+            const avatarSrc = document.getElementById('bot-avatar-img').src;
+            const avatarHtml = type === 'bot' ? 
+                `<div class="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-indigo-200"><img src="${avatarSrc}" class="w-full h-full object-cover"></div>` : '';
+
             c.innerHTML += `
-            <div class="flex ${align}" id="${id}">
+            <div class="flex gap-2 ${align}" id="${id}">
+                ${avatarHtml}
                 <div class="${bg} px-4 py-2 rounded-2xl max-w-[85%] text-sm shadow-sm ${type==='user'?'rounded-tr-none':'rounded-tl-none'}">
                     ${html}
                 </div>
@@ -399,8 +411,6 @@
         function consultarCurso(nombre) {
             if(!chatOpen) toggleChat();
             addBubble(`Hola, me interesa saber más sobre **${nombre}**.`, 'user');
-            
-            // Auto-respuesta rápida
             setTimeout(() => {
                addBubble(`¡Perfecto! **${nombre}** es una excelente opción. Haz clic abajo para hablar con un asesor humano.`, 'bot');
                const wppText = encodeURIComponent(`Hola, quiero info sobre el curso: ${nombre}`);
