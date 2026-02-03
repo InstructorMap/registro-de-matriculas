@@ -706,32 +706,50 @@
             }
         }
 
-        // Función auxiliar para generar el HTML de la tarjeta (para no repetir código)
+        // Función auxiliar para generar el HTML de la tarjeta (ACTUALIZADA)
         function crearTarjetaCurso(curso) {
             const card = document.createElement('div');
-            card.className = 'bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group border border-gray-100 card-hover';
             
-            const imgUrl = curso.imagen_url || 'https://images.unsplash.com/photo-1576091160550-217358c7db81?auto=format&fit=crop&w=800&q=80';
-            
-            const descripcion = curso.descripcion || 'Formación profesional con certificación oficial.';
-            const descripcionCorta = descripcion.length > 120 ? descripcion.substring(0, 120) + '...' : descripcion;
-            
+            // 1. Definir la URL priorizando la columna nueva 'imagen_portada_url'
+            // Si no hay foto, usa una de medicina por defecto de Unsplash.
+            const imgUrl = curso.imagen_portada_url || curso.imagen_url || 'https://images.unsplash.com/photo-1576091160550-217358c7db81?auto=format&fit=crop&w=800&q=80';
+
+            // 2. Generar el HTML de la tarjeta con el nuevo diseño
             card.innerHTML = `
-                <div class="relative h-48 overflow-hidden">
-                    <img src="${imgUrl}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="${curso.nombre}" loading="lazy">
-                    <div class="absolute top-4 right-4 badge-brand text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Inscripción Abierta</div>
-                </div>
-                <div class="p-6">
-                    <h4 class="text-xl font-bold text-gray-900 mb-3 line-clamp-2 min-h-[3.5rem]">${curso.nombre}</h4>
-                    <p class="text-gray-500 text-sm mb-4 line-clamp-3">${descripcionCorta}</p>
-                    <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-                        <span class="text-xs text-gray-400 font-semibold"><i class="far fa-clock mr-1"></i> ${curso.duracion || 'Oficial'}</span>
-                        <button onclick="abrirModalCurso('${curso.id}')" class="text-brand font-bold text-sm hover:underline flex items-center">
-                            VER DETALLE <i class="fas fa-arrow-right ml-2 group-hover:ml-3 transition-all"></i>
-                        </button>
+                <div class="group relative bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden hover:shadow-2xl hover:shadow-blue-900/20 transition-all duration-300 hover:-translate-y-1 h-full flex flex-col">
+                    
+                    <div class="h-48 overflow-hidden relative">
+                        <div class="absolute inset-0 bg-blue-900/20 group-hover:bg-transparent transition-colors z-10"></div>
+                        <img 
+                            src="${imgUrl}" 
+                            alt="${curso.nombre}" 
+                            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1576091160550-217358c7db81?auto=format&fit=crop&w=800&q=80';"
+                        >
+                        <div class="absolute top-3 right-3 z-20">
+                            <span class="bg-blue-600/90 text-white text-[10px] font-bold px-2 py-1 rounded-lg backdrop-blur-sm shadow-lg">
+                                CERTIFICADO
+                            </span>
+                        </div>
                     </div>
+
+                    <div class="p-6 flex flex-col flex-1">
+                        <h3 class="text-lg font-bold text-white mb-2 leading-tight group-hover:text-blue-400 transition-colors">${curso.nombre}</h3>
+                        <p class="text-slate-400 text-xs mb-4 line-clamp-2 flex-1">${curso.descripcion || 'Formación profesional de alto nivel.'}</p>
+                        
+                        <div class="mt-auto pt-4 border-t border-slate-800 flex justify-between items-center">
+                             <span class="text-xs text-slate-500 font-mono">${curso.duracion || 'A ritmo propio'}</span>
+                             <button onclick="abrirModalCurso('${curso.id}')" class="text-blue-400 text-xs font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                                VER PROGRAMA <i class="fas fa-arrow-right ml-1 w-3 h-3"></i>
+                             </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Enlace invisible para hacer toda la tarjeta clickeable -->
+                    <a onclick="abrirModalCurso('${curso.id}')" class="absolute inset-0 z-30 cursor-pointer"></a>
                 </div>
             `;
+            
             return card;
         }
 
