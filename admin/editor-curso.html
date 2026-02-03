@@ -22,7 +22,7 @@
 <body class="bg-slate-50 flex h-screen overflow-hidden font-sans text-slate-800">
 
     <aside class="w-20 bg-slate-900 text-white flex flex-col items-center py-6 border-r border-slate-800">
-        <div class="mb-8 p-2 bg-blue-600 rounded-lg font-bold text-xl">A</div>
+        <div id="inst-logo-mini" class="mb-8 p-2 bg-blue-600 rounded-lg font-bold text-xl">A</div>
         <nav class="flex-1 space-y-4 w-full flex flex-col items-center">
             <a href="panel.html" class="p-3 text-slate-400 hover:text-white hover:bg-white/10 rounded-xl transition-colors" title="Volver al Panel"><i data-lucide="arrow-left" class="w-6 h-6"></i></a>
             <div class="p-3 bg-blue-600/20 text-blue-300 rounded-xl"><i data-lucide="edit-3" class="w-6 h-6"></i></div>
@@ -37,8 +37,10 @@
                 <input type="text" id="course-title" class="text-xl font-black text-slate-800 ghost-input px-2 py-1 rounded w-full max-w-lg" placeholder="Nombre del curso...">
             </div>
             <div class="flex items-center gap-3">
-                <span id="save-status" class="text-xs font-bold text-slate-400 uppercase animate-pulse"></span>
-                <button onclick="guardarCambios()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg hover:shadow-green-900/20"><i data-lucide="save" class="w-4 h-4"></i> Guardar Todo</button>
+                <span id="save-status" class="text-xs font-bold text-slate-400 uppercase"></span>
+                <button onclick="guardarCambios()" id="btn-save-main" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-indigo-200">
+                    <i data-lucide="save" class="w-4 h-4"></i> Guardar Todo
+                </button>
             </div>
         </header>
 
@@ -48,35 +50,38 @@
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label class="block text-xs font-bold text-blue-600 uppercase mb-2 flex items-center gap-1"><i data-lucide="layers" class="w-3 h-3"></i> Universo / Área</label>
-                            <select id="area-select" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 font-medium text-slate-700">
-                                <option value="">Cargando áreas...</option>
+                            <label class="block text-xs font-bold text-indigo-600 uppercase mb-2 flex items-center gap-1">
+                                <i data-lucide="layers" class="w-3 h-3"></i> Área / Universo Destino
+                            </label>
+                            <select id="area-select" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-100 outline-none font-bold text-slate-700">
+                                <option value="">Cargando áreas de tu instituto...</option>
                             </select>
+                            <p class="text-[10px] text-slate-400 mt-2 italic">Esto determina en qué sección del portal aparecerá el curso.</p>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Código Interno (ID)</label>
-                            <input type="text" id="registro-id" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 font-mono text-slate-600" placeholder="Ej: FOR-2026">
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Registro ID / SKU</label>
+                            <input type="text" id="registro-id" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-100 font-mono text-slate-600" placeholder="Ej: COL-MED-01">
                         </div>
                     </div>
                 </div>
 
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-8 flex flex-col md:flex-row gap-6 items-start">
-                    <div class="w-full md:w-48 h-32 bg-slate-100 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 cursor-pointer hover:bg-slate-50 hover:border-blue-400 transition relative overflow-hidden group shrink-0">
+                    <div class="w-full md:w-48 h-32 bg-slate-100 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 cursor-pointer hover:bg-white hover:border-indigo-400 transition relative overflow-hidden group shrink-0">
                         <img id="preview-cover" class="absolute inset-0 w-full h-full object-cover hidden z-10">
                         <div class="z-0 flex flex-col items-center"><i data-lucide="image" class="w-8 h-8 mb-2"></i><span class="text-[10px] font-bold uppercase">Portada</span></div>
                         <input type="file" id="cover-upload" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer z-20" onchange="previewImage(this)">
                     </div>
                     <div class="flex-1 w-full space-y-2">
-                        <label class="block text-xs font-bold text-slate-500 uppercase">Descripción</label>
-                        <textarea id="course-desc" class="w-full text-sm p-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 resize-none h-32" placeholder="Resumen del curso..."></textarea>
+                        <label class="block text-xs font-bold text-slate-500 uppercase">Descripción para el Portal de Ventas</label>
+                        <textarea id="course-desc" class="w-full text-sm p-4 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-100 resize-none h-32" placeholder="Describe los beneficios de este curso para tus futuros alumnos..."></textarea>
                     </div>
                 </div>
 
                 <div id="modules-container" class="space-y-6"></div>
 
-                <div class="mt-8 text-center border-2 border-dashed border-slate-300 rounded-2xl p-8 hover:border-blue-400 hover:bg-blue-50 transition cursor-pointer group" onclick="agregarModulo()">
-                    <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform shadow-sm"><i data-lucide="plus" class="w-7 h-7"></i></div>
-                    <h3 class="font-bold text-slate-700">Agregar Nuevo Módulo</h3>
+                <div class="mt-8 text-center border-2 border-dashed border-slate-200 rounded-2xl p-10 hover:border-indigo-400 hover:bg-indigo-50/50 transition cursor-pointer group" onclick="agregarModulo()">
+                    <div class="w-12 h-12 bg-white text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3 border border-slate-200 shadow-sm group-hover:scale-110 transition-transform"><i data-lucide="plus" class="w-6 h-6"></i></div>
+                    <h3 class="font-bold text-slate-600">Agregar Módulo Temático</h3>
                 </div>
             </div>
         </main>
@@ -94,17 +99,11 @@
             lucide.createIcons();
             const params = new URLSearchParams(window.location.search);
             cursoId = params.get('id');
-            const preSelectedArea = params.get('area_id'); // Si venimos del panel nuevo
 
-            // 1. Obtener Institución y Cargar Áreas
-            await initData();
+            // 1. Validar Sesión e Institución (Fundamental para SaaS)
+            await checkAccess();
             
-            // 2. Pre-seleccionar área si es nuevo desde panel
-            if(!cursoId && preSelectedArea) {
-                document.getElementById('area-select').value = preSelectedArea;
-            }
-
-            // 3. Cargar curso si es edición
+            // 2. Cargar datos
             if(cursoId) {
                 document.getElementById('btn-view-aula').href = `../student/aula.html?id=${cursoId}`;
                 await cargarDatosCurso(cursoId);
@@ -113,59 +112,63 @@
             }
         });
 
-        // --- NUEVA LÓGICA DE ÁREAS ---
-        async function initData() {
-            const { data: { user } } = await db.auth.getSession();
-            if(!user) return; // O redirigir
+        async function checkAccess() {
+            const { data: { session } } = await db.auth.getSession();
+            if(!session) { window.location.href = 'index.html'; return; }
 
-            const { data: perfil } = await db.from('perfiles').select('institucion_id, rol').eq('id', user.id).single();
-            
-            // Fallback para admin si no tiene inst asignada (para que no rompa en pruebas)
-            if(perfil.rol === 'superadmin' && !perfil.institucion_id) {
-                const {data} = await db.from('instituciones').select('id').limit(1).single();
-                userInstId = data?.id;
-            } else {
-                userInstId = perfil.institucion_id;
+            // Obtener el perfil y la institución del usuario logueado
+            const { data: perfil } = await db.from('perfiles')
+                .select('institucion_id, instituciones(nombre, logo_url)')
+                .eq('id', session.user.id)
+                .single();
+
+            if(!perfil || !perfil.institucion_id) {
+                alert("No tienes una institución asignada. Contacta a ASARI.");
+                return;
             }
 
-            // Cargar combo de áreas
-            const areaSelect = document.getElementById('area-select');
-            const { data: areas } = await db.from('areas').select('id, nombre').eq('institution_id', userInstId);
+            userInstId = perfil.institucion_id;
             
-            areaSelect.innerHTML = '<option value="">-- Sin Área asignada --</option>';
+            // Branding del editor según el instituto
+            if(perfil.instituciones.logo_url) {
+                document.getElementById('inst-logo-mini').innerHTML = `<img src="${perfil.instituciones.logo_url}" class="w-full h-full object-contain">`;
+            }
+
+            // CARGAR ÁREAS (Solo las de este instituto)
+            const areaSelect = document.getElementById('area-select');
+            const { data: areas } = await db.from('areas')
+                .select('id, nombre')
+                .eq('institution_id', userInstId)
+                .order('nombre');
+            
+            areaSelect.innerHTML = '<option value="">-- Seleccionar Área --</option>';
             if(areas) {
                 areas.forEach(a => {
-                    const opt = document.createElement('option');
-                    opt.value = a.id;
-                    opt.innerText = a.nombre;
-                    areaSelect.appendChild(opt);
+                    areaSelect.innerHTML += `<option value="${a.id}">${a.nombre}</option>`;
                 });
             }
         }
 
-        // --- LÓGICA ORIGINAL DE MÓDULOS (INTACTA) ---
+        // --- MANEJO DE MÓDULOS (Optimizado) ---
         function agregarModulo(data = null) {
             const container = document.getElementById('modules-container');
             const modId = Date.now() + Math.floor(Math.random() * 1000); 
-            const titulo = data ? data.titulo : "Nuevo Módulo";
+            const titulo = data ? data.titulo : "";
             
             const html = `
-            <div id="mod-${modId}" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden module-enter relative group-mod">
-                <div class="bg-slate-50 p-4 flex items-center gap-3 border-b border-slate-100 cursor-pointer select-none" onclick="toggleModulo('content-${modId}')">
-                    <i data-lucide="grip-vertical" class="text-slate-300 cursor-move"></i>
-                    <i data-lucide="folder-open" class="text-blue-500 w-5 h-5"></i>
-                    <input type="text" value="${titulo}" class="flex-1 bg-transparent font-bold text-slate-700 text-sm focus:outline-none focus:bg-white focus:ring-2 ring-blue-100 rounded px-2 py-1 transition-all" onclick="event.stopPropagation()" placeholder="Nombre del Módulo">
-                    <button onclick="borrarElemento('mod-${modId}', event)" class="p-2 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition opacity-0 group-mod-hover:opacity-100"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                    <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform" id="chev-${modId}"></i>
+            <div id="mod-${modId}" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden module-enter group/mod">
+                <div class="bg-slate-50 p-4 flex items-center gap-3 border-b border-slate-100">
+                    <i data-lucide="folder" class="text-indigo-500 w-5 h-5"></i>
+                    <input type="text" value="${titulo}" class="flex-1 bg-transparent font-bold text-slate-800 text-sm focus:outline-none" placeholder="Título del Módulo (Ej: Introducción)">
+                    <button onclick="borrarElemento('mod-${modId}')" class="p-2 text-slate-300 hover:text-red-500 transition opacity-0 group-hover/mod:opacity-100"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                 </div>
-                <div id="content-${modId}" class="p-4 space-y-4 bg-white">
-                    <div id="lessons-${modId}" class="space-y-3 min-h-[10px]"></div>
-                    
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 pt-2 border-t border-slate-50 mt-4">
-                        <button onclick="agregarLeccion('${modId}', 'VIDEO')" class="col-span-1 flex flex-col items-center justify-center gap-1 p-3 rounded-lg border border-dashed border-slate-300 text-[10px] font-bold text-slate-500 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300 transition"><i data-lucide="video" class="w-4 h-4"></i> Video / YT</button>
-                        <button onclick="agregarLeccion('${modId}', 'PDF')" class="col-span-1 flex flex-col items-center justify-center gap-1 p-3 rounded-lg border border-dashed border-slate-300 text-[10px] font-bold text-slate-500 hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition"><i data-lucide="file-text" class="w-4 h-4"></i> PDF / Doc</button>
-                        <button onclick="agregarLeccion('${modId}', 'LIVE')" class="col-span-1 flex flex-col items-center justify-center gap-1 p-3 rounded-lg border border-dashed border-slate-300 text-[10px] font-bold text-slate-500 hover:bg-purple-50 hover:text-purple-600 hover:border-purple-300 transition"><i data-lucide="radio" class="w-4 h-4"></i> Jitsi (Móvil)</button>
-                        <button onclick="agregarLeccion('${modId}', 'ZOOM')" class="col-span-1 flex flex-col items-center justify-center gap-1 p-3 rounded-lg border border-dashed border-slate-300 text-[10px] font-bold text-slate-500 hover:bg-cyan-50 hover:text-cyan-600 hover:border-cyan-300 transition"><i data-lucide="video-off" class="w-4 h-4"></i> Zoom / Meet</button>
+                <div class="p-4 space-y-4">
+                    <div id="lessons-${modId}" class="space-y-3"></div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 pt-4 border-t border-slate-50">
+                        <button onclick="agregarLeccion('${modId}', 'VIDEO')" class="flex items-center justify-center gap-2 p-3 rounded-xl border border-slate-100 text-[10px] font-black text-slate-500 hover:bg-indigo-50 transition"><i data-lucide="play" class="w-3 h-3 text-indigo-500"></i> VIDEO</button>
+                        <button onclick="agregarLeccion('${modId}', 'PDF')" class="flex items-center justify-center gap-2 p-3 rounded-xl border border-slate-100 text-[10px] font-black text-slate-500 hover:bg-red-50 transition"><i data-lucide="file-text" class="w-3 h-3 text-red-500"></i> PDF</button>
+                        <button onclick="agregarLeccion('${modId}', 'LIVE')" class="flex items-center justify-center gap-2 p-3 rounded-xl border border-slate-100 text-[10px] font-black text-slate-500 hover:bg-purple-50 transition"><i data-lucide="radio" class="w-3 h-3 text-purple-500"></i> LIVE</button>
+                        <button onclick="agregarLeccion('${modId}', 'ZOOM')" class="flex items-center justify-center gap-2 p-3 rounded-xl border border-slate-100 text-[10px] font-black text-slate-500 hover:bg-cyan-50 transition"><i data-lucide="video" class="w-3 h-3 text-cyan-500"></i> ZOOM</button>
                     </div>
                 </div>
             </div>`;
@@ -176,118 +179,134 @@
 
         function agregarLeccion(modId, tipo, data = null) {
             const container = document.getElementById(`lessons-${modId}`);
-            const lecId = Date.now() + Math.random();
+            const lecId = 'lec-' + Date.now() + Math.random().toString(36).substr(2, 5);
             
-            let cfg = { icon:'play-circle', bg:'bg-blue-50', txt:'text-blue-500', phTit:'Título Clase', phUrl:'ID YouTube / URL Video', read:'' };
-            if(tipo === 'PDF') cfg = { icon:'file-text', bg:'bg-red-50', txt:'text-red-500', phTit:'Nombre Archivo', phUrl:'URL del PDF', read:'' };
-            if(tipo === 'LIVE') cfg = { icon:'radio', bg:'bg-purple-50', txt:'text-purple-500', phTit:'Clase Jitsi (Usa este código en la App)', phUrl:'Sala Automática', read:'readonly' };
-            if(tipo === 'ZOOM') cfg = { icon:'video-off', bg:'bg-cyan-50', txt:'text-cyan-500', phTit:'Reunión Zoom/Meet', phUrl:'Pega aquí el link de invitación', read:'' };
+            let icon = 'play-circle';
+            if(tipo === 'PDF') icon = 'file-text';
+            if(tipo === 'LIVE') icon = 'radio';
+            if(tipo === 'ZOOM') icon = 'video';
 
-            const titulo = data ? data.titulo : (tipo === 'LIVE' ? 'Clase en Vivo' : '');
-            let urlValue = data ? data.url : '';
-            if(tipo === 'LIVE' && !urlValue) urlValue = `ASARI-${Date.now()}`;
+            const titulo = data ? data.titulo : "";
+            const url = data ? data.url : "";
 
             const html = `
-            <div id="lec-${lecId}" class="flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:border-slate-300 hover:shadow-sm bg-white transition group-lec" data-type="${tipo}">
-                <div class="w-9 h-9 rounded-lg ${cfg.bg} ${cfg.txt} flex items-center justify-center shrink-0"><i data-lucide="${cfg.icon}" class="w-4 h-4"></i></div>
-                <div class="flex-1 min-w-0 grid gap-1.5">
-                    <input type="text" class="font-bold text-xs text-slate-700 bg-transparent focus:bg-slate-50 focus:outline-none rounded px-2 py-1 w-full" value="${titulo}" placeholder="${cfg.phTit}">
-                    <div class="flex items-center gap-2 px-2">
-                        <i data-lucide="link" class="w-3 h-3 text-slate-400 shrink-0"></i>
-                        <input type="text" class="text-[10px] text-slate-500 w-full bg-transparent focus:outline-none border-b border-transparent focus:border-blue-400 font-mono select-all" placeholder="${cfg.phUrl}" value="${urlValue}" ${cfg.read}>
-                    </div>
+            <div id="${lecId}" class="flex items-center gap-3 p-3 rounded-xl border border-slate-100 bg-white group/lec" data-type="${tipo}">
+                <i data-lucide="${icon}" class="w-4 h-4 text-slate-400"></i>
+                <div class="flex-1 grid gap-1">
+                    <input type="text" class="font-bold text-xs text-slate-700 outline-none" value="${titulo}" placeholder="Título de la clase">
+                    <input type="text" class="text-[10px] text-slate-400 outline-none font-mono" value="${url}" placeholder="ID Video / URL">
                 </div>
-                <button onclick="borrarElemento('lec-${lecId}')" class="p-2 text-slate-300 hover:text-red-500 rounded-lg transition opacity-0 group-lec-hover:opacity-100"><i data-lucide="x" class="w-4 h-4"></i></button>
+                <button onclick="document.getElementById('${lecId}').remove()" class="p-2 text-slate-200 hover:text-red-500 opacity-0 group-hover/lec:opacity-100"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>`;
             container.insertAdjacentHTML('beforeend', html);
             lucide.createIcons();
         }
 
-        function toggleModulo(id) { document.getElementById(id).classList.toggle('hidden'); }
-        function borrarElemento(id, e) { if(e) e.stopPropagation(); if(confirm('¿Eliminar?')) document.getElementById(id).remove(); }
+        function borrarElemento(id) { if(confirm('¿Eliminar módulo y su contenido?')) document.getElementById(id).remove(); }
+        
         function previewImage(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
-                reader.onload = e => { document.getElementById('preview-cover').src = e.target.result; document.getElementById('preview-cover').classList.remove('hidden'); };
+                reader.onload = e => { 
+                    const img = document.getElementById('preview-cover');
+                    img.src = e.target.result; 
+                    img.classList.remove('hidden'); 
+                };
                 reader.readAsDataURL(input.files[0]);
             }
         }
 
-        // --- GUARDADO CON SAAS LOGIC ---
+        // --- CARGA Y GUARDADO SINCRONIZADO ---
         async function cargarDatosCurso(id) {
-            document.getElementById('save-status').innerText = "Cargando...";
             const { data, error } = await db.from('cursos_oficiales').select('*').eq('id', id).single();
-            if(error) return alert("Error: " + error.message);
+            if(error) return;
 
             document.getElementById('course-title').value = data.nombre;
             document.getElementById('course-desc').value = data.descripcion || '';
             document.getElementById('registro-id').value = data.registro_id || '';
-            
-            // Asignar Área si existe
-            if(data.area_id) document.getElementById('area-select').value = data.area_id;
+            document.getElementById('area-select').value = data.area_id || "";
 
-            if(data.imagen_portada_url) { document.getElementById('preview-cover').src = data.imagen_portada_url; document.getElementById('preview-cover').classList.remove('hidden'); }
-            if(data.contenido) data.contenido.forEach(mod => agregarModulo(mod));
-            else agregarModulo();
-            document.getElementById('save-status').innerText = "";
+            if(data.imagen_portada_url) {
+                const img = document.getElementById('preview-cover');
+                img.src = data.imagen_portada_url;
+                img.classList.remove('hidden');
+            }
+
+            if(data.contenido) {
+                document.getElementById('modules-container').innerHTML = "";
+                data.contenido.forEach(mod => agregarModulo(mod));
+            }
         }
 
         async function guardarCambios() {
-            const btn = document.querySelector('button[onclick="guardarCambios()"]');
-            btn.innerHTML = "Guardando..."; btn.disabled = true;
-            
+            const btn = document.getElementById('btn-save-main');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Guardando...`;
+            btn.disabled = true;
+
             const nombre = document.getElementById('course-title').value;
             const descripcion = document.getElementById('course-desc').value;
             const areaId = document.getElementById('area-select').value;
             const registroId = document.getElementById('registro-id').value;
 
-            if(!nombre.trim()) { alert("Falta título"); btn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i> Guardar Todo`; btn.disabled = false; return; }
+            if(!nombre.trim()) { alert("El título es obligatorio"); btn.innerHTML = originalHTML; btn.disabled = false; return; }
 
-            // Recopilar módulos (igual que antes)
-            const modulos = [];
+            // Serializar módulos
+            const contenidoJSON = [];
             document.querySelectorAll('[id^="mod-"]').forEach(mod => {
-                const titulo = mod.querySelector('input[type="text"]').value;
+                const titulo = mod.querySelector('input').value;
                 const lecciones = [];
                 mod.querySelectorAll('[id^="lec-"]').forEach(lec => {
                     const inputs = lec.querySelectorAll('input');
-                    lecciones.push({ titulo: inputs[0].value, url: inputs[1].value, tipo: lec.getAttribute('data-type') });
+                    lecciones.push({
+                        titulo: inputs[0].value,
+                        url: inputs[1].value,
+                        tipo: lec.dataset.type
+                    });
                 });
-                modulos.push({ titulo, lecciones });
+                contenidoJSON.push({ titulo, lecciones });
             });
 
-            // Subir imagen
+            // Subir imagen si hay nueva
             let portadaUrl = null;
             const fileInput = document.getElementById('cover-upload');
             if(fileInput.files.length > 0) {
                 const file = fileInput.files[0];
-                const fileName = `cover_${Date.now()}`;
-                const { data } = await db.storage.from('plantillas-diplomas').upload(fileName, file);
-                if(data) portadaUrl = db.storage.from('plantillas-diplomas').getPublicUrl(fileName).data.publicUrl;
+                const fileName = `course_${userInstId}_${Date.now()}`;
+                const { data: uploadData } = await db.storage.from('plantillas-diplomas').upload(fileName, file);
+                if(uploadData) {
+                    portadaUrl = db.storage.from('plantillas-diplomas').getPublicUrl(fileName).data.publicUrl;
+                }
             }
 
-            // Construir Payload
-            const payload = { 
-                nombre, 
-                descripcion, 
-                contenido: modulos,
-                area_id: areaId || null, // <--- CAMBIO IMPORTANTE
-                registro_id: registroId || null
+            const payload = {
+                nombre,
+                descripcion,
+                contenido: contenidoJSON,
+                area_id: areaId || null,
+                registro_id: registroId,
+                institution_id: userInstId // <--- EL VÍNCULO VITAL
             };
+
             if(portadaUrl) payload.imagen_portada_url = portadaUrl;
 
             try {
-                if(cursoId) await db.from('cursos_oficiales').update(payload).eq('id', cursoId);
-                else {
-                    payload.institution_id = userInstId;
-                    const { data } = await db.from('cursos_oficiales').insert([payload]).select().single();
-                    cursoId = data.id;
+                if(cursoId) {
+                    await db.from('cursos_oficiales').update(payload).eq('id', cursoId);
+                } else {
+                    const { data: newCourse, error: insErr } = await db.from('cursos_oficiales').insert([payload]).select().single();
+                    if(insErr) throw insErr;
+                    cursoId = newCourse.id;
                     window.history.pushState({}, '', `?id=${cursoId}`);
-                    document.getElementById('btn-view-aula').href = `../student/aula.html?id=${cursoId}`;
                 }
-                alert("¡Guardado exitosamente!");
-            } catch(e) { alert("Error: " + e.message); }
-            
-            btn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i> Guardar Todo`; btn.disabled = false;
+                alert("¡Curso guardado y sincronizado con el portal!");
+            } catch(e) {
+                alert("Error al guardar: " + e.message);
+            } finally {
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+                lucide.createIcons();
+            }
         }
     </script>
 </body>
