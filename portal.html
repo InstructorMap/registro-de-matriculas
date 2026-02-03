@@ -618,7 +618,7 @@
         }
 
         // ============================================
-        // 3. CARGA DE CONTENIDO EN PARALELO
+        // 3. CARGA DE CONTENIDO (CORREGIDO)
         // ============================================
         async function cargarContenido(instId) {
             console.log("📦 Cargando contenido para institución:", instId);
@@ -628,7 +628,7 @@
             const noCursos = document.getElementById('no-cursos');
             
             try {
-                // Peticiones paralelas para máxima velocidad
+                // Peticiones paralelas (QUITAMOS el filtro .eq('activo', true) para que muestre todo)
                 const [areasReq, cursosReq] = await Promise.all([
                     db.from('areas')
                       .select('*')
@@ -638,11 +638,13 @@
                     db.from('cursos_oficiales')
                       .select('*')
                       .eq('institution_id', instId)
-                      .eq('activo', true)
+                      // .eq('activo', true) <--- ESTA ERA LA LÍNEA QUE OCULTABA LOS CURSOS
                 ]);
 
                 const areas = areasReq.data || [];
                 const cursos = cursosReq.data || [];
+
+                console.log(`📊 Datos recibidos: ${areas.length} áreas, ${cursos.length} cursos`);
 
                 // Ocultar loader
                 if (loader) loader.style.display = 'none';
@@ -654,138 +656,83 @@
                 }
 
                 container.innerHTML = '';
-                let totalCursos = 0;
+                let cursosRenderizados = 0;
 
-                // Renderizar por áreas
-                areas.forEach(area => {
-                    const cursosArea = cursos.filter(c => c.area_id === area.id);
-                    
-                    if (cursosArea.length > 0) {
-                        totalCursos += cursosArea.length;
+                // ESTRATEGIA 1: Renderizar por áreas (Si hay áreas definidas)
+                if (areas.length > 0) {
+                    areas.forEach(area => {
+                        const cursosArea = cursos.filter(c => c.area_id === area.id);
                         
-                        // Título del área
-                        const areaTitle = document.createElement('h3');
-                        areaTitle.className = 'text-2xl font-bold text-gray-800 mt-12 mb-6 border-l-4 border-brand pl-4 uppercase col-span-full';
-                        areaTitle.textContent = area.nombre;
-                        container.appendChild(areaTitle);
-                        
-                        // Grid de cursos del área
-                        const grid = document.createElement('div');
-                        grid.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8 col-span-full';
-                        
-                        cursosArea.forEach(curso => {
-                            const card = document.createElement('div');
-                            card.className = 'bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group border border-gray-100 card-hover';
+                        if (cursosArea.length > 0) {
+                            cursosRenderizados += cursosArea.length;
                             
-                            // Imagen del curso (placeholder si no tiene)
-                            const imgUrl = curso.imagen_url || 
-                                'https://images.unsplash.com/photo-1576091160550-217358c7db81?auto=format&fit=crop&w=800&q=80';
+                            // Título del área
+                            const areaTitle = document.createElement('h3');
+                            areaTitle.className = 'text-2xl font-bold text-gray-800 mt-12 mb-6 border-l-4 border-brand pl-4 uppercase col-span-full';
+                            areaTitle.textContent = area.nombre;
+                            container.appendChild(areaTitle);
                             
-                            // Descripción truncada
-                            const descripcion = curso.descripcion || 'Formación profesional con certificación oficial.';
-                            const descripcionCorta = descripcion.length > 120 ? 
-                                descripcion.substring(0, 120) + '...' : descripcion;
+                            // Grid de cursos del área
+                            const grid = document.createElement('div');
+                            grid.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8 col-span-full';
                             
-                            card.innerHTML = `
-                                <div class="relative h-48 overflow-hidden">
-                                    <img src="${imgUrl}" 
-                                         class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
-                                         alt="${curso.nombre}"
-                                         loading="lazy">
-                                    <div class="absolute top-4 right-4 badge-brand text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                                        Inscripción Abierta
-                                    </div>
-                                </div>
-                                <div class="p-6">
-                                    <h4 class="text-xl font-bold text-gray-900 mb-3 line-clamp-2 min-h-[3.5rem]">
-                                        ${curso.nombre}
-                                    </h4>
-                                    <p class="text-gray-500 text-sm mb-4 line-clamp-3">
-                                        ${descripcionCorta}
-                                    </p>
-                                    <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-                                        <span class="text-xs text-gray-400 font-semibold">
-                                            <i class="far fa-clock mr-1"></i> 
-                                            ${curso.duracion || 'Flexible'}
-                                        </span>
-                                        <button onclick="abrirModalCurso('${curso.id}')" 
-                                                class="text-brand font-bold text-sm hover:underline flex items-center">
-                                            VER DETALLE 
-                                            <i class="fas fa-arrow-right ml-2 group-hover:ml-3 transition-all"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            `;
+                            cursosArea.forEach(curso => {
+                                grid.appendChild(crearTarjetaCurso(curso));
+                            });
                             
-                            grid.appendChild(card);
-                        });
-                        
-                        container.appendChild(grid);
-                    }
-                });
+                            container.appendChild(grid);
+                        }
+                    });
+                }
                 
-                // Si no hubo cursos en áreas, mostrar todos juntos
-                if (totalCursos === 0 && cursos.length > 0) {
-                    totalCursos = cursos.length;
-                    
+                // ESTRATEGIA 2: Si no hay áreas o quedaron cursos sin asignar, mostrar todo junto
+                // (Esto es un respaldo por si falla la relación con áreas)
+                if (cursosRenderizados === 0 && cursos.length > 0) {
+                    console.log("⚠️ Mostrando cursos sin agrupar por áreas");
                     const grid = document.createElement('div');
-                    grid.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8';
+                    grid.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 col-span-full';
                     
                     cursos.forEach(curso => {
-                        const card = document.createElement('div');
-                        card.className = 'bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group border border-gray-100 card-hover';
-                        
-                        const imgUrl = curso.imagen_url || 
-                            'https://images.unsplash.com/photo-1576091160550-217358c7db81?auto=format&fit=crop&w=800&q=80';
-                        
-                        const descripcion = curso.descripcion || 'Formación profesional con certificación oficial.';
-                        const descripcionCorta = descripcion.length > 120 ? 
-                            descripcion.substring(0, 120) + '...' : descripcion;
-                        
-                        card.innerHTML = `
-                            <div class="relative h-48 overflow-hidden">
-                                <img src="${imgUrl}" 
-                                     class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
-                                     alt="${curso.nombre}"
-                                     loading="lazy">
-                                <div class="absolute top-4 right-4 badge-brand text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                                    Inscripción Abierta
-                                </div>
-                            </div>
-                            <div class="p-6">
-                                <h4 class="text-xl font-bold text-gray-900 mb-3 line-clamp-2 min-h-[3.5rem]">
-                                    ${curso.nombre}
-                                </h4>
-                                <p class="text-gray-500 text-sm mb-4 line-clamp-3">
-                                    ${descripcionCorta}
-                                </p>
-                                <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-                                    <span class="text-xs text-gray-400 font-semibold">
-                                        <i class="far fa-clock mr-1"></i> 
-                                        ${curso.duracion || 'Flexible'}
-                                    </span>
-                                    <button onclick="abrirModalCurso('${curso.id}')" 
-                                            class="text-brand font-bold text-sm hover:underline flex items-center">
-                                        VER DETALLE 
-                                        <i class="fas fa-arrow-right ml-2 group-hover:ml-3 transition-all"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        `;
-                        
-                        grid.appendChild(card);
+                        grid.appendChild(crearTarjetaCurso(curso));
                     });
                     
                     container.appendChild(grid);
                 }
-                
-                console.log(`✅ Carga completada: ${totalCursos} cursos`);
                 
             } catch (err) {
                 console.error("❌ Error cargando contenido:", err);
                 if (loader) loader.style.display = 'none';
                 if (noCursos) noCursos.classList.remove('hidden');
             }
+        }
+
+        // Función auxiliar para generar el HTML de la tarjeta (para no repetir código)
+        function crearTarjetaCurso(curso) {
+            const card = document.createElement('div');
+            card.className = 'bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group border border-gray-100 card-hover';
+            
+            const imgUrl = curso.imagen_url || 'https://images.unsplash.com/photo-1576091160550-217358c7db81?auto=format&fit=crop&w=800&q=80';
+            
+            const descripcion = curso.descripcion || 'Formación profesional con certificación oficial.';
+            const descripcionCorta = descripcion.length > 120 ? descripcion.substring(0, 120) + '...' : descripcion;
+            
+            card.innerHTML = `
+                <div class="relative h-48 overflow-hidden">
+                    <img src="${imgUrl}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="${curso.nombre}" loading="lazy">
+                    <div class="absolute top-4 right-4 badge-brand text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Inscripción Abierta</div>
+                </div>
+                <div class="p-6">
+                    <h4 class="text-xl font-bold text-gray-900 mb-3 line-clamp-2 min-h-[3.5rem]">${curso.nombre}</h4>
+                    <p class="text-gray-500 text-sm mb-4 line-clamp-3">${descripcionCorta}</p>
+                    <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+                        <span class="text-xs text-gray-400 font-semibold"><i class="far fa-clock mr-1"></i> ${curso.duracion || 'Oficial'}</span>
+                        <button onclick="abrirModalCurso('${curso.id}')" class="text-brand font-bold text-sm hover:underline flex items-center">
+                            VER DETALLE <i class="fas fa-arrow-right ml-2 group-hover:ml-3 transition-all"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            return card;
         }
 
         // ============================================
