@@ -205,6 +205,8 @@
         let institutionContext = "";
         let areaContext = "";
         let isChatOpen = false;
+        let userInstitutionId = null; // Nuevo: Para validación cross-institution
+        let jitsiApi = null; // Para manejar instancias Jitsi
 
         // ============================================
         // FUNCIONES DE UTILIDAD
@@ -255,7 +257,7 @@
         }
 
         // ============================================
-        // 1. INICIALIZACIÓN Y SESIÓN
+        // 1. INICIALIZACIÓN Y SESIÓN CON SEGURIDAD CROSS-INSTITUTION
         // ============================================
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
@@ -269,16 +271,21 @@
             
             currentUserId = session.user.id;
             
-            // Cargar perfil (sin .single())
+            // Cargar perfil CON institucion_id (SEGURIDAD CROSS-INSTITUTION)
             try {
                 const { data: perfilResult, error: perfilError } = await db
                     .from('perfiles')
-                    .select('nombre_completo, email')
+                    .select('nombre_completo, email, institucion_id')
                     .eq('id', currentUserId);
                     
                 if(!perfilError && perfilResult && perfilResult.length > 0) {
                     const nombre = perfilResult[0].nombre_completo || perfilResult[0].email || 'Estudiante';
                     document.getElementById('student-name').innerText = nombre;
+                    
+                    // Guardar institución del usuario para validación
+                    userInstitutionId = perfilResult[0].institucion_id;
+                } else {
+                    console.warn("Perfil no encontrado o error:", perfilError);
                 }
             } catch(error) {
                 console.warn("Error cargando perfil:", error);
@@ -364,7 +371,7 @@
         }
 
         // ============================================
-        // 3. CARGA DEL CURSO (PRINCIPAL)
+        // 3. CARGA DEL CURSO (PRINCIPAL) CON VALIDACIÓN CROSS-INSTITUTION
         // ============================================
         async function cargarCurso(id) {
             try {
@@ -385,6 +392,44 @@
                 }
                 
                 const curso = cursoResult[0];
+                
+                // ====================================================
+                // VALIDACIÓN DE SEGURIDAD CROSS-INSTITUTION (NUEVO)
+                // ====================================================
+                if (userInstitutionId && curso.institution_id) {
+                    // Verificar si el usuario pertenece a la misma institución que el curso
+                    if (userInstitutionId !== curso.institution_id) {
+                        // Opcional: Verificar si es superadmin/staff (podrías agregar un campo en perfiles)
+                        // Por ahora, bloqueamos el acceso
+                        console.error(`Acceso denegado: Usuario institución ${userInstitutionId} vs Curso institución ${curso.institution_id}`);
+                        
+                        // Mostrar alerta bloqueante
+                        document.body.innerHTML = `
+                            <div class="h-screen flex items-center justify-center bg-slate-950">
+                                <div class="text-center p-8 max-w-md">
+                                    <div class="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <i data-lucide="shield-alert" class="w-10 h-10 text-red-500"></i>
+                                    </div>
+                                    <h2 class="text-2xl font-bold text-white mb-3">Acceso Denegado</h2>
+                                    <p class="text-slate-300 mb-6">
+                                        Este curso pertenece a otra institución. No tienes permisos para acceder.
+                                    </p>
+                                    <div class="space-y-3">
+                                        <a href="index.html" class="block bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-bold transition">
+                                            Volver al Campus
+                                        </a>
+                                        <p class="text-xs text-slate-500 mt-4">
+                                            Si crees que esto es un error, contacta al administrador.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        lucide.createIcons();
+                        return;
+                    }
+                }
+                // ====================================================
                 
                 // 2. Validar contenido básico
                 if(!curso.contenido || typeof curso.contenido !== 'object') {
@@ -518,7 +563,7 @@
         }
 
         // ============================================
-        // 5. RENDERIZADO DE CLASES
+        // 5. RENDERIZADO DE CLASES CON INTEGRACIÓN JITSI
         // ============================================
         function renderizarTemario(modulos) {
             const container = document.getElementById('modules-list');
@@ -564,20 +609,24 @@
                         btn.id = `btn-lec-${idx}`;
                         const isCompleted = completedLessons.has(uniqueId);
                         
-                        btn.className = `w-full text-left px-3 py-3 rounded-lg flex items-center justify-between text-xs transition-all border border-transparent group ${isCompleted ? 'text-green-400' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`;
-                        
+                        // Icono según tipo
                         let icon = 'play-circle';
                         if(lec.tipo === 'PDF') icon = 'file-text';
                         if(lec.tipo === 'LIVE' || lec.tipo === 'ZOOM') icon = 'video';
+                        if(lec.tipo === 'LIVE') icon = 'video'; // Jitsi
 
                         const leftIcon = isCompleted ? 
                             `<i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i>` : 
                             `<i data-lucide="${icon}" class="w-4 h-4 opacity-50 group-hover:opacity-100"></i>`;
 
+                        btn.className = `w-full text-left px-3 py-3 rounded-lg flex items-center justify-between text-xs transition-all border border-transparent group ${isCompleted ? 'text-green-400' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`;
+                        
                         btn.innerHTML = `
                             <div class="flex items-center gap-3 overflow-hidden">
                                 <span class="shrink-0">${leftIcon}</span> 
                                 <span class="truncate font-medium">${lec.titulo || 'Sin título'}</span>
+                                ${lec.tipo === 'LIVE' ? '<span class="bg-red-500/20 text-red-400 text-[8px] px-1.5 py-0.5 rounded-full">EN VIVO</span>' : ''}
+                                ${lec.tipo === 'ZOOM' ? '<span class="bg-blue-500/20 text-blue-400 text-[8px] px-1.5 py-0.5 rounded-full">ZOOM</span>' : ''}
                             </div>
                         `;
                         btn.onclick = () => cargarClase(idx);
@@ -591,6 +640,12 @@
 
         function cargarClase(index) {
             if(index < 0 || index >= flatLessons.length) return;
+            
+            // Limpiar instancia Jitsi anterior si existe
+            if (jitsiApi) {
+                jitsiApi.dispose();
+                jitsiApi = null;
+            }
             
             // Remover selección previa
             document.querySelectorAll('[id^="btn-lec-"]').forEach(b => {
@@ -616,26 +671,144 @@
             placeholder.classList.add('hidden');
             container.classList.remove('hidden');
 
-            if(lec.tipo === 'VIDEO' || lec.tipo === 'LIVE' || lec.tipo === 'ZOOM') {
-                let url = lec.url || "";
-                if(url.includes('youtu') || url.includes('youtube')) {
+            // ============================================
+            // LÓGICA MEJORADA PARA DIFERENTES TIPOS DE CLASE
+            // ============================================
+
+            // 1. TIPO 'LIVE' - INTEGRACIÓN JITSI NATIVA
+            if (lec.tipo === 'LIVE') {
+                const studentName = document.getElementById('student-name').innerText || 'Estudiante';
+                const roomName = `ASARI_LIVE_${currentCourseId}_${lec.id || lec.uniqueId}`.replace(/[^a-zA-Z0-9_]/g, '_');
+                
+                container.innerHTML = `<div id="jitsi-container" class="w-full h-full bg-black"></div>`;
+                
+                // Instanciar Jitsi Meet
+                try {
+                    const domain = 'meet.jit.si';
+                    const options = {
+                        roomName: roomName,
+                        width: '100%',
+                        height: '100%',
+                        parentNode: container.querySelector('#jitsi-container'),
+                        configOverwrite: {
+                            disableInviteFunctions: true, // Deshabilitar invitar a otros
+                            startWithAudioMuted: true,
+                            startWithVideoMuted: false,
+                            prejoinPageEnabled: false
+                        },
+                        interfaceConfigOverwrite: {
+                            SHOW_JITSI_WATERMARK: false,
+                            SHOW_WATERMARK_FOR_GUESTS: false,
+                            TOOLBAR_BUTTONS: [
+                                'microphone', 'camera', 'closedcaptions', 'desktop', 'fullscreen',
+                                'fodeviceselection', 'hangup', 'profile', 'chat', 'recording',
+                                'livestreaming', 'settings', 'raisehand', 'videoquality', 'filmstrip',
+                                'invite', 'feedback', 'stats', 'shortcuts', 'tileview', 'videobackgroundblur',
+                                'download', 'help', 'mute-everyone'
+                            ],
+                        },
+                        userInfo: {
+                            displayName: studentName,
+                            email: ''
+                        }
+                    };
+
+                    jitsiApi = new JitsiMeetExternalAPI(domain, options);
+                    
+                    toast("Conectando a clase en vivo...", "info");
+                    
+                    // Manejar eventos de Jitsi
+                    jitsiApi.addEventListeners({
+                        readyToClose: () => {
+                            console.log("Jitsi cerrándose...");
+                            jitsiApi.dispose();
+                            jitsiApi = null;
+                        },
+                        participantJoined: (participant) => {
+                            console.log("Participante unido:", participant);
+                        },
+                        participantLeft: (participant) => {
+                            console.log("Participante salió:", participant);
+                        }
+                    });
+                    
+                } catch (error) {
+                    console.error("Error inicializando Jitsi:", error);
+                    container.innerHTML = `
+                        <div class="flex flex-col items-center justify-center h-full text-center p-10 bg-slate-900">
+                            <i data-lucide="alert-triangle" class="w-16 h-16 text-red-500 mb-4"></i>
+                            <h3 class="text-xl font-bold text-white mb-2">Error en clase en vivo</h3>
+                            <p class="text-slate-300 mb-4">No se pudo cargar la clase en vivo</p>
+                            <button onclick="marcarComoCompletada()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg">
+                                Continuar
+                            </button>
+                        </div>
+                    `;
+                    lucide.createIcons();
+                }
+            }
+            
+            // 2. TIPO 'ZOOM' - ENLACE EXTERNO CON BOTÓN ELEGANTE
+            else if (lec.tipo === 'ZOOM') {
+                const zoomLink = lec.url || '#';
+                
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full text-center p-10 bg-gradient-to-br from-blue-900/30 to-slate-900">
+                        <div class="w-24 h-24 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i data-lucide="video" class="w-12 h-12 text-blue-400"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-3">Reunión de Zoom</h3>
+                        <p class="text-slate-300 mb-6 max-w-md">Clase en vivo a través de Zoom. Haz clic para unirte a la reunión.</p>
+                        
+                        <a href="${zoomLink}" target="_blank" 
+                           class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl transition-all flex items-center gap-3 mb-4"
+                           onclick="marcarComoCompletada()">
+                            <i data-lucide="external-link" class="w-5 h-5"></i>
+                            Unirse a Reunión de Zoom
+                        </a>
+                        
+                        <p class="text-xs text-slate-500">Se abrirá en una nueva pestaña para mejor experiencia</p>
+                    </div>
+                `;
+                lucide.createIcons();
+            }
+            
+            // 3. TIPO 'VIDEO' - CON MANEJO DE VIDEOS VACÍOS
+            else if (lec.tipo === 'VIDEO') {
+                // Verificar si la URL está vacía
+                if (!lec.url || lec.url.trim() === '') {
+                    container.innerHTML = `
+                        <div class="flex flex-col items-center justify-center h-full text-center p-10 bg-slate-900">
+                            <i data-lucide="clock" class="w-16 h-16 text-yellow-500 mb-4"></i>
+                            <h3 class="text-xl font-bold text-white mb-2">Video pendiente</h3>
+                            <p class="text-slate-300 mb-4">El docente aún no ha cargado el material de esta lección.</p>
+                            <div class="space-y-3">
+                                <button onclick="marcarComoCompletada()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg">
+                                    Marcar como vista
+                                </button>
+                                <p class="text-xs text-slate-500">Revisa más tarde para ver el contenido actualizado</p>
+                            </div>
+                        </div>
+                    `;
+                    lucide.createIcons();
+                } else if (lec.url.includes('youtu') || lec.url.includes('youtube')) {
                     // Extraer ID de YouTube
                     let videoId = '';
-                    if(url.includes('v=')) {
-                        videoId = url.split('v=')[1];
+                    if (lec.url.includes('v=')) {
+                        videoId = lec.url.split('v=')[1];
                         const ampersandPosition = videoId.indexOf('&');
-                        if(ampersandPosition !== -1) {
+                        if (ampersandPosition !== -1) {
                             videoId = videoId.substring(0, ampersandPosition);
                         }
-                    } else if(url.includes('youtu.be/')) {
-                        videoId = url.split('youtu.be/')[1];
+                    } else if (lec.url.includes('youtu.be/')) {
+                        videoId = lec.url.split('youtu.be/')[1];
                         const questionPosition = videoId.indexOf('?');
-                        if(questionPosition !== -1) {
+                        if (questionPosition !== -1) {
                             videoId = videoId.substring(0, questionPosition);
                         }
                     }
                     
-                    if(videoId) {
+                    if (videoId) {
                         container.innerHTML = `
                             <iframe 
                                 src="https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=1" 
@@ -650,12 +823,14 @@
                     }
                 } else {
                     container.innerHTML = `
-                        <video src="${url}" controls class="w-full h-full bg-black" autoplay>
+                        <video src="${lec.url}" controls class="w-full h-full bg-black" autoplay>
                             Tu navegador no soporta el elemento de video.
                         </video>
                     `;
                 }
-            } 
+            }
+            
+            // 4. TIPO 'PDF'
             else if (lec.tipo === 'PDF') {
                 container.innerHTML = `
                     <div class="flex flex-col items-center justify-center h-full text-center p-10 bg-slate-900 w-full">
@@ -670,13 +845,14 @@
                 `;
                 lucide.createIcons();
             }
+            
+            // 5. TIPO DESCONOCIDO O NO ESPECIFICADO
             else {
-                // Tipo desconocido
                 container.innerHTML = `
                     <div class="flex flex-col items-center justify-center h-full text-center p-10 bg-slate-900">
                         <i data-lucide="alert-circle" class="w-16 h-16 text-yellow-500 mb-4"></i>
                         <h3 class="text-xl font-bold text-white mb-2">Contenido no disponible</h3>
-                        <p class="text-slate-300">Tipo de contenido: ${lec.tipo}</p>
+                        <p class="text-slate-300">Tipo de contenido: ${lec.tipo || 'No especificado'}</p>
                         <button onclick="marcarComoCompletada()" class="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg">
                             Marcar como vista
                         </button>
@@ -1004,6 +1180,21 @@ RESPUESTA:
                 consultarGemini(`Explica el concepto principal de "${leccion}" con una analogía simple y divertida.`);
             }
         }
+
+        // ============================================
+        // 8. MANEJO DE LIMPIEZA AL SALIR
+        // ============================================
+        window.addEventListener('beforeunload', function() {
+            if (jitsiApi) {
+                jitsiApi.dispose();
+            }
+        });
+
+        window.addEventListener('unload', function() {
+            if (jitsiApi) {
+                jitsiApi.dispose();
+            }
+        });
     </script>
 </body>
 </html>
