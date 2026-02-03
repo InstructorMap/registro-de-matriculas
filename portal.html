@@ -228,19 +228,21 @@
             
             // 3. Color primario (con validación)
             const color = instGlobal.color_primario || '#4f46e5';
-            document.documentElement.style.setProperty('--primary-color', color);
-            
-            const heroAccent = document.getElementById('hero-accent');
-            if (heroAccent) heroAccent.style.color = color;
-            
-            const chatHeader = document.getElementById('chat-header');
-            if (chatHeader) chatHeader.style.backgroundColor = color;
-            
-            const btnSubmit = document.getElementById('btn-submit');
-            if (btnSubmit) btnSubmit.style.backgroundColor = color;
-            
-            const btnCampus = document.getElementById('btn-campus');
-            if (btnCampus) btnCampus.style.backgroundColor = color;
+            if (color) {
+                document.documentElement.style.setProperty('--primary-color', color);
+                
+                const heroAccent = document.getElementById('hero-accent');
+                if (heroAccent) heroAccent.style.color = color;
+                
+                const chatHeader = document.getElementById('chat-header');
+                if (chatHeader) chatHeader.style.backgroundColor = color;
+                
+                const btnSubmit = document.getElementById('btn-submit');
+                if (btnSubmit) btnSubmit.style.backgroundColor = color;
+                
+                const btnCampus = document.getElementById('btn-campus');
+                if (btnCampus) btnCampus.style.backgroundColor = color;
+            }
             
             // 4. Logo (con validación)
             if (instGlobal.logo_url) {
@@ -255,10 +257,10 @@
         }
 
         // ============================================
-        // 5. CARGA DE CONTENIDO - SOLUCIÓN HÍBRIDA INTELIGENTE
+        // 5. CARGA DE CONTENIDO - DOBLE CARGA INFALIBLE
         // ============================================
         async function cargarContenido(instId) {
-            console.log("🔍 Buscando áreas para Institución ID:", instId);
+            console.log("🔍 PLAN B INFALIBLE activado para Institución ID:", instId);
             
             const container = document.getElementById('areas-container');
             if (!container) return;
@@ -267,137 +269,155 @@
             const loader = document.getElementById('catalogo-loader');
             if (loader) loader.style.display = 'none';
             
-            console.log("🔄 Solución híbrida inteligente activada...");
-            
-            let areas = [];
-            let error = null;
-            
-            // ENFOQUE ROBUSTO: 3 intentos en cascada
-            const metodos = [
-                async () => {
-                    // Método 1: Consulta OR (más eficiente si funciona)
-                    console.log("🔄 Método 1: Probando consulta OR...");
-                    const { data, error: queryError } = await db
+            try {
+                // PASO 1: Obtener áreas de la institución (usando OR robusto)
+                console.log("📦 PASO 1: Obteniendo áreas...");
+                let areas = [];
+                try {
+                    const { data: areasData, error: areasError } = await db
                         .from('areas')
-                        .select('*, cursos_oficiales(*)')
+                        .select('*')
                         .or(`institution_id.eq.${instId},institucion_id.eq.${instId}`)
                         .order('orden', { ascending: true });
-                    if (queryError) throw queryError;
-                    return data;
-                },
-                async () => {
-                    // Método 2: Probamos con 'institution_id' (según SQL sabemos que existe)
-                    console.log("🔄 Método 2: Probando con 'institution_id'...");
-                    const { data, error: queryError } = await db
-                        .from('areas')
-                        .select('*, cursos_oficiales(*)')
-                        .eq('institution_id', instId)
-                        .order('orden', { ascending: true });
-                    if (queryError) throw queryError;
-                    return data;
-                },
-                async () => {
-                    // Método 3: Como último recurso, obtenemos todo y filtramos
-                    console.log("🔄 Método 3: Obteniendo todas las áreas para filtrar...");
-                    const { data: todasAreas, error: queryError } = await db
-                        .from('areas')
-                        .select('*, cursos_oficiales(*)')
-                        .order('orden', { ascending: true });
-                    if (queryError) throw queryError;
                     
-                    // Filtrar localmente por institution_id
-                    return todasAreas.filter(area => {
-                        const areaInstId = area.institution_id || area.institucion_id;
-                        return areaInstId === instId;
-                    });
-                }
-            ];
-            
-            // Ejecutar métodos en cascada
-            for (let i = 0; i < metodos.length; i++) {
-                try {
-                    areas = await metodos[i]();
-                    console.log(`✅ Método ${i + 1} exitoso. Áreas encontradas:`, areas?.length || 0);
-                    error = null;
-                    break; // Salir del bucle si funciona
-                } catch (err) {
-                    error = err;
-                    console.warn(`⚠️ Método ${i + 1} falló:`, err.message);
-                    if (i === metodos.length - 1) {
-                        console.error("❌ Todos los métodos fallaron");
+                    if (areasError) {
+                        console.warn("⚠️ Consulta OR falló, probando individualmente...");
+                        // Intentar con cada columna
+                        const { data: data1 } = await db
+                            .from('areas')
+                            .select('*')
+                            .eq('institution_id', instId)
+                            .order('orden', { ascending: true });
+                        
+                        if (data1 && data1.length > 0) {
+                            areas = data1;
+                        } else {
+                            const { data: data2 } = await db
+                                .from('areas')
+                                .select('*')
+                                .eq('institucion_id', instId)
+                                .order('orden', { ascending: true });
+                            
+                            if (data2) areas = data2;
+                        }
+                    } else {
+                        areas = areasData || [];
                     }
-                }
-            }
-            
-            // Manejo de errores
-            if (error) {
-                console.error("❌ Error final al cargar áreas:", error);
-                container.innerHTML = `
-                    <div class="text-center py-20">
-                        <p class="text-red-500 font-bold">Error al cargar el catálogo</p>
-                        <p class="text-xs text-slate-400 mt-2">${error.message}</p>
-                        <button onclick="cargarContenido('${instId}')" class="mt-4 text-xs bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-full font-bold transition-colors">
-                            Reintentar
-                        </button>
-                    </div>
-                `;
-                return;
-            }
-            
-            console.log("📦 Áreas finales recibidas:", areas?.length || 0);
-            
-            if (!areas || areas.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
-                        <i data-lucide="folder-open" class="w-12 h-12 text-slate-300 mx-auto mb-4"></i>
-                        <p class="text-slate-500 font-bold uppercase tracking-widest text-sm mb-2">Catálogo en preparación</p>
-                        <p class="text-xs text-slate-400 max-w-md mx-auto">
-                            ${instGlobal?.nombre || 'Esta institución'} está actualizando su oferta académica.
-                        </p>
-                    </div>
-                `;
-                lucide.createIcons();
-                return;
-            }
-            
-            // Renderizar áreas con cursos
-            container.innerHTML = '';
-            let areasConCursos = 0;
-
-            // Función para validar cursos
-            function obtenerCursosValidos(area) {
-                if (!area.cursos_oficiales || !Array.isArray(area.cursos_oficiales)) {
-                    return [];
+                } catch (error) {
+                    console.error("❌ Error obteniendo áreas:", error);
+                    areas = [];
                 }
                 
-                return area.cursos_oficiales.filter(curso => {
-                    // Validar datos mínimos
+                console.log(`✅ Áreas encontradas: ${areas.length}`);
+                
+                // Si no hay áreas, mostrar mensaje
+                if (areas.length === 0) {
+                    mostrarSinContenido();
+                    return;
+                }
+                
+                // PASO 2: Obtener cursos de la institución (usando OR robusto)
+                console.log("📦 PASO 2: Obteniendo cursos...");
+                let cursos = [];
+                try {
+                    const { data: cursosData, error: cursosError } = await db
+                        .from('cursos_oficiales')
+                        .select('*')
+                        .or(`institution_id.eq.${instId},institucion_id.eq.${instId}`);
+                    
+                    if (cursosError) {
+                        console.warn("⚠️ Consulta OR falló para cursos, probando individualmente...");
+                        // Intentar con cada columna
+                        const { data: data1 } = await db
+                            .from('cursos_oficiales')
+                            .select('*')
+                            .eq('institution_id', instId);
+                        
+                        if (data1 && data1.length > 0) {
+                            cursos = data1;
+                        } else {
+                            const { data: data2 } = await db
+                                .from('cursos_oficiales')
+                                .select('*')
+                                .eq('institucion_id', instId);
+                            
+                            if (data2) cursos = data2;
+                        }
+                    } else {
+                        cursos = cursosData || [];
+                    }
+                } catch (error) {
+                    console.error("❌ Error obteniendo cursos:", error);
+                    cursos = [];
+                }
+                
+                console.log(`✅ Cursos encontrados: ${cursos.length}`);
+                
+                // PASO 3: Cruce de datos en JavaScript
+                console.log("🔄 PASO 3: Cruzando datos áreas ↔ cursos...");
+                
+                // Crear array final de áreas con sus cursos
+                const areasConCursos = areas.map(area => {
+                    // Filtrar cursos que pertenecen a esta área (c.area_id === area.id)
+                    const cursosDeArea = cursos.filter(curso => {
+                        return curso.area_id === area.id;
+                    });
+                    
+                    return {
+                        ...area,
+                        cursos_oficiales: cursosDeArea
+                    };
+                });
+                
+                console.log(`✅ Áreas con cursos después del cruce: ${areasConCursos.filter(a => a.cursos_oficiales.length > 0).length}`);
+                
+                // PASO 4: Renderizar resultados
+                renderAreas(areasConCursos);
+                
+            } catch (error) {
+                console.error("❌ Error crítico en PLAN B INFALIBLE:", error);
+                mostrarErrorContenido(error, instId);
+            }
+        }
+
+        // ============================================
+        // 6. RENDERIZADO DE ÁREAS Y CURSOS
+        // ============================================
+        function renderAreas(areas) {
+            const container = document.getElementById('areas-container');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            // Filtrar solo áreas que tienen cursos
+            const areasConCursos = areas.filter(area => {
+                const cursosValidos = (area.cursos_oficiales || []).filter(curso => {
+                    // Validar datos mínimos del curso
                     if (!curso || !curso.nombre || curso.nombre.trim() === '') {
                         return false;
                     }
                     
-                    // Validar pertenencia a la institución
-                    const cursoInstId = curso.institution_id || curso.institucion_id;
-                    if (cursoInstId && cursoInstId !== instId) {
-                        return false;
-                    }
-                    
-                    // Validar estado activo
+                    // Validar estado activo (si existe la propiedad)
                     if (curso.activo !== undefined && curso.activo !== true) {
                         return false;
                     }
                     
                     return true;
                 });
+                
+                area.cursos_filtrados = cursosValidos;
+                return cursosValidos.length > 0;
+            });
+            
+            console.log(`🎯 Áreas con cursos válidos para mostrar: ${areasConCursos.length}`);
+            
+            if (areasConCursos.length === 0) {
+                mostrarSinContenido();
+                return;
             }
             
-            areas.forEach((area, index) => {
-                const cursosFiltrados = obtenerCursosValidos(area);
-                
-                if (cursosFiltrados.length === 0) return;
-                
-                areasConCursos++;
-                
+            // Renderizar cada área con sus cursos
+            areasConCursos.forEach((area, index) => {
                 const areaElement = document.createElement('div');
                 areaElement.className = `fade-in`;
                 areaElement.style.animationDelay = `${index * 0.1}s`;
@@ -406,9 +426,12 @@
                     <div class="flex items-center gap-4 mb-8">
                         <div class="w-10 h-1 rounded-full" style="background-color: var(--primary-color)"></div>
                         <h3 class="text-2xl font-black text-slate-900 uppercase tracking-tighter">${area.nombre}</h3>
+                        <span class="text-xs font-bold bg-slate-100 text-slate-600 px-2 py-1 rounded">
+                            ${area.cursos_filtrados.length} curso${area.cursos_filtrados.length !== 1 ? 's' : ''}
+                        </span>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        ${cursosFiltrados.map(curso => `
+                        ${area.cursos_filtrados.map(curso => `
                             <div class="bg-white rounded-2xl border border-slate-200 p-6 hover-lift flex flex-col h-full shadow-sm transition-all duration-300 group">
                                 <h4 class="text-lg font-bold text-slate-900 mb-2 uppercase tracking-tight line-clamp-2">${curso.nombre}</h4>
                                 <p class="text-[11px] text-slate-500 line-clamp-3 mb-4 flex-1">${curso.descripcion || 'Formación profesional con certificación oficial.'}</p>
@@ -426,22 +449,47 @@
                 container.appendChild(areaElement);
             });
             
-            // Si no hay áreas con cursos
-            if (areasConCursos === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-20">
-                        <i data-lucide="book-open" class="w-12 h-12 text-slate-300 mx-auto mb-4"></i>
-                        <p class="text-slate-500 font-bold">Próximamente nuevos cursos</p>
-                        <p class="text-xs text-slate-400 mt-2">Estamos preparando contenido especializado</p>
-                    </div>
-                `;
-            }
+            lucide.createIcons();
             
+            // Mostrar resumen en consola
+            const totalCursos = areasConCursos.reduce((total, area) => total + area.cursos_filtrados.length, 0);
+            console.log(`🎉 Renderizado completado: ${areasConCursos.length} áreas con ${totalCursos} cursos totales`);
+        }
+
+        function mostrarSinContenido() {
+            const container = document.getElementById('areas-container');
+            if (!container) return;
+            
+            container.innerHTML = `
+                <div class="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200 fade-in">
+                    <i data-lucide="folder-open" class="w-12 h-12 text-slate-300 mx-auto mb-4"></i>
+                    <p class="text-slate-500 font-bold uppercase tracking-widest text-sm mb-2">Catálogo en preparación</p>
+                    <p class="text-xs text-slate-400 max-w-md mx-auto">
+                        ${instGlobal?.nombre || 'Esta institución'} está actualizando su oferta académica.
+                    </p>
+                    <p class="text-[10px] text-slate-300 mt-4">Institución ID: ${currentInstitutionId}</p>
+                </div>
+            `;
             lucide.createIcons();
         }
 
+        function mostrarErrorContenido(error, instId) {
+            const container = document.getElementById('areas-container');
+            if (!container) return;
+            
+            container.innerHTML = `
+                <div class="text-center py-20 fade-in">
+                    <p class="text-red-500 font-bold">Error al cargar el catálogo</p>
+                    <p class="text-xs text-slate-400 mt-2 max-w-md mx-auto">${error.message}</p>
+                    <button onclick="cargarContenido('${instId}')" class="mt-4 text-xs bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-full font-bold transition-colors">
+                        Reintentar
+                    </button>
+                </div>
+            `;
+        }
+
         // ============================================
-        // 6. RENDERIZADO DE VISTAS
+        // 7. RENDERIZADO DE VISTAS
         // ============================================
         function renderVistaCurso() {
             const vistaCurso = document.getElementById('vista-curso');
@@ -483,7 +531,7 @@
             const heroDesc = document.getElementById('hero-desc');
             
             if (heroTitle && instGlobal) {
-                heroTitle.innerHTML = `Formación Oficial en <br><span class="text-indigo-600 italic">${instGlobal.nombre}</span>`;
+                heroTitle.innerHTML = `Formación Oficial en <br><span id="hero-accent" class="text-indigo-600 italic">${instGlobal.nombre}</span>`;
             }
             
             if (heroDesc) {
@@ -492,7 +540,7 @@
         }
 
         // ============================================
-        // 7. GESTIÓN DE LEADS (CRM INTEGRADO)
+        // 8. GESTIÓN DE LEADS (CRM INTEGRADO)
         // ============================================
         const formLead = document.getElementById('form-lead');
         if (formLead) {
@@ -571,7 +619,7 @@
         }
 
         // ============================================
-        // 8. CHATBOT IA
+        // 9. CHATBOT IA
         // ============================================
         function toggleChat() {
             const widget = document.getElementById('chat-widget');
@@ -685,7 +733,7 @@
         }
 
         // ============================================
-        // 9. FUNCIONES UTILITARIAS
+        // 10. FUNCIONES UTILITARIAS
         // ============================================
         function safeSetText(elementId, text) {
             const element = document.getElementById(elementId);
