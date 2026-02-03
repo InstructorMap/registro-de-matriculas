@@ -255,7 +255,7 @@
         }
 
         // ============================================
-        // 5. CARGA DE CONTENIDO (ÁREAS Y CURSOS)
+        // 5. CARGA DE CONTENIDO - SOLUCIÓN HÍBRIDA INTELIGENTE
         // ============================================
         async function cargarContenido(instId) {
             console.log("🔍 Buscando áreas para Institución ID:", instId);
@@ -267,29 +267,85 @@
             const loader = document.getElementById('catalogo-loader');
             if (loader) loader.style.display = 'none';
             
-            // CONSULTA RELACIONAL SEGURA - Cubre ambos nombres de columna
-            const { data: areas, error } = await db
-                .from('areas')
-                .select(`
-                    *,
-                    cursos_oficiales (*)
-                `)
-                .or(`institution_id.eq.${instId},institucion_id.eq.${instId}`)
-                .order('orden', { ascending: true });
-
+            console.log("🔄 Solución híbrida inteligente activada...");
+            
+            let areas = [];
+            let error = null;
+            
+            // ENFOQUE ROBUSTO: 3 intentos en cascada
+            const metodos = [
+                async () => {
+                    // Método 1: Consulta OR (más eficiente si funciona)
+                    console.log("🔄 Método 1: Probando consulta OR...");
+                    const { data, error: queryError } = await db
+                        .from('areas')
+                        .select('*, cursos_oficiales(*)')
+                        .or(`institution_id.eq.${instId},institucion_id.eq.${instId}`)
+                        .order('orden', { ascending: true });
+                    if (queryError) throw queryError;
+                    return data;
+                },
+                async () => {
+                    // Método 2: Probamos con 'institution_id' (según SQL sabemos que existe)
+                    console.log("🔄 Método 2: Probando con 'institution_id'...");
+                    const { data, error: queryError } = await db
+                        .from('areas')
+                        .select('*, cursos_oficiales(*)')
+                        .eq('institution_id', instId)
+                        .order('orden', { ascending: true });
+                    if (queryError) throw queryError;
+                    return data;
+                },
+                async () => {
+                    // Método 3: Como último recurso, obtenemos todo y filtramos
+                    console.log("🔄 Método 3: Obteniendo todas las áreas para filtrar...");
+                    const { data: todasAreas, error: queryError } = await db
+                        .from('areas')
+                        .select('*, cursos_oficiales(*)')
+                        .order('orden', { ascending: true });
+                    if (queryError) throw queryError;
+                    
+                    // Filtrar localmente por institution_id
+                    return todasAreas.filter(area => {
+                        const areaInstId = area.institution_id || area.institucion_id;
+                        return areaInstId === instId;
+                    });
+                }
+            ];
+            
+            // Ejecutar métodos en cascada
+            for (let i = 0; i < metodos.length; i++) {
+                try {
+                    areas = await metodos[i]();
+                    console.log(`✅ Método ${i + 1} exitoso. Áreas encontradas:`, areas?.length || 0);
+                    error = null;
+                    break; // Salir del bucle si funciona
+                } catch (err) {
+                    error = err;
+                    console.warn(`⚠️ Método ${i + 1} falló:`, err.message);
+                    if (i === metodos.length - 1) {
+                        console.error("❌ Todos los métodos fallaron");
+                    }
+                }
+            }
+            
+            // Manejo de errores
             if (error) {
-                console.error("❌ Error al cargar áreas:", error);
+                console.error("❌ Error final al cargar áreas:", error);
                 container.innerHTML = `
                     <div class="text-center py-20">
-                        <p class="text-red-500 font-bold">Error al conectar con la base de datos</p>
+                        <p class="text-red-500 font-bold">Error al cargar el catálogo</p>
                         <p class="text-xs text-slate-400 mt-2">${error.message}</p>
+                        <button onclick="cargarContenido('${instId}')" class="mt-4 text-xs bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-full font-bold transition-colors">
+                            Reintentar
+                        </button>
                     </div>
                 `;
                 return;
             }
-
-            console.log("📦 Áreas recibidas:", areas?.length || 0);
-
+            
+            console.log("📦 Áreas finales recibidas:", areas?.length || 0);
+            
             if (!areas || areas.length === 0) {
                 container.innerHTML = `
                     <div class="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
@@ -303,17 +359,41 @@
                 lucide.createIcons();
                 return;
             }
-
+            
             // Renderizar áreas con cursos
             container.innerHTML = '';
             let areasConCursos = 0;
 
+            // Función para validar cursos
+            function obtenerCursosValidos(area) {
+                if (!area.cursos_oficiales || !Array.isArray(area.cursos_oficiales)) {
+                    return [];
+                }
+                
+                return area.cursos_oficiales.filter(curso => {
+                    // Validar datos mínimos
+                    if (!curso || !curso.nombre || curso.nombre.trim() === '') {
+                        return false;
+                    }
+                    
+                    // Validar pertenencia a la institución
+                    const cursoInstId = curso.institution_id || curso.institucion_id;
+                    if (cursoInstId && cursoInstId !== instId) {
+                        return false;
+                    }
+                    
+                    // Validar estado activo
+                    if (curso.activo !== undefined && curso.activo !== true) {
+                        return false;
+                    }
+                    
+                    return true;
+                });
+            }
+            
             areas.forEach((area, index) => {
-                // Filtrar solo cursos activos o con contenido
-                const cursosFiltrados = (area.cursos_oficiales || []).filter(curso => 
-                    curso && curso.nombre && (curso.activo === undefined || curso.activo === true)
-                );
-
+                const cursosFiltrados = obtenerCursosValidos(area);
+                
                 if (cursosFiltrados.length === 0) return;
                 
                 areasConCursos++;
@@ -345,7 +425,7 @@
                 
                 container.appendChild(areaElement);
             });
-
+            
             // Si no hay áreas con cursos
             if (areasConCursos === 0) {
                 container.innerHTML = `
@@ -356,7 +436,7 @@
                     </div>
                 `;
             }
-
+            
             lucide.createIcons();
         }
 
