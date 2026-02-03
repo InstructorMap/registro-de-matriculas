@@ -116,6 +116,9 @@
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
+        // ID ÚNICO VÁLIDO DE COLBERT
+        const COLBERT_ID = 'cfa8addf-9d36-41e1-83b1-6501e5178ba7';
+
         let instGlobal = null;
         let cursoGlobal = null;
         let currentInstitutionId = null;
@@ -145,9 +148,10 @@
                 else if (instSigla) {
                     await cargarVistaInstitucional(instSigla);
                 }
-                // MODO 3: Sin parámetros - error
+                // MODO 3: Sin parámetros - cargar Colbert por defecto
                 else {
-                    throw new Error("Acceso inválido: Se requiere parámetro ?inst=sigla o ?id=curso");
+                    console.log("ℹ️ Sin parámetro ?inst=, cargando Colbert por defecto");
+                    await cargarColbertPorDefecto();
                 }
 
                 // Cargar catálogo después de tener institution_id
@@ -188,7 +192,33 @@
         }
 
         // ============================================
-        // 3. CARGA DE VISTA DE CURSO ESPECÍFICO
+        // 3. CARGA POR DEFECTO DE COLBERT
+        // ============================================
+        async function cargarColbertPorDefecto() {
+            console.log(`🔍 Cargando Colbert por defecto con ID: ${COLBERT_ID}`);
+            
+            const { data: institucion, error } = await db
+                .from('instituciones')
+                .select('*')
+                .eq('id', COLBERT_ID)
+                .eq('activo', true)
+                .single();
+
+            if (error || !institucion) {
+                throw new Error(`Institución Colbert (${COLBERT_ID}) no encontrada`);
+            }
+
+            instGlobal = institucion;
+            currentInstitutionId = COLBERT_ID;
+            
+            console.log("✅ Colbert cargado por defecto:", institucion.nombre);
+            
+            aplicarBranding();
+            renderHomeInstituto();
+        }
+
+        // ============================================
+        // 4. CARGA DE VISTA DE CURSO ESPECÍFICO
         // ============================================
         async function cargarVistaCurso(cursoId) {
             console.log(`🔍 Buscando curso con ID: ${cursoId}`);
@@ -214,7 +244,7 @@
         }
 
         // ============================================
-        // 4. APLICACIÓN DE BRANDING (CON VALIDACIÓN SEGURA)
+        // 5. APLICACIÓN DE BRANDING (CON VALIDACIÓN SEGURA)
         // ============================================
         function aplicarBranding() {
             if (!instGlobal) return;
@@ -226,7 +256,7 @@
             safeSetText('nombre-inst', instGlobal.nombre);
             safeSetText('footer-inst', instGlobal.nombre);
             
-            // 3. Color primario (con validación)
+            // 3. Color primario (con validación de elementos)
             const color = instGlobal.color_primario || '#4f46e5';
             if (color) {
                 document.documentElement.style.setProperty('--primary-color', color);
@@ -257,145 +287,161 @@
         }
 
         // ============================================
-        // 5. CARGA DE CONTENIDO - MODO CONVIVENCIA
+        // 6. CARGA DE CONTENIDO - CARGA PARALELA Y MAPEO MANUAL
         // ============================================
         async function cargarContenido(instId) {
-            // Definimos los dos IDs de Colbert que encontramos
-            const idPrincipal = 'cfa8addf-9d36-41e1-83b1-6501e5178ba7';
-            const idDuplicado = 'e760601b-5ebe-40ff-a6b4-d99dd1abb781';
-
-            console.log("🔍 Modo Convivencia: Cargando datos de ambos institutos...");
-            console.log("📌 IDs activos:", { idPrincipal, idDuplicado });
-
+            console.log("🔍 Cargando contenido para Institución ID:", instId);
+            
             const container = document.getElementById('areas-container');
             if (!container) return;
-
+            
             // Ocultar loader
             const loader = document.getElementById('catalogo-loader');
             if (loader) loader.style.display = 'none';
-
+            
             try {
-                // 1. Cargamos Áreas de ambos IDs (usando .in para buscar varios IDs a la vez)
-                console.log("📦 PASO 1: Cargando áreas...");
-                const { data: areas, error: errAreas } = await db
-                    .from('areas')
-                    .select('*')
-                    .in('institution_id', [idPrincipal, idDuplicado])
-                    .order('orden', { ascending: true });
-
-                if (errAreas) {
-                    console.error("❌ Error cargando áreas:", errAreas);
-                    throw new Error(`Error al cargar áreas: ${errAreas.message}`);
+                // CARGA PARALELA: Obtener áreas y cursos por separado
+                console.log("📦 Iniciando carga paralela...");
+                
+                const [areasPromise, cursosPromise] = await Promise.all([
+                    // Consulta de áreas
+                    db
+                        .from('areas')
+                        .select('*')
+                        .eq('institution_id', instId)
+                        .order('orden', { ascending: true }),
+                    
+                    // Consulta de cursos (con OR robusto para ambas nomenclaturas)
+                    db
+                        .from('cursos_oficiales')
+                        .select('*')
+                        .or(`institution_id.eq.${instId},institucion_id.eq.${instId}`)
+                ]);
+                
+                // Validar respuestas
+                if (areasPromise.error) {
+                    console.error("❌ Error cargando áreas:", areasPromise.error);
+                    throw new Error(`Error al cargar áreas: ${areasPromise.error.message}`);
                 }
-
-                console.log(`✅ Áreas encontradas: ${areas?.length || 0}`);
-
-                // 2. Cargamos Cursos de ambos IDs
-                // Usamos .or() para cubrir tanto el nombre de columna en inglés como en español
-                console.log("📦 PASO 2: Cargando cursos...");
-                const { data: cursos, error: errCursos } = await db
-                    .from('cursos_oficiales')
-                    .select('*')
-                    .or(`institution_id.in.(${idPrincipal},${idDuplicado}),institucion_id.in.(${idPrincipal},${idDuplicado})`);
-
-                if (errCursos) {
-                    console.error("❌ Error cargando cursos:", errCursos);
-                    throw new Error(`Error al cargar cursos: ${errCursos.message}`);
+                
+                if (cursosPromise.error) {
+                    console.error("❌ Error cargando cursos:", cursosPromise.error);
+                    throw new Error(`Error al cargar cursos: ${cursosPromise.error.message}`);
                 }
-
-                console.log(`✅ Cursos encontrados: ${cursos?.length || 0}`);
-
-                container.innerHTML = ""; // Limpiamos el loader
-
-                // 3. Validar que tenemos datos
-                if (!areas || areas.length === 0) {
+                
+                const areas = areasPromise.data || [];
+                const cursos = cursosPromise.data || [];
+                
+                console.log(`✅ Carga paralela completada: ${areas.length} áreas, ${cursos.length} cursos`);
+                
+                // Validar que tenemos datos
+                if (areas.length === 0) {
                     mostrarSinContenido();
                     return;
                 }
-
-                // 4. Cruzamos los datos en el navegador
-                console.log("🔄 PASO 3: Cruzando datos áreas ↔ cursos...");
                 
-                let areasConCursos = 0;
-                let totalCursosMostrados = 0;
-
-                areas.forEach((area, index) => {
-                    // Filtrar cursos que pertenecen a esta área
-                    const cursosDeEstaArea = cursos.filter(c => {
-                        // Validar curso básico
-                        if (!c || !c.nombre || c.nombre.trim() === '') {
-                            return false;
-                        }
-                        
-                        // Validar estado activo si existe la propiedad
-                        if (c.activo !== undefined && c.activo !== true) {
-                            return false;
-                        }
-                        
-                        // Verificar que el curso pertenezca a esta área
-                        return c.area_id === area.id;
-                    });
-
-                    if (cursosDeEstaArea.length > 0) {
-                        areasConCursos++;
-                        totalCursosMostrados += cursosDeEstaArea.length;
-
-                        const section = document.createElement('div');
-                        section.className = "fade-in mb-20";
-                        section.style.animationDelay = `${index * 0.1}s`;
-                        
-                        section.innerHTML = `
-                            <div class="flex items-center gap-4 mb-8">
-                                <div class="w-10 h-1 rounded-full" style="background-color: var(--primary-color)"></div>
-                                <h3 class="text-2xl font-black text-slate-900 uppercase tracking-tighter">${area.nombre}</h3>
-                                <span class="text-xs font-bold bg-slate-100 text-slate-600 px-2 py-1 rounded">
-                                    ${cursosDeEstaArea.length} curso${cursosDeEstaArea.length !== 1 ? 's' : ''}
-                                </span>
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                ${cursosDeEstaArea.map(c => `
-                                    <div class="bg-white rounded-2xl border border-slate-200 p-6 hover-lift flex flex-col h-full shadow-sm transition-all duration-300 group">
-                                        <h4 class="text-lg font-bold text-slate-900 mb-2 uppercase tracking-tight line-clamp-2">${c.nombre}</h4>
-                                        <p class="text-[11px] text-slate-500 line-clamp-3 mb-4 flex-1">${c.descripcion || 'Formación profesional con certificación oficial.'}</p>
-                                        <div class="mt-auto flex justify-between items-center pt-4 border-t border-slate-50">
-                                            <span class="text-[9px] font-black bg-slate-100 text-slate-600 px-2 py-0.5 rounded tracking-widest">OFICIAL</span>
-                                            <a href="?id=${c.id}" class="text-xs font-bold hover:underline group-hover:translate-x-1 transition-transform" style="color: var(--primary-color)">
-                                                VER DETALLE <i data-lucide="arrow-right" class="w-3 h-3 inline ml-1"></i>
-                                            </a>
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        `;
-                        container.appendChild(section);
+                // MAPEO MANUAL: Cruzar áreas con cursos
+                console.log("🔄 Mapeo manual áreas ↔ cursos...");
+                
+                // Filtrar solo cursos válidos
+                const cursosValidos = cursos.filter(curso => {
+                    if (!curso || !curso.nombre || curso.nombre.trim() === '') {
+                        return false;
                     }
-                });
-
-                // 5. Si no hay áreas con cursos, mostrar mensaje
-                if (areasConCursos === 0) {
-                    mostrarSinContenido();
-                } else {
-                    console.log(`🎉 Modo Convivencia exitoso: ${areasConCursos} áreas con ${totalCursosMostrados} cursos totales`);
                     
-                    // Actualizar mensaje del hero si es necesario
-                    if (totalCursosMostrados > 0 && instGlobal) {
-                        const heroDesc = document.getElementById('hero-desc');
-                        if (heroDesc) {
-                            heroDesc.textContent = `Explora nuestro catálogo de ${totalCursosMostrados} cursos profesionales y comienza hoy tu transformación.`;
-                        }
+                    if (curso.activo !== undefined && curso.activo !== true) {
+                        return false;
                     }
-                }
-
-                lucide.createIcons();
-
+                    
+                    return true;
+                });
+                
+                // Crear array de áreas con sus cursos
+                const areasConCursos = areas.map(area => {
+                    // Filtrar cursos que pertenecen a esta área (mapeo manual)
+                    const cursosDeArea = cursosValidos.filter(curso => curso.area_id === area.id);
+                    
+                    return {
+                        ...area,
+                        cursos_oficiales: cursosDeArea
+                    };
+                });
+                
+                // Filtrar áreas que tienen cursos
+                const areasConCursosValidos = areasConCursos.filter(area => area.cursos_oficiales.length > 0);
+                
+                console.log(`✅ Mapeo completado: ${areasConCursosValidos.length} áreas con cursos`);
+                
+                // Renderizar resultados
+                renderAreas(areasConCursosValidos);
+                
             } catch (error) {
-                console.error("❌ Error en Modo Convivencia:", error);
+                console.error("❌ Error en carga de contenido:", error);
                 mostrarErrorContenido(error, instId);
             }
         }
 
         // ============================================
-        // 6. FUNCIONES AUXILIARES DE RENDERIZADO
+        // 7. RENDERIZADO DE ÁREAS Y CURSOS
+        // ============================================
+        function renderAreas(areas) {
+            const container = document.getElementById('areas-container');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            let totalCursos = 0;
+            
+            areas.forEach((area, index) => {
+                const cursos = area.cursos_oficiales || [];
+                totalCursos += cursos.length;
+                
+                const areaElement = document.createElement('div');
+                areaElement.className = `fade-in`;
+                areaElement.style.animationDelay = `${index * 0.1}s`;
+                
+                areaElement.innerHTML = `
+                    <div class="flex items-center gap-4 mb-8">
+                        <div class="w-10 h-1 rounded-full" style="background-color: var(--primary-color)"></div>
+                        <h3 class="text-2xl font-black text-slate-900 uppercase tracking-tighter">${area.nombre}</h3>
+                        <span class="text-xs font-bold bg-slate-100 text-slate-600 px-2 py-1 rounded">
+                            ${cursos.length} curso${cursos.length !== 1 ? 's' : ''}
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        ${cursos.map(curso => `
+                            <div class="bg-white rounded-2xl border border-slate-200 p-6 hover-lift flex flex-col h-full shadow-sm transition-all duration-300 group">
+                                <h4 class="text-lg font-bold text-slate-900 mb-2 uppercase tracking-tight line-clamp-2">${curso.nombre}</h4>
+                                <p class="text-[11px] text-slate-500 line-clamp-3 mb-4 flex-1">${curso.descripcion || 'Formación profesional con certificación oficial.'}</p>
+                                <div class="mt-auto flex justify-between items-center pt-4 border-t border-slate-50">
+                                    <span class="text-[9px] font-black bg-slate-100 text-slate-600 px-2 py-0.5 rounded tracking-widest">OFICIAL</span>
+                                    <a href="?id=${curso.id}" class="text-xs font-bold hover:underline group-hover:translate-x-1 transition-transform" style="color: var(--primary-color)">
+                                        VER DETALLE <i data-lucide="arrow-right" class="w-3 h-3 inline ml-1"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                
+                container.appendChild(areaElement);
+            });
+            
+            // Actualizar mensaje del hero con el total de cursos
+            if (totalCursos > 0) {
+                const heroDesc = document.getElementById('hero-desc');
+                if (heroDesc) {
+                    heroDesc.textContent = `Explora nuestro catálogo de ${totalCursos} cursos profesionales y comienza hoy tu transformación.`;
+                }
+            }
+            
+            lucide.createIcons();
+            
+            console.log(`🎉 Renderizado completado: ${areas.length} áreas con ${totalCursos} cursos`);
+        }
+
+        // ============================================
+        // 8. FUNCIONES AUXILIARES
         // ============================================
         function mostrarSinContenido() {
             const container = document.getElementById('areas-container');
@@ -429,7 +475,7 @@
         }
 
         // ============================================
-        // 7. RENDERIZADO DE VISTAS
+        // 9. RENDERIZADO DE VISTAS
         // ============================================
         function renderVistaCurso() {
             const vistaCurso = document.getElementById('vista-curso');
@@ -480,7 +526,7 @@
         }
 
         // ============================================
-        // 8. GESTIÓN DE LEADS (CRM INTEGRADO)
+        // 10. GESTIÓN DE LEADS (CRM INTEGRADO)
         // ============================================
         const formLead = document.getElementById('form-lead');
         if (formLead) {
@@ -559,7 +605,7 @@
         }
 
         // ============================================
-        // 9. CHATBOT IA
+        // 11. CHATBOT IA
         // ============================================
         function toggleChat() {
             const widget = document.getElementById('chat-widget');
@@ -673,7 +719,7 @@
         }
 
         // ============================================
-        // 10. FUNCIONES UTILITARIAS
+        // 12. FUNCIONES UTILITARIAS
         // ============================================
         function safeSetText(elementId, text) {
             const element = document.getElementById(elementId);
