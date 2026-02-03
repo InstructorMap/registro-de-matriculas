@@ -3,362 +3,924 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cargando Portal | ASARI</title>
+    <title>Portal Académico | ASARI</title>
     
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Preconnect para mejorar velocidad de carga -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    
+    <!-- Tailwind CSS con versión específica para estabilidad -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        :root { --primary-color: #4f46e5; --text-heading: #1e1b4b; --text-body: #475569; }
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: var(--text-body); scroll-behavior: smooth; }
+        :root { 
+            --primary-color: #4f46e5; 
+            --text-heading: #1e1b4b; 
+            --text-body: #475569;
+            --transition-base: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
         
-        /* Animaciones Profesionales */
-        .fade-in { animation: fadeIn 0.5s ease forwards; opacity: 0; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f8fafc; 
+            color: var(--text-body);
+            scroll-behavior: smooth;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
         
-        .hover-lift { transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s; }
-        .hover-lift:hover { transform: translateY(-4px); box-shadow: 0 12px 24px -8px rgba(0,0,0,0.15); }
-
-        /* Estilos del Chatbot Don Búho */
-        .chat-widget { position: fixed; bottom: 24px; right: 24px; z-index: 1000; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        .chat-open { width: 380px; height: 580px; border-radius: 20px; box-shadow: 0 24px 48px -12px rgba(0,0,0,0.25); }
-        .chat-closed { width: 64px; height: 64px; border-radius: 50%; cursor: pointer; }
+        /* Optimización de animaciones con will-change */
+        .fade-in { 
+            animation: fadeIn 0.6s ease-out forwards; 
+            opacity: 0; 
+            will-change: opacity, transform;
+        }
         
-        /* Loader */
-        .loader-dots div { width: 6px; height: 6px; background: currentColor; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both; }
-        .loader-dots div:nth-child(1) { animation-delay: -0.32s; }
-        .loader-dots div:nth-child(2) { animation-delay: -0.16s; }
-        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(15px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+        
+        /* Mejora en hover effects */
+        .hover-lift { 
+            transition: var(--transition-base); 
+            transform-origin: center;
+        }
+        
+        .hover-lift:hover { 
+            transform: translateY(-5px) scale(1.01); 
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); 
+        }
+        
+        /* Chat widget mejorado */
+        .chat-widget { 
+            position: fixed; 
+            bottom: 24px; 
+            right: 24px; 
+            z-index: 1000; 
+            transition: var(--transition-base);
+            will-change: transform, width, height, border-radius;
+        }
+        
+        .chat-open { 
+            width: min(380px, 95vw); 
+            height: min(580px, 80vh); 
+            border-radius: 24px; 
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); 
+        }
+        
+        .chat-closed { 
+            width: 64px; 
+            height: 64px; 
+            border-radius: 50%; 
+            cursor: pointer; 
+        }
+        
+        /* Scrollbar personalizada */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a1a1a1;
+        }
+        
+        /* Mejora en focus states para accesibilidad */
+        input:focus, button:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+        
+        /* Loading states mejorados */
+        .btn-loading {
+            position: relative;
+            color: transparent !important;
+        }
+        
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            top: 50%;
+            left: 50%;
+            margin-left: -10px;
+            margin-top: -10px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Line clamp mejorado */
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        /* Mejora en sticky positioning */
+        .sticky-smooth {
+            position: sticky;
+            top: 28px;
+            transition: top 0.3s ease;
+        }
+        
+        /* Optimización para móviles */
+        @media (max-width: 768px) {
+            .chat-open {
+                right: 8px;
+                bottom: 8px;
+                width: calc(100vw - 16px);
+                height: 70vh;
+            }
+        }
     </style>
 </head>
 <body class="flex flex-col min-h-screen">
 
-    <nav class="fixed w-full z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 h-20">
-        <div class="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <div id="logo-container" class="h-12 w-auto hidden bg-white p-1 rounded-lg shadow-sm border border-slate-100">
-                    <img id="logo-inst" src="" class="h-full w-auto object-contain">
+    <nav class="fixed w-full z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 h-20 supports-backdrop-blur:bg-white/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div id="logo-container" class="h-10 w-auto hidden bg-white p-1 rounded-lg border border-slate-100 shadow-sm">
+                    <img id="logo-inst" src="" class="h-full w-auto object-contain" alt="Logo institución" loading="lazy">
                 </div>
-                <span id="nombre-inst" class="font-black text-xl tracking-tight text-slate-900">ASARI Platform</span>
+                <span id="nombre-inst" class="font-black text-lg sm:text-xl tracking-tight text-slate-900 truncate max-w-[200px] sm:max-w-none">ASARI Platform</span>
             </div>
-            <div class="hidden md:flex items-center gap-8 text-sm font-bold uppercase tracking-wider">
-                <a href="#inicio" class="hover:text-indigo-600 transition">Inicio</a>
-                <a href="#catalogo" class="hover:text-indigo-600 transition">Cursos</a>
-                <a href="student/index.html" class="bg-slate-900 text-white px-6 py-2.5 rounded-full hover:bg-slate-800 transition shadow-lg">Acceso Alumnos</a>
+            <div class="hidden md:flex items-center gap-6 text-[11px] font-bold uppercase tracking-wider">
+                <a href="#inicio" class="hover:text-indigo-600 transition-colors duration-200">Inicio</a>
+                <a href="#areas-container" class="hover:text-indigo-600 transition-colors duration-200">Cursos</a>
+                <a href="student/index.html" class="bg-slate-900 text-white px-5 py-2.5 rounded-full hover:bg-slate-800 transition-all duration-200 shadow-sm hover:shadow">Campus</a>
+            </div>
+            <button id="mobile-menu-btn" class="md:hidden p-2">
+                <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+        </div>
+        
+        <!-- Menú móvil -->
+        <div id="mobile-menu" class="md:hidden hidden absolute top-20 left-0 w-full bg-white border-b border-slate-200 shadow-lg">
+            <div class="px-4 py-3 space-y-3">
+                <a href="#inicio" class="block py-2 hover:text-indigo-600">Inicio</a>
+                <a href="#areas-container" class="block py-2 hover:text-indigo-600">Cursos</a>
+                <a href="student/index.html" class="block py-2 bg-slate-900 text-white text-center rounded-lg">Campus</a>
             </div>
         </div>
     </nav>
 
-    <header id="inicio" class="pt-40 pb-20 bg-gradient-to-b from-white to-slate-50 relative overflow-hidden">
-        <div class="max-w-5xl mx-auto px-6 text-center relative z-10 fade-in">
-            <div class="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-[10px] font-black uppercase mb-6 tracking-widest">
-                <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span> Sistema Oficial de Formación
-            </div>
-            <h1 id="hero-title" class="text-5xl md:text-7xl font-black text-slate-900 leading-[1.1] mb-6">
-                Tu evolución <br> <span class="text-indigo-600">profesional</span>
+    <header id="inicio" class="pt-32 sm:pt-40 pb-16 sm:pb-20 bg-gradient-to-b from-slate-50 to-white relative overflow-hidden">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 text-center relative z-10 fade-in">
+            <h1 id="hero-title" class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-slate-900 leading-tight mb-6">
+                Lidera tu <br> <span id="hero-accent" class="text-indigo-600">futuro profesional</span>
             </h1>
-            <p id="hero-desc" class="text-lg text-slate-600 max-w-2xl mx-auto mb-10">
-                Formación certificada con los más altos estándares académicos y salida laboral garantizada.
+            <p id="hero-desc" class="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto mb-10 px-4">
+                Programas de formación técnica y profesional con certificación de validez nacional.
             </p>
+            <a href="#areas-container" class="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-3.5 rounded-xl font-bold hover:bg-indigo-700 transition-all duration-300 shadow-lg shadow-indigo-600/20 hover:shadow-xl">
+                <span>Explorar Cursos</span>
+                <i data-lucide="arrow-down" class="w-4 h-4"></i>
+            </a>
         </div>
-        <div class="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-[600px] h-[600px] bg-indigo-100/50 rounded-full blur-3xl -z-0"></div>
     </header>
 
-    <main class="flex-1 max-w-7xl mx-auto px-6 w-full py-12">
+    <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 w-full py-8 sm:py-12">
         
-        <section id="vista-curso" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-12 mb-20 fade-in">
+        <section id="vista-curso" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 mb-20 fade-in">
             <div class="lg:col-span-2 space-y-8">
-                <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm">
-                    <h2 id="det-titulo" class="text-3xl font-black text-slate-900 mb-4">Cargando...</h2>
-                    <p id="det-desc" class="text-slate-600 leading-relaxed mb-6"></p>
-                    <div id="temario-accordion" class="space-y-3"></div>
+                <div class="bg-white rounded-2xl lg:rounded-3xl p-6 lg:p-8 border border-slate-200 shadow-sm">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full uppercase">Curso Oficial</span>
+                        <span class="text-xs text-slate-500"><i data-lucide="clock" class="w-3 h-3 inline mr-1"></i> Certificación incluida</span>
+                    </div>
+                    
+                    <h2 id="det-titulo" class="text-3xl lg:text-4xl font-black text-slate-900 mb-6">Cargando...</h2>
+                    <div id="det-desc" class="text-slate-600 mb-8 leading-relaxed"></div>
+                    
+                    <div class="space-y-4">
+                        <h3 class="font-bold text-slate-900 flex items-center gap-2">
+                            <i data-lucide="book-open" class="w-5 h-5"></i> 
+                            <span>Plan de Estudios</span>
+                        </h3>
+                        <div id="temario-accordion" class="space-y-3"></div>
+                    </div>
                 </div>
             </div>
+            
             <div class="lg:col-span-1">
-                <div class="bg-slate-900 rounded-3xl p-8 text-white shadow-2xl sticky top-28">
-                    <h3 class="text-xl font-bold mb-4">Inscripción al Curso</h3>
+                <div class="bg-slate-950 rounded-2xl lg:rounded-3xl p-6 lg:p-8 text-white shadow-2xl sticky-smooth border border-white/5">
+                    <h3 class="text-xl font-bold mb-2">Inscripción</h3>
+                    <p class="text-slate-400 text-sm mb-6">Inicia tu proceso de admisión hoy mismo</p>
+                    
                     <form id="form-lead" class="space-y-4">
-                        <input type="text" name="nombre" placeholder="Nombre completo" required class="w-full bg-slate-800 border-none rounded-xl p-4 text-white placeholder-slate-500 outline-none ring-2 ring-transparent focus:ring-indigo-500 transition">
-                        <input type="email" name="email" placeholder="Correo electrónico" required class="w-full bg-slate-800 border-none rounded-xl p-4 text-white placeholder-slate-500 outline-none ring-2 ring-transparent focus:ring-indigo-500 transition">
-                        <input type="tel" name="telefono" placeholder="WhatsApp (Ej: +549...)" required class="w-full bg-slate-800 border-none rounded-xl p-4 text-white placeholder-slate-500 outline-none ring-2 ring-transparent focus:ring-indigo-500 transition">
-                        <button type="submit" id="btn-submit" class="w-full py-4 rounded-xl font-black uppercase tracking-wider transition-all transform hover:scale-[1.02] shadow-xl bg-indigo-600 hover:bg-indigo-500">Enviar Solicitud</button>
+                        <div>
+                            <input type="text" name="nombre" placeholder="Tu nombre completo" required 
+                                   class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white placeholder-slate-400 outline-none focus:border-indigo-500 transition-colors duration-200">
+                        </div>
+                        
+                        <div>
+                            <input type="email" name="email" placeholder="Correo electrónico" required 
+                                   class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white placeholder-slate-400 outline-none focus:border-indigo-500 transition-colors duration-200">
+                        </div>
+                        
+                        <div>
+                            <input type="tel" name="telefono" placeholder="Número de WhatsApp" required 
+                                   class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white placeholder-slate-400 outline-none focus:border-indigo-500 transition-colors duration-200">
+                        </div>
+                        
+                        <button type="submit" id="btn-submit" 
+                                class="w-full py-4 rounded-xl font-bold uppercase tracking-wider bg-indigo-600 hover:bg-indigo-500 transition-all duration-300 shadow-lg shadow-indigo-600/20 hover:shadow-xl flex items-center justify-center gap-2">
+                            <span>Solicitar Información</span>
+                            <i data-lucide="send" class="w-4 h-4"></i>
+                        </button>
+                        
+                        <p class="text-xs text-slate-400 text-center mt-4">Te contactaremos en menos de 24 horas</p>
                     </form>
                 </div>
             </div>
         </section>
 
-        <section id="catalogo" class="space-y-16 py-10">
-            <div id="catalogo-loader" class="text-center py-20">
-                <i data-lucide="loader-2" class="w-10 h-10 animate-spin mx-auto text-indigo-600 mb-4"></i>
-                <p class="font-bold text-slate-400">Sincronizando catálogo oficial...</p>
+        <section id="catalogo-wrapper" class="space-y-12">
+            <div id="catalogo-loader" class="text-center py-16">
+                <i data-lucide="loader-2" class="w-10 h-10 animate-spin mx-auto text-indigo-300 mb-4"></i>
+                <p class="text-sm text-slate-500">Cargando catálogo de cursos...</p>
             </div>
+            
             <div id="areas-container" class="space-y-16"></div>
+            
+            <!-- Estado vacío -->
+            <div id="empty-state" class="hidden text-center py-16">
+                <i data-lucide="book-open" class="w-16 h-16 mx-auto text-slate-300 mb-4"></i>
+                <h3 class="text-lg font-bold text-slate-700 mb-2">No hay cursos disponibles</h3>
+                <p class="text-slate-500 max-w-md mx-auto">Actualmente no hay cursos publicados en esta categoría.</p>
+            </div>
         </section>
     </main>
 
     <footer class="bg-white border-t border-slate-200 py-12">
-        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
-            <p class="text-sm font-bold text-slate-400">© 2026 <span id="footer-inst">ASARI Network</span></p>
-            <div class="flex gap-6">
-                <a href="#" class="text-slate-400 hover:text-indigo-600 transition"><i data-lucide="instagram"></i></a>
-                <a href="#" class="text-slate-400 hover:text-indigo-600 transition"><i data-lucide="facebook"></i></a>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+            <div class="text-center">
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
+                    © 2026 <span id="footer-inst" class="text-slate-600">ASARI Platform</span>
+                </p>
+                <p class="text-xs text-slate-500 max-w-md mx-auto">
+                    Plataforma educativa certificada. Todos los derechos reservados.
+                </p>
             </div>
         </div>
     </footer>
 
+    <!-- Chat Widget mejorado -->
     <div id="chat-widget" class="chat-widget chat-closed bg-white border border-slate-200 shadow-2xl flex flex-col overflow-hidden">
-        <div id="chat-header" class="h-16 flex items-center justify-between px-4 bg-slate-900 cursor-pointer text-white" onclick="toggleChat()">
+        <div id="chat-header" class="h-16 flex items-center justify-between px-4 bg-slate-900 cursor-pointer text-white" onclick="toggleChat()" role="button" aria-label="Abrir chat de asistencia">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-xl shadow-inner border border-amber-200">🦉</div>
-                <div id="chat-info" class="opacity-0 transition-opacity">
+                <div class="text-2xl">🦉</div>
+                <div id="chat-info" class="opacity-0 transition-opacity duration-300">
                     <p class="font-bold text-sm leading-none">Don Búho</p>
-                    <p class="text-[10px] text-slate-400">Asesor Comercial</p>
+                    <p class="text-xs text-slate-300">Asesor Oficial</p>
                 </div>
             </div>
-            <i data-lucide="chevron-up" id="chat-icon"></i>
+            <div class="flex items-center gap-2">
+                <div id="chat-notification" class="w-2 h-2 bg-red-400 rounded-full hidden"></div>
+                <i data-lucide="chevron-up" id="chat-icon" class="w-5 h-5 transition-transform duration-300"></i>
+            </div>
         </div>
-        <div class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50" id="chat-messages"></div>
-        <div class="p-3 bg-white border-t border-slate-100">
-            <form onsubmit="enviarPregunta(event)" class="flex gap-2">
-                <input type="text" id="chat-input" placeholder="¿Tienes dudas?" class="flex-1 bg-slate-100 border-none rounded-full px-4 text-sm outline-none focus:ring-2 focus:ring-indigo-500 transition">
-                <button type="submit" class="w-10 h-10 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-md"><i data-lucide="send" class="w-4 h-4"></i></button>
-            </form>
+        
+        <div class="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-slate-50 to-white text-sm" id="chat-messages">
+            <!-- Mensaje inicial -->
+            <div class="flex justify-start">
+                <div class="bg-white border border-slate-200 p-3 rounded-2xl max-w-[85%] shadow-sm">
+                    <p class="font-medium text-slate-700">¡Hola! Soy Don Búho, tu asesor educativo. ¿En qué puedo ayudarte hoy?</p>
+                </div>
+            </div>
         </div>
+        
+        <form onsubmit="enviarPregunta(event)" class="p-3 bg-white border-t border-slate-100 flex gap-2">
+            <input type="text" id="chat-input" placeholder="Escribe tu pregunta..." 
+                   class="flex-1 bg-slate-100 rounded-full px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-indigo-600 transition-all duration-200"
+                   aria-label="Mensaje para el chat">
+            <button type="submit" class="w-10 h-10 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-md hover:bg-indigo-700 transition-colors duration-200">
+                <i data-lucide="send" class="w-4 h-4"></i>
+            </button>
+        </form>
     </div>
 
-    <script>
-        const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
-        const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
-        const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
+    <!-- Botón de WhatsApp flotante -->
+    <a id="whatsapp-button" href="#" target="_blank" 
+       class="fixed bottom-24 right-6 w-14 h-14 bg-green-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-green-600 transition-all duration-300 z-40">
+        <i class="fab fa-whatsapp text-xl"></i>
+    </a>
 
+    <!-- Botón para volver arriba -->
+    <button id="back-to-top" class="fixed bottom-6 right-6 w-12 h-12 bg-slate-800 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-slate-900 transition-all duration-300 opacity-0 invisible z-40">
+        <i data-lucide="arrow-up" class="w-5 h-5"></i>
+    </button>
+
+    <script>
+        // Configuración inicial mejorada
+        const CONFIG = {
+            supabase: {
+                url: 'https://vxggatcfrywyodovjwxj.supabase.co',
+                key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg'
+            },
+            defaultPrimaryColor: '#4f46e5',
+            animationsEnabled: true
+        };
+
+        // Inicialización con manejo de errores mejorado
         let instGlobal = null;
         let cursoGlobal = null;
         let chatAbierto = false;
+        let supabaseClient = null;
 
         document.addEventListener('DOMContentLoaded', initPortal);
 
         async function initPortal() {
-            lucide.createIcons();
+            try {
+                // Inicializar Lucide icons
+                lucide.createIcons();
+                
+                // Inicializar Supabase
+                supabaseClient = supabase.createClient(CONFIG.supabase.url, CONFIG.supabase.key);
+                
+                // Inicializar componentes
+                initMobileMenu();
+                initBackToTop();
+                
+                // Cargar datos del portal
+                await loadPortalData();
+                
+            } catch (error) {
+                console.error('Error inicializando portal:', error);
+                showErrorPage('Error al cargar el portal. Por favor, recarga la página.');
+            }
+        }
+
+        async function loadPortalData() {
             const params = new URLSearchParams(window.location.search);
-            const instSigla = params.get('inst'); // Ejemplo: colbert-web
-            const courseId = params.get('id');    // Ejemplo: UUID del curso
+            const instSigla = params.get('inst');
+            const courseId = params.get('id');
+
+            if (!instSigla && !courseId) {
+                throw new Error("Parámetros de acceso incompletos");
+            }
+
+            let finalInstId;
 
             try {
-                // 1. CARGAR IDENTIDAD (SaaS)
-                if (!instSigla && !courseId) throw new Error("Acceso inválido al portal");
-
-                let institutionId;
-
                 if (courseId) {
-                    const { data: curso, error } = await db.from('cursos_oficiales').select('*, instituciones(*)').eq('id', courseId).single();
-                    if (error || !curso) throw new Error("Curso no encontrado");
+                    // ESCENARIO 1: CARGAR CURSO ESPECÍFICO
+                    const { data: curso, error } = await supabaseClient
+                        .from('cursos_oficiales')
+                        .select('*, instituciones(*)')
+                        .eq('id', courseId)
+                        .single();
+
+                    if (error || !curso) {
+                        throw new Error("El curso solicitado no está disponible");
+                    }
+
                     cursoGlobal = curso;
                     instGlobal = curso.instituciones;
-                    institutionId = instGlobal.id;
+                    finalInstId = instGlobal.id;
                     renderDetalleCurso();
                 } else {
-                    const { data: inst, error } = await db.from('instituciones').select('*').eq('sigla', instSigla).single();
-                    if (error || !inst) throw new Error("Instituto no registrado");
+                    // ESCENARIO 2: CARGAR PORTAL DEL INSTITUTO
+                    const { data: inst, error } = await supabaseClient
+                        .from('instituciones')
+                        .select('*')
+                        .eq('sigla', instSigla)
+                        .single();
+
+                    if (error || !inst) {
+                        throw new Error("El instituto no está registrado");
+                    }
+
                     instGlobal = inst;
-                    institutionId = inst.id;
+                    finalInstId = inst.id;
                     renderHomeInstituto();
                 }
 
-                // 2. APLICAR BRANDING DINÁMICO
-                document.title = `${instGlobal.nombre} | Portal de Ventas`;
-                document.getElementById('nombre-inst').innerText = instGlobal.nombre;
-                document.getElementById('footer-inst').innerText = instGlobal.nombre;
-                if (instGlobal.color_primario) {
-                    document.documentElement.style.setProperty('--primary-color', instGlobal.color_primario);
-                    document.getElementById('hero-title').querySelector('span')?.style.setProperty('color', instGlobal.color_primario, 'important');
-                    document.getElementById('btn-submit').style.backgroundColor = instGlobal.color_primario;
-                    document.getElementById('chat-header').style.backgroundColor = instGlobal.color_primario;
-                }
-                if (instGlobal.logo_url) {
-                    const logo = document.getElementById('logo-inst');
-                    logo.src = instGlobal.logo_url;
-                    document.getElementById('logo-container').classList.remove('hidden');
-                }
-
-                // 3. CARGAR CATÁLOGO COMPLETO
-                await cargarCatalogo(institutionId);
-
-            } catch (err) {
-                console.error(err);
-                document.body.innerHTML = `<div class="h-screen flex items-center justify-center flex-col gap-4">
-                    <span class="text-6xl">⚠️</span>
-                    <h1 class="text-2xl font-bold">${err.message}</h1>
-                    <a href="https://asari.com.ar" class="text-indigo-600 underline">Volver a ASARI</a>
-                </div>`;
+                // Aplicar branding y cargar catálogo
+                aplicarBranding();
+                await cargarCatalogoAreas(finalInstId);
+                
+                // Configurar botón de WhatsApp
+                setupWhatsAppButton();
+                
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+                throw error;
             }
         }
 
-        async function cargarCatalogo(instId) {
-            const { data: areas, error } = await db.from('areas')
-                .select('*, cursos_oficiales(*)')
-                .eq('institution_id', instId)
-                .order('orden', { ascending: true });
+        function aplicarBranding() {
+            if (!instGlobal) return;
+            
+            document.title = `${instGlobal.nombre} | Portal Académico`;
+            document.getElementById('nombre-inst').textContent = instGlobal.nombre;
+            document.getElementById('footer-inst').textContent = instGlobal.nombre;
+            
+            const primaryColor = instGlobal.color_primario || CONFIG.defaultPrimaryColor;
+            document.documentElement.style.setProperty('--primary-color', primaryColor);
+            
+            // Aplicar color a elementos específicos
+            const colorElements = [
+                document.getElementById('hero-accent'),
+                document.getElementById('chat-header'),
+                document.querySelectorAll('[data-brand-color]')
+            ];
+            
+            colorElements.forEach(el => {
+                if (el && el.style) el.style.color = primaryColor;
+                if (el && el.style) el.style.backgroundColor = primaryColor;
+            });
+            
+            const btnSubmit = document.getElementById('btn-submit');
+            if (btnSubmit) btnSubmit.style.backgroundColor = primaryColor;
 
-            document.getElementById('catalogo-loader').classList.add('hidden');
-            const container = document.getElementById('areas-container');
+            if (instGlobal.logo_url) {
+                const logo = document.getElementById('logo-inst');
+                logo.src = instGlobal.logo_url;
+                logo.onload = () => {
+                    document.getElementById('logo-container').classList.remove('hidden');
+                };
+                logo.onerror = () => {
+                    console.warn('No se pudo cargar el logo');
+                };
+            }
+        }
 
-            if (error || !areas) return;
+        async function cargarCatalogoAreas(instId) {
+            try {
+                const { data: areas, error } = await supabaseClient
+                    .from('areas')
+                    .select('*, cursos_oficiales(*)')
+                    .eq('institution_id', instId)
+                    .order('orden', { ascending: true });
 
-            areas.forEach(area => {
-                if (area.cursos_oficiales.length === 0) return;
+                const loader = document.getElementById('catalogo-loader');
+                const container = document.getElementById('areas-container');
+                const emptyState = document.getElementById('empty-state');
 
-                const section = document.createElement('div');
-                section.className = "fade-in";
-                section.innerHTML = `
-                    <div class="flex items-center gap-4 mb-8">
-                        <div class="h-1 flex-1 bg-slate-200 rounded-full"></div>
-                        <h3 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">${area.nombre}</h3>
-                        <div class="h-1 w-12 bg-indigo-600 rounded-full"></div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        ${area.cursos_oficiales.map(c => `
-                            <div class="bg-white rounded-2xl border border-slate-200 p-6 hover-lift flex flex-col h-full">
-                                <div class="flex-1">
-                                    <h4 class="text-lg font-bold text-slate-900 mb-2">${c.nombre}</h4>
-                                    <p class="text-xs text-slate-500 line-clamp-2 mb-6">${c.descripcion || ''}</p>
-                                </div>
-                                <div class="flex items-center justify-between pt-4 border-t border-slate-50">
-                                    <span class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded">Certificado</span>
-                                    <a href="portal.html?id=${c.id}" class="text-sm font-black hover:underline transition">VER CURSO →</a>
-                                </div>
+                if (loader) loader.classList.add('hidden');
+
+                if (error || !areas || areas.length === 0) {
+                    if (emptyState) emptyState.classList.remove('hidden');
+                    return;
+                }
+
+                // Filtrar áreas con cursos
+                const areasConCursos = areas.filter(area => 
+                    area.cursos_oficiales && area.cursos_oficiales.length > 0
+                );
+
+                if (areasConCursos.length === 0) {
+                    if (emptyState) emptyState.classList.remove('hidden');
+                    return;
+                }
+
+                // Renderizar áreas
+                areasConCursos.forEach((area, index) => {
+                    const areaDiv = document.createElement('div');
+                    areaDiv.className = `fade-in ${CONFIG.animationsEnabled ? 'animation-delay-' + (index * 100) : ''}`;
+                    areaDiv.style.animationDelay = `${index * 100}ms`;
+                    
+                    areaDiv.innerHTML = `
+                        <div class="flex items-center gap-4 mb-8">
+                            <h3 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight uppercase">${area.nombre}</h3>
+                            <div class="h-1 flex-1 bg-slate-100 rounded-full relative">
+                                <div class="absolute inset-0 w-16 sm:w-24 rounded-full" style="background-color: var(--primary-color)"></div>
                             </div>
-                        `).join('')}
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            ${area.cursos_oficiales.map(curso => `
+                                <div class="bg-white rounded-2xl border border-slate-200 p-6 hover-lift flex flex-col h-full shadow-sm transition-all duration-300">
+                                    <div class="flex-1">
+                                        <h4 class="text-lg font-bold text-slate-900 mb-3 line-clamp-2">${curso.nombre}</h4>
+                                        <p class="text-sm text-slate-500 line-clamp-3 mb-6">${curso.descripcion_short || curso.descripcion || 'Descripción no disponible'}</p>
+                                    </div>
+                                    <div class="flex items-center justify-between pt-6 border-t border-slate-50">
+                                        <span class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full uppercase tracking-wider">Oficial</span>
+                                        <a href="portal.html?id=${curso.id}" class="text-xs font-bold hover:underline tracking-wider transition-colors duration-200" style="color: var(--primary-color)">
+                                            Ver detalles <i data-lucide="arrow-right" class="w-3 h-3 inline ml-1"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                    
+                    container.appendChild(areaDiv);
+                });
+
+                // Actualizar icons después de renderizar
+                setTimeout(() => lucide.createIcons(), 100);
+                
+            } catch (error) {
+                console.error('Error cargando catálogo:', error);
+                document.getElementById('catalogo-loader').innerHTML = `
+                    <div class="text-center py-12">
+                        <i data-lucide="alert-circle" class="w-12 h-12 mx-auto text-red-400 mb-4"></i>
+                        <p class="text-sm text-slate-600">Error cargando los cursos</p>
                     </div>
                 `;
-                container.appendChild(section);
-            });
-            lucide.createIcons();
+                lucide.createIcons();
+            }
         }
 
         function renderDetalleCurso() {
-            document.getElementById('vista-curso').classList.remove('hidden');
-            document.getElementById('det-titulo').innerText = cursoGlobal.nombre;
-            document.getElementById('det-desc').innerText = cursoGlobal.descripcion || "Formación profesional con amplia salida laboral.";
+            if (!cursoGlobal) return;
             
-            // Generar Acordeón de temario
-            const temario = document.getElementById('temario-accordion');
-            if (cursoGlobal.contenido && Array.isArray(cursoGlobal.contenido)) {
-                cursoGlobal.contenido.forEach((mod, i) => {
-                    temario.innerHTML += `
-                        <div class="border border-slate-100 rounded-xl overflow-hidden shadow-sm">
-                            <div class="p-4 bg-slate-50 font-bold text-sm text-slate-700 flex justify-between">
-                                Módulo ${i+1}: ${mod.titulo}
+            const vistaCurso = document.getElementById('vista-curso');
+            const detTitulo = document.getElementById('det-titulo');
+            const detDesc = document.getElementById('det-desc');
+            const temarioAccordion = document.getElementById('temario-accordion');
+            
+            vistaCurso.classList.remove('hidden');
+            detTitulo.textContent = cursoGlobal.nombre;
+            
+            const descripcion = cursoGlobal.descripcion || "Este programa cuenta con certificación oficial y está diseñado para una inserción laboral inmediata.";
+            detDesc.textContent = descripcion;
+            
+            // Renderizar temario
+            if (cursoGlobal.contenido && Array.isArray(cursoGlobal.contenido) && cursoGlobal.contenido.length > 0) {
+                temarioAccordion.innerHTML = cursoGlobal.contenido.map((modulo, index) => `
+                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 hover:bg-slate-100 transition-colors duration-200">
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm font-bold flex-shrink-0">
+                                ${index + 1}
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-800 mb-1">${modulo.titulo || `Módulo ${index + 1}`}</h4>
+                                ${modulo.descripcion ? `<p class="text-sm text-slate-600">${modulo.descripcion}</p>` : ''}
                             </div>
                         </div>
-                    `;
-                });
+                    </div>
+                `).join('');
+            } else {
+                temarioAccordion.innerHTML = `
+                    <div class="text-center py-8 text-slate-500">
+                        <i data-lucide="book-open" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+                        <p>Plan de estudios en desarrollo</p>
+                    </div>
+                `;
             }
+            
+            lucide.createIcons();
         }
 
         function renderHomeInstituto() {
-            document.getElementById('hero-title').innerHTML = `Formación Oficial en <br><span class="text-indigo-600">${instGlobal.nombre}</span>`;
-            document.getElementById('hero-desc').innerText = `Descubre nuestro catálogo de carreras y seminarios diseñados para el mundo laboral real.`;
+            if (!instGlobal) return;
+            
+            const heroTitle = document.getElementById('hero-title');
+            const heroDesc = document.getElementById('hero-desc');
+            
+            heroTitle.innerHTML = `Formación Profesional <br> <span id="hero-accent">${instGlobal.nombre}</span>`;
+            heroDesc.textContent = instGlobal.descripcion || `Certificación oficial, programas actualizados y la mejor comunidad educativa para tu carrera profesional.`;
         }
 
-        // --- GESTIÓN DE LEADS ---
+        // LEADS - Mejorado con validación
         document.getElementById('form-lead')?.addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            const form = e.target;
             const btn = document.getElementById('btn-submit');
-            const originalText = btn.innerText;
-            btn.innerText = "PROCESANDO...";
+            const originalText = btn.innerHTML;
+            
+            // Validación básica
+            const nombre = form.nombre.value.trim();
+            const email = form.email.value.trim();
+            const telefono = form.telefono.value.trim();
+            
+            if (!nombre || !email || !telefono) {
+                showToast('Por favor, completa todos los campos', 'error');
+                return;
+            }
+            
+            // Validar email
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showToast('Por favor, ingresa un email válido', 'error');
+                return;
+            }
+            
+            // Mostrar estado de carga
+            btn.classList.add('btn-loading');
             btn.disabled = true;
-
-            const formData = new FormData(e.target);
-            const data = Object.fromEntries(formData);
-
-            const { error } = await db.from('leads').insert({
-                nombre: data.nombre,
-                email: data.email,
-                telefono: data.telefono,
-                curso_interes: cursoGlobal?.nombre || "Consulta General",
-                institution_id: instGlobal.id,
-                fuente: 'Portal Web'
-            });
-
-            if (!error) {
-                btn.style.backgroundColor = "#22c55e";
-                btn.innerText = "¡SOLICITUD ENVIADA!";
-                // Redirigir a WhatsApp
-                const wpp = instGlobal.telefono_contacto?.replace(/\D/g, '') || "";
-                const msg = encodeURIComponent(`Hola, me interesa el curso ${cursoGlobal?.nombre || ''}. Mi nombre es ${data.nombre}.`);
-                setTimeout(() => window.open(`https://wa.me/${wpp}?text=${msg}`, '_blank'), 1500);
-            } else {
-                alert("Error al enviar. Intenta por WhatsApp.");
+            
+            try {
+                const data = {
+                    nombre: nombre,
+                    email: email,
+                    telefono: telefono,
+                    curso_interes: cursoGlobal ? cursoGlobal.nombre : "Consulta General",
+                    institution_id: instGlobal.id,
+                    fuente: 'Portal Web',
+                    fecha: new Date().toISOString()
+                };
+                
+                const { error } = await supabaseClient.from('leads').insert([data]);
+                
+                if (error) throw error;
+                
+                // Éxito
+                showToast('¡Información enviada con éxito!', 'success');
+                btn.innerHTML = '<i data-lucide="check" class="w-5 h-5"></i> ENVIADO';
+                btn.style.backgroundColor = '#10b981';
+                
+                // Redirigir a WhatsApp después de 1.5 segundos
+                setTimeout(() => {
+                    const wppNum = instGlobal.telefono_contacto?.replace(/\D/g, '');
+                    if (wppNum) {
+                        const msg = encodeURIComponent(
+                            `Hola, acabo de registrarme en el portal para el curso ${cursoGlobal?.nombre || ''}. Mi nombre es ${nombre}.`
+                        );
+                        window.open(`https://wa.me/${wppNum}?text=${msg}`, '_blank');
+                    }
+                }, 1500);
+                
+                // Resetear formulario después de 3 segundos
+                setTimeout(() => {
+                    form.reset();
+                    btn.classList.remove('btn-loading');
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                    btn.style.backgroundColor = '';
+                }, 3000);
+                
+            } catch (error) {
+                console.error('Error enviando lead:', error);
+                showToast('Error al enviar. Intenta nuevamente.', 'error');
+                
+                btn.classList.remove('btn-loading');
                 btn.disabled = false;
-                btn.innerText = originalText;
+                btn.innerHTML = originalText;
             }
         });
 
-        // --- CHATBOT DON BÚHO ---
+        // CHATBOT mejorado
         function toggleChat() {
-            const w = document.getElementById('chat-widget');
+            const widget = document.getElementById('chat-widget');
+            const chatInfo = document.getElementById('chat-info');
+            const chatIcon = document.getElementById('chat-icon');
+            const notification = document.getElementById('chat-notification');
+            
             chatAbierto = !chatAbierto;
+            
             if (chatAbierto) {
-                w.classList.replace('chat-closed', 'chat-open');
-                document.getElementById('chat-info').classList.remove('opacity-0');
-                document.getElementById('chat-icon').style.transform = "rotate(180deg)";
+                widget.classList.replace('chat-closed', 'chat-open');
+                chatInfo.classList.remove('opacity-0');
+                chatIcon.style.transform = "rotate(180deg)";
+                if (notification) notification.classList.add('hidden');
+                
+                // Enfocar el input al abrir
+                setTimeout(() => {
+                    const input = document.getElementById('chat-input');
+                    if (input) input.focus();
+                }, 300);
             } else {
-                w.classList.replace('chat-open', 'chat-closed');
-                document.getElementById('chat-info').classList.add('opacity-0');
-                document.getElementById('chat-icon').style.transform = "rotate(0deg)";
+                widget.classList.replace('chat-open', 'chat-closed');
+                chatInfo.classList.add('opacity-0');
+                chatIcon.style.transform = "rotate(0deg)";
             }
         }
 
         async function enviarPregunta(e) {
             e.preventDefault();
-            const input = document.getElementById('chat-input');
-            const txt = input.value.trim();
-            if (!txt) return;
-
-            addMsg(txt, 'user');
-            input.value = "";
             
-            const loaderId = addMsg('<div class="loader-dots flex gap-1"><div></div><div></div><div></div></div>', 'bot');
-
+            const input = document.getElementById('chat-input');
+            const pregunta = input.value.trim();
+            
+            if (!pregunta) return;
+            
+            // Limpiar input y añadir mensaje de usuario
+            input.value = "";
+            addMsg(pregunta, 'user');
+            
+            // Mostrar indicador de carga
+            const loadId = addMsg('<div class="flex gap-1"><div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div><div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div><div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div></div>', 'bot');
+            
             try {
-                const { data: key } = await db.from('app_secrets').select('value').eq('name', 'gemini_api_key').single();
-                const prompt = `Eres Don Búho, asesor de ventas de ${instGlobal.nombre}. 
-                Responde sobre ${cursoGlobal ? cursoGlobal.nombre : 'nuestros cursos'}. 
-                Sé amable, breve y profesional. Invita a inscribirse. 
-                Pregunta del usuario: ${txt}`;
-
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key.value}`, {
-                    method: 'POST', body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-                });
-                const json = await res.json();
-                const reply = json.candidates[0].content.parts[0].text;
+                // Obtener API key de Gemini
+                const { data: secret } = await supabaseClient
+                    .from('app_secrets')
+                    .select('value')
+                    .eq('name', 'gemini_api_key')
+                    .single();
                 
-                document.getElementById(loaderId).remove();
-                addMsg(marked.parse(reply), 'bot');
-            } catch {
-                document.getElementById(loaderId).remove();
-                addMsg("Disculpa, mi conexión está lenta. ¿Puedes contactarnos al WhatsApp?", 'bot');
+                if (!secret?.value) throw new Error('API key no configurada');
+                
+                const prompt = `Eres Don Búho, asesor educativo de ${instGlobal.nombre}. 
+                Responde de manera amable y profesional sobre ${cursoGlobal ? 'el curso de ' + cursoGlobal.nombre : 'nuestros cursos'}.
+                Usuario pregunta: ${pregunta}
+                Responde en español y sé conciso.`;
+                
+                const response = await fetch(
+                    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${secret.value}`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: prompt }] }],
+                            generationConfig: {
+                                temperature: 0.7,
+                                maxOutputTokens: 500
+                            }
+                        })
+                    }
+                );
+                
+                if (!response.ok) throw new Error('Error en la API');
+                
+                const data = await response.json();
+                const respuesta = data.candidates?.[0]?.content?.parts?.[0]?.text || 
+                                 "Lo siento, no pude generar una respuesta. ¿Te gustaría hablar con un asesor por WhatsApp?";
+                
+                // Reemplazar mensaje de carga con respuesta
+                document.getElementById(loadId).remove();
+                addMsg(marked.parse(respuesta), 'bot');
+                
+            } catch (error) {
+                console.error('Error en chatbot:', error);
+                document.getElementById(loadId).remove();
+                addMsg("¿Te gustaría hablar con un asesor humano por WhatsApp? ¡Ellos tienen toda la información actualizada!", 'bot');
             }
         }
 
-        function addMsg(html, sender) {
-            const id = 'm-' + Date.now();
-            const container = document.getElementById('chat-messages');
-            const div = document.createElement('div');
-            div.id = id;
-            div.className = sender === 'user' ? "flex justify-end" : "flex justify-start";
-            div.innerHTML = `
-                <div class="${sender === 'user' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-700 border border-slate-200'} p-3 rounded-2xl max-w-[85%] text-xs shadow-sm">
-                    ${html}
+        function addMsg(contenido, tipo) {
+            const contenedor = document.getElementById('chat-messages');
+            const id = 'msg-' + Date.now() + Math.random().toString(36).substr(2, 9);
+            
+            const mensajeDiv = document.createElement('div');
+            mensajeDiv.id = id;
+            mensajeDiv.className = tipo === 'user' ? "flex justify-end" : "flex justify-start";
+            mensajeDiv.innerHTML = `
+                <div class="${tipo === 'user' ? 'bg-indigo-600 text-white' : 'bg-white border border-slate-200 text-slate-700'} 
+                            p-3 rounded-2xl max-w-[85%] shadow-sm break-words">
+                    ${contenido}
                 </div>
             `;
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
+            
+            contenedor.appendChild(mensajeDiv);
+            contenedor.scrollTo({ top: contenedor.scrollHeight, behavior: 'smooth' });
+            
             return id;
         }
+
+        // FUNCIONES AUXILIARES MEJORADAS
+        function initMobileMenu() {
+            const menuBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            if (menuBtn && mobileMenu) {
+                menuBtn.addEventListener('click', () => {
+                    mobileMenu.classList.toggle('hidden');
+                    const icon = menuBtn.querySelector('i');
+                    if (mobileMenu.classList.contains('hidden')) {
+                        lucide.createIcon(icon, 'menu');
+                    } else {
+                        lucide.createIcon(icon, 'x');
+                    }
+                });
+                
+                // Cerrar menú al hacer clic en un enlace
+                mobileMenu.querySelectorAll('a').forEach(link => {
+                    link.addEventListener('click', () => {
+                        mobileMenu.classList.add('hidden');
+                        lucide.createIcon(menuBtn.querySelector('i'), 'menu');
+                    });
+                });
+            }
+        }
+
+        function initBackToTop() {
+            const backToTopBtn = document.getElementById('back-to-top');
+            
+            if (backToTopBtn) {
+                window.addEventListener('scroll', () => {
+                    if (window.scrollY > 300) {
+                        backToTopBtn.classList.remove('opacity-0', 'invisible');
+                        backToTopBtn.classList.add('opacity-100', 'visible');
+                    } else {
+                        backToTopBtn.classList.remove('opacity-100', 'visible');
+                        backToTopBtn.classList.add('opacity-0', 'invisible');
+                    }
+                });
+                
+                backToTopBtn.addEventListener('click', () => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+            }
+        }
+
+        function setupWhatsAppButton() {
+            const whatsappBtn = document.getElementById('whatsapp-button');
+            
+            if (whatsappBtn && instGlobal?.telefono_contacto) {
+                const wppNum = instGlobal.telefono_contacto.replace(/\D/g, '');
+                const message = encodeURIComponent(`Hola, me interesa obtener información sobre los cursos de ${instGlobal.nombre}`);
+                whatsappBtn.href = `https://wa.me/${wppNum}?text=${message}`;
+            } else {
+                whatsappBtn?.remove();
+            }
+        }
+
+        function showToast(mensaje, tipo = 'info') {
+            // Crear toast si no existe
+            let toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toast-container';
+                toastContainer.className = 'fixed top-4 right-4 z-50 space-y-2';
+                document.body.appendChild(toastContainer);
+            }
+            
+            const toastId = 'toast-' + Date.now();
+            const bgColor = tipo === 'success' ? 'bg-green-500' : 
+                           tipo === 'error' ? 'bg-red-500' : 
+                           'bg-blue-500';
+            
+            const toast = document.createElement('div');
+            toast.id = toastId;
+            toast.className = `${bgColor} text-white px-4 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full`;
+            toast.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <i data-lucide="${tipo === 'success' ? 'check-circle' : tipo === 'error' ? 'alert-circle' : 'info'}" class="w-5 h-5"></i>
+                    <span>${mensaje}</span>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Animar entrada
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+            }, 10);
+            
+            // Animar salida después de 3 segundos
+            setTimeout(() => {
+                toast.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(() => {
+                    if (document.getElementById(toastId)) {
+                        document.getElementById(toastId).remove();
+                    }
+                }, 300);
+            }, 3000);
+            
+            lucide.createIcons();
+        }
+
+        function showErrorPage(mensaje) {
+            document.body.innerHTML = `
+                <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-6">
+                    <div class="max-w-md w-full text-center">
+                        <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i data-lucide="alert-triangle" class="w-10 h-10 text-red-600"></i>
+                        </div>
+                        <h1 class="text-2xl font-bold text-slate-900 mb-3">¡Ups! Algo salió mal</h1>
+                        <p class="text-slate-600 mb-8">${mensaje}</p>
+                        <div class="space-y-3">
+                            <a href="index.html" class="inline-block w-full bg-indigo-600 text-white py-3 px-6 rounded-lg font-bold hover:bg-indigo-700 transition-colors duration-200">
+                                Volver al inicio
+                            </a>
+                            <button onclick="location.reload()" class="w-full border border-slate-300 text-slate-700 py-3 px-6 rounded-lg font-bold hover:bg-slate-50 transition-colors duration-200">
+                                Reintentar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        // Mejora en la carga de imágenes
+        document.addEventListener('DOMContentLoaded', function() {
+            const images = document.querySelectorAll('img');
+            images.forEach(img => {
+                img.loading = 'lazy';
+            });
+        });
     </script>
 </body>
 </html>
