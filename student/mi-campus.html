@@ -122,7 +122,7 @@
             
             // 2. Si no hay sesión, al login de esta carpeta
             if (!session) {
-                window.location.href = '/login.html'; // El ./ es clave
+                window.location.href = './login.html'; // El ./ es clave
                 return;
             }
 
@@ -365,7 +365,7 @@ if (!matriculasAlumno || matriculasAlumno.length === 0) {
         // ============================================
         function irAlAula(cursoId, cursoNombre) {
             // Redirigir al aula.html en la misma carpeta student/
-            window.location.href = `/aula.html?id=${cursoId}&curso=${encodeURIComponent(cursoNombre)}`;
+            window.location.href = `./aula.html?id=${cursoId}&curso=${encodeURIComponent(cursoNombre)}`;
         }
 
     async function logout() {
@@ -379,7 +379,7 @@ if (!matriculasAlumno || matriculasAlumno.length === 0) {
 
             // 3. Redirigir al login usando replace
             // window.location.replace impide que el alumno pueda volver atrás con la flecha del navegador
-            window.location.replace('/login.html');
+            window.location.replace('./login.html');
         }
         function generarDiploma() {
             // Función para generar diploma analítico
