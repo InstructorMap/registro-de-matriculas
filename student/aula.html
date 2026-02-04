@@ -387,7 +387,7 @@
                 
                 if(!cursoResult || cursoResult.length === 0) {
                     toast("Curso no encontrado", "error");
-                    setTimeout(() => window.location.href = 'index.html', 2000);
+                    setTimeout(() => window.location.href = 'mi-campus.html', 2000);
                     return;
                 }
                 
@@ -415,7 +415,7 @@
                                         Este curso pertenece a otra institución. No tienes permisos para acceder.
                                     </p>
                                     <div class="space-y-3">
-                                        <a href="index.html" class="block bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-bold transition">
+                                        <a href="mi-campus.html" class="block bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-bold transition">
                                             Volver al Campus
                                         </a>
                                         <p class="text-xs text-slate-500 mt-4">
@@ -533,7 +533,7 @@
             } catch (error) {
                 console.error("Error crítico cargando curso:", error);
                 toast("Error al cargar el curso", "error");
-                setTimeout(() => window.location.href = 'index.html', 3000);
+                setTimeout(() => window.location.href = 'student/mi-campus.html', 3000);
             }
         }
 
