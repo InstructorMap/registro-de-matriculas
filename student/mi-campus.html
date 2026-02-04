@@ -220,7 +220,7 @@
             // Redirige al aula.html pasando el ID del curso y la institución
             const slug = institutionData.sigla || institutionData.id;
             // encodeURIComponent es vital para nombres con espacios
-            window.location.href = `aula.html?inst=${slug}&id=${id}&curso=${encodeURIComponent(nombre)}`;
+            window.location.href = `student/aula.html?inst=${slug}&id=${id}&curso=${encodeURIComponent(nombre)}`;
         }
 
         function logout() {
