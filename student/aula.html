@@ -265,7 +265,7 @@
             // Verificar sesión
             const { data: { session } } = await db.auth.getSession();
             if(!session) {
-                window.location.href = './mi-campus.html';
+                window.location.href = '/mi-campus.html';
                 return;
             }
             
@@ -387,7 +387,7 @@
                 
                 if(!cursoResult || cursoResult.length === 0) {
                     toast("Curso no encontrado", "error");
-                    setTimeout(() => window.location.href = './mi-campus.html', 2000);
+                    setTimeout(() => window.location.href = '/mi-campus.html', 2000);
                     return;
                 }
                 
