@@ -111,24 +111,35 @@
         let currentInstitutionId = null;
         let studentData = null;
 
-        // ============================================
-        // 1. INICIALIZACIÓN Y VERIFICACIÓN DE SESIÓN
+       // ============================================
+        // 1. INICIALIZACIÓN Y VERIFICACIÓN DE SEGURIDAD
         // ============================================
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
             
-            // Verificar sesión activa
+            // 1. Obtener sesión
             const { data: { session } } = await db.auth.getSession();
+            
+            // 2. Si no hay sesión, al login de esta carpeta
             if (!session) {
-                // Redirigir al index.html (login)
-                window.location.href = 'index.html';
+                window.location.href = './login.html'; // El ./ es clave
+                return;
+            }
+
+            // 3. Verificar que sea ALUMNO (Seguridad SaaS)
+            // Esto evita que tú como admin entres por error al panel de alumnos
+            const userRole = session.user.user_metadata.rol;
+            if (userRole !== 'alumno') {
+                console.warn("Acceso denegado: Rol no autorizado para este panel");
+                window.location.href = '../admin-login.html'; // Te expulsa a la raíz
                 return;
             }
             
+            // 4. Si todo está OK, cargamos los datos reales de tus tablas
             currentUser = session.user;
-            await loadStudentData();
-            await loadInstitutionBranding();
-            await loadStudentCourses();
+            await loadStudentData();       // Carga nombre/apellido desde 'perfiles' o 'matriculas'
+            await loadInstitutionBranding(); // Carga el color del instituto (Camaleón)
+            await loadStudentCourses();    // Carga las múltiples tarjetas de curso
         });
 
         // ============================================
@@ -357,12 +368,19 @@
             window.location.href = `student/aula.html?id=${cursoId}&curso=${encodeURIComponent(cursoNombre)}`;
         }
 
-        function logout() {
-            db.auth.signOut();
-            // Redirigir al login.html en la misma carpeta student/
-            window.location.href = 'login.html';
-        }
+    async function logout() {
+            // 1. Cerrar sesión en Supabase
+            await db.auth.signOut();
 
+            // 2. Limpiar TODA la memoria del navegador
+            // Esto evita que el login detecte sesiones viejas
+            localStorage.clear();
+            sessionStorage.clear();
+
+            // 3. Redirigir al login usando replace
+            // window.location.replace impide que el alumno pueda volver atrás con la flecha del navegador
+            window.location.replace('login.html');
+        }
         function generarDiploma() {
             // Función para generar diploma analítico
             alert('Funcionalidad de Diploma Analítico en desarrollo.\nPróximamente disponible.');
