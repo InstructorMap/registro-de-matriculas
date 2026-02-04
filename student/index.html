@@ -18,221 +18,426 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        .hidden-field { display: none; }
         .fade-in { animation: fadeIn 0.5s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Toast custom */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            z-index: 9999;
+            animation: slideIn 0.3s ease-out;
+            color: white;
+            font-weight: 500;
+        }
+        .toast-success { background: #10b981; }
+        .toast-error { background: #ef4444; }
+        .toast-warning { background: #f59e0b; }
+        .toast-info { background: #3b82f6; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     </style>
 </head>
-<body id="page-body" class="bg-campus h-screen flex items-center justify-center font-sans text-slate-200 p-4 transition-all duration-700">
+<body class="bg-campus h-screen flex items-center justify-center font-sans text-slate-200 p-4">
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
 
     <div class="glass-panel p-8 rounded-2xl shadow-2xl w-full max-w-md relative overflow-hidden fade-in">
+        <!-- Dynamic Top Bar -->
         <div id="top-bar" class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
 
+        <!-- Logo Section -->
         <div class="text-center mb-6">
-            <div id="default-logo" class="w-16 h-16 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-900/50">
+            <!-- Default Logo (ASARI) -->
+            <div id="default-logo" class="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-900/50">
                 <span class="font-bold text-2xl text-white">A</span>
             </div>
+            
+            <!-- Institution Logo (Hidden by default) -->
             <div id="logo-container" class="w-24 h-24 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg p-2 hidden backdrop-blur-md border border-white/10">
-                <img id="inst-logo" src="" class="w-full h-full object-contain">
+                <img id="inst-logo" src="" class="w-full h-full object-contain" onerror="this.parentElement.classList.add('hidden'); document.getElementById('default-logo').classList.remove('hidden');">
             </div>
 
-            <h1 class="text-2xl font-black text-white tracking-tight" id="welcome-title">Zona Alumnos</h1>
-            <p class="text-slate-400 text-sm mt-1" id="welcome-subtitle">Acceso exclusivo estudiantes</p>
+            <h1 class="text-2xl font-black text-white tracking-tight" id="welcome-title">Acceso Estudiantes</h1>
+            <p class="text-slate-400 text-sm mt-1" id="welcome-subtitle">Ingresa con tu DNI para continuar</p>
         </div>
 
-        <form id="auth-form" class="space-y-4">
-            
-            <div id="dni-field" class="hidden-field">
-                <label class="block text-xs font-bold text-yellow-400 uppercase mb-1 ml-1">Tu DNI (Obligatorio)</label>
+        <!-- DNI Only Form -->
+        <form id="dni-form" class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-white uppercase mb-1 ml-1">Número de DNI</label>
                 <div class="relative">
                     <i data-lucide="id-card" class="absolute left-3 top-3 w-5 h-5 text-yellow-400"></i>
-                    <input type="text" id="dni" placeholder="Ej: 30123456" class="w-full bg-slate-900/80 border border-yellow-500/50 rounded-xl py-3 pl-10 pr-4 text-white placeholder-slate-500 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition font-mono">
+                    <input 
+                        type="text" 
+                        id="dni-input" 
+                        placeholder="Ej: 30123456" 
+                        required
+                        class="w-full bg-slate-900/80 border border-slate-600 rounded-xl py-3 pl-10 pr-4 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 transition font-mono text-lg tracking-wider"
+                        pattern="[0-9]{7,8}"
+                        title="Ingresa tu DNI (7 u 8 dígitos)"
+                        autocomplete="off"
+                    >
                 </div>
-                <p class="text-[10px] text-slate-400 mt-1 ml-1">🔒 Verificaremos tu inscripción en el padrón.</p>
+                <p class="text-[10px] text-slate-400 mt-1 ml-1">
+                    <i data-lucide="shield" class="w-3 h-3 inline mr-1"></i>
+                    Solo alumnos registrados en el padrón institucional
+                </p>
             </div>
 
-            <div>
-                <label class="block text-xs font-bold text-slate-300 uppercase mb-1 ml-1">Correo Electrónico</label>
-                <div class="relative">
-                    <i data-lucide="mail" class="absolute left-3 top-3 w-5 h-5 text-slate-400"></i>
-                    <input type="email" id="email" required placeholder="tu@email.com" class="w-full bg-slate-900/50 border border-slate-600 rounded-xl py-3 pl-10 pr-4 text-white placeholder-slate-500 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition">
-                </div>
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-slate-300 uppercase mb-1 ml-1">Contraseña</label>
-                <div class="relative">
-                    <i data-lucide="lock" class="absolute left-3 top-3 w-5 h-5 text-slate-400"></i>
-                    <input type="password" id="password" required placeholder="••••••••" class="w-full bg-slate-900/50 border border-slate-600 rounded-xl py-3 pl-10 pr-4 text-white placeholder-slate-500 focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition">
-                </div>
-            </div>
-
-            <button type="submit" id="btn-submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 mt-4">
-                Ingresar al Aula <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            <button 
+                type="submit" 
+                id="btn-submit" 
+                class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 mt-6 group"
+            >
+                <span id="btn-text">Ingresar al Campus</span>
+                <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
             </button>
         </form>
 
-        <div class="mt-6 text-center border-t border-white/10 pt-4">
-            <p class="text-xs text-slate-400 mb-2" id="toggle-text">¿Es tu primera vez?</p>
-            <button onclick="toggleMode()" id="toggle-btn" class="text-white text-sm font-bold hover:underline transition">
-                Validar mi Matrícula y Crear Cuenta
-            </button>
+        <!-- Loading State -->
+        <div id="loading-state" class="hidden text-center mt-4">
+            <div class="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-2"></div>
+            <p class="text-xs text-slate-400">Verificando credenciales...</p>
         </div>
 
-        <div id="msg-error" class="hidden mt-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-200 text-xs text-center font-bold"></div>
+        <!-- Error Message -->
+        <div id="error-message" class="hidden mt-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-200 text-xs text-center font-bold">
+            <i data-lucide="alert-circle" class="w-4 h-4 inline mr-1"></i>
+            <span id="error-text"></span>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-6 text-center border-t border-white/10 pt-4">
+            <p class="text-xs text-slate-400">
+                <i data-lucide="info" class="w-3 h-3 inline mr-1"></i>
+                Acceso restringido a estudiantes matriculados
+            </p>
+        </div>
     </div>
 
     <script>
+        // ============================================
+        // CONFIGURACIÓN SUPABASE
+        // ============================================
         const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
-        let isLogin = true;
-        let institutionId = null; // ID Real (UUID) para validación
+        // ============================================
+        // VARIABLES GLOBALES
+        // ============================================
+        let institutionData = null; // Datos de la institución detectada
+        let currentInstitutionId = null; // ID de la institución (para validación)
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            lucide.createIcons();
-            
-            // 1. Verificar Sesión
-            const { data: { session } } = await db.auth.getSession();
-            // CORRECCIÓN RUTA: Como estamos en /student/index.html, el dashboard está al lado.
-            if (session) window.location.href = 'dashboard.html';
-            
-            // 2. Aplicar Branding (Detectar ?inst=colbert o ?inst=UUID)
-            await aplicarBranding();
-        });
-
-        // --- INTERFAZ LOGIN/REGISTRO ---
-        function toggleMode() {
-            isLogin = !isLogin;
-            const btn = document.getElementById('btn-submit');
-            const dniField = document.getElementById('dni-field');
-            
-            if(isLogin) {
-                dniField.classList.add('hidden-field');
-                btn.innerHTML = `Ingresar al Aula <i data-lucide="log-in" class="w-4 h-4 ml-2"></i>`;
-                document.getElementById('toggle-text').innerText = "¿Es tu primera vez?";
-                document.getElementById('toggle-btn').innerText = "Validar mi Matrícula y Crear Cuenta";
-                document.getElementById('dni').required = false;
-            } else {
-                dniField.classList.remove('hidden-field');
-                btn.innerHTML = `Verificar Matrícula <i data-lucide="shield-check" class="w-4 h-4 ml-2"></i>`;
-                document.getElementById('toggle-text').innerText = "¿Ya tienes usuario?";
-                document.getElementById('toggle-btn').innerText = "Volver a Iniciar Sesión";
-                document.getElementById('dni').required = true;
-            }
-            lucide.createIcons();
+        // ============================================
+        // FUNCIONES DE UTILIDAD
+        // ============================================
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `<span class="text-sm font-medium">${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
         }
 
-        // --- PROCESO DE AUTENTICACIÓN ---
-        document.getElementById('auth-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const dni = document.getElementById('dni').value.trim();
-            const btn = document.getElementById('btn-submit');
-            const msgError = document.getElementById('msg-error');
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            const errorText = document.getElementById('error-text');
+            errorText.textContent = message;
+            errorDiv.classList.remove('hidden');
+            setTimeout(() => errorDiv.classList.add('hidden'), 5000);
+        }
 
-            msgError.classList.add('hidden');
-            btn.disabled = true;
-            btn.innerText = "Procesando...";
+        function setLoading(isLoading) {
+            const btn = document.getElementById('btn-submit');
+            const btnText = document.getElementById('btn-text');
+            const loadingDiv = document.getElementById('loading-state');
+            const errorDiv = document.getElementById('error-message');
+            
+            if (isLoading) {
+                btn.disabled = true;
+                btn.classList.add('opacity-70', 'cursor-not-allowed');
+                btnText.textContent = 'Verificando...';
+                loadingDiv.classList.remove('hidden');
+                errorDiv.classList.add('hidden');
+            } else {
+                btn.disabled = false;
+                btn.classList.remove('opacity-70', 'cursor-not-allowed');
+                btnText.textContent = 'Ingresar al Campus';
+                loadingDiv.classList.add('hidden');
+            }
+        }
+
+        // ============================================
+        // 1. DETECCIÓN DE INSTITUCIÓN Y BRANDING
+        // ============================================
+        async function detectarInstitucion() {
+            const params = new URLSearchParams(window.location.search);
+            const instParam = params.get('inst');
+            
+            if (!instParam) {
+                // Sin parámetro: Estilo genérico ASARI
+                document.getElementById('welcome-title').textContent = 'ASARI Platform';
+                document.getElementById('welcome-subtitle').textContent = 'Acceso Multi-institución';
+                document.title = 'ASARI Platform | Acceso';
+                return;
+            }
 
             try {
-                if (isLogin) {
-                    // --- MODO LOGIN ---
-                    const { error } = await db.auth.signInWithPassword({ email, password });
-                    if (error) throw error;
-                    // ÉXITO: Ir al Living del Alumno
-                    window.location.href = 'dashboard.html';
-
+                // Buscar institución por sigla o por UUID
+                let query = db.from('instituciones').select('*');
+                
+                // Verificar si es un UUID
+                const esUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(instParam);
+                
+                if (esUUID) {
+                    query = query.eq('id', instParam);
                 } else {
-                    // --- MODO REGISTRO BLINDADO ---
-                    if(dni.length < 6) throw new Error("DNI inválido.");
-
-                    // PASO 1: VERIFICAR LISTA BLANCA
-                    let query = db.from('matriculas').select('id').eq('dni_alumno', dni);
-                    
-                    // SEGURIDAD DE ÁMBITO: Si sabemos la institución, validamos que pertenezca a ella.
-                    if(institutionId) {
-                        query = query.eq('institution_id', institutionId);
-                    }
-
-                    const { data: matricula, error: errMat } = await query.limit(1);
-
-                    if (errMat) throw errMat;
-                    
-                    // EL CANDADO: Si no devuelve nada, bloqueamos.
-                    if (!matricula || matricula.length === 0) {
-                        throw new Error(`Acceso denegado: El DNI ${dni} no figura en el padrón de alumnos habilitados para esta institución.`);
-                    }
-
-                    // PASO 2: CREAR USUARIO
-                    const { data: authData, error: authError } = await db.auth.signUp({ 
-                        email, 
-                        password,
-                        options: { data: { rol: 'alumno' } } 
-                    });
-
-                    if (authError) throw authError;
-                    if (!authData.user) throw new Error("No se pudo crear el usuario. Intenta nuevamente.");
-
-                    // PASO 3: VINCULAR DNI AL PERFIL
-                    // Esperamos brevemente para asegurar consistencia
-                    await new Promise(r => setTimeout(r, 1000));
-                    const { error: updateError } = await db.from('perfiles').update({ dni: dni }).eq('id', authData.user.id);
-
-                    if(updateError) console.error("Warning: DNI update delayed", updateError);
-
-                    alert("✅ Identidad validada correctamente. Bienvenido.");
-                    window.location.href = 'dashboard.html';
+                    query = query.or(`sigla.eq.${instParam},slug.eq.${instParam}`);
                 }
 
-            } catch (error) {
-                let msg = error.message;
-                // Mensajes amigables
-                if(msg.includes("Invalid login")) msg = "Credenciales incorrectas.";
-                if(msg.includes("already registered")) msg = "Este correo ya está registrado. Intenta iniciar sesión.";
+                const { data, error } = await query.maybeSingle();
                 
-                msgError.innerText = msg;
-                msgError.classList.remove('hidden');
-                btn.disabled = false;
-                btn.innerHTML = isLogin ? "Ingresar" : "Intentar Registro";
+                if (error) throw error;
+                
+                if (!data) {
+                    showToast('Institución no encontrada, usando modo genérico', 'warning');
+                    return;
+                }
+
+                institutionData = data;
+                currentInstitutionId = data.id;
+                
+                // APLICAR BRANDING
+                const welcomeTitle = document.getElementById('welcome-title');
+                const welcomeSubtitle = document.getElementById('welcome-subtitle');
+                const topBar = document.getElementById('top-bar');
+                const btnSubmit = document.getElementById('btn-submit');
+                const defaultLogo = document.getElementById('default-logo');
+                const logoContainer = document.getElementById('logo-container');
+                const instLogo = document.getElementById('inst-logo');
+
+                // Textos
+                welcomeTitle.textContent = data.nombre;
+                welcomeSubtitle.textContent = 'Acceso exclusivo estudiantes';
+                document.title = `${data.nombre} | Acceso`;
+
+                // Colores
+                if (data.color_primario) {
+                    const color = data.color_primario;
+                    topBar.style.background = color;
+                    btnSubmit.style.background = `linear-gradient(to right, ${color}, ${color}dd)`;
+                    btnSubmit.classList.remove('from-blue-600', 'to-indigo-600', 'hover:from-blue-500', 'hover:to-indigo-500');
+                    btnSubmit.classList.add(`hover:opacity-90`);
+                }
+
+                // Logo
+                if (data.logo_url && data.logo_url.startsWith('http')) {
+                    defaultLogo.classList.add('hidden');
+                    logoContainer.classList.remove('hidden');
+                    instLogo.src = data.logo_url;
+                    instLogo.alt = data.nombre;
+                }
+
+                showToast(`Acceso configurado para ${data.nombre}`, 'success');
+
+            } catch (error) {
+                console.error('Error detectando institución:', error);
+                showToast('Error cargando institución', 'error');
+            }
+        }
+
+        // ============================================
+        // 2. AUTENTICACIÓN POR DNI (NATIVO TABLA MATRICULAS)
+        // ============================================
+        async function autenticarPorDNI(dni) {
+            try {
+                setLoading(true);
+                
+                // 1. LIMPIAR DNI (solo números)
+                const dniLimpio = dni.replace(/\D/g, '');
+                if (dniLimpio.length < 7 || dniLimpio.length > 8) {
+                    throw new Error('DNI inválido. Debe tener 7 u 8 dígitos.');
+                }
+
+                // 2. CONSULTA PROFESIONAL DIRECTA A 'matriculas'
+                let query = db.from('matriculas')
+                    .select('id, dni_alumno, institution_id, nombre, apellido, email, foto_url') // Solo traemos lo necesario
+                    .eq('dni_alumno', dniLimpio)       // Columna real
+                    .eq('estado', 'ACTIVO');           // Lógica de negocio: Solo activos
+                
+                // Si hay institución detectada, filtrar por ella para mayor seguridad
+                if (currentInstitutionId) {
+                    query = query.eq('institution_id', currentInstitutionId);
+                }
+
+                const { data: alumnoMatriculado, error: errorMatricula } = await query.maybeSingle();
+                
+                if (errorMatricula) throw errorMatricula;
+                
+                // ESCENARIO A: No está matriculado o no está activo
+                if (!alumnoMatriculado) {
+                    const mensaje = currentInstitutionId 
+                        ? 'Usted no figura activo en el padrón de esta institución.'
+                        : 'DNI no registrado o cuenta inactiva.';
+                    throw new Error(mensaje);
+                }
+
+                // ESCENARIO B: Está matriculado -> Generar credenciales
+                // Usamos el DNI como usuario y contraseña para el Auth
+                const emailAuto = `${dniLimpio}@asari.sistema`; 
+                const passwordAuto = dniLimpio; 
+                
+                // 3. INTENTAR LOGIN
+                const { data: authData, error: authError } = await db.auth.signInWithPassword({
+                    email: emailAuto,
+                    password: passwordAuto
+                });
+
+                // 4. SI FALLA EL LOGIN: Crear usuario en Auth automáticamente
+                if (authError && authError.message.includes('Invalid login credentials')) {
+                    showToast('Configurando acceso por primera vez...', 'info');
+                    
+                    // Registrar usuario en Supabase Auth
+                    const { data: signupData, error: signupError } = await db.auth.signUp({
+                        email: emailAuto,
+                        password: passwordAuto,
+                        options: {
+                            data: {
+                                dni: dniLimpio,
+                                institution_id: alumnoMatriculado.institution_id, // Usamos el ID real de la matrícula
+                                rol: 'alumno',
+                                nombre_real: `${alumnoMatriculado.nombre} ${alumnoMatriculado.apellido}`, // Guardamos nombre real
+                                created_via: 'auto_matricula'
+                            }
+                        }
+                    });
+
+                    if (signupError) throw signupError;
+                    
+                    // Sincronizar perfil (Tabla perfiles)
+                    const { error: profileError } = await db.from('perfiles').insert({
+                        id: signupData.user.id,
+                        dni: dniLimpio,
+                        institution_id: alumnoMatriculado.institution_id,
+                        nombre_completo: `${alumnoMatriculado.apellido}, ${alumnoMatriculado.nombre}`, // Formato Apellido, Nombre
+                        email: alumnoMatriculado.email || emailAuto,
+                        foto_url: alumnoMatriculado.foto_url, // ¡Aprovechamos la foto que ya tienes!
+                        created_at: new Date().toISOString()
+                    });
+
+                    if (profileError) console.warn('Aviso: Perfil ya existente o error menor', profileError);
+
+                    // Reintentar Login
+                    const { error: finalLoginError } = await db.auth.signInWithPassword({
+                        email: emailAuto,
+                        password: passwordAuto
+                    });
+
+                    if (finalLoginError) throw finalLoginError;
+                    
+                    showToast('¡Cuenta activada correctamente!', 'success');
+                } else if (authError) {
+                    throw authError;
+                }
+
+                // 5. ÉXITO
+                showToast(`Bienvenido, ${alumnoMatriculado.nombre}`, 'success');
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1500);
+
+            } catch (error) {
+                console.error('Error en autenticación:', error);
+                
+                let mensajeError = error.message;
+                if (mensajeError.includes('Usted no figura')) {
+                    showError(mensajeError);
+                } else if (mensajeError.includes('Invalid login')) {
+                    showError('Error técnico en credenciales. Contacte soporte.');
+                } else {
+                    showError(mensajeError);
+                }
+                
+                setLoading(false);
+            }
+        }
+
+        // ============================================
+        // 3. MANEJO DEL FORMULARIO
+        // ============================================
+        document.getElementById('dni-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const dniInput = document.getElementById('dni-input');
+            const dni = dniInput.value.trim();
+            
+            if (!dni) {
+                showError('Por favor, ingresa tu DNI');
+                return;
+            }
+            
+            await autenticarPorDNI(dni);
+        });
+
+        // ============================================
+        // 4. INICIALIZACIÓN
+        // ============================================
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Inicializar iconos
+            lucide.createIcons();
+            
+            // Verificar si ya está autenticado
+            const { data: { session } } = await db.auth.getSession();
+            if (session) {
+                window.location.href = 'dashboard.html';
+                return;
+            }
+            
+            // Aplicar branding según parámetro de institución
+            await detectarInstitucion();
+            
+            // Enfocar el input de DNI
+            document.getElementById('dni-input').focus();
+            
+            // Mensaje inicial según contexto
+            if (currentInstitutionId) {
+                showToast('Ingresa tu DNI para acceder al campus', 'info');
+            } else {
+                showToast('Sistema de acceso multi-institución', 'info');
             }
         });
 
-        // --- BRANDING INTELIGENTE ---
-        async function aplicarBranding() {
-            const params = new URLSearchParams(window.location.search);
-            const instParam = params.get('inst'); // Puede ser 'colbert' o UUID
+        // ============================================
+        // 5. MEJORAS DE USABILIDAD
+        // ============================================
+        // Validación en tiempo real del DNI
+        document.getElementById('dni-input').addEventListener('input', function(e) {
+            // Solo permitir números
+            this.value = this.value.replace(/\D/g, '');
             
-            if (!instParam) return;
-
-            // Busca por Sigla O por ID
-            const { data: inst } = await db.from('instituciones')
-                .select('*')
-                .or(`sigla.eq.${instParam},id.eq.${instParam}`) 
-                .limit(1)
-                .maybeSingle();
-
-            if (inst) {
-                institutionId = inst.id; // Guardamos el UUID para la validación estricta
-                
-                if (inst.logo_url) {
-                    document.getElementById('default-logo').classList.add('hidden');
-                    document.getElementById('logo-container').classList.remove('hidden');
-                    document.getElementById('inst-logo').src = inst.logo_url;
-                }
-                if (inst.nombre) {
-                    document.getElementById('welcome-title').innerText = inst.nombre;
-                    document.title = `Acceso | ${inst.nombre}`;
-                }
-                if (inst.color_primario) {
-                    const color = inst.color_primario;
-                    document.getElementById('btn-submit').style.backgroundColor = color;
-                    document.getElementById('top-bar').style.background = color;
-                }
+            // Limitar a 8 dígitos
+            if (this.value.length > 8) {
+                this.value = this.value.slice(0, 8);
             }
-        }
+            
+            // Ocultar error si hay input válido
+            if (this.value.length >= 7) {
+                document.getElementById('error-message').classList.add('hidden');
+            }
+        });
+
+        // Tecla Enter para enviar
+        document.getElementById('dni-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('dni-form').dispatchEvent(new Event('submit'));
+            }
+        });
     </script>
 </body>
 </html>
