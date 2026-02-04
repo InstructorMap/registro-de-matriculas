@@ -265,7 +265,7 @@
             // Verificar sesión
             const { data: { session } } = await db.auth.getSession();
             if(!session) {
-                window.location.href = 'index.html';
+                window.location.href = 'mi-campus.html';
                 return;
             }
             
