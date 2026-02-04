@@ -122,7 +122,7 @@
             
             // 2. Si no hay sesión, al login de esta carpeta
             if (!session) {
-                window.location.href = './login.html'; // El ./ es clave
+                window.location.href = '/login.html'; // El ./ es clave
                 return;
             }
 
@@ -131,7 +131,7 @@
             const userRole = session.user.user_metadata.rol;
             if (userRole !== 'alumno') {
                 console.warn("Acceso denegado: Rol no autorizado para este panel");
-                window.location.href = '../admin-login.html'; // Te expulsa a la raíz
+                window.location.href = '/admin/panel.html'; // Te expulsa a la raíz
                 return;
             }
             
@@ -265,20 +265,20 @@
                     throw new Error('No se pudo obtener DNI del estudiante');
                 }
 
-                // Buscar todas las matrículas del alumno
-                const { data: matriculasAlumno, error: matError } = await db
-                    .from('matriculas')
-                    .select('registro_id, estado')
-                    .eq('dni_alumno', perfil.dni)
-                    .eq('institution_id', currentInstitutionId);
-                    
-                if (matError) throw matError;
+                // Buscar TODAS las matrículas del alumno por su DNI (Llave Maestra)
+const { data: matriculasAlumno, error: matError } = await db
+    .from('matriculas')
+    .select('registro_id, estado, institution_id') // Traemos el inst_id para saber a quién pertenece cada curso
+    .eq('dni_alumno', perfil.dni); // Quitamos el filtro de institución para ver TODO su historial
 
-                if (!matriculasAlumno || matriculasAlumno.length === 0) {
-                    grid.innerHTML = '';
-                    noCourses.classList.remove('hidden');
-                    return;
-                }
+if (matError) throw matError;
+
+// Si el DNI no tiene ninguna fila en matriculas
+if (!matriculasAlumno || matriculasAlumno.length === 0) {
+    grid.innerHTML = '';
+    noCourses.classList.remove('hidden');
+    return;
+}
 
                 // Extraer todos los registro_id únicos
                 const registroIds = [...new Set(matriculasAlumno.map(m => m.registro_id))];
@@ -365,7 +365,7 @@
         // ============================================
         function irAlAula(cursoId, cursoNombre) {
             // Redirigir al aula.html en la misma carpeta student/
-            window.location.href = `student/aula.html?id=${cursoId}&curso=${encodeURIComponent(cursoNombre)}`;
+            window.location.href = `/aula.html?id=${cursoId}&curso=${encodeURIComponent(cursoNombre)}`;
         }
 
     async function logout() {
@@ -379,7 +379,7 @@
 
             // 3. Redirigir al login usando replace
             // window.location.replace impide que el alumno pueda volver atrás con la flecha del navegador
-            window.location.replace('login.html');
+            window.location.replace('/login.html');
         }
         function generarDiploma() {
             // Función para generar diploma analítico
