@@ -265,7 +265,7 @@
             // Verificar sesión
             const { data: { session } } = await db.auth.getSession();
             if(!session) {
-                window.location.href = '/mi-campus.html';
+                window.location.href = './login.html';
                 return;
             }
             
@@ -298,7 +298,7 @@
 
             if(!currentCourseId) {
                 toast("No se especificó curso", "error");
-                setTimeout(() => window.location.href = '/login.html', 2000);
+                setTimeout(() => window.location.href = './mi-campus.html', 2000);
                 return;
             }
 
@@ -387,7 +387,7 @@
                 
                 if(!cursoResult || cursoResult.length === 0) {
                     toast("Curso no encontrado", "error");
-                    setTimeout(() => window.location.href = '/mi-campus.html', 2000);
+                    setTimeout(() => window.location.href = './mi-campus.html', 2000);
                     return;
                 }
                 
@@ -533,7 +533,7 @@
             } catch (error) {
                 console.error("Error crítico cargando curso:", error);
                 toast("Error al cargar el curso", "error");
-                setTimeout(() => window.location.href = '/mi-campus.html', 3000);
+                setTimeout(() => window.location.href = './mi-campus.html', 3000);
             }
         }
 
