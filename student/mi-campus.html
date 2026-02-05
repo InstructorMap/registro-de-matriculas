@@ -101,7 +101,8 @@
         // CONFIGURACIÓN SUPABASE
         // ============================================
         const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
-        const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
+        // HE LIMPIADO LA LÍNEA 36 (Quitado espacios invisibles)
+        const PUBLIC_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
         // ============================================
@@ -111,8 +112,8 @@
         let currentInstitutionId = null;
         let studentData = null;
 
-       // ============================================
-        // 1. INICIALIZACIÓN Y VERIFICACIÓN DE SEGURIDAD
+        // ============================================
+        // 1. INICIALIZACIÓN
         // ============================================
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
@@ -120,71 +121,79 @@
             // 1. Obtener sesión
             const { data: { session } } = await db.auth.getSession();
             
-            // 2. Si no hay sesión, al login de esta carpeta
+            // 2. Si no hay sesión, al login
             if (!session) {
-                window.location.href = './login.html'; // El ./ es clave
+                window.location.href = './login.html'; 
                 return;
             }
 
-            // 3. Verificar que sea ALUMNO (Seguridad SaaS)
-            // Esto evita que tú como admin entres por error al panel de alumnos
+            // 3. Verificar Rol
             const userRole = session.user.user_metadata.rol;
             if (userRole !== 'alumno') {
-                console.warn("Acceso denegado: Rol no autorizado para este panel");
-                window.location.href = '/admin/panel.html'; // Te expulsa a la raíz
+                window.location.href = '/admin/panel.html';
                 return;
             }
             
-            // 4. Si todo está OK, cargamos los datos reales de tus tablas
+            // 4. Cargar Datos
             currentUser = session.user;
-            await loadStudentData();       // Carga nombre/apellido desde 'perfiles' o 'matriculas'
-            await loadInstitutionBranding(); // Carga el color del instituto (Camaleón)
-            await loadStudentCourses();    // Carga las múltiples tarjetas de curso
+            await loadStudentData();       
+            await loadInstitutionBranding(); 
+            await loadStudentCourses();    
         });
 
         // ============================================
-        // 2. CARGAR DATOS DEL ALUMNO (PERFIL SUPERIOR)
+        // 2. CARGAR DATOS DEL ALUMNO (VERSIÓN BLINDADA)
         // ============================================
         async function loadStudentData() {
             try {
-                // Obtener DNI del perfil del usuario
-                const { data: perfil, error: perfilError } = await db
-                    .from('perfiles')
-                    .select('dni')
-                    .eq('id', currentUser.id)
-                    .maybeSingle();
-                    
-                if (perfilError || !perfil || !perfil.dni) {
-                    console.error('Error obteniendo DNI del perfil:', perfilError);
-                    showError('Error al cargar datos del estudiante');
+                // PASO A: Intentar obtener DNI directo de la "mochila" (Metadata)
+                let dniDelAlumno = currentUser.user_metadata?.dni;
+
+                // PASO B: Si falla, buscar en DB
+                if (!dniDelAlumno) {
+                    const { data: perfil } = await db
+                        .from('perfiles')
+                        .select('dni')
+                        .eq('id', currentUser.id)
+                        .maybeSingle();
+                    if (perfil && perfil.dni) dniDelAlumno = perfil.dni;
+                }
+
+                if (!dniDelAlumno) {
+                    console.error('CRÍTICO: Usuario sin DNI identificable');
+                    showError('No se pudo identificar tu DNI.');
                     return;
                 }
 
-                // Buscar datos del alumno en la tabla matriculas usando el DNI
+                // PASO C: Buscar datos en matrículas
                 const { data: matriculas, error: matError } = await db
                     .from('matriculas')
                     .select('nombre, apellido, foto_url, institution_id')
-                    .eq('dni_alumno', perfil.dni)
+                    .eq('dni_alumno', dniDelAlumno)
                     .limit(1);
                     
-                if (matError || !matriculas || matriculas.length === 0) {
-                    console.error('Alumno no encontrado en matrículas:', matError);
+                if (matError) throw matError;
+
+                // Si no hay matrícula, usamos datos genéricos pero NO fallamos
+                if (!matriculas || matriculas.length === 0) {
+                    document.getElementById('user-name').textContent = "Estudiante";
                     return;
                 }
 
                 studentData = matriculas[0];
                 currentInstitutionId = studentData.institution_id;
 
-                // Actualizar UI con datos del alumno
+                // Actualizar UI
                 const nombreCompleto = `${studentData.nombre} ${studentData.apellido}`;
                 document.getElementById('user-name').textContent = nombreCompleto;
                 document.getElementById('welcome-name').textContent = studentData.nombre;
 
-                // Foto del alumno (si existe)
+                // Foto
                 const userPhoto = document.getElementById('user-photo');
                 const userAvatar = document.getElementById('user-avatar');
                 if (studentData.foto_url) {
                     userPhoto.src = studentData.foto_url;
+                    userPhoto.style.display = 'block';
                     userAvatar.classList.add('bg-transparent');
                 } else {
                     userAvatar.innerHTML = '<i data-lucide="user" class="w-4 h-4 m-auto text-white"></i>';
@@ -197,24 +206,22 @@
         }
 
         // ============================================
-        // 3. BRANDING CAMALEÓNICO (INSTITUCIÓN)
+        // 3. BRANDING
         // ============================================
         async function loadInstitutionBranding() {
             if (!currentInstitutionId) return;
 
             try {
-                const { data: institucion, error } = await db
+                const { data: institucion } = await db
                     .from('instituciones')
                     .select('nombre, logo_url, color_primario')
                     .eq('id', currentInstitutionId)
                     .maybeSingle();
                     
-                if (error || !institucion) return;
+                if (!institucion) return;
 
-                // Actualizar nombre de la institución
                 document.getElementById('inst-name').textContent = institucion.nombre;
 
-                // Logo de la institución
                 const logoContainer = document.getElementById('logo-container');
                 const logoImg = document.getElementById('inst-logo');
                 if (institucion.logo_url && institucion.logo_url.startsWith('http')) {
@@ -223,46 +230,31 @@
                     logoContainer.classList.add('flex');
                 }
 
-                // Color principal (Branding)
                 if (institucion.color_primario) {
                     const color = institucion.color_primario;
-                    
-                    // Aplicar color a elementos clave
                     document.getElementById('navbar').style.borderBottomColor = color + '30';
                     document.getElementById('welcome-name').style.color = color;
-                    
-                    // Fondo sutil con el color
                     document.body.style.background = `linear-gradient(135deg, #0f172a 0%, ${color}15 100%)`;
                 }
-
-            } catch (error) {
-                console.error('Error cargando branding:', error);
-            }
+            } catch (error) { console.error(error); }
         }
 
         // ============================================
-        // 4. CARGAR CURSOS DEL ALUMNO (CORREGIDO POR NOMBRE)
+        // 4. CARGAR CURSOS (VERSIÓN CON TRIM Y LIMPIEZA)
         // ============================================
         async function loadStudentCourses() {
             const grid = document.getElementById('courses-grid');
             const noCourses = document.getElementById('no-courses');
             
             try {
-                // 1. OBTENER DNI (Lógica Blindada)
+                // 1. Obtener DNI
                 let dniDelAlumno = currentUser.user_metadata?.dni;
-                
-                // Si no está en metadata, buscar en perfil
                 if (!dniDelAlumno) {
-                    const { data: perfil } = await db
-                        .from('perfiles')
-                        .select('dni')
-                        .eq('id', currentUser.id)
-                        .maybeSingle();
+                    const { data: perfil } = await db.from('perfiles').select('dni').eq('id', currentUser.id).maybeSingle();
                     if (perfil) dniDelAlumno = perfil.dni;
                 }
 
                 if (!dniDelAlumno) {
-                    console.error("No se encontró DNI para el usuario");
                     grid.innerHTML = '';
                     noCourses.classList.remove('hidden');
                     return;
@@ -270,8 +262,7 @@
 
                 console.log("Buscando cursos para DNI:", dniDelAlumno);
 
-                // 2. BUSCAR MATRÍCULAS (Traemos el nombre del curso)
-                // Usamos 'dni_alumno' y 'curso' según tu tabla real
+                // 2. Buscar Matrículas
                 const { data: matriculasAlumno, error: matError } = await db
                     .from('matriculas')
                     .select('curso, estado, registro_id, institution_id') 
@@ -279,47 +270,42 @@
 
                 if (matError) throw matError;
 
-                // Si no tiene matrículas
                 if (!matriculasAlumno || matriculasAlumno.length === 0) {
                     grid.innerHTML = '';
                     noCourses.classList.remove('hidden');
                     return;
                 }
 
-                // 3. EXTRAER LOS NOMBRES EXACTOS DE LOS CURSOS
-                // Esto es clave: filtramos por nombre, no por ID de registro
-                const nombresCursos = matriculasAlumno.map(m => m.curso);
+                // 3. LIMPIEZA DE NOMBRES (TRIM)
+                // Esto arregla el error de espacios invisibles
+                const nombresCursos = matriculasAlumno.map(m => m.curso.trim());
                 
-                // 4. BUSCAR DETALLES EN CURSOS OFICIALES
+                // 4. Buscar en Oficiales
                 const { data: cursos, error: cursosError } = await db
                     .from('cursos_oficiales')
                     .select('id, nombre, imagen_portada_url, registro_id')
-                    .in('nombre', nombresCursos); // ¡Conexión Correcta!
+                    .in('nombre', nombresCursos); 
                     
                 if (cursosError) throw cursosError;
 
                 grid.innerHTML = '';
                 
                 if (!cursos || cursos.length === 0) {
-                    console.warn("Hay matrículas pero no coinciden con cursos oficiales (Revisar nombres exactos)");
+                    console.warn("Discrepancia de nombres entre matrícula y oficial.");
                     noCourses.classList.remove('hidden');
                     return;
                 }
 
                 noCourses.classList.add('hidden');
                 
-                // 5. RENDERIZAR TARJETAS
+                // 5. Renderizar
                 cursos.forEach(curso => {
-                    // Buscar la matrícula correspondiente a este curso específico
-                    // Comparamos NOMBRE con NOMBRE
-                    const matricula = matriculasAlumno.find(m => m.curso === curso.nombre);
+                    // Comparar usando TRIM para asegurar coincidencia
+                    const matricula = matriculasAlumno.find(m => m.curso.trim() === curso.nombre.trim());
                     const estado = matricula ? matricula.estado : 'SUSPENDIDO';
-                    
-                    // Imagen por defecto si viene null
-                    const imagenCurso = curso.imagen_portada_url || 
-                        'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800&auto=format&fit=crop';
-                    
                     const isActive = estado === 'ACTIVO';
+                    
+                    const imagenCurso = curso.imagen_portada_url || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800&auto=format&fit=crop';
                     
                     const card = document.createElement('div');
                     card.className = `bg-slate-800 rounded-xl border border-white/5 overflow-hidden hover-lift transition-all duration-300 ${isActive ? 'cursor-pointer hover:border-indigo-500/50 shadow-lg hover:shadow-indigo-500/10' : 'opacity-75 grayscale'}`;
@@ -328,36 +314,25 @@
                         <div class="h-48 relative overflow-hidden group">
                             <img src="${imagenCurso}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
                             <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/20 to-transparent"></div>
-                            
                             <div class="absolute top-3 right-3 ${isActive ? 'bg-emerald-500' : 'bg-red-500'} text-white text-[10px] px-2.5 py-1 rounded-full font-bold shadow-lg tracking-wide uppercase">
                                 ${isActive ? 'Cursando' : estado}
                             </div>
                         </div>
-                        
                         <div class="p-5">
                             <div class="mb-4">
                                 <span class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider bg-indigo-500/10 px-2 py-1 rounded">
                                     ${curso.registro_id || 'Curso'}
                                 </span>
                             </div>
-                            
-                            <h3 class="font-bold text-white text-lg mb-2 line-clamp-2 leading-tight min-h-[3.5rem]">
-                                ${curso.nombre}
-                            </h3>
-                            
+                            <h3 class="font-bold text-white text-lg mb-2 line-clamp-2 leading-tight min-h-[3.5rem]">${curso.nombre}</h3>
                             <div class="mt-4 pt-4 border-t border-white/5">
                                 ${isActive ? 
-                                    `<button onclick="irAlAula('${curso.id}', '${curso.nombre}')" 
-                                            class="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold py-3 rounded-xl transition-all shadow-lg shadow-indigo-900/20 flex items-center justify-center gap-2 group">
-                                        <div class="bg-white/20 p-1 rounded-full group-hover:bg-white/30 transition">
-                                            <i data-lucide="play" class="w-3 h-3 fill-current"></i>
-                                        </div>
+                                    `<button onclick="irAlAula('${curso.id}', '${curso.nombre}')" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold py-3 rounded-xl transition-all shadow-lg shadow-indigo-900/20 flex items-center justify-center gap-2 group">
+                                        <div class="bg-white/20 p-1 rounded-full group-hover:bg-white/30 transition"><i data-lucide="play" class="w-3 h-3 fill-current"></i></div>
                                         Ingresar al Aula
                                     </button>` 
                                     :
-                                    `<div class="w-full bg-slate-700/30 text-slate-400 text-sm font-medium py-3 rounded-xl text-center border border-slate-700/50 flex items-center justify-center gap-2">
-                                        <i data-lucide="lock" class="w-4 h-4"></i> Acceso Restringido
-                                    </div>`
+                                    `<div class="w-full bg-slate-700/30 text-slate-400 text-sm font-medium py-3 rounded-xl text-center border border-slate-700/50 flex items-center justify-center gap-2"><i data-lucide="lock" class="w-4 h-4"></i> Acceso Restringido</div>`
                                 }
                             </div>
                         </div>
@@ -371,7 +346,7 @@
                 console.error('Error cargando cursos:', error);
                 grid.innerHTML = '';
                 noCourses.classList.remove('hidden');
-                showError('Error técnico al cargar cursos');
+                showError('Error al cargar cursos');
             }
         }
 
@@ -379,46 +354,30 @@
         // 5. FUNCIONES AUXILIARES
         // ============================================
         function irAlAula(cursoId, cursoNombre) {
-            // Redirigir al aula.html en la misma carpeta student/
             window.location.href = `./aula.html?id=${cursoId}&curso=${encodeURIComponent(cursoNombre)}`;
         }
 
         async function logout() {
-            // 1. Cerrar sesión en Supabase
             await db.auth.signOut();
-
-            // 2. Limpiar TODA la memoria del navegador
-            // Esto evita que el login detecte sesiones viejas
             localStorage.clear();
             sessionStorage.clear();
-
-            // 3. Redirigir al login usando replace
-            // window.location.replace impide que el alumno pueda volver atrás con la flecha del navegador
             window.location.replace('./login.html');
         }
         
         function generarDiploma() {
-            // Función para generar diploma analítico
             alert('Funcionalidad de Diploma Analítico en desarrollo.\nPróximamente disponible.');
-            // Aquí puedes implementar la lógica para generar PDFs o redirigir a otra página
         }
 
         function generarCarnet() {
-            // Función para generar carnet digital
             alert('Funcionalidad de Carnet Digital en desarrollo.\nPróximamente disponible.');
-            // Aquí puedes implementar la lógica para generar carnet o redirigir a otra página
         }
 
         function showError(message) {
-            // Crear toast de error simple
             const toast = document.createElement('div');
             toast.className = 'fixed top-4 right-4 bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium z-50 animate-fade-in';
             toast.textContent = message;
             document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.remove();
-            }, 4000);
+            setTimeout(() => toast.remove(), 4000);
         }
     </script>
 </body>
