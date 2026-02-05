@@ -241,112 +241,127 @@
         }
 
         // ============================================
-        // 4. CARGAR CURSOS DEL ALUMNO (GRID DE CURSOS)
+        // 4. CARGAR CURSOS DEL ALUMNO (CORREGIDO POR NOMBRE)
         // ============================================
         async function loadStudentCourses() {
             const grid = document.getElementById('courses-grid');
             const noCourses = document.getElementById('no-courses');
             
-            if (!studentData || !currentInstitutionId) {
-                grid.innerHTML = '';
-                noCourses.classList.remove('hidden');
-                return;
-            }
-
             try {
-                // Obtener DNI del perfil
-                const { data: perfil } = await db
-                    .from('perfiles')
-                    .select('dni')
-                    .eq('id', currentUser.id)
-                    .maybeSingle();
-                    
-                if (!perfil || !perfil.dni) {
-                    throw new Error('No se pudo obtener DNI del estudiante');
+                // 1. OBTENER DNI (Lógica Blindada)
+                let dniDelAlumno = currentUser.user_metadata?.dni;
+                
+                // Si no está en metadata, buscar en perfil
+                if (!dniDelAlumno) {
+                    const { data: perfil } = await db
+                        .from('perfiles')
+                        .select('dni')
+                        .eq('id', currentUser.id)
+                        .maybeSingle();
+                    if (perfil) dniDelAlumno = perfil.dni;
                 }
 
-                // Buscar TODAS las matrículas del alumno por su DNI (Llave Maestra)
-const { data: matriculasAlumno, error: matError } = await db
-    .from('matriculas')
-    .select('registro_id, estado, institution_id') // Traemos el inst_id para saber a quién pertenece cada curso
-    .eq('dni_alumno', perfil.dni); // Quitamos el filtro de institución para ver TODO su historial
+                if (!dniDelAlumno) {
+                    console.error("No se encontró DNI para el usuario");
+                    grid.innerHTML = '';
+                    noCourses.classList.remove('hidden');
+                    return;
+                }
 
-if (matError) throw matError;
+                console.log("Buscando cursos para DNI:", dniDelAlumno);
 
-// Si el DNI no tiene ninguna fila en matriculas
-if (!matriculasAlumno || matriculasAlumno.length === 0) {
-    grid.innerHTML = '';
-    noCourses.classList.remove('hidden');
-    return;
-}
+                // 2. BUSCAR MATRÍCULAS (Traemos el nombre del curso)
+                // Usamos 'dni_alumno' y 'curso' según tu tabla real
+                const { data: matriculasAlumno, error: matError } = await db
+                    .from('matriculas')
+                    .select('curso, estado, registro_id, institution_id') 
+                    .eq('dni_alumno', dniDelAlumno);
 
-                // Extraer todos los registro_id únicos
-                const registroIds = [...new Set(matriculasAlumno.map(m => m.registro_id))];
+                if (matError) throw matError;
+
+                // Si no tiene matrículas
+                if (!matriculasAlumno || matriculasAlumno.length === 0) {
+                    grid.innerHTML = '';
+                    noCourses.classList.remove('hidden');
+                    return;
+                }
+
+                // 3. EXTRAER LOS NOMBRES EXACTOS DE LOS CURSOS
+                // Esto es clave: filtramos por nombre, no por ID de registro
+                const nombresCursos = matriculasAlumno.map(m => m.curso);
                 
-                // Buscar cursos que coincidan con esos registro_id
+                // 4. BUSCAR DETALLES EN CURSOS OFICIALES
                 const { data: cursos, error: cursosError } = await db
                     .from('cursos_oficiales')
                     .select('id, nombre, imagen_portada_url, registro_id')
-                    .in('registro_id', registroIds);
+                    .in('nombre', nombresCursos); // ¡Conexión Correcta!
                     
                 if (cursosError) throw cursosError;
 
                 grid.innerHTML = '';
                 
                 if (!cursos || cursos.length === 0) {
+                    console.warn("Hay matrículas pero no coinciden con cursos oficiales (Revisar nombres exactos)");
                     noCourses.classList.remove('hidden');
                     return;
                 }
 
                 noCourses.classList.add('hidden');
                 
-                // Crear tarjetas de cursos
+                // 5. RENDERIZAR TARJETAS
                 cursos.forEach(curso => {
-                    // Encontrar el estado de esta matrícula específica
-                    const matricula = matriculasAlumno.find(m => m.registro_id === curso.registro_id);
-                    const estado = matricula ? matricula.estado : 'DESCONOCIDO';
+                    // Buscar la matrícula correspondiente a este curso específico
+                    // Comparamos NOMBRE con NOMBRE
+                    const matricula = matriculasAlumno.find(m => m.curso === curso.nombre);
+                    const estado = matricula ? matricula.estado : 'SUSPENDIDO';
                     
-                    // Imagen del curso
+                    // Imagen por defecto si viene null
                     const imagenCurso = curso.imagen_portada_url || 
                         'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800&auto=format&fit=crop';
                     
-                    // Determinar si está activo o suspendido
                     const isActive = estado === 'ACTIVO';
                     
                     const card = document.createElement('div');
-                    card.className = `bg-slate-800 rounded-xl border border-white/5 overflow-hidden hover-lift ${isActive ? 'cursor-pointer hover:border-white/20' : 'opacity-70'}`;
+                    card.className = `bg-slate-800 rounded-xl border border-white/5 overflow-hidden hover-lift transition-all duration-300 ${isActive ? 'cursor-pointer hover:border-indigo-500/50 shadow-lg hover:shadow-indigo-500/10' : 'opacity-75 grayscale'}`;
                     
                     card.innerHTML = `
-                        <div class="h-40 relative overflow-hidden">
-                            <img src="${imagenCurso}" class="w-full h-full object-cover ${!isActive ? 'grayscale' : ''}">
-                            <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent"></div>
+                        <div class="h-48 relative overflow-hidden group">
+                            <img src="${imagenCurso}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/20 to-transparent"></div>
                             
-                            <!-- Badge de Estado -->
-                            <div class="absolute top-3 right-3 ${isActive ? 'bg-green-500/90' : 'bg-red-500/90'} text-white text-[10px] px-2 py-1 rounded-full backdrop-blur-sm font-bold">
-                                ${isActive ? 'ACTIVO' : 'SUSPENDIDO'}
+                            <div class="absolute top-3 right-3 ${isActive ? 'bg-emerald-500' : 'bg-red-500'} text-white text-[10px] px-2.5 py-1 rounded-full font-bold shadow-lg tracking-wide uppercase">
+                                ${isActive ? 'Cursando' : estado}
                             </div>
                         </div>
                         
-                        <div class="p-4">
-                            <h3 class="font-bold text-white text-sm mb-2 line-clamp-2 h-10">${curso.nombre}</h3>
+                        <div class="p-5">
+                            <div class="mb-4">
+                                <span class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider bg-indigo-500/10 px-2 py-1 rounded">
+                                    ${curso.registro_id || 'Curso'}
+                                </span>
+                            </div>
                             
-                            <div class="mt-4">
+                            <h3 class="font-bold text-white text-lg mb-2 line-clamp-2 leading-tight min-h-[3.5rem]">
+                                ${curso.nombre}
+                            </h3>
+                            
+                            <div class="mt-4 pt-4 border-t border-white/5">
                                 ${isActive ? 
                                     `<button onclick="irAlAula('${curso.id}', '${curso.nombre}')" 
-                                            class="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
-                                        <i data-lucide="play" class="w-4 h-4"></i>
-                                        Ingresar al Curso
+                                            class="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold py-3 rounded-xl transition-all shadow-lg shadow-indigo-900/20 flex items-center justify-center gap-2 group">
+                                        <div class="bg-white/20 p-1 rounded-full group-hover:bg-white/30 transition">
+                                            <i data-lucide="play" class="w-3 h-3 fill-current"></i>
+                                        </div>
+                                        Ingresar al Aula
                                     </button>` 
                                     :
-                                    `<div class="w-full bg-slate-700/50 text-slate-400 text-sm font-medium py-2.5 rounded-lg text-center border border-slate-600">
-                                        <i data-lucide="lock" class="w-4 h-4 inline mr-2"></i>
-                                        Acceso Suspendido
+                                    `<div class="w-full bg-slate-700/30 text-slate-400 text-sm font-medium py-3 rounded-xl text-center border border-slate-700/50 flex items-center justify-center gap-2">
+                                        <i data-lucide="lock" class="w-4 h-4"></i> Acceso Restringido
                                     </div>`
                                 }
                             </div>
                         </div>
                     `;
-                    
                     grid.appendChild(card);
                 });
                 
@@ -356,7 +371,7 @@ if (!matriculasAlumno || matriculasAlumno.length === 0) {
                 console.error('Error cargando cursos:', error);
                 grid.innerHTML = '';
                 noCourses.classList.remove('hidden');
-                showError('Error al cargar tus cursos');
+                showError('Error técnico al cargar cursos');
             }
         }
 
@@ -368,7 +383,7 @@ if (!matriculasAlumno || matriculasAlumno.length === 0) {
             window.location.href = `./aula.html?id=${cursoId}&curso=${encodeURIComponent(cursoNombre)}`;
         }
 
-    async function logout() {
+        async function logout() {
             // 1. Cerrar sesión en Supabase
             await db.auth.signOut();
 
@@ -381,6 +396,7 @@ if (!matriculasAlumno || matriculasAlumno.length === 0) {
             // window.location.replace impide que el alumno pueda volver atrás con la flecha del navegador
             window.location.replace('./login.html');
         }
+        
         function generarDiploma() {
             // Función para generar diploma analítico
             alert('Funcionalidad de Diploma Analítico en desarrollo.\nPróximamente disponible.');
