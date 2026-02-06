@@ -3,361 +3,748 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ASARI Builder - Editor de Curso</title>
+    <title>Aula Virtual</title>
+    <script src='https://meet.jit.si/external_api.js'></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> 
     
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
     <style>
-        .ghost-input { background: transparent; border: 1px solid transparent; transition: all 0.2s; }
-        .ghost-input:hover { border-color: #e2e8f0; background: white; }
-        .ghost-input:focus { border-color: #3b82f6; background: white; outline: none; }
+        /* Estilos Base & Tema */
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #e2e8f0; transition: background 0.5s ease; }
+        
         ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        .module-enter { animation: slideDown 0.3s ease-out; }
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        
+        /* Animaciones */
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .chat-bubble { animation: popIn 0.3s ease-out; }
+        @keyframes popIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Animación Doc (Búho) */
+        .doc-bounce { animation: docBounce 2s infinite; display: inline-block; }
+        @keyframes docBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+
+        /* Utilidades */
+        .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; background: black; border-radius: 12px; }
+        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* Toast Notifications */
+        .toast { position: fixed; top: 20px; right: 20px; padding: 12px 16px; border-radius: 8px; z-index: 9999; animation: slideIn 0.3s ease-out; }
+        .toast-success { background: #10b981; color: white; }
+        .toast-error { background: #ef4444; color: white; }
+        .toast-info { background: #3b82f6; color: white; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     </style>
 </head>
-<body class="bg-slate-50 flex h-screen overflow-hidden font-sans text-slate-800">
+<body class="h-screen flex flex-col overflow-hidden">
 
-    <aside class="w-20 bg-slate-900 text-white flex flex-col items-center py-6 border-r border-slate-800">
-        <div id="inst-logo-mini" class="mb-8 p-2 bg-blue-600 rounded-lg font-bold text-xl">A</div>
-        <nav class="flex-1 space-y-4 w-full flex flex-col items-center">
-            <a href="panel.html" class="p-3 text-slate-400 hover:text-white hover:bg-white/10 rounded-xl transition-colors" title="Volver al Panel"><i data-lucide="arrow-left" class="w-6 h-6"></i></a>
-            <div class="p-3 bg-blue-600/20 text-blue-300 rounded-xl"><i data-lucide="edit-3" class="w-6 h-6"></i></div>
-             <a id="btn-view-aula" href="#" target="_blank" class="p-3 text-slate-400 hover:text-green-400 hover:bg-green-900/20 rounded-xl transition-colors mt-auto" title="Ver como Alumno"><i data-lucide="eye" class="w-6 h-6"></i></a>
-        </nav>
-    </aside>
+    <div id="toast-container"></div>
 
-    <div class="flex-1 flex flex-col min-w-0">
-        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shadow-sm z-20">
-            <div class="flex items-center gap-4 flex-1">
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Curso:</span>
-                <input type="text" id="course-title" class="text-xl font-black text-slate-800 ghost-input px-2 py-1 rounded w-full max-w-lg" placeholder="Nombre del curso...">
-            </div>
-            <div class="flex items-center gap-3">
-                <span id="save-status" class="text-xs font-bold text-slate-400 uppercase"></span>
-                <button onclick="guardarCambios()" id="btn-save-main" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-indigo-200">
-                    <i data-lucide="save" class="w-4 h-4"></i> Guardar Todo
-                </button>
-            </div>
-        </header>
-
-        <main class="flex-1 p-8 overflow-y-auto relative bg-slate-50">
-            <div class="max-w-4xl mx-auto pb-20">
-                
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-xs font-bold text-indigo-600 uppercase mb-2 flex items-center gap-1">
-                                <i data-lucide="layers" class="w-3 h-3"></i> Área / Universo Destino
-                            </label>
-                            <select id="area-select" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-100 outline-none font-bold text-slate-700">
-                                <option value="">Cargando áreas de tu instituto...</option>
-                            </select>
-                            <p class="text-[10px] text-slate-400 mt-2 italic">Esto determina en qué sección del portal aparecerá el curso.</p>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Registro ID / SKU</label>
-                            <input type="text" id="registro-id" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-100 font-mono text-slate-600" placeholder="Ej: COL-MED-01">
-                        </div>
-                    </div>
+    <header id="top-header" class="h-16 bg-slate-950 border-b border-white/5 flex items-center justify-between px-4 md:px-6 shrink-0 z-20 transition-all duration-500">
+        <div class="flex items-center gap-4">
+            <a href="./mi-campus.html" class="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition text-slate-300 hover:text-white text-xs font-bold border border-white/10 shadow-sm" title="Volver al Campus">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                <span class="hidden md:inline">Volver al Campus</span>
+            </a>
+            
+            <div class="flex items-center gap-3 border-l border-white/10 pl-4">
+                <div id="header-logo-container" class="hidden h-9 w-9 bg-white/90 rounded-lg items-center justify-center p-1 shadow-lg shadow-white/10">
+                    <img id="header-logo" src="" class="h-full w-full object-contain" onerror="this.parentElement.classList.add('hidden')">
                 </div>
-
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-8 flex flex-col md:flex-row gap-6 items-start">
-                    <div class="w-full md:w-48 h-32 bg-slate-100 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 cursor-pointer hover:bg-white hover:border-indigo-400 transition relative overflow-hidden group shrink-0">
-                        <img id="preview-cover" class="absolute inset-0 w-full h-full object-cover hidden z-10">
-                        <div class="z-0 flex flex-col items-center"><i data-lucide="image" class="w-8 h-8 mb-2"></i><span class="text-[10px] font-bold uppercase">Portada</span></div>
-                        <input type="file" id="cover-upload" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer z-20" onchange="previewImage(this)">
-                    </div>
-                    <div class="flex-1 w-full space-y-2">
-                        <label class="block text-xs font-bold text-slate-500 uppercase">Descripción para el Portal de Ventas</label>
-                        <textarea id="course-desc" class="w-full text-sm p-4 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-100 resize-none h-32" placeholder="Describe los beneficios de este curso para tus futuros alumnos..."></textarea>
-                    </div>
+                <div>
+                    <h1 class="font-bold text-white text-sm md:text-lg leading-tight truncate max-w-[200px] md:max-w-md" id="course-title">Cargando Aula...</h1>
+                    <p class="text-[10px] text-white/60 font-bold uppercase tracking-wider" id="inst-name-header">Campus Virtual</p>
                 </div>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="hidden md:block text-right">
+                <p class="text-sm font-bold text-white" id="student-name">Estudiante</p>
+                <div class="flex items-center justify-end gap-1.5">
+                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    <p class="text-[10px] text-green-400 font-bold uppercase">En Clase</p>
+                </div>
+            </div>
+            <div id="user-avatar-ui" class="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center overflow-hidden border border-white/10 relative">
+                <i data-lucide="user" class="w-4 h-4 text-white z-0 absolute"></i>
+                <img id="user-photo-header" src="" class="w-full h-full object-cover relative z-10 hidden" onerror="this.classList.add('hidden')">
+            </div>
+        </div>
+    </header>
 
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-8 relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
-                    <h3 class="text-sm font-bold text-slate-700 uppercase mb-4 flex items-center gap-2">
-                        <i data-lucide="shopping-bag" class="w-4 h-4 text-emerald-500"></i> Estrategia de Ventas (Landing Page)
-                    </h3>
+    <div class="flex-1 flex overflow-hidden relative">
+        
+        <main class="flex-1 flex flex-col min-w-0 bg-slate-900/50 relative z-10 backdrop-blur-sm" id="main-container">
+            <div class="flex-1 p-4 md:p-8 overflow-y-auto flex flex-col">
+                <div class="w-full max-w-6xl mx-auto space-y-6 h-full flex flex-col">
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Precio Tachado ($)</label>
-                            <input type="number" id="precio-original" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-slate-200" placeholder="Ej: 50000">
-                            <p class="text-[10px] text-slate-400 mt-1">Precio "antes" para generar contraste.</p>
+                    <div id="player-wrapper" class="w-full bg-black rounded-2xl shadow-2xl overflow-hidden border border-white/10 relative aspect-video flex-shrink-0 flex items-center justify-center group">
+                        <div id="player-placeholder" class="text-center p-8">
+                            <div class="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                                <i data-lucide="loader-2" class="w-8 h-8 text-slate-600 animate-spin"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-slate-500">Cargando contenido...</h3>
                         </div>
+                        <div id="player-content" class="w-full h-full hidden"></div>
+                    </div>
 
-                        <div>
-                            <label class="block text-xs font-bold text-emerald-600 uppercase mb-2">Precio Final ($)</label>
-                            <input type="number" id="precio-oferta" class="w-full text-sm p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl outline-none font-bold text-emerald-700 focus:ring-2 focus:ring-emerald-200" placeholder="Ej: 25000">
-                            <p class="text-[10px] text-emerald-600/70 mt-1">Precio real de venta.</p>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Cupos (Escasez)</label>
-                            <input type="number" id="cupos-limite" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-slate-200" placeholder="Ej: 5">
-                            <p class="text-[10px] text-slate-400 mt-1">Si < 10, muestra "Últimos Cupos".</p>
-                        </div>
-
-                        <div class="flex items-center h-full pt-4">
-                            <label class="flex items-center gap-3 cursor-pointer select-none p-3 rounded-xl border border-transparent hover:bg-slate-50 hover:border-slate-200 transition-all w-full">
-                                <input type="checkbox" id="check-popular" class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500 border-gray-300 accent-indigo-600">
-                                <span class="text-sm font-bold text-slate-700 flex items-center gap-1">
-                                    🔥 Etiqueta "Popular"
+                    <div class="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center pb-10 sticky bottom-0 z-20 py-4">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-1">
+                                <h2 id="current-lesson-title" class="text-xl md:text-2xl font-bold text-white leading-tight">...</h2>
+                                <span id="check-completed" class="hidden bg-green-500/20 text-green-400 text-[10px] px-2 py-0.5 rounded font-bold uppercase border border-green-500/30 flex items-center gap-1">
+                                    <i data-lucide="check" class="w-3 h-3"></i> Completada
                                 </span>
-                            </label>
+                            </div>
+                            <button onclick="marcarComoCompletada()" id="btn-mark-done" class="text-xs font-bold text-slate-400 hover:text-white flex items-center gap-2 transition-colors cursor-pointer select-none">
+                                <div class="w-4 h-4 border-2 border-slate-500 rounded-sm flex items-center justify-center group-hover:border-white transition-colors" id="btn-mark-icon"></div> 
+                                Marcar como vista
+                            </button>
+                        </div>
+                        <div class="flex gap-3 w-full md:w-auto">
+                            <button id="btn-prev" class="flex-1 md:flex-none px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm disabled:opacity-50 transition-all flex items-center justify-center gap-2" disabled>
+                                <i data-lucide="chevron-left" class="w-4 h-4"></i> Anterior
+                            </button>
+                            <button id="btn-next" class="flex-1 md:flex-none px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-lg disabled:opacity-50 transition-all flex items-center justify-center gap-2" disabled>
+                                Siguiente <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                            </button>
                         </div>
                     </div>
-                </div>
-                <div id="modules-container" class="space-y-6"></div>
-
-                <div class="mt-8 text-center border-2 border-dashed border-slate-200 rounded-2xl p-10 hover:border-indigo-400 hover:bg-indigo-50/50 transition cursor-pointer group" onclick="agregarModulo()">
-                    <div class="w-12 h-12 bg-white text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3 border border-slate-200 shadow-sm group-hover:scale-110 transition-transform"><i data-lucide="plus" class="w-6 h-6"></i></div>
-                    <h3 class="font-bold text-slate-600">Agregar Módulo Temático</h3>
                 </div>
             </div>
         </main>
+
+        <aside class="w-80 bg-slate-950/95 border-l border-white/5 flex flex-col shrink-0 overflow-hidden absolute md:relative right-0 h-full z-20 transition-transform transform translate-x-full md:translate-x-0 backdrop-blur-xl" id="playlist-sidebar">
+            <div class="p-4 border-b border-white/5 bg-slate-950 sticky top-0 z-10">
+                <h3 class="font-bold text-slate-300 text-xs uppercase tracking-wider flex items-center gap-2">
+                    <i data-lucide="list" class="w-3 h-3"></i> Temario del Curso
+                </h3>
+                <div class="h-1.5 w-full bg-slate-800 rounded-full mt-3 overflow-hidden">
+                    <div class="h-full bg-green-500 w-0 transition-all duration-500" id="progress-bar"></div>
+                </div>
+                <p class="text-[10px] text-slate-500 mt-1 text-right"><span id="progress-text">0%</span> Completado</p>
+            </div>
+            <div id="modules-list" class="flex-1 overflow-y-auto p-3 space-y-3 pb-20">
+                 <p class="text-center text-slate-600 text-xs py-10"><i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto mb-2"></i> Cargando...</p>
+            </div>
+        </aside>
+
+        <button onclick="toggleMobileMenu()" class="md:hidden absolute bottom-6 right-6 z-30 bg-indigo-600 text-white p-4 rounded-full shadow-xl">
+            <i data-lucide="menu" class="w-6 h-6"></i>
+        </button>
+        
+        <button id="btn-tutor-toggle" onclick="toggleTutor()" class="fixed bottom-8 right-8 z-[100] group transition-all duration-300 hover:scale-110 cursor-pointer hidden md:block">
+            <div class="relative">
+                <div class="w-16 h-16 rounded-full bg-slate-900 p-1 shadow-2xl border-4 border-indigo-500 overflow-hidden relative z-10 flex items-center justify-center" id="tutor-btn-border">
+                     <div class="w-full h-full bg-white rounded-full flex items-center justify-center relative overflow-hidden">
+                        <span class="text-3xl doc-bounce select-none">🦉</span>
+                        <span id="doc-badge-btn" class="absolute bottom-1 right-2 text-sm bg-white rounded-full w-5 h-5 flex items-center justify-center shadow-sm border border-indigo-100">🎓</span>
+                     </div>
+                </div>
+                <div class="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-slate-900 rounded-full z-20 animate-pulse"></div>
+            </div>
+        </button>
+
+        <div id="tutor-window" class="fixed bottom-28 right-4 md:right-8 z-[100] w-80 md:w-96 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl flex flex-col hidden origin-bottom-right transform scale-95 opacity-0 h-[500px] transition-all duration-300">
+            <div class="p-4 bg-indigo-600 border-b border-white/10 rounded-t-2xl flex justify-between items-center" id="tutor-header">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-white p-0.5 border border-white/20 overflow-hidden flex items-center justify-center relative">
+                        <span class="text-xl select-none">🦉</span>
+                        <span id="doc-badge-header" class="absolute -bottom-1 -right-1 text-[10px] bg-white rounded-full w-4 h-4 flex items-center justify-center border border-indigo-100">🎓</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-white text-sm" id="tutor-name">Doc (Tutor)</h3>
+                        <p class="text-[10px] text-white/80 font-medium">En línea • Ayuda al instante</p>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="borrarHistorial()" class="text-white/60 hover:text-white p-1" title="Borrar Chat"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    <button onclick="toggleTutor()" class="text-white/60 hover:text-white p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+            </div>
+            
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-900/95 text-sm">
+            </div>
+            
+            <div class="px-3 py-2 bg-slate-950 flex gap-2 overflow-x-auto border-t border-slate-800 no-scrollbar">
+                <button onclick="accionarTutor('quiz')" class="text-[10px] bg-slate-800 hover:bg-blue-600 text-blue-300 border border-slate-700 px-3 py-1.5 rounded-full whitespace-nowrap flex items-center gap-1 transition">📝 Quiz Rápido</button>
+                <button onclick="accionarTutor('resumen')" class="text-[10px] bg-slate-800 hover:bg-purple-600 text-purple-300 border border-slate-700 px-3 py-1.5 rounded-full whitespace-nowrap flex items-center gap-1 transition">⚡ Resumir</button>
+                <button onclick="accionarTutor('explicar')" class="text-[10px] bg-slate-800 hover:bg-green-600 text-green-300 border border-slate-700 px-3 py-1.5 rounded-full whitespace-nowrap flex items-center gap-1 transition">💡 Explicar Sencillo</button>
+            </div>
+            
+            <div class="p-3 bg-slate-950 border-t border-slate-800 rounded-b-2xl">
+                <form id="chat-form" class="flex gap-2 relative" onsubmit="enviarMensajeTutor(event)">
+                    <input type="text" id="chat-input" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl pl-4 pr-10 py-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition shadow-inner" placeholder="Pregúntale a Doc..." autocomplete="off">
+                    <button type="submit" class="absolute right-4 top-1/2 -translate-y-1/2 text-indigo-500 hover:text-indigo-400" id="btn-send-chat"><i data-lucide="send-horizontal" class="w-5 h-5"></i></button>
+                </form>
+            </div>
+        </div>
     </div>
 
     <script>
+        // ============================================
+        // CONFIGURACIÓN SUPABASE
+        // ============================================
         const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
-        
-        let cursoId = null;
-        let userInstId = null;
 
+        // ============================================
+        // VARIABLES GLOBALES
+        // ============================================
+        let flatLessons = [];
+        let currentLessonIndex = -1;
+        let completedLessons = new Set();
+        let currentCourseId = null;
+        let currentUser = null; 
+        let userInstitutionId = null; 
+        let institutionContext = "";
+        let areaContext = "";
+        let isChatOpen = false;
+        let jitsiApi = null;
+
+        // ============================================
+        // 1. INICIALIZACIÓN
+        // ============================================
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
-            const params = new URLSearchParams(window.location.search);
-            cursoId = params.get('id');
-
-            // 1. Validar Sesión e Institución (Fundamental para SaaS)
-            await checkAccess();
             
-            // 2. Cargar datos
-            if(cursoId) {
-                document.getElementById('btn-view-aula').href = `../student/aula.html?id=${cursoId}`;
-                await cargarDatosCurso(cursoId);
-            } else {
-                agregarModulo();
-            }
-        });
-
-        async function checkAccess() {
+            // Verificar sesión
             const { data: { session } } = await db.auth.getSession();
-            if(!session) { window.location.href = 'index.html'; return; }
+            if(!session) {
+                window.location.href = './login.html';
+                return;
+            }
+            
+            currentUser = session.user; 
 
-            // Obtener el perfil y la institución del usuario logueado
-            const { data: perfil } = await db.from('perfiles')
-                .select('institucion_id, instituciones(nombre, logo_url)')
-                .eq('id', session.user.id)
-                .single();
+            // Obtener curso de URL
+            const params = new URLSearchParams(window.location.search);
+            currentCourseId = params.get('id');
 
-            if(!perfil || !perfil.institucion_id) {
-                alert("No tienes una institución asignada. Contacta a ASARI.");
+            if(!currentCourseId) {
+                toast("No se especificó curso", "error");
+                setTimeout(() => window.location.href = './mi-campus.html', 2000);
                 return;
             }
 
-            userInstId = perfil.institucion_id;
-            
-            // Branding del editor según el instituto
-            if(perfil.instituciones.logo_url) {
-                document.getElementById('inst-logo-mini').innerHTML = `<img src="${perfil.instituciones.logo_url}" class="w-full h-full object-contain">`;
-            }
+            // Cargar datos
+            await cargarDatosUsuario();
+            await cargarCurso(currentCourseId);
+        });
 
-            // CARGAR ÁREAS (Solo las de este instituto)
-            const areaSelect = document.getElementById('area-select');
-            const { data: areas } = await db.from('areas')
-                .select('id, nombre')
-                .eq('institution_id', userInstId)
-                .order('nombre');
-            
-            areaSelect.innerHTML = '<option value="">-- Seleccionar Área --</option>';
-            if(areas) {
-                areas.forEach(a => {
-                    areaSelect.innerHTML += `<option value="${a.id}">${a.nombre}</option>`;
-                });
-            }
-        }
-
-        // --- MANEJO DE MÓDULOS (Optimizado) ---
-        function agregarModulo(data = null) {
-            const container = document.getElementById('modules-container');
-            const modId = Date.now() + Math.floor(Math.random() * 1000); 
-            const titulo = data ? data.titulo : "";
-            
-            const html = `
-            <div id="mod-${modId}" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden module-enter group/mod">
-                <div class="bg-slate-50 p-4 flex items-center gap-3 border-b border-slate-100">
-                    <i data-lucide="folder" class="text-indigo-500 w-5 h-5"></i>
-                    <input type="text" value="${titulo}" class="flex-1 bg-transparent font-bold text-slate-800 text-sm focus:outline-none" placeholder="Título del Módulo (Ej: Introducción)">
-                    <button onclick="borrarElemento('mod-${modId}')" class="p-2 text-slate-300 hover:text-red-500 transition opacity-0 group-hover/mod:opacity-100"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                </div>
-                <div class="p-4 space-y-4">
-                    <div id="lessons-${modId}" class="space-y-3"></div>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 pt-4 border-t border-slate-50">
-                        <button onclick="agregarLeccion('${modId}', 'VIDEO')" class="flex items-center justify-center gap-2 p-3 rounded-xl border border-slate-100 text-[10px] font-black text-slate-500 hover:bg-indigo-50 transition"><i data-lucide="play" class="w-3 h-3 text-indigo-500"></i> VIDEO</button>
-                        <button onclick="agregarLeccion('${modId}', 'PDF')" class="flex items-center justify-center gap-2 p-3 rounded-xl border border-slate-100 text-[10px] font-black text-slate-500 hover:bg-red-50 transition"><i data-lucide="file-text" class="w-3 h-3 text-red-500"></i> PDF</button>
-                        <button onclick="agregarLeccion('${modId}', 'LIVE')" class="flex items-center justify-center gap-2 p-3 rounded-xl border border-slate-100 text-[10px] font-black text-slate-500 hover:bg-purple-50 transition"><i data-lucide="radio" class="w-3 h-3 text-purple-500"></i> LIVE</button>
-                        <button onclick="agregarLeccion('${modId}', 'ZOOM')" class="flex items-center justify-center gap-2 p-3 rounded-xl border border-slate-100 text-[10px] font-black text-slate-500 hover:bg-cyan-50 transition"><i data-lucide="video" class="w-3 h-3 text-cyan-500"></i> ZOOM</button>
-                    </div>
-                </div>
-            </div>`;
-            container.insertAdjacentHTML('beforeend', html);
-            if(data && data.lecciones) data.lecciones.forEach(lec => agregarLeccion(modId, lec.tipo, lec));
-            lucide.createIcons();
-        }
-
-        function agregarLeccion(modId, tipo, data = null) {
-            const container = document.getElementById(`lessons-${modId}`);
-            const lecId = 'lec-' + Date.now() + Math.random().toString(36).substr(2, 5);
-            
-            let icon = 'play-circle';
-            if(tipo === 'PDF') icon = 'file-text';
-            if(tipo === 'LIVE') icon = 'radio';
-            if(tipo === 'ZOOM') icon = 'video';
-
-            const titulo = data ? data.titulo : "";
-            const url = data ? data.url : "";
-
-            const html = `
-            <div id="${lecId}" class="flex items-center gap-3 p-3 rounded-xl border border-slate-100 bg-white group/lec" data-type="${tipo}">
-                <i data-lucide="${icon}" class="w-4 h-4 text-slate-400"></i>
-                <div class="flex-1 grid gap-1">
-                    <input type="text" class="font-bold text-xs text-slate-700 outline-none" value="${titulo}" placeholder="Título de la clase">
-                    <input type="text" class="text-[10px] text-slate-400 outline-none font-mono" value="${url}" placeholder="ID Video / URL">
-                </div>
-                <button onclick="document.getElementById('${lecId}').remove()" class="p-2 text-slate-200 hover:text-red-500 opacity-0 group-hover/lec:opacity-100"><i data-lucide="x" class="w-4 h-4"></i></button>
-            </div>`;
-            container.insertAdjacentHTML('beforeend', html);
-            lucide.createIcons();
-        }
-
-        function borrarElemento(id) { if(confirm('¿Eliminar módulo y su contenido?')) document.getElementById(id).remove(); }
-        
-        function previewImage(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = e => { 
-                    const img = document.getElementById('preview-cover');
-                    img.src = e.target.result; 
-                    img.classList.remove('hidden'); 
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-
-        // --- CARGA Y GUARDADO SINCRONIZADO ---
-        async function cargarDatosCurso(id) {
-            const { data, error } = await db.from('cursos_oficiales').select('*').eq('id', id).single();
-            if(error) return;
-
-            document.getElementById('course-title').value = data.nombre;
-            document.getElementById('course-desc').value = data.descripcion || '';
-            document.getElementById('registro-id').value = data.registro_id || '';
-            document.getElementById('area-select').value = data.area_id || "";
-
-            // CARGA DE CAMPOS NUEVOS (MARKETING)
-            document.getElementById('precio-original').value = data.precio_original || '';
-            document.getElementById('precio-oferta').value = data.precio_oferta || '';
-            document.getElementById('cupos-limite').value = data.cupos_limite || '';
-            document.getElementById('check-popular').checked = data.popular || false;
-
-            if(data.imagen_portada_url) {
-                const img = document.getElementById('preview-cover');
-                img.src = data.imagen_portada_url;
-                img.classList.remove('hidden');
-            }
-
-            if(data.contenido) {
-                document.getElementById('modules-container').innerHTML = "";
-                data.contenido.forEach(mod => agregarModulo(mod));
-            }
-        }
-
-        async function guardarCambios() {
-            const btn = document.getElementById('btn-save-main');
-            const originalHTML = btn.innerHTML;
-            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Guardando...`;
-            btn.disabled = true;
-
-            const nombre = document.getElementById('course-title').value;
-            const descripcion = document.getElementById('course-desc').value;
-            const areaId = document.getElementById('area-select').value;
-            const registroId = document.getElementById('registro-id').value;
-
-            // LECTURA DE CAMPOS NUEVOS (MARKETING)
-            const precioOriginal = document.getElementById('precio-original').value || null;
-            const precioOferta = document.getElementById('precio-oferta').value || null;
-            const cuposLimite = document.getElementById('cupos-limite').value || null;
-            const popular = document.getElementById('check-popular').checked;
-
-            if(!nombre.trim()) { alert("El título es obligatorio"); btn.innerHTML = originalHTML; btn.disabled = false; return; }
-
-            // Serializar módulos
-            const contenidoJSON = [];
-            document.querySelectorAll('[id^="mod-"]').forEach(mod => {
-                const titulo = mod.querySelector('input').value;
-                const lecciones = [];
-                mod.querySelectorAll('[id^="lec-"]').forEach(lec => {
-                    const inputs = lec.querySelectorAll('input');
-                    lecciones.push({
-                        titulo: inputs[0].value,
-                        url: inputs[1].value,
-                        tipo: lec.dataset.type
-                    });
-                });
-                contenidoJSON.push({ titulo, lecciones });
-            });
-
-            // Subir imagen si hay nueva
-            let portadaUrl = null;
-            const fileInput = document.getElementById('cover-upload');
-            if(fileInput.files.length > 0) {
-                const file = fileInput.files[0];
-                const fileName = `course_${userInstId}_${Date.now()}`;
-                const { data: uploadData } = await db.storage.from('plantillas-diplomas').upload(fileName, file);
-                if(uploadData) {
-                    portadaUrl = db.storage.from('plantillas-diplomas').getPublicUrl(fileName).data.publicUrl;
-                }
-            }
-
-            const payload = {
-                nombre,
-                descripcion,
-                contenido: contenidoJSON,
-                area_id: areaId || null,
-                registro_id: registroId,
-                institution_id: userInstId,
-                // INYECCIÓN DE CAMPOS NUEVOS
-                precio_original: precioOriginal,
-                precio_oferta: precioOferta,
-                cupos_limite: cuposLimite,
-                popular: popular
-            };
-
-            if(portadaUrl) payload.imagen_portada_url = portadaUrl;
-
+        // ============================================
+        // 2. CARGAR DATOS USUARIO (CORREGIDO PARA MÚLTIPLES MATRÍCULAS)
+        // ============================================
+        async function cargarDatosUsuario() {
             try {
-                if(cursoId) {
-                    await db.from('cursos_oficiales').update(payload).eq('id', cursoId);
-                } else {
-                    const { data: newCourse, error: insErr } = await db.from('cursos_oficiales').insert([payload]).select().single();
-                    if(insErr) throw insErr;
-                    cursoId = newCourse.id;
-                    window.history.pushState({}, '', `?id=${cursoId}`);
+                // A. Intentar obtener DNI de la sesión
+                let dniDelAlumno = currentUser.user_metadata?.dni;
+
+                // B. Fallback a perfiles
+                if (!dniDelAlumno) {
+                    const { data: perfil } = await db.from('perfiles').select('dni').eq('id', currentUser.id).maybeSingle();
+                    if (perfil) dniDelAlumno = perfil.dni;
                 }
-                alert("¡Curso guardado y sincronizado con el portal!");
-            } catch(e) {
-                alert("Error al guardar: " + e.message);
-            } finally {
-                btn.innerHTML = originalHTML;
-                btn.disabled = false;
-                lucide.createIcons();
+
+                if (!dniDelAlumno) {
+                    console.warn("DNI no identificado");
+                    document.getElementById('student-name').innerText = "Estudiante";
+                    return;
+                }
+
+                // C. Buscar TODAS las matrículas del alumno
+                const { data: todasMatriculas, error: errorMatriculas } = await db
+                    .from('matriculas')
+                    .select('nombre, apellido, foto_url, institution_id, curso_id')
+                    .eq('dni_alumno', dniDelAlumno);
+
+                if (errorMatriculas) {
+                    console.error("Error consultando matrículas:", errorMatriculas);
+                    throw new Error("Error al consultar matrículas");
+                }
+
+                if (!todasMatriculas || todasMatriculas.length === 0) {
+                    console.warn("No se encontraron matrículas para DNI:", dniDelAlumno);
+                    document.getElementById('student-name').innerText = 'Estudiante';
+                    return;
+                }
+
+                // D. ENCONTRAR LA MATRÍCULA QUE CORRESPONDE AL CURSO ACTUAL
+                let matriculaCorrecta = null;
+                
+                // Opción 1: Buscar por curso_id si está disponible
+                if (currentCourseId) {
+                    matriculaCorrecta = todasMatriculas.find(m => m.curso_id === currentCourseId);
+                }
+                
+                // Opción 2: Si no encontramos por curso_id, tomar la primera
+                if (!matriculaCorrecta && todasMatriculas.length > 0) {
+                    matriculaCorrecta = todasMatriculas[0];
+                    console.log("Usando primera matrícula de", todasMatriculas.length, "disponibles");
+                }
+
+                if (matriculaCorrecta) {
+                    const nombre = matriculaCorrecta.nombre || '';
+                    const apellido = matriculaCorrecta.apellido || '';
+                    const nombreCompleto = `${nombre} ${apellido}`.trim() || "Estudiante";
+                    
+                    document.getElementById('student-name').innerText = nombreCompleto;
+                    userInstitutionId = matriculaCorrecta.institution_id;
+
+                    if (matriculaCorrecta.foto_url) {
+                        const img = document.getElementById('user-photo-header');
+                        if(img) {
+                            img.src = matriculaCorrecta.foto_url;
+                            img.classList.remove('hidden');
+                        }
+                    }
+                    
+                    console.log(`✅ Matrícula seleccionada: ${nombreCompleto}, Institución: ${userInstitutionId}`);
+                }
+                
+            } catch (e) {
+                console.error("Error cargando perfil:", e);
+                document.getElementById('student-name').innerText = 'Estudiante';
+            }
+        }
+
+        // ============================================
+        // 3. CARGAR CURSO
+        // ============================================
+        async function cargarCurso(id) {
+            try {
+                // Paso 1: Cargar Curso
+                const { data: cursoResult, error: cursoError } = await db
+                    .from('cursos_oficiales')
+                    .select('*, areas(*)') 
+                    .eq('id', id);
+                    
+                if(cursoError) throw cursoError;
+                
+                if(!cursoResult || cursoResult.length === 0) {
+                    toast("Curso no encontrado", "error");
+                    setTimeout(() => window.location.href = './mi-campus.html', 2000);
+                    return;
+                }
+                
+                const curso = cursoResult[0];
+
+                // Paso 2: Cargar Institución (Manual)
+                const instId = curso.institution_id || curso.institucion_id;
+                if (instId) {
+                    const { data: instData } = await db.from('instituciones').select('*').eq('id', instId).maybeSingle();
+                    if (instData) curso.instituciones = instData;
+                }
+
+                // --- UI ---
+                document.getElementById('course-title').innerText = curso.nombre || "Curso";
+                
+                // Branding
+                if (curso.instituciones) {
+                    const inst = curso.instituciones;
+                    document.getElementById('inst-name-header').innerText = inst.nombre || "Campus Virtual";
+                    institutionContext = `Institución: ${inst.nombre}.`;
+
+                    if (inst.logo_url) {
+                        const logo = document.getElementById('header-logo');
+                        logo.src = inst.logo_url;
+                        document.getElementById('header-logo-container').classList.remove('hidden');
+                        document.getElementById('header-logo-container').classList.add('flex');
+                    }
+                    
+                    if (inst.color_primario) {
+                        document.getElementById('top-header').style.borderBottomColor = inst.color_primario;
+                        document.getElementById('tutor-header').style.backgroundColor = inst.color_primario;
+                    }
+                }
+
+                // Contexto IA
+                if (curso.areas) {
+                    areaContext = curso.areas.nombre || "";
+                    if(curso.areas.prompt_especifico) areaContext += `. ${curso.areas.prompt_especifico}`;
+                }
+                
+                // Personalidad
+                updateDocPersonality((curso.nombre + " " + areaContext).toLowerCase());
+
+                // Parsear Contenido
+                let contenido = [];
+                if (typeof curso.contenido === 'string') {
+                    try { contenido = JSON.parse(curso.contenido); } catch (e) { contenido = []; }
+                } else if (Array.isArray(curso.contenido)) {
+                    contenido = curso.contenido;
+                }
+
+                renderizarTemario(contenido);
+                await cargarProgreso(id); 
+
+                if (flatLessons.length > 0) {
+                    let targetIndex = flatLessons.findIndex(l => !completedLessons.has(l.uniqueId));
+                    if (targetIndex === -1) targetIndex = 0; 
+                    cargarClase(targetIndex);
+                } else {
+                    document.getElementById('player-placeholder').innerHTML = '<div class="text-center p-10"><h3 class="text-white font-bold">Contenido en preparación</h3></div>';
+                }
+
+            } catch (error) {
+                console.error("Error crítico cargando curso:", error);
+                toast("Error técnico: " + error.message, "error");
+            }
+        }
+
+        // ============================================
+        // 4. FUNCIONES DE UTILIDAD
+        // ============================================
+        
+        function toast(msg, type='info') {
+            const t = document.createElement('div');
+            let colorClass = 'bg-blue-600';
+            if (type === 'error') colorClass = 'bg-red-500';
+            if (type === 'success') colorClass = 'bg-green-500';
+
+            t.className = `fixed top-5 right-5 z-50 px-4 py-2 rounded shadow-lg text-white ${colorClass} fade-in`;
+            t.innerText = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
+
+        function updateDocPersonality(contexto) {
+            let icon = '🎓'; 
+            let role = 'Tutor Académico';
+
+            if(contexto.includes('salud') || contexto.includes('medicin') || contexto.includes('enferme')) { 
+                icon = '🩺'; role = 'Tutor de Salud'; 
+            } else if(contexto.includes('forense') || contexto.includes('criminal')) { 
+                icon = '🔎'; role = 'Investigador Forense'; 
+            } else if(contexto.includes('deporte') || contexto.includes('entrena') || contexto.includes('gym')) { 
+                icon = '⚽'; role = 'Coach Deportivo'; 
+            } else if(contexto.includes('legal') || contexto.includes('juridic')) { 
+                icon = '⚖️'; role = 'Asesor Legal'; 
+            } else if(contexto.includes('rescat') || contexto.includes('emergen')) { 
+                icon = '⛑️'; role = 'Instructor de Rescate'; 
+            }
+            
+            const badgeBtn = document.getElementById('doc-badge-btn');
+            const badgeHead = document.getElementById('doc-badge-header');
+            const nameEl = document.getElementById('tutor-name');
+
+            if(badgeBtn) badgeBtn.innerText = icon;
+            if(badgeHead) badgeHead.innerText = icon;
+            if(nameEl) nameEl.innerText = `Doc (${role})`;
+        }
+
+        // ============================================
+        // 5. CARGAR PROGRESO
+        // ============================================
+        async function cargarProgreso(cursoId) {
+            try {
+                const { data } = await db.from('progreso_alumnos')
+                    .select('clases_vistas')
+                    .eq('student_id', currentUser.id)
+                    .eq('curso_id', cursoId)
+                    .maybeSingle();
+                
+                if (data && data.clases_vistas) {
+                    completedLessons = new Set(data.clases_vistas);
+                    actualizarBarraProgreso();
+                    
+                    flatLessons.forEach(l => {
+                        if (completedLessons.has(l.uniqueId)) {
+                            const btn = document.getElementById(`btn-lec-${l.index}`);
+                            if(btn) {
+                                const icon = btn.querySelector('i');
+                                if(icon) {
+                                    icon.setAttribute('data-lucide', 'check-circle-2');
+                                    icon.classList.add('text-green-500', 'opacity-100');
+                                    icon.classList.remove('opacity-50');
+                                }
+                            }
+                        }
+                    });
+                    lucide.createIcons();
+                }
+            } catch (err) {
+                console.error("Error cargando progreso:", err);
+            }
+        }
+
+        // ============================================
+        // 6. RENDERIZADO
+        // ============================================
+        function renderizarTemario(modulos) {
+            const container = document.getElementById('modules-list');
+            container.innerHTML = "";
+            flatLessons = [];
+
+            if (!modulos || modulos.length === 0) {
+                container.innerHTML = `<p class="text-slate-500 text-center text-xs mt-10">Sin contenido</p>`;
+                return;
+            }
+
+            modulos.forEach((mod, modIdx) => {
+                const modDiv = document.createElement('div');
+                modDiv.className = "mb-4";
+                modDiv.innerHTML = `<div class="px-3 py-2 bg-slate-900/50 rounded-lg text-[10px] font-bold text-slate-400 uppercase tracking-wider border border-white/5 mb-1">${mod.titulo || 'Módulo'}</div>`;
+                
+                const lessonsContainer = document.createElement('div');
+                lessonsContainer.className = "space-y-1 pl-1";
+
+                if (mod.lecciones && Array.isArray(mod.lecciones)) {
+                    mod.lecciones.forEach((lec, lecIdx) => {
+                        const globalIdx = flatLessons.length;
+                        const uniqueId = `${modIdx}-${lecIdx}`;
+                        
+                        flatLessons.push({ ...lec, modIdx, uniqueId, index: globalIdx });
+
+                        const btn = document.createElement('button');
+                        btn.id = `btn-lec-${globalIdx}`;
+                        btn.className = `w-full text-left px-3 py-3 rounded-lg flex items-center gap-3 text-xs transition-all border border-transparent text-slate-400 hover:bg-white/5 hover:text-white`;
+                        btn.onclick = () => cargarClase(globalIdx);
+                        
+                        let icon = 'play-circle';
+                        if(lec.tipo === 'PDF') icon = 'file-text';
+                        if(lec.tipo === 'LIVE') icon = 'video';
+
+                        btn.innerHTML = `
+                            <i data-lucide="${icon}" class="w-4 h-4 opacity-50 shrink-0"></i>
+                            <span class="truncate font-medium">${lec.titulo || 'Lección'}</span>
+                        `;
+                        lessonsContainer.appendChild(btn);
+                    });
+                }
+                modDiv.appendChild(lessonsContainer);
+                container.appendChild(modDiv);
+            });
+            lucide.createIcons();
+        }
+
+        function cargarClase(index) {
+            if (index < 0 || index >= flatLessons.length) return;
+            
+            if (jitsiApi) { jitsiApi.dispose(); jitsiApi = null; }
+
+            document.querySelectorAll('[id^="btn-lec-"]').forEach(b => b.classList.remove('bg-indigo-600/20', 'border-indigo-500/30', 'text-white'));
+            const activeBtn = document.getElementById(`btn-lec-${index}`);
+            if(activeBtn) activeBtn.classList.add('bg-indigo-600/20', 'border-indigo-500/30', 'text-white');
+
+            currentLessonIndex = index;
+            const lec = flatLessons[index];
+            
+            document.getElementById('current-lesson-title').innerText = lec.titulo;
+            document.getElementById('player-placeholder').classList.add('hidden');
+            const contentDiv = document.getElementById('player-content');
+            contentDiv.classList.remove('hidden');
+            contentDiv.innerHTML = ''; 
+
+            if (lec.tipo === 'VIDEO' || !lec.tipo) {
+                 if (lec.url && (lec.url.includes('youtube') || lec.url.includes('youtu.be'))) {
+                    let videoId = lec.url.split('v=')[1];
+                    const ampersandPosition = videoId ? videoId.indexOf('&') : -1;
+                    if(ampersandPosition !== -1) videoId = videoId.substring(0, ampersandPosition);
+                    if(!videoId && lec.url.includes('youtu.be')) videoId = lec.url.split('/').pop();
+
+                    contentDiv.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0" class="w-full h-full" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+                 } else {
+                     contentDiv.innerHTML = `<div class="flex h-full items-center justify-center text-white p-10 text-center"><p>Video no disponible.</p></div>`;
+                 }
+            } else if (lec.tipo === 'LIVE') {
+                contentDiv.innerHTML = `<div id="jitsi-container" class="w-full h-full bg-slate-900"></div>`;
+                iniciarJitsi(lec.url);
+            } else if (lec.tipo === 'PDF') {
+                 contentDiv.innerHTML = `
+                    <div class="flex flex-col h-full items-center justify-center text-white gap-4 p-6 text-center">
+                        <div class="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center"><i data-lucide="file-text" class="w-10 h-10 text-red-500"></i></div>
+                        <h3 class="text-xl font-bold">Material de Lectura</h3>
+                        <a href="${lec.url}" target="_blank" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold transition flex items-center gap-2">
+                            <i data-lucide="download" class="w-4 h-4"></i> Abrir Documento
+                        </a>
+                    </div>`;
+                 lucide.createIcons();
+            }
+
+            actualizarBotonesNav();
+            checkSiCompletado(lec.uniqueId);
+        }
+
+        // ============================================
+        // 7. FUNCIONES EXTRA (JITSI, PROGRESO, GEMINI)
+        // ============================================
+        function iniciarJitsi(roomName) {
+            const domain = 'meet.jit.si';
+            const safeRoom = (roomName || `ASARI_CLASS_${currentCourseId}`).replace(/[^a-zA-Z0-9]/g, '');
+            const options = {
+                roomName: safeRoom,
+                width: '100%',
+                height: '100%',
+                parentNode: document.querySelector('#jitsi-container'),
+                configOverwrite: { startWithAudioMuted: true, prejoinPageEnabled: false },
+                interfaceConfigOverwrite: { SHOW_JITSI_WATERMARK: false },
+                userInfo: { displayName: document.getElementById('student-name').innerText }
+            };
+            jitsiApi = new JitsiMeetExternalAPI(domain, options);
+        }
+
+        async function marcarComoCompletada() {
+            if (currentLessonIndex === -1) return;
+            const lec = flatLessons[currentLessonIndex];
+            
+            if (!completedLessons.has(lec.uniqueId)) {
+                completedLessons.add(lec.uniqueId);
+                actualizarBarraProgreso();
+                checkSiCompletado(lec.uniqueId);
+                
+                await db.from('progreso_alumnos').upsert({
+                    student_id: currentUser.id,
+                    curso_id: currentCourseId,
+                    clases_vistas: Array.from(completedLessons),
+                    ultimo_acceso: new Date().toISOString()
+                }, { onConflict: 'student_id, curso_id' });
+
+                toast("Lección completada", "success");
+            }
+            
+            if (currentLessonIndex < flatLessons.length - 1) {
+                cargarClase(currentLessonIndex + 1);
+            }
+        }
+
+        function checkSiCompletado(uniqueId) {
+            const btn = document.getElementById('btn-mark-done');
+            const badge = document.getElementById('check-completed');
+            if (completedLessons.has(uniqueId)) {
+                badge.classList.remove('hidden');
+                btn.innerHTML = `<span class="text-green-400 flex items-center gap-1">Siguiente <i data-lucide="arrow-right" class="w-3 h-3"></i></span>`;
+            } else {
+                badge.classList.add('hidden');
+                btn.innerHTML = `Marcar como vista`;
+            }
+        }
+
+        function actualizarBarraProgreso() {
+            const total = flatLessons.length;
+            if (total === 0) return;
+            const completadas = completedLessons.size;
+            const porcentaje = Math.round((completadas / total) * 100);
+            document.getElementById('progress-bar').style.width = `${porcentaje}%`;
+            document.getElementById('progress-text').innerText = `${porcentaje}%`;
+        }
+
+        function actualizarBotonesNav() {
+            document.getElementById('btn-prev').disabled = currentLessonIndex <= 0;
+            document.getElementById('btn-next').disabled = currentLessonIndex >= flatLessons.length - 1;
+            document.getElementById('btn-prev').onclick = () => cargarClase(currentLessonIndex - 1);
+            document.getElementById('btn-next').onclick = () => cargarClase(currentLessonIndex + 1);
+        }
+
+        // --- GEMINI 1.5 FLASH ---
+        async function consultarGemini(prompt) {
+            const loadingId = mostrarLoading();
+            try {
+                const { data: secretResult } = await db.from('app_secrets').select('value').eq('name', 'gemini_api_key');
+                if(!secretResult || !secretResult.length) throw new Error("API Key no encontrada");
+                
+                const apiKey = secretResult[0].value?.trim();
+                const model = 'gemini-1.5-flash'; 
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        contents: [{ parts: [{ text: prompt }] }],
+                        generationConfig: { temperature: 0.7, maxOutputTokens: 1000 }
+                    })
+                });
+
+                if(!response.ok) throw new Error("Error en IA: " + response.statusText);
+
+                const data = await response.json();
+                removerLoading(loadingId);
+                const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "No pude responder.";
+                agregarBurbujaTutor(marked.parse(reply), 'bot');
+
+            } catch(error) {
+                removerLoading(loadingId);
+                agregarBurbujaTutor(`⚠️ ${error.message}`, 'bot');
+            }
+        }
+
+        // --- UTILS UI ---
+        function mostrarLoading() {
+            const container = document.getElementById('chat-messages');
+            const id = 'load-' + Date.now();
+            const div = document.createElement('div');
+            div.id = id;
+            div.className = "flex gap-3 chat-bubble";
+            div.innerHTML = `<div class="w-8 h-8 rounded-full bg-white overflow-hidden shrink-0 border border-indigo-500 mt-1 flex items-center justify-center"><span class="text-sm">🦉</span></div><div class="bg-slate-800 p-4 rounded-2xl rounded-tl-none border border-slate-700 flex gap-1 items-center h-10"><span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce"></span><span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce delay-100"></span><span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce delay-200"></span></div>`;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+            return id;
+        }
+
+        function removerLoading(id) {
+            const el = document.getElementById(id);
+            if(el) el.remove();
+        }
+
+        function agregarBurbujaTutor(htmlContent, type) {
+            const container = document.getElementById('chat-messages');
+            const div = document.createElement('div');
+            
+            if (type === 'user') {
+                div.className = "flex gap-3 flex-row-reverse chat-bubble";
+                div.innerHTML = `<div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center shrink-0"><i data-lucide="user" class="w-4 h-4 text-slate-300"></i></div><div class="bg-indigo-600 text-white text-sm p-3 rounded-2xl rounded-tr-none shadow-md max-w-[85%]">${htmlContent}</div>`;
+            } else {
+                const badge = document.getElementById('doc-badge-header').innerText;
+                div.className = "flex gap-3 chat-bubble";
+                div.innerHTML = `<div class="w-8 h-8 rounded-full bg-white overflow-hidden shrink-0 border border-indigo-500 mt-1 flex items-center justify-center relative"><span class="text-sm select-none">🦉</span><span class="absolute -bottom-1 -right-1 text-[8px] bg-white rounded-full w-3 h-3 flex items-center justify-center border border-indigo-100">${badge}</span></div><div class="bg-slate-800 text-slate-200 text-sm p-3 rounded-2xl rounded-tl-none border border-slate-700 shadow-md max-w-[90%] prose prose-invert prose-sm leading-snug">${htmlContent}</div>`;
+            }
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+            lucide.createIcons();
+        }
+
+        function borrarHistorial() { document.getElementById('chat-messages').innerHTML = ''; }
+        function toggleTutor() { 
+            const win = document.getElementById('tutor-window');
+            win.classList.toggle('hidden');
+            win.classList.remove('scale-95', 'opacity-0');
+            if(!win.classList.contains('hidden')) document.getElementById('chat-input').focus();
+        }
+        function toggleMobileMenu() { document.getElementById('playlist-sidebar').classList.toggle('translate-x-full'); }
+
+        async function enviarMensajeTutor(e) {
+            e.preventDefault();
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if(!text) { toast("Escribe un mensaje", "error"); return; }
+            agregarBurbujaTutor(text, 'user');
+            input.value = "";
+            const leccionActual = document.getElementById('current-lesson-title').innerText;
+            const docName = document.getElementById('tutor-name').innerText;
+            const prompt = `ROLE: Eres "${docName}", un asistente educativo representado por un Búho Sabio. TONO: Pedagógico, alentador. CONTEXTO INSTITUCIONAL: ${institutionContext} CONTEXTO DEL ÁREA: ${areaContext} LECCIÓN ACTUAL: "${leccionActual}" PREGUNTA: "${text}"`;
+            await consultarGemini(prompt);
+        }
+        
+        function accionarTutor(accion) {
+            const leccion = document.getElementById('current-lesson-title').innerText;
+            if(accion === 'quiz') {
+                agregarBurbujaTutor('Hazme un examen rápido.', 'user');
+                consultarGemini(`Genera un examen corto de 3 preguntas multiple choice sobre: "${leccion}". Formato Markdown.`);
+            } else if (accion === 'resumen') {
+                agregarBurbujaTutor('Resumir esta clase.', 'user');
+                consultarGemini(`Dame los 3 puntos clave de: "${leccion}".`);
+            } else if (accion === 'explicar') {
+                agregarBurbujaTutor('Explícame esto sencillo.', 'user');
+                consultarGemini(`Explica el concepto de "${leccion}" con una analogía simple.`);
             }
         }
     </script>
