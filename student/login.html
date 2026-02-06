@@ -268,7 +268,7 @@
                 // 2. CONSULTA PROFESIONAL DIRECTA A 'matriculas'
                 // AHORA USAMOS .select() en lugar de .maybeSingle() para manejar múltiples matrículas
                 let query = db.from('matriculas')
-                    .select('id, dni_alumno, institution_id, nombre, apellido, email, foto_url, curso_id') // Traemos todo
+                    .select('id, dni_alumno, institution_id, nombre, apellido, email, foto_url') // Traemos todo
                     .eq('dni_alumno', dniLimpio)       // Columna real
                     .eq('estado', 'ACTIVO');           // Lógica de negocio: Solo activos
                 
