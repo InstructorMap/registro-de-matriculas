@@ -369,7 +369,115 @@
         });
 
         // ============================================
-        // 3. GESTIÓN DE PROGRESO DEL ALUMNO
+        // 3. CARGAR CURSO (SOLUCIÓN DOBLE VINCULACIÓN)
+        // ============================================
+        async function cargarCurso(id) {
+            try {
+                console.log("Cargando curso ID:", id);
+                
+                // PASO 1: Cargar Curso y Área (Quitamos instituciones del select para evitar el choque)
+                const { data: cursoResult, error: cursoError } = await db
+                    .from('cursos_oficiales')
+                    .select('*, areas(*)') 
+                    .eq('id', id);
+                    
+                if(cursoError) throw cursoError;
+                
+                if(!cursoResult || cursoResult.length === 0) {
+                    toast("Curso no encontrado o acceso denegado", "error");
+                    setTimeout(() => window.location.href = './mi-campus.html', 2000);
+                    return;
+                }
+                
+                const curso = cursoResult[0];
+
+                // PASO 2: Cargar Institución Manualmente (Bypass del error de relación múltiple)
+                // Buscamos en ambas columnas por si acaso
+                const instId = curso.institution_id || curso.institucion_id;
+                
+                if (instId) {
+                    const { data: instData } = await db
+                        .from('instituciones')
+                        .select('*')
+                        .eq('id', instId)
+                        .maybeSingle();
+                        
+                    if (instData) {
+                        // Se la pegamos al objeto curso como si hubiera venido del join
+                        curso.instituciones = instData;
+                    }
+                }
+
+                // --- UI DEL CURSO ---
+                document.getElementById('course-title').innerText = curso.nombre || "Curso";
+                
+                // Branding Institución
+                if (curso.instituciones) {
+                    const inst = curso.instituciones;
+                    document.getElementById('inst-name-header').innerText = inst.nombre || "Campus Virtual";
+                    institutionContext = `Institución: ${inst.nombre}.`; // Para Gemini
+
+                    if (inst.logo_url) {
+                        const logo = document.getElementById('header-logo');
+                        const container = document.getElementById('header-logo-container');
+                        logo.src = inst.logo_url;
+                        container.classList.remove('hidden');
+                        container.classList.add('flex');
+                    }
+                    
+                    if (inst.color_primario) {
+                        document.getElementById('top-header').style.borderBottomColor = inst.color_primario;
+                        document.getElementById('tutor-header').style.backgroundColor = inst.color_primario;
+                        // Forzamos actualización de estilos dinámicos
+                        const color = inst.color_primario;
+                        try {
+                             document.body.style.background = `linear-gradient(to bottom right, #0f172a 0%, ${color}15 100%)`;
+                             document.getElementById('tutor-btn-border').style.borderColor = color;
+                             document.getElementById('btn-send-chat').style.color = color;
+                        } catch(e) {}
+                    }
+                }
+
+                // Contexto Área (Para Gemini)
+                if (curso.areas) {
+                    areaContext = curso.areas.nombre || "";
+                    if(curso.areas.prompt_especifico) areaContext += `. ${curso.areas.prompt_especifico}`;
+                }
+                
+                // Actualizar personalidad del Búho
+                updateDocPersonality((curso.nombre + " " + areaContext).toLowerCase());
+
+                // --- CONTENIDO DEL CURSO ---
+                let contenido = [];
+                // Manejo robusto del JSON
+                if (typeof curso.contenido === 'string') {
+                    try { contenido = JSON.parse(curso.contenido); } 
+                    catch (e) { console.error("JSON Error:", e); contenido = []; }
+                } else if (Array.isArray(curso.contenido)) {
+                    contenido = curso.contenido;
+                }
+
+                // Renderizar
+                renderizarTemario(contenido);
+                await cargarProgreso(id);
+
+                // Autoplay primera lección pendiente
+                if (flatLessons.length > 0) {
+                    let targetIndex = flatLessons.findIndex(l => !completedLessons.has(l.uniqueId));
+                    if (targetIndex === -1) targetIndex = 0; 
+                    cargarClase(targetIndex);
+                } else {
+                    document.getElementById('player-placeholder').innerHTML = '<div class="text-center p-10"><h3 class="text-white font-bold">Contenido en preparación</h3><p class="text-slate-400">El docente está subiendo material.</p></div>';
+                }
+
+            } catch (error) {
+                console.error("Error crítico cargando curso:", error);
+                toast("Error técnico al cargar el aula: " + error.message, "error");
+            }
+        }
+
+        // ============================================
+        // 4. GESTIÓN DE PROGRESO DEL ALUMNO
         // ============================================
         async function gestionarProgresoAlumno(cursoId, userId) {
             try {
@@ -424,170 +532,6 @@
                 console.error("Error gestionando progreso:", error);
                 completedLessons = new Set();
                 toast("Error cargando progreso, pero continuamos", "error");
-            }
-        }
-
-        // ============================================
-        // 4. CARGA DEL CURSO CON VALIDACIÓN MEJORADA
-        // ============================================
-        async function cargarCurso(id) {
-            try {
-                // 1. Obtener curso con relaciones
-                const { data: cursoResult, error: cursoError } = await db
-                    .from('cursos_oficiales')
-                    .select('*, areas(*), instituciones(*)')
-                    .eq('id', id);
-                    
-                if(cursoError) {
-                    throw new Error(`Error BD curso: ${cursoError.message}`);
-                }
-                
-                if(!cursoResult || cursoResult.length === 0) {
-                    toast("Curso no encontrado", "error");
-                    setTimeout(() => window.location.href = './mi-campus.html', 2000);
-                    return;
-                }
-                
-                const curso = cursoResult[0];
-                
-                // ====================================================
-                // VALIDACIÓN DE SEGURIDAD CROSS-INSTITUTION
-                // ====================================================
-                if (userInstitutionId && curso.institution_id) {
-                    if (userInstitutionId !== curso.institution_id) {
-                        console.error(`Acceso denegado: Usuario institución ${userInstitutionId} vs Curso institución ${curso.institution_id}`);
-                        
-                        document.body.innerHTML = `
-                            <div class="h-screen flex items-center justify-center bg-slate-950">
-                                <div class="text-center p-8 max-w-md">
-                                    <div class="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <i data-lucide="shield-alert" class="w-10 h-10 text-red-500"></i>
-                                    </div>
-                                    <h2 class="text-2xl font-bold text-white mb-3">Acceso Denegado</h2>
-                                    <p class="text-slate-300 mb-6">
-                                        Este curso pertenece a otra institución. No tienes permisos para acceder.
-                                    </p>
-                                    <div class="space-y-3">
-                                        <a href="mi-campus.html" class="block bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-bold transition">
-                                            Volver al Campus
-                                        </a>
-                                        <p class="text-xs text-slate-500 mt-4">
-                                            Si crees que esto es un error, contacta al administrador.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                        lucide.createIcons();
-                        return;
-                    }
-                }
-                // ====================================================
-                
-                // 2. Validar contenido básico
-                if(!curso.contenido || typeof curso.contenido !== 'object') {
-                    console.warn("Curso sin contenido estructurado:", curso);
-                    curso.contenido = [];
-                }
-
-                // A. Datos Básicos
-                document.getElementById('course-title').innerText = curso.nombre || "Curso sin nombre";
-                
-                // B. Identidad Visual con validación CORREGIDA (comillas simples)
-                if (curso.instituciones) {
-                    const inst = curso.instituciones;
-                    document.getElementById('inst-name-header').innerText = inst.nombre || "Institución";
-                    
-                    if (inst.color_primario) {
-                        const color = inst.color_primario;
-                        try {
-                            document.getElementById('top-header').style.borderBottomColor = color;
-                            document.getElementById('tutor-header').style.backgroundColor = color;
-                            document.getElementById('tutor-btn-border').style.borderColor = color;
-                            document.getElementById('btn-send-chat').style.color = color;
-                            document.body.style.background = `linear-gradient(to bottom right, #0f172a 0%, ${color}15 100%)`;
-                        } catch(e) { 
-                            console.warn("Error aplicando colores:", e); 
-                        }
-                    }
-                    
-                    if (inst.logo_url) {
-                        try {
-                            const logo = document.getElementById('header-logo');
-                            const container = document.getElementById('header-logo-container');
-                            logo.src = inst.logo_url;
-                            logo.onerror = function() {
-                                container.classList.add('hidden');
-                            };
-                            container.classList.remove('hidden');
-                            container.classList.add('flex');
-                        } catch(e) { 
-                            console.warn("Error cargando logo:", e); 
-                        }
-                    }
-                    
-                    // ACTUALIZAR CONTEXTO PARA IA
-                    institutionContext = `Institución: ${inst.nombre}.`;
-                }
-
-                // C. Contexto Doc (Búho) - MANTENIDO
-                const fullContext = (curso.nombre + " " + (curso.areas?.nombre || "")).toLowerCase();
-                updateDocPersonality(fullContext);
-                
-                // ACTUALIZAR AREA CONTEXT PARA IA
-                if (curso.areas) {
-                    areaContext = curso.areas.dossier_txt || "";
-                    if(curso.areas.prompt_especifico) {
-                        areaContext += `\nEnfoque pedagógico: ${curso.areas.prompt_especifico}`;
-                    }
-                }
-
-                // D. Gestionar progreso del alumno
-                await gestionarProgresoAlumno(id, currentUserId);
-
-                // E. Renderizar clases
-                renderizarTemario(curso.contenido || []);
-                
-                // F. Navegar a última clase vista o primera
-                let targetIndex = 0;
-                for(let i = 0; i < flatLessons.length; i++) {
-                    if(!completedLessons.has(flatLessons[i].uniqueId)) {
-                        targetIndex = i;
-                        break;
-                    }
-                }
-                
-                if(flatLessons.length > 0 && completedLessons.size === flatLessons.length) {
-                    targetIndex = flatLessons.length - 1;
-                }
-                
-                if(flatLessons.length > 0) {
-                    cargarClase(targetIndex);
-                } else {
-                    // Curso sin lecciones
-                    document.getElementById('current-lesson-title').innerText = "Curso en preparación";
-                    document.getElementById('player-placeholder').innerHTML = `
-                        <div class="text-center p-8">
-                            <i data-lucide="book-open" class="w-16 h-16 text-slate-600 mx-auto mb-4"></i>
-                            <h3 class="text-xl font-bold text-slate-500 mb-2">Contenido en construcción</h3>
-                            <p class="text-slate-400">El instructor está preparando el material.</p>
-                        </div>
-                    `;
-                    lucide.createIcons();
-                }
-                
-                // G. Mensaje inicial de Doc (solo si hay contenido)
-                if(flatLessons.length > 0) {
-                    setTimeout(() => {
-                        const role = document.getElementById('tutor-name').innerText.split('(')[1]?.replace(')','') || 'Tutor';
-                        agregarBurbujaTutor(`¡Hola! Soy <b>Doc</b>, tu ${role}. Estoy listo para ayudarte con el curso de <b>${curso.nombre}</b>.`, 'bot');
-                    }, 1000);
-                }
-                
-            } catch (error) {
-                console.error("Error crítico cargando curso:", error);
-                toast("Error al cargar el curso", "error");
-                setTimeout(() => window.location.href = './mi-campus.html', 3000);
             }
         }
 
