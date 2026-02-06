@@ -45,12 +45,11 @@
 </head>
 <body class="h-screen flex flex-col overflow-hidden">
 
-    <!-- Toast Container -->
     <div id="toast-container"></div>
 
     <header id="top-header" class="h-16 bg-slate-950 border-b border-white/5 flex items-center justify-between px-4 md:px-6 shrink-0 z-20 transition-all duration-500">
         <div class="flex items-center gap-4">
-            <a href="index.html" class="p-2 hover:bg-white/10 rounded-lg transition text-slate-400 hover:text-white" title="Volver al Campus">
+            <a href="./mi-campus.html" class="p-2 hover:bg-white/10 rounded-lg transition text-slate-400 hover:text-white" title="Volver al Campus">
                 <i data-lucide="arrow-left" class="w-5 h-5"></i>
             </a>
             <div class="flex items-center gap-3">
@@ -71,8 +70,9 @@
                     <p class="text-[10px] text-green-400 font-bold uppercase">En Clase</p>
                 </div>
             </div>
-            <div id="user-avatar-ui" class="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center font-bold text-white shadow-lg border border-white/10">
-                <i data-lucide="user" class="w-4 h-4"></i>
+            <div id="user-avatar-ui" class="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center overflow-hidden border border-white/10 relative">
+                <i data-lucide="user" class="w-4 h-4 text-white z-0 absolute"></i>
+                <img id="user-photo-header" src="" class="w-full h-full object-cover relative z-10 hidden" onerror="this.classList.add('hidden')">
             </div>
         </div>
     </header>
@@ -188,171 +188,44 @@
 
     <script>
         // ============================================
-        // CONFIGURACIÓN SUPABASE (ASARI V8.0)
+        // CONFIGURACIÓN SUPABASE
         // ============================================
         const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
         // ============================================
-        // VARIABLES GLOBALES
+        // VARIABLES GLOBALES (CORREGIDO: currentUser declarado)
         // ============================================
         let flatLessons = [];
         let currentLessonIndex = -1;
         let completedLessons = new Set();
         let currentCourseId = null;
-        let currentUserId = null;
+        let currentUser = null; // AGREGADO SEGÚN AUDITORÍA
+        let userInstitutionId = null; 
         let institutionContext = "";
         let areaContext = "";
         let isChatOpen = false;
-        let userInstitutionId = null;
         let jitsiApi = null;
 
         // ============================================
-        // FUNCIONES DE UTILIDAD
-        // ============================================
-
-        /**
-         * Muestra notificación toast
-         */
-        function toast(message, type = 'info') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast toast-${type}`;
-            toast.innerHTML = `<span class="text-sm font-medium">${message}</span>`;
-            container.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
-        }
-
-        /**
-         * Muestra loading en chat
-         */
-        function mostrarLoading() {
-            const container = document.getElementById('chat-messages');
-            const id = 'load-' + Date.now();
-            const div = document.createElement('div');
-            div.id = id;
-            div.className = "flex gap-3 chat-bubble";
-            div.innerHTML = `
-                <div class="w-8 h-8 rounded-full bg-white overflow-hidden shrink-0 border border-indigo-500 mt-1 flex items-center justify-center">
-                    <span class="text-sm">🦉</span>
-                </div>
-                <div class="bg-slate-800 p-4 rounded-2xl rounded-tl-none border border-slate-700 flex gap-1 items-center h-10">
-                    <span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce"></span>
-                    <span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce delay-100"></span>
-                    <span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce delay-200"></span>
-                </div>
-            `;
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
-            return id;
-        }
-
-        /**
-         * Remueve loading del chat
-         */
-        function removerLoading(id) {
-            const el = document.getElementById(id);
-            if(el) el.remove();
-        }
-
-        // ============================================
-        // 1. LÓGICA DE USUARIO MEJORADA - MI-CAMPUS
-        // ============================================
-        async function cargarDatosUsuario() {
-            try {
-                const { data: { session } } = await db.auth.getSession();
-                if(!session) {
-                    window.location.href = './login.html';
-                    return;
-                }
-                
-                currentUserId = session.user.id;
-                
-                // PASO A: Obtener DNI desde user_metadata (mi-campus)
-                const dni = session.user.user_metadata?.dni;
-                if (!dni) {
-                    console.warn("DNI no encontrado en user_metadata");
-                    // Fallback a perfiles (solo como último recurso)
-                    const { data: perfilResult } = await db
-                        .from('perfiles')
-                        .select('dni, nombre_completo, institucion_id')
-                        .eq('id', currentUserId)
-                        .single();
-                    
-                    if (perfilResult) {
-                        await cargarDesdeMatricula(perfilResult.dni);
-                    } else {
-                        throw new Error("No se pudo obtener el DNI del usuario");
-                    }
-                    return;
-                }
-                
-                // PASO B: Cargar desde matrículas usando el DNI
-                await cargarDesdeMatricula(dni);
-                
-            } catch (error) {
-                console.error("Error cargando datos usuario:", error);
-                document.getElementById('student-name').innerText = 'Estudiante';
-                toast("Error cargando perfil", "error");
-            }
-        }
-        
-        async function cargarDesdeMatricula(dni) {
-            try {
-                // PASO B: Consultar tabla matriculas
-                const { data: matriculaResult, error: matriculaError } = await db
-                    .from('matriculas')
-                    .select('nombre, apellido, foto_url, institution_id')
-                    .eq('dni_alumno', dni)
-                    .maybeSingle(); // Usamos maybeSingle para evitar errores si no hay matrícula
-                    
-                if (matriculaError) {
-                    console.error("Error consultando matrícula:", matriculaError);
-                    throw new Error("Error al consultar matrícula");
-                }
-                
-                if (!matriculaResult) {
-                    console.warn("No se encontró matrícula para DNI:", dni);
-                    document.getElementById('student-name').innerText = 'Estudiante';
-                    return;
-                }
-                
-                // PASO C: Extraer datos de la matrícula
-                const nombreCompleto = `${matriculaResult.nombre || ''} ${matriculaResult.apellido || ''}`.trim() || 'Estudiante';
-                userInstitutionId = matriculaResult.institution_id; // CRUCIAL para validación
-                
-                // Actualizar UI
-                document.getElementById('student-name').innerText = nombreCompleto;
-                
-                // Actualizar avatar si hay foto_url
-                if (matriculaResult.foto_url) {
-                    const avatarEl = document.getElementById('user-avatar-ui');
-                    avatarEl.innerHTML = '';
-                    avatarEl.style.backgroundImage = `url(${matriculaResult.foto_url})`;
-                    avatarEl.style.backgroundSize = 'cover';
-                    avatarEl.style.backgroundPosition = 'center';
-                }
-                
-            } catch (error) {
-                console.error("Error en cargarDesdeMatricula:", error);
-                throw error;
-            }
-        }
-
-        // ============================================
-        // 2. INICIALIZACIÓN CON LÓGICA MEJORADA
+        // 1. INICIALIZACIÓN
         // ============================================
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
             
-            // Cargar datos del usuario con la nueva lógica
-            await cargarDatosUsuario();
+            // Verificar sesión
+            const { data: { session } } = await db.auth.getSession();
+            if(!session) {
+                window.location.href = './login.html';
+                return;
+            }
             
+            currentUser = session.user; // ASIGNACIÓN SEGURA
+
             // Obtener curso de URL
             const params = new URLSearchParams(window.location.search);
             currentCourseId = params.get('id');
-            const cursoNombre = params.get('curso');
 
             if(!currentCourseId) {
                 toast("No se especificó curso", "error");
@@ -360,22 +233,67 @@
                 return;
             }
 
-            // Validar formato del ID
-            if(currentCourseId === 'general' && cursoNombre) {
-                toast("Accediendo a contenido general", "info");
-            }
-
+            // Cargar datos
+            await cargarDatosUsuario();
             await cargarCurso(currentCourseId);
         });
 
         // ============================================
-        // 3. CARGAR CURSO (SOLUCIÓN DOBLE VINCULACIÓN)
+        // 2. CARGAR DATOS USUARIO (Validación de Nulos)
+        // ============================================
+        async function cargarDatosUsuario() {
+            try {
+                // A. Intentar obtener DNI de la sesión
+                let dniDelAlumno = currentUser.user_metadata?.dni;
+
+                // B. Fallback a perfiles
+                if (!dniDelAlumno) {
+                    const { data: perfil } = await db.from('perfiles').select('dni').eq('id', currentUser.id).maybeSingle();
+                    if (perfil) dniDelAlumno = perfil.dni;
+                }
+
+                if (!dniDelAlumno) {
+                    console.warn("DNI no identificado");
+                    document.getElementById('student-name').innerText = "Estudiante";
+                    return;
+                }
+
+                // C. Buscar datos reales en MATRICULAS
+                const { data: matricula } = await db
+                    .from('matriculas')
+                    .select('nombre, apellido, foto_url, institution_id')
+                    .eq('dni_alumno', dniDelAlumno)
+                    .limit(1)
+                    .maybeSingle();
+
+                if (matricula) {
+                    // CORREGIDO: Manejo de Nombres Nulos
+                    const nombre = matricula.nombre || '';
+                    const apellido = matricula.apellido || '';
+                    const nombreCompleto = `${nombre} ${apellido}`.trim() || "Estudiante";
+                    
+                    document.getElementById('student-name').innerText = nombreCompleto;
+                    userInstitutionId = matricula.institution_id;
+
+                    if (matricula.foto_url) {
+                        const img = document.getElementById('user-photo-header');
+                        if(img) {
+                            img.src = matricula.foto_url;
+                            img.classList.remove('hidden');
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Error cargando perfil:", e);
+            }
+        }
+
+        // ============================================
+        // 3. CARGAR CURSO (Lógica corregida)
         // ============================================
         async function cargarCurso(id) {
             try {
-                console.log("Cargando curso ID:", id);
-                
-                // PASO 1: Cargar Curso y Área (Quitamos instituciones del select para evitar el choque)
+                // Paso 1: Cargar Curso
                 const { data: cursoResult, error: cursoError } = await db
                     .from('cursos_oficiales')
                     .select('*, areas(*)') 
@@ -384,16 +302,125 @@
                 if(cursoError) throw cursoError;
                 
                 if(!cursoResult || cursoResult.length === 0) {
-                    toast("Curso no encontrado o acceso denegado", "error");
+                    toast("Curso no encontrado", "error");
                     setTimeout(() => window.location.href = './mi-campus.html', 2000);
                     return;
                 }
-                // ============================================
-        // FUNCIÓN RECUPERADA: CARGAR PROGRESO
+                
+                const curso = cursoResult[0];
+
+                // Paso 2: Cargar Institución (Manual)
+                const instId = curso.institution_id || curso.institucion_id;
+                if (instId) {
+                    const { data: instData } = await db.from('instituciones').select('*').eq('id', instId).maybeSingle();
+                    if (instData) curso.instituciones = instData;
+                }
+
+                // --- UI ---
+                document.getElementById('course-title').innerText = curso.nombre || "Curso";
+                
+                // Branding
+                if (curso.instituciones) {
+                    const inst = curso.instituciones;
+                    document.getElementById('inst-name-header').innerText = inst.nombre || "Campus Virtual";
+                    institutionContext = `Institución: ${inst.nombre}.`;
+
+                    if (inst.logo_url) {
+                        const logo = document.getElementById('header-logo');
+                        logo.src = inst.logo_url;
+                        document.getElementById('header-logo-container').classList.remove('hidden');
+                        document.getElementById('header-logo-container').classList.add('flex');
+                    }
+                    
+                    if (inst.color_primario) {
+                        document.getElementById('top-header').style.borderBottomColor = inst.color_primario;
+                        document.getElementById('tutor-header').style.backgroundColor = inst.color_primario;
+                    }
+                }
+
+                // Contexto IA
+                if (curso.areas) {
+                    areaContext = curso.areas.nombre || "";
+                    if(curso.areas.prompt_especifico) areaContext += `. ${curso.areas.prompt_especifico}`;
+                }
+                
+                // LLAMADA A FUNCIÓN QUE FALTABA
+                updateDocPersonality((curso.nombre + " " + areaContext).toLowerCase());
+
+                // Parsear Contenido
+                let contenido = [];
+                if (typeof curso.contenido === 'string') {
+                    try { contenido = JSON.parse(curso.contenido); } catch (e) { contenido = []; }
+                } else if (Array.isArray(curso.contenido)) {
+                    contenido = curso.contenido;
+                }
+
+                renderizarTemario(contenido);
+                await cargarProgreso(id); 
+
+                if (flatLessons.length > 0) {
+                    let targetIndex = flatLessons.findIndex(l => !completedLessons.has(l.uniqueId));
+                    if (targetIndex === -1) targetIndex = 0; 
+                    cargarClase(targetIndex);
+                } else {
+                    document.getElementById('player-placeholder').innerHTML = '<div class="text-center p-10"><h3 class="text-white font-bold">Contenido en preparación</h3></div>';
+                }
+
+            } catch (error) {
+                console.error("Error crítico cargando curso:", error);
+                toast("Error técnico: " + error.message, "error");
+            }
+        }
+
+        // ============================================
+        // 4. FUNCIONES DE UTILIDAD (Con correcciones)
+        // ============================================
+        
+        // CORREGIDO: animate-fade-in cambiado a fade-in (que sí existe en CSS)
+        function toast(msg, type='info') {
+            const t = document.createElement('div');
+            let colorClass = 'bg-blue-600';
+            if (type === 'error') colorClass = 'bg-red-500';
+            if (type === 'success') colorClass = 'bg-green-500';
+
+            t.className = `fixed top-5 right-5 z-50 px-4 py-2 rounded shadow-lg text-white ${colorClass} fade-in`;
+            t.innerText = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
+
+        // AGREGADA: Función que faltaba según auditoría
+        function updateDocPersonality(contexto) {
+            let icon = '🎓'; 
+            let role = 'Tutor Académico';
+
+            if(contexto.includes('salud') || contexto.includes('medicin') || contexto.includes('enferme')) { 
+                icon = '🩺'; role = 'Tutor de Salud'; 
+            } else if(contexto.includes('forense') || contexto.includes('criminal')) { 
+                icon = '🔎'; role = 'Investigador Forense'; 
+            } else if(contexto.includes('deporte') || contexto.includes('entrena') || contexto.includes('gym')) { 
+                icon = '⚽'; role = 'Coach Deportivo'; 
+            } else if(contexto.includes('legal') || contexto.includes('juridic')) { 
+                icon = '⚖️'; role = 'Asesor Legal'; 
+            } else if(contexto.includes('rescat') || contexto.includes('emergen')) { 
+                icon = '⛑️'; role = 'Instructor de Rescate'; 
+            }
+            
+            // Actualizar UI segura
+            const badgeBtn = document.getElementById('doc-badge-btn');
+            const badgeHead = document.getElementById('doc-badge-header');
+            const nameEl = document.getElementById('tutor-name');
+
+            if(badgeBtn) badgeBtn.innerText = icon;
+            if(badgeHead) badgeHead.innerText = icon;
+            if(nameEl) nameEl.innerText = `Doc (${role})`;
+        }
+
+        // ============================================
+        // 5. CARGAR PROGRESO
         // ============================================
         async function cargarProgreso(cursoId) {
             try {
-                // Usamos currentUser.id que ya tenemos cargado
                 const { data } = await db.from('progreso_alumnos')
                     .select('clases_vistas')
                     .eq('student_id', currentUser.id)
@@ -402,9 +429,9 @@
                 
                 if (data && data.clases_vistas) {
                     completedLessons = new Set(data.clases_vistas);
-                    actualizarBarraProgreso(); // Actualiza la barra verde
+                    actualizarBarraProgreso();
                     
-                    // Actualizamos los iconos de la lista
+                    // Actualizar iconos
                     flatLessons.forEach(l => {
                         if (completedLessons.has(l.uniqueId)) {
                             const btn = document.getElementById(`btn-lec-${l.index}`);
@@ -421,759 +448,227 @@
                     lucide.createIcons();
                 }
             } catch (err) {
-                console.error("Error silencioso cargando progreso:", err);
-            }
-        }
-                
-                const curso = cursoResult[0];
-
-                // PASO 2: Cargar Institución Manualmente (Bypass del error de relación múltiple)
-                // Buscamos en ambas columnas por si acaso
-                const instId = curso.institution_id || curso.institucion_id;
-                
-                if (instId) {
-                    const { data: instData } = await db
-                        .from('instituciones')
-                        .select('*')
-                        .eq('id', instId)
-                        .maybeSingle();
-                        
-                    if (instData) {
-                        // Se la pegamos al objeto curso como si hubiera venido del join
-                        curso.instituciones = instData;
-                    }
-                }
-
-                // --- UI DEL CURSO ---
-                document.getElementById('course-title').innerText = curso.nombre || "Curso";
-                
-                // Branding Institución
-                if (curso.instituciones) {
-                    const inst = curso.instituciones;
-                    document.getElementById('inst-name-header').innerText = inst.nombre || "Campus Virtual";
-                    institutionContext = `Institución: ${inst.nombre}.`; // Para Gemini
-
-                    if (inst.logo_url) {
-                        const logo = document.getElementById('header-logo');
-                        const container = document.getElementById('header-logo-container');
-                        logo.src = inst.logo_url;
-                        container.classList.remove('hidden');
-                        container.classList.add('flex');
-                    }
-                    
-                    if (inst.color_primario) {
-                        document.getElementById('top-header').style.borderBottomColor = inst.color_primario;
-                        document.getElementById('tutor-header').style.backgroundColor = inst.color_primario;
-                        // Forzamos actualización de estilos dinámicos
-                        const color = inst.color_primario;
-                        try {
-                             document.body.style.background = `linear-gradient(to bottom right, #0f172a 0%, ${color}15 100%)`;
-                             document.getElementById('tutor-btn-border').style.borderColor = color;
-                             document.getElementById('btn-send-chat').style.color = color;
-                        } catch(e) {}
-                    }
-                }
-
-                // Contexto Área (Para Gemini)
-                if (curso.areas) {
-                    areaContext = curso.areas.nombre || "";
-                    if(curso.areas.prompt_especifico) areaContext += `. ${curso.areas.prompt_especifico}`;
-                }
-                
-                // Actualizar personalidad del Búho
-                updateDocPersonality((curso.nombre + " " + areaContext).toLowerCase());
-
-                // --- CONTENIDO DEL CURSO ---
-                let contenido = [];
-                // Manejo robusto del JSON
-                if (typeof curso.contenido === 'string') {
-                    try { contenido = JSON.parse(curso.contenido); } 
-                    catch (e) { console.error("JSON Error:", e); contenido = []; }
-                } else if (Array.isArray(curso.contenido)) {
-                    contenido = curso.contenido;
-                }
-
-                // Renderizar
-                renderizarTemario(contenido);
-                await cargarProgreso(id);
-
-                // Autoplay primera lección pendiente
-                if (flatLessons.length > 0) {
-                    let targetIndex = flatLessons.findIndex(l => !completedLessons.has(l.uniqueId));
-                    if (targetIndex === -1) targetIndex = 0; 
-                    cargarClase(targetIndex);
-                } else {
-                    document.getElementById('player-placeholder').innerHTML = '<div class="text-center p-10"><h3 class="text-white font-bold">Contenido en preparación</h3><p class="text-slate-400">El docente está subiendo material.</p></div>';
-                }
-
-            } catch (error) {
-                console.error("Error crítico cargando curso:", error);
-                toast("Error técnico al cargar el aula: " + error.message, "error");
+                console.error("Error cargando progreso:", err);
             }
         }
 
         // ============================================
-        // 4. GESTIÓN DE PROGRESO DEL ALUMNO
-        // ============================================
-        async function gestionarProgresoAlumno(cursoId, userId) {
-            try {
-                // Buscar progreso existente
-                const { data: progresoExistente, error: buscarError } = await db
-                    .from('progreso_alumnos')
-                    .select('*')
-                    .eq('student_id', userId)
-                    .eq('curso_id', cursoId);
-                    
-                let progreso = null;
-                
-                // Si no existe, crear registro
-                if(buscarError || !progresoExistente || progresoExistente.length === 0) {
-                    const { data: nuevoProgreso, error: crearError } = await db
-                        .from('progreso_alumnos')
-                        .insert({
-                            student_id: userId,
-                            curso_id: cursoId,
-                            ultimo_acceso: new Date().toISOString(),
-                            clases_vistas: [],
-                            created_at: new Date().toISOString()
-                        })
-                        .select();
-                        
-                    if(crearError) {
-                        console.error("Error creando progreso:", crearError);
-                        return;
-                    }
-                    
-                    progreso = nuevoProgreso ? nuevoProgreso[0] : null;
-                    toast("Registro de progreso creado", "success");
-                } else {
-                    progreso = progresoExistente[0];
-                    
-                    // Actualizar último acceso
-                    await db
-                        .from('progreso_alumnos')
-                        .update({ ultimo_acceso: new Date().toISOString() })
-                        .eq('student_id', userId)
-                        .eq('curso_id', cursoId);
-                }
-                
-                // Cargar lecciones vistas
-                if(progreso && progreso.clases_vistas && Array.isArray(progreso.clases_vistas)) {
-                    completedLessons = new Set(progreso.clases_vistas);
-                } else {
-                    completedLessons = new Set();
-                }
-                
-            } catch (error) {
-                console.error("Error gestionando progreso:", error);
-                completedLessons = new Set();
-                toast("Error cargando progreso, pero continuamos", "error");
-            }
-        }
-
-        // ============================================
-        // 5. LÓGICA DE PERSONALIDAD "DOC" (BÚHO) - MANTENIDO
-        // ============================================
-        function updateDocPersonality(contexto) {
-            let icon = '🎓'; // Default Académico
-            let role = 'Tutor Académico';
-
-            if(contexto.includes('salud') || contexto.includes('enferme') || contexto.includes('medicin') || contexto.includes('auxiliar')) {
-                icon = '🩺'; role = 'Tutor de Salud';
-            } else if(contexto.includes('forense') || contexto.includes('criminal') || contexto.includes('investiga')) {
-                icon = '🔎'; role = 'Investigador Forense';
-            } else if(contexto.includes('deporte') || contexto.includes('gym') || contexto.includes('entrena')) {
-                icon = '⚽'; role = 'Coach Deportivo';
-            } else if(contexto.includes('legal') || contexto.includes('juridic') || contexto.includes('ley')) {
-                icon = '⚖️'; role = 'Asesor Legal';
-            } else if(contexto.includes('rescat') || contexto.includes('emergen') || contexto.includes('bombero')) {
-                icon = '⛑️'; role = 'Instructor de Rescate';
-            }
-
-            // Actualizar UI del Búho
-            document.getElementById('doc-badge-btn').innerText = icon;
-            document.getElementById('doc-badge-header').innerText = icon;
-            document.getElementById('tutor-name').innerText = `Doc (${role})`;
-        }
-
-        // ============================================
-        // 6. RENDERIZADO DE CLASES CON INTEGRACIÓN JITSI - MANTENIDO
+        // 6. RENDERIZADO
         // ============================================
         function renderizarTemario(modulos) {
             const container = document.getElementById('modules-list');
             container.innerHTML = "";
             flatLessons = [];
 
-            if (!modulos || !Array.isArray(modulos)) {
-                container.innerHTML = `
-                    <div class="text-center py-8 text-slate-500">
-                        <i data-lucide="book-open" class="w-8 h-8 mx-auto mb-2"></i>
-                        <p class="text-sm">No hay lecciones disponibles</p>
-                    </div>
-                `;
-                lucide.createIcons();
+            if (!modulos || modulos.length === 0) {
+                container.innerHTML = `<p class="text-slate-500 text-center text-xs mt-10">Sin contenido</p>`;
                 return;
             }
 
             modulos.forEach((mod, modIdx) => {
                 const modDiv = document.createElement('div');
-                modDiv.className = "space-y-1 mb-4";
-                modDiv.innerHTML = `
-                    <div class="px-3 py-2 bg-slate-900/50 rounded-lg text-[10px] font-bold text-slate-400 uppercase tracking-wider border border-white/5">
-                        ${mod.titulo || 'Módulo sin título'}
-                    </div>
-                    <div class="space-y-1 pl-1" id="mod-content-${modIdx}"></div>
-                `;
-                container.appendChild(modDiv);
+                modDiv.className = "mb-4";
+                modDiv.innerHTML = `<div class="px-3 py-2 bg-slate-900/50 rounded-lg text-[10px] font-bold text-slate-400 uppercase tracking-wider border border-white/5 mb-1">${mod.titulo || 'Módulo'}</div>`;
+                
+                const lessonsContainer = document.createElement('div');
+                lessonsContainer.className = "space-y-1 pl-1";
 
-                if(mod.lecciones && Array.isArray(mod.lecciones)) {
+                if (mod.lecciones && Array.isArray(mod.lecciones)) {
                     mod.lecciones.forEach((lec, lecIdx) => {
-                        const idx = flatLessons.length;
+                        const globalIdx = flatLessons.length;
                         const uniqueId = `${modIdx}-${lecIdx}`;
-                        flatLessons.push({ 
-                            ...lec, 
-                            modIdx, 
-                            uniqueId,
-                            tipo: lec.tipo || 'VIDEO',
-                            titulo: lec.titulo || 'Lección sin título',
-                            url: lec.url || ''
-                        });
+                        
+                        flatLessons.push({ ...lec, modIdx, uniqueId, index: globalIdx });
 
                         const btn = document.createElement('button');
-                        btn.id = `btn-lec-${idx}`;
-                        const isCompleted = completedLessons.has(uniqueId);
+                        btn.id = `btn-lec-${globalIdx}`;
+                        btn.className = `w-full text-left px-3 py-3 rounded-lg flex items-center gap-3 text-xs transition-all border border-transparent text-slate-400 hover:bg-white/5 hover:text-white`;
+                        btn.onclick = () => cargarClase(globalIdx);
                         
-                        // Icono según tipo
                         let icon = 'play-circle';
                         if(lec.tipo === 'PDF') icon = 'file-text';
-                        if(lec.tipo === 'LIVE' || lec.tipo === 'ZOOM') icon = 'video';
-                        if(lec.tipo === 'LIVE') icon = 'video'; // Jitsi
+                        if(lec.tipo === 'LIVE') icon = 'video';
 
-                        const leftIcon = isCompleted ? 
-                            `<i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i>` : 
-                            `<i data-lucide="${icon}" class="w-4 h-4 opacity-50 group-hover:opacity-100"></i>`;
-
-                        btn.className = `w-full text-left px-3 py-3 rounded-lg flex items-center justify-between text-xs transition-all border border-transparent group ${isCompleted ? 'text-green-400' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`;
-                        
                         btn.innerHTML = `
-                            <div class="flex items-center gap-3 overflow-hidden">
-                                <span class="shrink-0">${leftIcon}</span> 
-                                <span class="truncate font-medium">${lec.titulo || 'Sin título'}</span>
-                                ${lec.tipo === 'LIVE' ? '<span class="bg-red-500/20 text-red-400 text-[8px] px-1.5 py-0.5 rounded-full">EN VIVO</span>' : ''}
-                                ${lec.tipo === 'ZOOM' ? '<span class="bg-blue-500/20 text-blue-400 text-[8px] px-1.5 py-0.5 rounded-full">ZOOM</span>' : ''}
-                            </div>
+                            <i data-lucide="${icon}" class="w-4 h-4 opacity-50 shrink-0"></i>
+                            <span class="truncate font-medium">${lec.titulo || 'Lección'}</span>
                         `;
-                        btn.onclick = () => cargarClase(idx);
-                        modDiv.querySelector(`#mod-content-${modIdx}`).appendChild(btn);
+                        lessonsContainer.appendChild(btn);
                     });
                 }
+                modDiv.appendChild(lessonsContainer);
+                container.appendChild(modDiv);
             });
             lucide.createIcons();
-            actualizarBarraGlobal();
         }
 
         function cargarClase(index) {
-            if(index < 0 || index >= flatLessons.length) return;
+            if (index < 0 || index >= flatLessons.length) return;
             
-            // Limpiar instancia Jitsi anterior si existe
-            if (jitsiApi) {
-                jitsiApi.dispose();
-                jitsiApi = null;
-            }
-            
-            // Remover selección previa
-            document.querySelectorAll('[id^="btn-lec-"]').forEach(b => {
-                b.classList.remove('bg-indigo-600/20', 'border-indigo-500/30');
-            });
-            
-            // Agregar selección actual
+            if (jitsiApi) { jitsiApi.dispose(); jitsiApi = null; }
+
+            document.querySelectorAll('[id^="btn-lec-"]').forEach(b => b.classList.remove('bg-indigo-600/20', 'border-indigo-500/30', 'text-white'));
             const activeBtn = document.getElementById(`btn-lec-${index}`);
-            if(activeBtn) {
-                activeBtn.classList.add('bg-indigo-600/20', 'border-indigo-500/30');
-            }
+            if(activeBtn) activeBtn.classList.add('bg-indigo-600/20', 'border-indigo-500/30', 'text-white');
 
             currentLessonIndex = index;
             const lec = flatLessons[index];
+            
             document.getElementById('current-lesson-title').innerText = lec.titulo;
-            actualizarBotonCompletado(completedLessons.has(lec.uniqueId));
+            document.getElementById('player-placeholder').classList.add('hidden');
+            const contentDiv = document.getElementById('player-content');
+            contentDiv.classList.remove('hidden');
+            contentDiv.innerHTML = ''; 
 
-            // Content Loader
-            const container = document.getElementById('player-content');
-            const placeholder = document.getElementById('player-placeholder');
-            container.innerHTML = "";
-            
-            placeholder.classList.add('hidden');
-            container.classList.remove('hidden');
+            if (lec.tipo === 'VIDEO' || !lec.tipo) {
+                 if (lec.url && (lec.url.includes('youtube') || lec.url.includes('youtu.be'))) {
+                    let videoId = lec.url.split('v=')[1];
+                    const ampersandPosition = videoId ? videoId.indexOf('&') : -1;
+                    if(ampersandPosition !== -1) videoId = videoId.substring(0, ampersandPosition);
+                    if(!videoId && lec.url.includes('youtu.be')) videoId = lec.url.split('/').pop();
 
-            // ============================================
-            // LÓGICA MEJORADA PARA DIFERENTES TIPOS DE CLASE
-            // ============================================
-
-            // 1. TIPO 'LIVE' - INTEGRACIÓN JITSI NATIVA
-            if (lec.tipo === 'LIVE') {
-                const studentName = document.getElementById('student-name').innerText || 'Estudiante';
-                const roomName = `ASARI_LIVE_${currentCourseId}_${lec.id || lec.uniqueId}`.replace(/[^a-zA-Z0-9_]/g, '_');
-                
-                container.innerHTML = `<div id="jitsi-container" class="w-full h-full bg-black"></div>`;
-                
-                // Instanciar Jitsi Meet
-                try {
-                    const domain = 'meet.jit.si';
-                    const options = {
-                        roomName: roomName,
-                        width: '100%',
-                        height: '100%',
-                        parentNode: container.querySelector('#jitsi-container'),
-                        configOverwrite: {
-                            disableInviteFunctions: true, // Deshabilitar invitar a otros
-                            startWithAudioMuted: true,
-                            startWithVideoMuted: false,
-                            prejoinPageEnabled: false
-                        },
-                        interfaceConfigOverwrite: {
-                            SHOW_JITSI_WATERMARK: false,
-                            SHOW_WATERMARK_FOR_GUESTS: false,
-                            TOOLBAR_BUTTONS: [
-                                'microphone', 'camera', 'closedcaptions', 'desktop', 'fullscreen',
-                                'fodeviceselection', 'hangup', 'profile', 'chat', 'recording',
-                                'livestreaming', 'settings', 'raisehand', 'videoquality', 'filmstrip',
-                                'invite', 'feedback', 'stats', 'shortcuts', 'tileview', 'videobackgroundblur',
-                                'download', 'help', 'mute-everyone'
-                            ],
-                        },
-                        userInfo: {
-                            displayName: studentName,
-                            email: ''
-                        }
-                    };
-
-                    jitsiApi = new JitsiMeetExternalAPI(domain, options);
-                    
-                    toast("Conectando a clase en vivo...", "info");
-                    
-                    // Manejar eventos de Jitsi
-                    jitsiApi.addEventListeners({
-                        readyToClose: () => {
-                            console.log("Jitsi cerrándose...");
-                            jitsiApi.dispose();
-                            jitsiApi = null;
-                        },
-                        participantJoined: (participant) => {
-                            console.log("Participante unido:", participant);
-                        },
-                        participantLeft: (participant) => {
-                            console.log("Participante salió:", participant);
-                        }
-                    });
-                    
-                } catch (error) {
-                    console.error("Error inicializando Jitsi:", error);
-                    container.innerHTML = `
-                        <div class="flex flex-col items-center justify-center h-full text-center p-10 bg-slate-900">
-                            <i data-lucide="alert-triangle" class="w-16 h-16 text-red-500 mb-4"></i>
-                            <h3 class="text-xl font-bold text-white mb-2">Error en clase en vivo</h3>
-                            <p class="text-slate-300 mb-4">No se pudo cargar la clase en vivo</p>
-                            <button onclick="marcarComoCompletada()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg">
-                                Continuar
-                            </button>
-                        </div>
-                    `;
-                    lucide.createIcons();
-                }
-            }
-            
-            // 2. TIPO 'ZOOM' - ENLACE EXTERNO CON BOTÓN ELEGANTE
-            else if (lec.tipo === 'ZOOM') {
-                const zoomLink = lec.url || '#';
-                
-                container.innerHTML = `
-                    <div class="flex flex-col items-center justify-center h-full text-center p-10 bg-gradient-to-br from-blue-900/30 to-slate-900">
-                        <div class="w-24 h-24 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <i data-lucide="video" class="w-12 h-12 text-blue-400"></i>
-                        </div>
-                        <h3 class="text-2xl font-bold text-white mb-3">Reunión de Zoom</h3>
-                        <p class="text-slate-300 mb-6 max-w-md">Clase en vivo a través de Zoom. Haz clic para unirte a la reunión.</p>
-                        
-                        <a href="${zoomLink}" target="_blank" 
-                           class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl transition-all flex items-center gap-3 mb-4"
-                           onclick="marcarComoCompletada()">
-                            <i data-lucide="external-link" class="w-5 h-5"></i>
-                            Unirse a Reunión de Zoom
-                        </a>
-                        
-                        <p class="text-xs text-slate-500">Se abrirá en una nueva pestaña para mejor experiencia</p>
-                    </div>
-                `;
-                lucide.createIcons();
-            }
-            
-            // 3. TIPO 'VIDEO' - CON MANEJO DE VIDEOS VACÍOS
-            else if (lec.tipo === 'VIDEO') {
-                // Verificar si la URL está vacía
-                if (!lec.url || lec.url.trim() === '') {
-                    container.innerHTML = `
-                        <div class="flex flex-col items-center justify-center h-full text-center p-10 bg-slate-900">
-                            <i data-lucide="clock" class="w-16 h-16 text-yellow-500 mb-4"></i>
-                            <h3 class="text-xl font-bold text-white mb-2">Video pendiente</h3>
-                            <p class="text-slate-300 mb-4">El docente aún no ha cargado el material de esta lección.</p>
-                            <div class="space-y-3">
-                                <button onclick="marcarComoCompletada()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg">
-                                    Marcar como vista
-                                </button>
-                                <p class="text-xs text-slate-500">Revisa más tarde para ver el contenido actualizado</p>
-                            </div>
-                        </div>
-                    `;
-                    lucide.createIcons();
-                } else if (lec.url.includes('youtu') || lec.url.includes('youtube')) {
-                    // Extraer ID de YouTube
-                    let videoId = '';
-                    if (lec.url.includes('v=')) {
-                        videoId = lec.url.split('v=')[1];
-                        const ampersandPosition = videoId.indexOf('&');
-                        if (ampersandPosition !== -1) {
-                            videoId = videoId.substring(0, ampersandPosition);
-                        }
-                    } else if (lec.url.includes('youtu.be/')) {
-                        videoId = lec.url.split('youtu.be/')[1];
-                        const questionPosition = videoId.indexOf('?');
-                        if (questionPosition !== -1) {
-                            videoId = videoId.substring(0, questionPosition);
-                        }
-                    }
-                    
-                    if (videoId) {
-                        container.innerHTML = `
-                            <iframe 
-                                src="https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=1" 
-                                class="w-full h-full" 
-                                frameborder="0" 
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                allowfullscreen>
-                            </iframe>
-                        `;
-                    } else {
-                        mostrarErrorVideo();
-                    }
-                } else {
-                    container.innerHTML = `
-                        <video src="${lec.url}" controls class="w-full h-full bg-black" autoplay>
-                            Tu navegador no soporta el elemento de video.
-                        </video>
-                    `;
-                }
-            }
-            
-            // 4. TIPO 'PDF'
-            else if (lec.tipo === 'PDF') {
-                container.innerHTML = `
-                    <div class="flex flex-col items-center justify-center h-full text-center p-10 bg-slate-900 w-full">
-                        <i data-lucide="file-text" class="w-16 h-16 text-red-500 mb-4"></i>
-                        <h3 class="text-xl font-bold text-white mb-2">Lectura Obligatoria</h3>
-                        <p class="text-slate-300 mb-4">${lec.titulo}</p>
-                        <a href="${lec.url}" target="_blank" onclick="marcarComoCompletada()" 
-                           class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-bold flex gap-2 transition">
+                    contentDiv.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0" class="w-full h-full" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+                 } else {
+                     contentDiv.innerHTML = `<div class="flex h-full items-center justify-center text-white p-10 text-center"><p>Video no disponible.</p></div>`;
+                 }
+            } else if (lec.tipo === 'LIVE') {
+                contentDiv.innerHTML = `<div id="jitsi-container" class="w-full h-full bg-slate-900"></div>`;
+                iniciarJitsi(lec.url);
+            } else if (lec.tipo === 'PDF') {
+                 contentDiv.innerHTML = `
+                    <div class="flex flex-col h-full items-center justify-center text-white gap-4 p-6 text-center">
+                        <div class="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center"><i data-lucide="file-text" class="w-10 h-10 text-red-500"></i></div>
+                        <h3 class="text-xl font-bold">Material de Lectura</h3>
+                        <a href="${lec.url}" target="_blank" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold transition flex items-center gap-2">
                             <i data-lucide="download" class="w-4 h-4"></i> Abrir Documento
                         </a>
-                    </div>
-                `;
-                lucide.createIcons();
-            }
-            
-            // 5. TIPO DESCONOCIDO O NO ESPECIFICADO
-            else {
-                container.innerHTML = `
-                    <div class="flex flex-col items-center justify-center h-full text-center p-10 bg-slate-900">
-                        <i data-lucide="alert-circle" class="w-16 h-16 text-yellow-500 mb-4"></i>
-                        <h3 class="text-xl font-bold text-white mb-2">Contenido no disponible</h3>
-                        <p class="text-slate-300">Tipo de contenido: ${lec.tipo || 'No especificado'}</p>
-                        <button onclick="marcarComoCompletada()" class="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg">
-                            Marcar como vista
-                        </button>
-                    </div>
-                `;
-                lucide.createIcons();
+                    </div>`;
+                 lucide.createIcons();
             }
 
-            updateNavButtons();
-            
-            // Cerrar sidebar en móvil
-            if(window.innerWidth < 768) {
-                document.getElementById('playlist-sidebar').classList.add('translate-x-full');
-            }
-        }
-
-        function mostrarErrorVideo() {
-            const container = document.getElementById('player-content');
-            container.innerHTML = `
-                <div class="flex flex-col items-center justify-center h-full text-center p-10 bg-slate-900">
-                    <i data-lucide="alert-triangle" class="w-16 h-16 text-red-500 mb-4"></i>
-                    <h3 class="text-xl font-bold text-white mb-2">Error al cargar video</h3>
-                    <p class="text-slate-300 mb-4">El enlace del video no es válido</p>
-                    <button onclick="marcarComoCompletada()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg">
-                        Continuar igual
-                    </button>
-                </div>
-            `;
-            lucide.createIcons();
+            actualizarBotonesNav();
+            checkSiCompletado(lec.uniqueId);
         }
 
         // ============================================
-        // 7. GESTIÓN DE PROGRESO Y COMPLETADO - MANTENIDO
+        // 7. FUNCIONES EXTRA (JITSI, PROGRESO, GEMINI)
         // ============================================
+        function iniciarJitsi(roomName) {
+            const domain = 'meet.jit.si';
+            const safeRoom = (roomName || `ASARI_CLASS_${currentCourseId}`).replace(/[^a-zA-Z0-9]/g, '');
+            const options = {
+                roomName: safeRoom,
+                width: '100%',
+                height: '100%',
+                parentNode: document.querySelector('#jitsi-container'),
+                configOverwrite: { startWithAudioMuted: true, prejoinPageEnabled: false },
+                interfaceConfigOverwrite: { SHOW_JITSI_WATERMARK: false },
+                userInfo: { displayName: document.getElementById('student-name').innerText }
+            };
+            jitsiApi = new JitsiMeetExternalAPI(domain, options);
+        }
+
         async function marcarComoCompletada() {
-            if(currentLessonIndex === -1 || flatLessons.length === 0) {
-                toast("No hay lección activa", "error");
-                return;
-            }
-            
+            if (currentLessonIndex === -1) return;
             const lec = flatLessons[currentLessonIndex];
-
-            // Si ya está completada, solo navegar
-            if(completedLessons.has(lec.uniqueId)) {
-                if(currentLessonIndex < flatLessons.length - 1) {
-                    cargarClase(currentLessonIndex + 1);
-                } else {
-                    toast("¡Curso completado!", "success");
-                }
-                return;
-            }
-
-            // Marcar como vista
-            completedLessons.add(lec.uniqueId);
-            actualizarBotonCompletado(true);
             
-            // Actualizar UI
-            const btn = document.getElementById(`btn-lec-${currentLessonIndex}`);
-            if(btn) {
-                btn.classList.remove('text-slate-400', 'hover:bg-white/5', 'hover:text-white');
-                btn.classList.add('text-green-400');
-                const iconSpan = btn.querySelector('span:first-child');
-                if(iconSpan) {
-                    iconSpan.innerHTML = `<i data-lucide="check-circle-2" class="w-4 h-4 text-green-500"></i>`;
-                    lucide.createIcons();
-                }
-            }
-            
-            actualizarBarraGlobal();
-
-            // GUARDAR EN BD con manejo de errores
-            try {
-                const { error } = await db.from('progreso_alumnos').upsert({ 
-                    student_id: currentUserId, 
-                    curso_id: currentCourseId, 
+            if (!completedLessons.has(lec.uniqueId)) {
+                completedLessons.add(lec.uniqueId);
+                actualizarBarraProgreso();
+                checkSiCompletado(lec.uniqueId);
+                
+                await db.from('progreso_alumnos').upsert({
+                    student_id: currentUser.id,
+                    curso_id: currentCourseId,
                     clases_vistas: Array.from(completedLessons),
-                    ultimo_acceso: new Date().toISOString(),
-                    updated_at: new Date().toISOString()
-                }, { 
-                    onConflict: 'student_id,curso_id'
-                });
-                
-                if(error) throw error;
-                
-            } catch (error) {
-                console.error("Error guardando progreso:", error);
-                toast("⚠️ Error guardando progreso, pero continuamos...", "error");
-            }
+                    ultimo_acceso: new Date().toISOString()
+                }, { onConflict: 'student_id, curso_id' });
 
-            // Navegar automáticamente después de 800ms
-            setTimeout(() => {
-                if(currentLessonIndex < flatLessons.length - 1) {
-                    cargarClase(currentLessonIndex + 1);
-                } else {
-                    toast("🎉 ¡Has completado todas las lecciones!", "success");
-                }
-            }, 800);
+                toast("Lección completada", "success");
+            }
+            
+            if (currentLessonIndex < flatLessons.length - 1) {
+                cargarClase(currentLessonIndex + 1);
+            }
         }
 
-        function actualizarBotonCompletado(isDone) {
+        function checkSiCompletado(uniqueId) {
             const btn = document.getElementById('btn-mark-done');
             const badge = document.getElementById('check-completed');
-            
-            if(isDone) {
+            if (completedLessons.has(uniqueId)) {
                 badge.classList.remove('hidden');
-                btn.innerHTML = `
-                    <span class="text-green-400 flex items-center gap-1">
-                        Siguiente Lección <i data-lucide="arrow-right" class="w-3 h-3"></i>
-                    </span>
-                `;
+                btn.innerHTML = `<span class="text-green-400 flex items-center gap-1">Siguiente <i data-lucide="arrow-right" class="w-3 h-3"></i></span>`;
             } else {
                 badge.classList.add('hidden');
-                btn.innerHTML = `
-                    <div class="w-4 h-4 border-2 border-slate-500 rounded-sm flex items-center justify-center mr-2" id="btn-mark-icon"></div> 
-                    Marcar como vista
-                `;
-            }
-            lucide.createIcons();
-        }
-
-        function actualizarBarraGlobal() {
-            if(flatLessons.length === 0) {
-                document.getElementById('progress-bar').style.width = '0%';
-                document.getElementById('progress-text').innerText = '0%';
-                return;
-            }
-            
-            const percent = Math.round((completedLessons.size / flatLessons.length) * 100);
-            document.getElementById('progress-bar').style.width = `${percent}%`;
-            document.getElementById('progress-text').innerText = `${percent}%`;
-        }
-
-        function updateNavButtons() {
-            const prevBtn = document.getElementById('btn-prev');
-            const nextBtn = document.getElementById('btn-next');
-            
-            prevBtn.disabled = currentLessonIndex <= 0;
-            nextBtn.disabled = currentLessonIndex >= flatLessons.length - 1;
-            
-            prevBtn.onclick = () => cargarClase(currentLessonIndex - 1);
-            nextBtn.onclick = () => cargarClase(currentLessonIndex + 1);
-        }
-
-        // ============================================
-        // 8. LÓGICA TUTOR IA (GEMINI) - MANTENIDO
-        // ============================================
-        function toggleTutor() {
-            const win = document.getElementById('tutor-window');
-            isChatOpen = !isChatOpen;
-            
-            if(isChatOpen) {
-                win.classList.remove('hidden');
-                requestAnimationFrame(() => {
-                    win.classList.remove('scale-95', 'opacity-0');
-                    document.getElementById('chat-input').focus();
-                });
-            } else {
-                win.classList.add('scale-95', 'opacity-0');
-                setTimeout(() => win.classList.add('hidden'), 300);
+                btn.innerHTML = `<div class="w-4 h-4 border-2 border-slate-500 rounded-sm flex items-center justify-center mr-2"></div> Marcar como vista`;
             }
         }
 
-        function toggleMobileMenu() {
-            document.getElementById('playlist-sidebar').classList.toggle('translate-x-full');
+        function actualizarBarraProgreso() {
+            const total = flatLessons.length;
+            if (total === 0) return;
+            const completadas = completedLessons.size;
+            const porcentaje = Math.round((completadas / total) * 100);
+            document.getElementById('progress-bar').style.width = `${porcentaje}%`;
+            document.getElementById('progress-text').innerText = `${porcentaje}%`;
         }
 
-        async function enviarMensajeTutor(e) {
-            e.preventDefault();
-            const input = document.getElementById('chat-input');
-            const text = input.value.trim();
-            
-            if(!text) {
-                toast("Escribe un mensaje", "error");
-                return;
-            }
-
-            agregarBurbujaTutor(text, 'user');
-            input.value = "";
-
-            const leccionActual = document.getElementById('current-lesson-title').innerText;
-            const docName = document.getElementById('tutor-name').innerText;
-            
-            const prompt = `
-ROLE: Eres "${docName}", un asistente educativo representado por un Búho Sabio.
-TONO: Pedagógico, alentador, profesional pero cercano.
-CONTEXTO INSTITUCIONAL: ${institutionContext}
-CONTEXTO DEL ÁREA: ${areaContext}
-LECCIÓN ACTUAL: "${leccionActual}"
-PREGUNTA DEL ALUMNO: "${text}"
-
-INSTRUCCIONES:
-1. Responde de forma clara y útil.
-2. Usa formato Markdown para mejorar la legibilidad.
-3. Sé conciso pero completo.
-4. Si la pregunta no está relacionada con el curso, redirige amablemente al tema.
-5. Incluye ejemplos prácticos cuando sea relevante.
-
-RESPUESTA:
-            `;
-
-            await consultarGemini(prompt);
+        function actualizarBotonesNav() {
+            document.getElementById('btn-prev').disabled = currentLessonIndex <= 0;
+            document.getElementById('btn-next').disabled = currentLessonIndex >= flatLessons.length - 1;
+            document.getElementById('btn-prev').onclick = () => cargarClase(currentLessonIndex - 1);
+            document.getElementById('btn-next').onclick = () => cargarClase(currentLessonIndex + 1);
         }
 
+        // --- GEMINI 1.5 FLASH (ESTABLE Y GRATIS) ---
         async function consultarGemini(prompt) {
             const loadingId = mostrarLoading();
-            
             try {
-                // 1. Obtener API key desde app_secrets
-                const { data: secretResult, error: secretError } = await db
-                    .from('app_secrets')
-                    .select('value')
-                    .eq('name', 'gemini_api_key');
-                    
-                if(secretError) {
-                    throw new Error(`Error BD: ${secretError.message}`);
-                }
-                
-                if(!secretResult || secretResult.length === 0) {
-                    throw new Error("API key no configurada. Contacta al administrador.");
-                }
+                const { data: secretResult } = await db.from('app_secrets').select('value').eq('name', 'gemini_api_key');
+                if(!secretResult || !secretResult.length) throw new Error("API Key no encontrada");
                 
                 const apiKey = secretResult[0].value?.trim();
-                if(!apiKey) {
-                    throw new Error("API key vacía.");
-                }
-
-              // ============================================
-        // 7. LÓGICA TUTOR IA (GEMINI 1.5 FLASH - ESTABLE)
-        // ============================================
-        async function consultarGemini(prompt) {
-            const loadingId = mostrarLoading();
-            
-            try {
-                // 1. Obtener API key
-                const { data: secretResult, error: secretError } = await db
-                    .from('app_secrets')
-                    .select('value')
-                    .eq('name', 'gemini_api_key');
-                    
-                if(secretError || !secretResult || !secretResult.length) throw new Error("API Key no encontrada");
-                const apiKey = secretResult[0].value?.trim();
-
-                // 2. Definir Modelo (USAMOS EL 1.5 FLASH QUE ES EL ESTABLE Y GRATUITO)
-                const model = 'gemini-1.5-flash'; 
+                const model = 'gemini-1.5-flash'; // MODELO CORRECTO
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
                 
-                // 3. Llamada a la API
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
-                        contents: [{ 
-                            parts: [{ text: prompt }] 
-                        }],
-                        generationConfig: {
-                            temperature: 0.7,
-                            maxOutputTokens: 1000,
-                        }
+                        contents: [{ parts: [{ text: prompt }] }],
+                        generationConfig: { temperature: 0.7, maxOutputTokens: 1000 }
                     })
                 });
 
-                if(!response.ok) {
-                    if (response.status === 429) {
-                        throw new Error("El sistema está saturado momentáneamente. Intenta en 1 minuto.");
-                    }
-                    const errorData = await response.json().catch(() => ({}));
-                    throw new Error(`API Gemini: ${errorData.error?.message || response.statusText}`);
-                }
+                if(!response.ok) throw new Error("Error en IA: " + response.statusText);
 
                 const data = await response.json();
                 removerLoading(loadingId);
-                
-                const reply = data.candidates?.[0]?.content?.parts?.[0]?.text 
-                    || "Lo siento, no pude generar una respuesta. Intenta de nuevo.";
-                
+                const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "No pude responder.";
                 agregarBurbujaTutor(marked.parse(reply), 'bot');
 
             } catch(error) {
-                console.error("Error consultando Gemini:", error);
                 removerLoading(loadingId);
-                
-                let errorMsg = "⚠️ Error de conexión con Doc. ";
-                if(error.message.includes('API key')) errorMsg = "⚠️ Configuración incompleta del asistente.";
-                if(error.message.includes('saturado')) errorMsg = "⚠️ El Búho está ocupado (Límite de cuota). ";
-                
-                agregarBurbujaTutor(`${errorMsg} Intenta de nuevo más tarde.`, 'bot');
+                agregarBurbujaTutor(`⚠️ ${error.message}`, 'bot');
             }
+        }
+
+        // --- UTILS UI ---
+        function mostrarLoading() {
+            const container = document.getElementById('chat-messages');
+            const id = 'load-' + Date.now();
+            const div = document.createElement('div');
+            div.id = id;
+            div.className = "flex gap-3 chat-bubble";
+            div.innerHTML = `<div class="w-8 h-8 rounded-full bg-white overflow-hidden shrink-0 border border-indigo-500 mt-1 flex items-center justify-center"><span class="text-sm">🦉</span></div><div class="bg-slate-800 p-4 rounded-2xl rounded-tl-none border border-slate-700 flex gap-1 items-center h-10"><span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce"></span><span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce delay-100"></span><span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce delay-200"></span></div>`;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+            return id;
+        }
+
+        function removerLoading(id) {
+            const el = document.getElementById(id);
+            if(el) el.remove();
         }
 
         function agregarBurbujaTutor(htmlContent, type) {
@@ -1182,72 +677,52 @@ RESPUESTA:
             
             if (type === 'user') {
                 div.className = "flex gap-3 flex-row-reverse chat-bubble";
-                div.innerHTML = `
-                    <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center shrink-0">
-                        <i data-lucide="user" class="w-4 h-4 text-slate-300"></i>
-                    </div>
-                    <div class="bg-indigo-600 text-white text-sm p-3 rounded-2xl rounded-tr-none shadow-md max-w-[85%]">
-                        ${htmlContent}
-                    </div>
-                `;
+                div.innerHTML = `<div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center shrink-0"><i data-lucide="user" class="w-4 h-4 text-slate-300"></i></div><div class="bg-indigo-600 text-white text-sm p-3 rounded-2xl rounded-tr-none shadow-md max-w-[85%]">${htmlContent}</div>`;
             } else {
-                // Avatar Dinámico de Doc en el chat
                 const badge = document.getElementById('doc-badge-header').innerText;
                 div.className = "flex gap-3 chat-bubble";
-                div.innerHTML = `
-                    <div class="w-8 h-8 rounded-full bg-white overflow-hidden shrink-0 border border-indigo-500 mt-1 flex items-center justify-center relative">
-                        <span class="text-sm select-none">🦉</span>
-                        <span class="absolute -bottom-1 -right-1 text-[8px] bg-white rounded-full w-3 h-3 flex items-center justify-center border border-indigo-100">
-                            ${badge}
-                        </span>
-                    </div>
-                    <div class="bg-slate-800 text-slate-200 text-sm p-3 rounded-2xl rounded-tl-none border border-slate-700 shadow-md max-w-[90%] prose prose-invert prose-sm leading-snug">
-                        ${htmlContent}
-                    </div>
-                `;
+                div.innerHTML = `<div class="w-8 h-8 rounded-full bg-white overflow-hidden shrink-0 border border-indigo-500 mt-1 flex items-center justify-center relative"><span class="text-sm select-none">🦉</span><span class="absolute -bottom-1 -right-1 text-[8px] bg-white rounded-full w-3 h-3 flex items-center justify-center border border-indigo-100">${badge}</span></div><div class="bg-slate-800 text-slate-200 text-sm p-3 rounded-2xl rounded-tl-none border border-slate-700 shadow-md max-w-[90%] prose prose-invert prose-sm leading-snug">${htmlContent}</div>`;
             }
-            
             container.appendChild(div);
             container.scrollTop = container.scrollHeight;
             lucide.createIcons();
         }
 
-        function borrarHistorial() {
-            if(confirm("¿Borrar todo el historial de chat?")) {
-                document.getElementById('chat-messages').innerHTML = "";
-                agregarBurbujaTutor("Memoria limpia. ¿En qué te ayudo ahora?", 'bot');
-            }
+        function borrarHistorial() { document.getElementById('chat-messages').innerHTML = ''; }
+        function toggleTutor() { 
+            const win = document.getElementById('tutor-window');
+            win.classList.toggle('hidden');
+            win.classList.remove('scale-95', 'opacity-0');
+            if(!win.classList.contains('hidden')) document.getElementById('chat-input').focus();
         }
+        function toggleMobileMenu() { document.getElementById('playlist-sidebar').classList.toggle('translate-x-full'); }
 
+        async function enviarMensajeTutor(e) {
+            e.preventDefault();
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if(!text) { toast("Escribe un mensaje", "error"); return; }
+            agregarBurbujaTutor(text, 'user');
+            input.value = "";
+            const leccionActual = document.getElementById('current-lesson-title').innerText;
+            const docName = document.getElementById('tutor-name').innerText;
+            const prompt = `ROLE: Eres "${docName}", un asistente educativo representado por un Búho Sabio. TONO: Pedagógico, alentador. CONTEXTO INSTITUCIONAL: ${institutionContext} CONTEXTO DEL ÁREA: ${areaContext} LECCIÓN ACTUAL: "${leccionActual}" PREGUNTA: "${text}"`;
+            await consultarGemini(prompt);
+        }
+        
         function accionarTutor(accion) {
             const leccion = document.getElementById('current-lesson-title').innerText;
-            
             if(accion === 'quiz') {
                 agregarBurbujaTutor('Hazme un examen rápido.', 'user');
-                consultarGemini(`Genera un examen corto de 3 preguntas multiple choice sobre: "${leccion}". Formato Markdown. Pon las respuestas correctas ocultas al final.`);
+                consultarGemini(`Genera un examen corto de 3 preguntas multiple choice sobre: "${leccion}". Formato Markdown.`);
             } else if (accion === 'resumen') {
                 agregarBurbujaTutor('Resumir esta clase.', 'user');
-                consultarGemini(`Dame los 3 puntos clave más importantes de: "${leccion}". Usa viñetas.`);
+                consultarGemini(`Dame los 3 puntos clave de: "${leccion}".`);
             } else if (accion === 'explicar') {
-                agregarBurbujaTutor('Explícame esto como si tuviera 10 años.', 'user');
-                consultarGemini(`Explica el concepto principal de "${leccion}" con una analogía simple y divertida.`);
+                agregarBurbujaTutor('Explícame esto sencillo.', 'user');
+                consultarGemini(`Explica el concepto de "${leccion}" con una analogía simple.`);
             }
         }
-
-        // ============================================
-        // 9. MANEJO DE LIMPIEZA AL SALIR
-        // ============================================
-        window.addEventListener('beforeunload', function() {
-            if (jitsiApi) {
-                jitsiApi.dispose();
-            }
-        });
-
-        window.addEventListener('unload', function() {
-            if (jitsiApi) {
-                jitsiApi.dispose();
-            }
-        });
     </script>
 </body>
 </html>
