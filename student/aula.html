@@ -388,6 +388,42 @@
                     setTimeout(() => window.location.href = './mi-campus.html', 2000);
                     return;
                 }
+                // ============================================
+        // FUNCIÓN RECUPERADA: CARGAR PROGRESO
+        // ============================================
+        async function cargarProgreso(cursoId) {
+            try {
+                // Usamos currentUser.id que ya tenemos cargado
+                const { data } = await db.from('progreso_alumnos')
+                    .select('clases_vistas')
+                    .eq('student_id', currentUser.id)
+                    .eq('curso_id', cursoId)
+                    .maybeSingle();
+                
+                if (data && data.clases_vistas) {
+                    completedLessons = new Set(data.clases_vistas);
+                    actualizarBarraProgreso(); // Actualiza la barra verde
+                    
+                    // Actualizamos los iconos de la lista
+                    flatLessons.forEach(l => {
+                        if (completedLessons.has(l.uniqueId)) {
+                            const btn = document.getElementById(`btn-lec-${l.index}`);
+                            if(btn) {
+                                const icon = btn.querySelector('i');
+                                if(icon) {
+                                    icon.setAttribute('data-lucide', 'check-circle-2');
+                                    icon.classList.add('text-green-500', 'opacity-100');
+                                    icon.classList.remove('opacity-50');
+                                }
+                            }
+                        }
+                    });
+                    lucide.createIcons();
+                }
+            } catch (err) {
+                console.error("Error silencioso cargando progreso:", err);
+            }
+        }
                 
                 const curso = cursoResult[0];
 
@@ -1077,10 +1113,27 @@ RESPUESTA:
                     throw new Error("API key vacía.");
                 }
 
-                // 2. Llamar a Gemini
-                const model = 'gemini-2.0-flash-lite';
+              // ============================================
+        // 7. LÓGICA TUTOR IA (GEMINI 1.5 FLASH - ESTABLE)
+        // ============================================
+        async function consultarGemini(prompt) {
+            const loadingId = mostrarLoading();
+            
+            try {
+                // 1. Obtener API key
+                const { data: secretResult, error: secretError } = await db
+                    .from('app_secrets')
+                    .select('value')
+                    .eq('name', 'gemini_api_key');
+                    
+                if(secretError || !secretResult || !secretResult.length) throw new Error("API Key no encontrada");
+                const apiKey = secretResult[0].value?.trim();
+
+                // 2. Definir Modelo (USAMOS EL 1.5 FLASH QUE ES EL ESTABLE Y GRATUITO)
+                const model = 'gemini-1.5-flash'; 
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
                 
+                // 3. Llamada a la API
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1096,6 +1149,9 @@ RESPUESTA:
                 });
 
                 if(!response.ok) {
+                    if (response.status === 429) {
+                        throw new Error("El sistema está saturado momentáneamente. Intenta en 1 minuto.");
+                    }
                     const errorData = await response.json().catch(() => ({}));
                     throw new Error(`API Gemini: ${errorData.error?.message || response.statusText}`);
                 }
@@ -1104,7 +1160,7 @@ RESPUESTA:
                 removerLoading(loadingId);
                 
                 const reply = data.candidates?.[0]?.content?.parts?.[0]?.text 
-                    || "Lo siento, no pude generar una respuesta en este momento. ¿Podrías reformular tu pregunta?";
+                    || "Lo siento, no pude generar una respuesta. Intenta de nuevo.";
                 
                 agregarBurbujaTutor(marked.parse(reply), 'bot');
 
@@ -1113,9 +1169,8 @@ RESPUESTA:
                 removerLoading(loadingId);
                 
                 let errorMsg = "⚠️ Error de conexión con Doc. ";
-                if(error.message.includes('API key')) {
-                    errorMsg = "⚠️ Configuración incompleta del asistente.";
-                }
+                if(error.message.includes('API key')) errorMsg = "⚠️ Configuración incompleta del asistente.";
+                if(error.message.includes('saturado')) errorMsg = "⚠️ El Búho está ocupado (Límite de cuota). ";
                 
                 agregarBurbujaTutor(`${errorMsg} Intenta de nuevo más tarde.`, 'bot');
             }
