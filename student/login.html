@@ -253,7 +253,7 @@
         }
 
         // ============================================
-        // 2. AUTENTICACIÓN POR DNI (NATIVO TABLA MATRICULAS)
+        // 2. AUTENTICACIÓN POR DNI (CORREGIDO PARA MÚLTIPLES MATRÍCULAS)
         // ============================================
         async function autenticarPorDNI(dni) {
             try {
@@ -266,8 +266,9 @@
                 }
 
                 // 2. CONSULTA PROFESIONAL DIRECTA A 'matriculas'
+                // AHORA USAMOS .select() en lugar de .maybeSingle() para manejar múltiples matrículas
                 let query = db.from('matriculas')
-                    .select('id, dni_alumno, institution_id, nombre, apellido, email, foto_url') // Solo traemos lo necesario
+                    .select('id, dni_alumno, institution_id, nombre, apellido, email, foto_url, curso_id') // Traemos todo
                     .eq('dni_alumno', dniLimpio)       // Columna real
                     .eq('estado', 'ACTIVO');           // Lógica de negocio: Solo activos
                 
@@ -276,19 +277,23 @@
                     query = query.eq('institution_id', currentInstitutionId);
                 }
 
-                const { data: alumnoMatriculado, error: errorMatricula } = await query.maybeSingle();
+                const { data: matriculasAlumno, error: errorMatricula } = await query;
                 
                 if (errorMatricula) throw errorMatricula;
                 
                 // ESCENARIO A: No está matriculado o no está activo
-                if (!alumnoMatriculado) {
+                if (!matriculasAlumno || matriculasAlumno.length === 0) {
                     const mensaje = currentInstitutionId 
                         ? 'Usted no figura activo en el padrón de esta institución.'
                         : 'DNI no registrado o cuenta inactiva.';
                     throw new Error(mensaje);
                 }
 
-                // ESCENARIO B: Está matriculado -> Generar credenciales
+                // ESCENARIO B: El alumno tiene UNA o MÚLTIPLES matrículas
+                // Tomamos la PRIMERA matrícula para crear el usuario
+                // En aula.html ya resolvemos la matrícula correcta por curso
+                const primeraMatricula = matriculasAlumno[0];
+                
                 // Usamos el DNI como usuario y contraseña para el Auth
                 const emailAuto = `${dniLimpio}@asari.sistema`; 
                 const passwordAuto = dniLimpio; 
@@ -310,9 +315,9 @@
                         options: {
                             data: {
                                 dni: dniLimpio,
-                                institution_id: alumnoMatriculado.institution_id, // Usamos el ID real de la matrícula
+                                institution_id: primeraMatricula.institution_id, // Usamos el ID real de la matrícula
                                 rol: 'alumno',
-                                nombre_real: `${alumnoMatriculado.nombre} ${alumnoMatriculado.apellido}`, // Guardamos nombre real
+                                nombre_real: `${primeraMatricula.nombre} ${primeraMatricula.apellido}`, // Guardamos nombre real
                                 created_via: 'auto_matricula'
                             }
                         }
@@ -324,10 +329,10 @@
                     const { error: profileError } = await db.from('perfiles').insert({
                         id: signupData.user.id,
                         dni: dniLimpio,
-                        institution_id: alumnoMatriculado.institution_id,
-                        nombre_completo: `${alumnoMatriculado.apellido}, ${alumnoMatriculado.nombre}`, // Formato Apellido, Nombre
-                        email: alumnoMatriculado.email || emailAuto,
-                        foto_url: alumnoMatriculado.foto_url, // ¡Aprovechamos la foto que ya tienes!
+                        institution_id: primeraMatricula.institution_id,
+                        nombre_completo: `${primeraMatricula.apellido}, ${primeraMatricula.nombre}`, // Formato Apellido, Nombre
+                        email: primeraMatricula.email || emailAuto,
+                        foto_url: primeraMatricula.foto_url, // ¡Aprovechamos la foto que ya tienes!
                         created_at: new Date().toISOString()
                     });
 
@@ -347,7 +352,7 @@
                 }
 
                 // 5. ÉXITO
-                showToast(`Bienvenido, ${alumnoMatriculado.nombre}`, 'success');
+                showToast(`Bienvenido, ${primeraMatricula.nombre}`, 'success');
                 setTimeout(() => {
                     window.location.href = './mi-campus.html';
                 }, 1500);
