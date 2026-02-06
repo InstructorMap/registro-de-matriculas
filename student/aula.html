@@ -205,8 +205,8 @@
         let institutionContext = "";
         let areaContext = "";
         let isChatOpen = false;
-        let userInstitutionId = null; // Nuevo: Para validación cross-institution
-        let jitsiApi = null; // Para manejar instancias Jitsi
+        let userInstitutionId = null;
+        let jitsiApi = null;
 
         // ============================================
         // FUNCIONES DE UTILIDAD
@@ -257,40 +257,98 @@
         }
 
         // ============================================
-        // 1. INICIALIZACIÓN Y SESIÓN CON SEGURIDAD CROSS-INSTITUTION
+        // 1. LÓGICA DE USUARIO MEJORADA - MI-CAMPUS
+        // ============================================
+        async function cargarDatosUsuario() {
+            try {
+                const { data: { session } } = await db.auth.getSession();
+                if(!session) {
+                    window.location.href = './login.html';
+                    return;
+                }
+                
+                currentUserId = session.user.id;
+                
+                // PASO A: Obtener DNI desde user_metadata (mi-campus)
+                const dni = session.user.user_metadata?.dni;
+                if (!dni) {
+                    console.warn("DNI no encontrado en user_metadata");
+                    // Fallback a perfiles (solo como último recurso)
+                    const { data: perfilResult } = await db
+                        .from('perfiles')
+                        .select('dni, nombre_completo, institucion_id')
+                        .eq('id', currentUserId)
+                        .single();
+                    
+                    if (perfilResult) {
+                        await cargarDesdeMatricula(perfilResult.dni);
+                    } else {
+                        throw new Error("No se pudo obtener el DNI del usuario");
+                    }
+                    return;
+                }
+                
+                // PASO B: Cargar desde matrículas usando el DNI
+                await cargarDesdeMatricula(dni);
+                
+            } catch (error) {
+                console.error("Error cargando datos usuario:", error);
+                document.getElementById('student-name').innerText = 'Estudiante';
+                toast("Error cargando perfil", "error");
+            }
+        }
+        
+        async function cargarDesdeMatricula(dni) {
+            try {
+                // PASO B: Consultar tabla matriculas
+                const { data: matriculaResult, error: matriculaError } = await db
+                    .from('matriculas')
+                    .select('nombre, apellido, foto_url, institution_id')
+                    .eq('dni_alumno', dni)
+                    .maybeSingle(); // Usamos maybeSingle para evitar errores si no hay matrícula
+                    
+                if (matriculaError) {
+                    console.error("Error consultando matrícula:", matriculaError);
+                    throw new Error("Error al consultar matrícula");
+                }
+                
+                if (!matriculaResult) {
+                    console.warn("No se encontró matrícula para DNI:", dni);
+                    document.getElementById('student-name').innerText = 'Estudiante';
+                    return;
+                }
+                
+                // PASO C: Extraer datos de la matrícula
+                const nombreCompleto = `${matriculaResult.nombre || ''} ${matriculaResult.apellido || ''}`.trim() || 'Estudiante';
+                userInstitutionId = matriculaResult.institution_id; // CRUCIAL para validación
+                
+                // Actualizar UI
+                document.getElementById('student-name').innerText = nombreCompleto;
+                
+                // Actualizar avatar si hay foto_url
+                if (matriculaResult.foto_url) {
+                    const avatarEl = document.getElementById('user-avatar-ui');
+                    avatarEl.innerHTML = '';
+                    avatarEl.style.backgroundImage = `url(${matriculaResult.foto_url})`;
+                    avatarEl.style.backgroundSize = 'cover';
+                    avatarEl.style.backgroundPosition = 'center';
+                }
+                
+            } catch (error) {
+                console.error("Error en cargarDesdeMatricula:", error);
+                throw error;
+            }
+        }
+
+        // ============================================
+        // 2. INICIALIZACIÓN CON LÓGICA MEJORADA
         // ============================================
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
             
-            // Verificar sesión
-            const { data: { session } } = await db.auth.getSession();
-            if(!session) {
-                window.location.href = './login.html';
-                return;
-            }
+            // Cargar datos del usuario con la nueva lógica
+            await cargarDatosUsuario();
             
-            currentUserId = session.user.id;
-            
-            // Cargar perfil CON institucion_id (SEGURIDAD CROSS-INSTITUTION)
-            try {
-                const { data: perfilResult, error: perfilError } = await db
-                    .from('perfiles')
-                    .select('nombre_completo, email, institucion_id')
-                    .eq('id', currentUserId);
-                    
-                if(!perfilError && perfilResult && perfilResult.length > 0) {
-                    const nombre = perfilResult[0].nombre_completo || perfilResult[0].email || 'Estudiante';
-                    document.getElementById('student-name').innerText = nombre;
-                    
-                    // Guardar institución del usuario para validación
-                    userInstitutionId = perfilResult[0].institucion_id;
-                } else {
-                    console.warn("Perfil no encontrado o error:", perfilError);
-                }
-            } catch(error) {
-                console.warn("Error cargando perfil:", error);
-            }
-
             // Obtener curso de URL
             const params = new URLSearchParams(window.location.search);
             currentCourseId = params.get('id');
@@ -305,14 +363,13 @@
             // Validar formato del ID
             if(currentCourseId === 'general' && cursoNombre) {
                 toast("Accediendo a contenido general", "info");
-                // Puedes manejar cursos generales aquí si es necesario
             }
 
             await cargarCurso(currentCourseId);
         });
 
         // ============================================
-        // 2. GESTIÓN DE PROGRESO DEL ALUMNO
+        // 3. GESTIÓN DE PROGRESO DEL ALUMNO
         // ============================================
         async function gestionarProgresoAlumno(cursoId, userId) {
             try {
@@ -371,7 +428,7 @@
         }
 
         // ============================================
-        // 3. CARGA DEL CURSO (PRINCIPAL) CON VALIDACIÓN CROSS-INSTITUTION
+        // 4. CARGA DEL CURSO CON VALIDACIÓN MEJORADA
         // ============================================
         async function cargarCurso(id) {
             try {
@@ -394,16 +451,12 @@
                 const curso = cursoResult[0];
                 
                 // ====================================================
-                // VALIDACIÓN DE SEGURIDAD CROSS-INSTITUTION (NUEVO)
+                // VALIDACIÓN DE SEGURIDAD CROSS-INSTITUTION
                 // ====================================================
                 if (userInstitutionId && curso.institution_id) {
-                    // Verificar si el usuario pertenece a la misma institución que el curso
                     if (userInstitutionId !== curso.institution_id) {
-                        // Opcional: Verificar si es superadmin/staff (podrías agregar un campo en perfiles)
-                        // Por ahora, bloqueamos el acceso
                         console.error(`Acceso denegado: Usuario institución ${userInstitutionId} vs Curso institución ${curso.institution_id}`);
                         
-                        // Mostrar alerta bloqueante
                         document.body.innerHTML = `
                             <div class="h-screen flex items-center justify-center bg-slate-950">
                                 <div class="text-center p-8 max-w-md">
@@ -440,7 +493,7 @@
                 // A. Datos Básicos
                 document.getElementById('course-title').innerText = curso.nombre || "Curso sin nombre";
                 
-                // B. Identidad Visual con validación
+                // B. Identidad Visual con validación CORREGIDA (comillas simples)
                 if (curso.instituciones) {
                     const inst = curso.instituciones;
                     document.getElementById('inst-name-header').innerText = inst.nombre || "Institución";
@@ -463,9 +516,8 @@
                             const logo = document.getElementById('header-logo');
                             const container = document.getElementById('header-logo-container');
                             logo.src = inst.logo_url;
-                            logo.onerror = () => {
+                            logo.onerror = function() {
                                 container.classList.add('hidden');
-                                container.classList.remove('flex');
                             };
                             container.classList.remove('hidden');
                             container.classList.add('flex');
@@ -474,13 +526,15 @@
                         }
                     }
                     
+                    // ACTUALIZAR CONTEXTO PARA IA
                     institutionContext = `Institución: ${inst.nombre}.`;
                 }
 
-                // C. Contexto Doc (Búho)
+                // C. Contexto Doc (Búho) - MANTENIDO
                 const fullContext = (curso.nombre + " " + (curso.areas?.nombre || "")).toLowerCase();
                 updateDocPersonality(fullContext);
                 
+                // ACTUALIZAR AREA CONTEXT PARA IA
                 if (curso.areas) {
                     areaContext = curso.areas.dossier_txt || "";
                     if(curso.areas.prompt_especifico) {
@@ -538,7 +592,7 @@
         }
 
         // ============================================
-        // 4. LÓGICA DE PERSONALIDAD "DOC" (BÚHO)
+        // 5. LÓGICA DE PERSONALIDAD "DOC" (BÚHO) - MANTENIDO
         // ============================================
         function updateDocPersonality(contexto) {
             let icon = '🎓'; // Default Académico
@@ -563,7 +617,7 @@
         }
 
         // ============================================
-        // 5. RENDERIZADO DE CLASES CON INTEGRACIÓN JITSI
+        // 6. RENDERIZADO DE CLASES CON INTEGRACIÓN JITSI - MANTENIDO
         // ============================================
         function renderizarTemario(modulos) {
             const container = document.getElementById('modules-list');
@@ -885,7 +939,7 @@
         }
 
         // ============================================
-        // 6. GESTIÓN DE PROGRESO Y COMPLETADO
+        // 7. GESTIÓN DE PROGRESO Y COMPLETADO - MANTENIDO
         // ============================================
         async function marcarComoCompletada() {
             if(currentLessonIndex === -1 || flatLessons.length === 0) {
@@ -997,7 +1051,7 @@
         }
 
         // ============================================
-        // 7. LÓGICA TUTOR IA (GEMINI)
+        // 8. LÓGICA TUTOR IA (GEMINI) - MANTENIDO
         // ============================================
         function toggleTutor() {
             const win = document.getElementById('tutor-window');
@@ -1060,7 +1114,7 @@ RESPUESTA:
             const loadingId = mostrarLoading();
             
             try {
-                // 1. Obtener API key
+                // 1. Obtener API key desde app_secrets
                 const { data: secretResult, error: secretError } = await db
                     .from('app_secrets')
                     .select('value')
@@ -1080,7 +1134,7 @@ RESPUESTA:
                 }
 
                 // 2. Llamar a Gemini
-                const model = 'gemini-2.0-flash-lite'; // Puedes cambiar a 'gemini-pro' si es necesario
+                const model = 'gemini-2.0-flash-lite';
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
                 
                 const response = await fetch(url, {
@@ -1182,7 +1236,7 @@ RESPUESTA:
         }
 
         // ============================================
-        // 8. MANEJO DE LIMPIEZA AL SALIR
+        // 9. MANEJO DE LIMPIEZA AL SALIR
         // ============================================
         window.addEventListener('beforeunload', function() {
             if (jitsiApi) {
