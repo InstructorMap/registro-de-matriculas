@@ -251,14 +251,19 @@
 
             // FIX FOTO: Si la URL es válida, se carga. Si falla, entra el onerror del HTML.
             // Agregamos timestamp para evitar caché agresiva
-            const imgEl = document.getElementById('val-foto');
-            if (alumno.foto_url && alumno.foto_url.length > 5) {
-                imgEl.src = alumno.foto_url + "?t=" + Date.now();
-                imgEl.crossOrigin = "anonymous";
-            } else {
-                imgEl.src = "https://via.placeholder.com/150?text=Sin+Foto"; // Placeholder si no hay URL
-            }
+           const imgEl = document.getElementById('val-foto');
 
+if (alumno.foto_url && alumno.foto_url.length > 5) {
+    // 1. PRIMERO: Decimos que la petición sea anónima (Evita bloqueo CORS)
+    imgEl.crossOrigin = "anonymous"; 
+    
+    // 2. SEGUNDO: Ponemos la URL (con el timestamp para evitar caché)
+    imgEl.src = alumno.foto_url + "?t=" + Date.now();
+} else {
+    // Si no hay foto, limpiamos el crossOrigin para evitar errores con la imagen local
+    imgEl.removeAttribute('crossOrigin'); 
+    imgEl.src = "https://via.placeholder.com/150?text=Sin+Foto";
+}
             // --- CARGAR SEMINARIOS ADICIONALES ---
             cargarSeminariosValidados(alumno.id);
             
