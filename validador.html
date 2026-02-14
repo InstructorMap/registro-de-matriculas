@@ -249,23 +249,29 @@
                 logo.classList.remove('hidden');
             }
 
- // FIX FOTO: Si la URL es válida, se carga. Si falla, entra el onerror del HTML.
-            // Agregamos timestamp para evitar caché agresiva
+// FIX FOTO DEFINITIVO: Carga segura y manejo de errores
             const imgEl = document.getElementById('val-foto');
+            
+            // URL de respaldo (Silueta gris)
+            const FOTO_DEFAULT = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png";
 
-            // ESTA LINEA ES LA QUE TE FALTABA:
-            if (alumno.foto_url && alumno.foto_url.length > 5) {
-                
-                // 1. IMPORTANTE: Quitamos la restricción de seguridad (CORS)
-                // Al hacer esto, Vercel dejará pasar la foto como si fuera publica
-                imgEl.removeAttribute('crossOrigin'); 
-                
-                // 2. Ponemos la URL (con el timestamp para evitar caché)
+            // 1. Limpiamos cualquier restricción anterior
+            imgEl.removeAttribute('crossOrigin');
+
+            // 2. Definimos qué hacer si la foto falla (Event Listener)
+            imgEl.onerror = function() {
+                console.log("Falló la foto del alumno, cargando default...");
+                this.src = FOTO_DEFAULT;
+                // Evitamos bucles infinitos si la default también falla
+                this.onerror = null; 
+            };
+
+            // 3. Cargamos la imagen
+            if (alumno.foto_url && alumno.foto_url.length > 10) {
+                // Usamos timestamp para evitar caché vieja
                 imgEl.src = alumno.foto_url + "?t=" + Date.now();
             } else {
-                // Si no hay foto, limpiamos el crossOrigin para evitar errores
-                imgEl.removeAttribute('crossOrigin'); 
-                imgEl.src = "https://via.placeholder.com/150?text=Sin+Foto";
+                imgEl.src = FOTO_DEFAULT;
             }
             // --- CARGAR SEMINARIOS ADICIONALES ---
             cargarSeminariosValidados(alumno.id);
