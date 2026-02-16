@@ -468,11 +468,11 @@
         const CARNET_BACK_HTML = `<img src="${URL_REVERSO}" class="carnet-back-img" id="carnet-back-img">`;
 
         let globalColorTema = COLOR_DEFAULT; 
-        let globalColorTexto = '#0033cc'; 
+        let globalColorTexto = '#0033cc'; // ESTE ERA EL CULPABLE
         let globalMatriculas = [];
         let alumnoActual = null; 
         let cursoActualData = null;
-        let globalInstitucion = null; // NUEVA VARIABLE PARA GUARDAR DATOS DEL INSTITUTO
+        let globalInstitucion = null; 
         let deferredPrompt; 
 
         document.getElementById('app-logo').src = LOGO_ASARI_DEFAULT;
@@ -522,15 +522,15 @@
 
                 if(alumno.institution_id) {
                     try {
-                        // MODIFICACIÓN: AHORA TRAEMOS TAMBIÉN LAS IMÁGENES DE LA WALLET
+                        // MODIFICACIÓN CRÍTICA: AHORA TRAEMOS 'color_texto_diploma' DE LA BASE DE DATOS
                         const { data: dataInst } = await db
                             .from('instituciones')
-                            .select('logo_url, fondo_wallet_url, reverso_url, alcance_url')
+                            .select('logo_url, fondo_wallet_url, reverso_url, alcance_url, color_texto_diploma')
                             .eq('id', alumno.institution_id)
                             .maybeSingle();
                         
                         if(dataInst) {
-                            globalInstitucion = dataInst; // GUARDAMOS LOS DATOS
+                            globalInstitucion = dataInst; 
                             if (dataInst.logo_url) cambiarIdentidadVisual(dataInst.logo_url, null); 
                         }
                     } catch(e) {}
@@ -654,14 +654,11 @@
                 container.innerHTML = CARNET_HTML;
                 llenarDatosCarnet(container, alumnoActual, globalColorTema);
             } else if (vista === 'back') {
-                // MODIFICACIÓN: SI EL INSTITUTO TIENE REVERSO, USARLO. SINO, DEFAULT.
                 const imgReverso = globalInstitucion?.reverso_url || URL_REVERSO;
                 container.innerHTML = `<img src="${imgReverso}" style="width:1011px; height:638px; object-fit:cover; border-radius:40px; border:5px solid var(--primary);">`;
                 container.querySelector('img').style.borderColor = globalColorTema || '#0033cc';
             } else if (vista === 'legal') {
-                // MODIFICACIÓN: SI EL INSTITUTO TIENE ALCANCE, USARLO. SINO, DEFAULT.
                 const imgLegal = globalInstitucion?.alcance_url || URL_DOC_LEGAL;
-                // Ajuste de estilo: Si es imagen custom, cover. Si es default (legal.jpg), contain/white bg.
                 const estiloLegal = globalInstitucion?.alcance_url 
                     ? "width:1011px; height:638px; object-fit:contain; background:white; border-radius:40px; border:5px solid #ccc;"
                     : "width:1011px; height:638px; object-fit:contain; background:white; border-radius:40px; border:5px solid #ccc;";
@@ -688,7 +685,6 @@
                 } catch(e) {}
             }
 
-            // --- REORDENADO: CARGAR CURSO ANTES DE PINTAR CARNET (Para tener la marca de agua) ---
             const { data: cursosEncontrados } = await db.from('cursos_oficiales').select('*').eq('nombre', alumno.curso);
             
             if (cursosEncontrados && cursosEncontrados.length > 0) {
@@ -702,7 +698,6 @@
                 cursoActualData = candidato;
             } 
 
-            // AHORA SÍ PINTAMOS EL CARNET (Ya tenemos cursoActualData con marca de agua)
             const container = document.getElementById('carnet-render');
             container.innerHTML = CARNET_HTML; 
             llenarDatosCarnet(container, alumno, colorDinamico); 
@@ -712,7 +707,6 @@
             registrarAcceso(alumno);
             renderPremiumSection(alumno);
             
-            // --- NUEVO: CARGAR TODOS LOS CONTENIDOS (Cursos, Eventos, Seminarios) ---
             cargarContenidosExtra(alumno);
 
             const btnDiploma = document.getElementById('btn-descargar-diploma');
@@ -749,44 +743,28 @@
 
         // --- GESTOR DE CONTENIDOS (Cursos, Eventos y Seminarios) ---
         async function cargarContenidosExtra(alumno) {
-            // Limpiamos contenedores previos si existen
             document.getElementById('dynamic-content-area')?.remove();
-            
-            // Creamos un contenedor principal para inyectar todo ordenado
             const mainContainer = document.createElement('div');
             mainContainer.id = 'dynamic-content-area';
-            
-            // Insertamos antes de la grilla de acciones
             const actionsGrid = document.querySelector('.actions-grid');
             actionsGrid.parentNode.insertBefore(mainContainer, actionsGrid);
 
             try {
-                // 1. CARGAR ANUNCIOS (Tabla rutas_carrera)
-                let { data: anuncios } = await db.from('rutas_carrera')
-                    .select('*')
-                    .eq('activo', true);
+                let { data: anuncios } = await db.from('rutas_carrera').select('*').eq('activo', true);
+                let { data: seminarios } = await db.from('seminarios').select('*').limit(5);
 
-                // 2. CARGAR SEMINARIOS (Tabla seminarios)
-                let { data: seminarios } = await db.from('seminarios')
-                    .select('*')
-                    .limit(5);
-
-                // --- A. PROCESAR CURSOS Y UPSELLING (Carrusel Superior) ---
                 const anunciosRelevantes = anuncios?.filter(a => 
                     (a.curso_origen === 'TODOS' || a.curso_origen?.toLowerCase() === alumno.curso?.toLowerCase())
                 ) || [];
 
-                // Separamos: ¿Qué es Curso? ¿Qué es Evento?
                 const cursos = anunciosRelevantes.filter(a => !a.tipo || a.tipo.includes('Curso') || a.tipo.includes('Carrera'));
                 const eventos = anunciosRelevantes.filter(a => a.tipo && (a.tipo.includes('Evento') || a.tipo.includes('Noticia')));
 
-                // RENDER CURSOS (Upselling)
                 if (cursos.length > 0) {
                     const wrapper = document.createElement('div');
                     wrapper.innerHTML = `<div class="section-header"><span>🚀 Recomendado para vos</span></div>`;
                     const carousel = document.createElement('div');
                     carousel.className = 'carousel-container';
-                    
                     cursos.forEach(oferta => {
                         carousel.innerHTML += `
                             <div class="promo-banner carousel-item" onclick="window.open('${oferta.link_destino}', '_blank')">
@@ -805,14 +783,11 @@
                     mainContainer.appendChild(wrapper);
                 }
 
-                // --- B. RENDER AGENDA (Eventos Masivos) ---
                 if (eventos.length > 0) {
                     const wrapper = document.createElement('div');
                     wrapper.innerHTML = `<div class="section-header"><span>📅 Agenda & Eventos</span></div>`;
-                    
                     eventos.forEach(ev => {
                         const fechaTexto = ev.fecha ? new Date(ev.fecha).toLocaleDateString() : "INFO";
-                        
                         const card = document.createElement('div');
                         card.className = 'event-card';
                         card.onclick = () => window.open(ev.link_destino, '_blank');
@@ -829,23 +804,18 @@
                     mainContainer.appendChild(wrapper);
                 }
 
-                // --- C. RENDER SEMINARIOS (On Demand) ---
                 if (seminarios && seminarios.length > 0) {
                     const wrapper = document.createElement('div');
                     wrapper.innerHTML = `<div class="section-header"><span>🎓 Seminarios On-Demand</span><small>Ver Todo</small></div>`;
-                    
                     seminarios.forEach(sem => {
                         const card = document.createElement('div');
                         card.className = 'seminario-card';
-                        
-                        // Lógica de Imagen: Si hay URL directa úsala, sino genera la de YouTube
                         let bgStyle = 'background-color: #333;';
                         if (sem.imagen_url) {
                             bgStyle = `background: url('${sem.imagen_url}') center/cover no-repeat;`;
                         } else if (sem.id_video) {
                             bgStyle = `background: url('https://img.youtube.com/vi/${sem.id_video}/hqdefault.jpg') center/cover no-repeat;`;
                         }
-
                         card.innerHTML = `
                             <div style="height: 140px; ${bgStyle} position: relative;">
                                 <div class="sem-badge">CERTIFICADO</div>
@@ -910,7 +880,6 @@
             navigator.clipboard.writeText(texto).then(() => { alert("¡Texto generado y copiado al portapapeles! Listo para pegar."); });
         }
 
-        // --- NUEVA FUNCIÓN: GENERAR CARTA DE RECOMENDACIÓN PDF ---
         async function descargarCartaRecomendacion() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
@@ -961,7 +930,6 @@
             el('#qr-container').innerHTML = ""; 
             new QRCode(el('#qr-container'), { text: `${URL_WEB}/validador.html?id=${alumno.id}`, width: 144, height: 144 });
 
-            // --- LOGICA DE MARCA DE AGUA ---
             if (cursoActualData && cursoActualData.marca_agua_url) {
                 const wmContainer = el('#watermark-container');
                 if(wmContainer) {
@@ -978,15 +946,12 @@
             const panel = el('#bg-panel');
             panel.style.background = ''; panel.style.backgroundColor = colorCarnet; panel.style.backgroundImage = 'none'; panel.style.color = 'white';
 
-            // MODIFICACIÓN: Si la institución tiene un fondo de Wallet personalizado, úsalo PRIORITARIAMENTE
             if (globalInstitucion && globalInstitucion.fondo_wallet_url) {
                 panel.style.backgroundImage = `url('${globalInstitucion.fondo_wallet_url}')`;
                 panel.style.backgroundSize = "cover";
                 panel.style.backgroundPosition = "center";
-                // Aseguramos que el borde sea del color del tema para coherencia
                 el('#card-base-el').style.borderColor = colorCarnet;
             } 
-            // SINO, USA LA LÓGICA DE REGISTROS POR DEFECTO
             else if (registroId === 'rce') { panel.style.backgroundImage = `repeating-linear-gradient(45deg, transparent, transparent 20px, #222 20px, #222 25px)`; panel.style.color = '#fff'; el('#card-base-el').style.borderColor = "#222"; } 
             else if (registroId === 'remets' || registroId === 'rmts') { panel.style.backgroundColor = "#1a1a1a"; panel.style.backgroundImage = `linear-gradient(0deg, rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)`; panel.style.backgroundSize = "20px 20px"; el('#card-base-el').style.borderColor = "#333"; } 
             else { el('#card-base-el').style.borderColor = colorCarnet; }
@@ -1016,7 +981,6 @@
                 wrapper.style.display = "flex"; wrapper.style.flexDirection = "column"; wrapper.style.gap = "20px"; wrapper.style.padding = "20px"; wrapper.style.backgroundColor = "white";
                 wrapper.insertAdjacentHTML('beforeend', CARNET_HTML); 
                 
-                // MODIFICACIÓN: RENDERIZAR REVERSO CORRECTO (CUSTOM O DEFAULT)
                 const imgReverso = globalInstitucion?.reverso_url || URL_REVERSO;
                 const reversoHtml = `<img src="${imgReverso}" class="carnet-back-img" id="carnet-back-img">`;
                 
@@ -1043,14 +1007,20 @@
             const btn = document.getElementById('btn-descargar-diploma'); const originalText = btn.innerHTML; btn.innerHTML = '⏳';
             try {
                 const ghost = document.getElementById('ghost-container');
-                const colorTexto = globalColorTexto || '#0033cc';
+                
+                // --- NUEVA LÓGICA DE COLOR INTELIGENTE PARA DIPLOMA ---
+                // 1. Intenta usar el color específico del diploma definido en la institución.
+                // 2. Si no existe, usa el color principal del tema del carnet (fallback elegante).
+                // 3. Si todo falla, usa negro.
+                const colorTextoInteligente = globalInstitucion?.color_texto_diploma || globalColorTema || '#000000';
+
                 ghost.innerHTML = `
                 <div class="diploma-layout" id="diploma-final">
                     <img id="dip-bg-img" class="diploma-bg" src="" crossorigin="anonymous">
                     <div class="diploma-overlay">
-                        <div class="dip-linea-unica-container" id="dip-texto-container"><span class="dip-texto-formal" id="dip-texto-completo" style="color: ${colorTexto} !important;"></span></div>
+                        <div class="dip-linea-unica-container" id="dip-texto-container"><span class="dip-texto-formal" id="dip-texto-completo" style="color: ${colorTextoInteligente} !important;"></span></div>
                         <div class="dip-qr" id="dip-qr-code"></div>
-                        <div class="dip-info-extra" id="dip-fecha-registro" style="color: ${colorTexto} !important; border-color: ${colorTexto}33;"></div>
+                        <div class="dip-info-extra" id="dip-fecha-registro" style="color: ${colorTextoInteligente} !important; border-color: ${colorTextoInteligente}33;"></div>
                         <div class="dip-sello"></div>
                     </div>
                 </div>`;
@@ -1107,7 +1077,9 @@
                 const pdfHeight = pdf.internal.pageSize.getHeight();
 
                 const ghost = document.getElementById('ghost-container');
-                const colorTexto = globalColorTexto || '#0033cc';
+                
+                // --- NUEVA LÓGICA DE COLOR INTELIGENTE PARA ANALÍTICO (Igual que diploma) ---
+                const colorTextoInteligente = globalInstitucion?.color_texto_diploma || globalColorTema || '#000000';
 
                 for (let i = 0; i < urls.length; i++) {
                     const url = urls[i];
@@ -1117,12 +1089,12 @@
                         overlayHTML = `
                         <div class="diploma-overlay">
                             <div style="position: absolute; top: 120px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; white-space: nowrap;">
-                                <span class="dip-texto-formal" id="ana-text-${i}" style="color: ${colorTexto} !important; font-size: 50px;"></span>
+                                <span class="dip-texto-formal" id="ana-text-${i}" style="color: ${colorTextoInteligente} !important; font-size: 50px;"></span>
                             </div>
                             
                             <div id="ana-qr-${i}" style="position: absolute; top: 60px; right: 60px; width: 150px; height: 150px; background: white; padding: 5px;"></div>
                             
-                            <div id="ana-info-${i}" style="position: absolute; top: 200px; left: 50%; transform: translateX(-50%); text-align: center; font-family: 'Roboto', sans-serif; font-size: 16px; font-weight: 700; color: ${colorTexto}; background: rgba(255,255,255,0.9); padding: 4px 25px; border-radius: 50px;"></div>
+                            <div id="ana-info-${i}" style="position: absolute; top: 200px; left: 50%; transform: translateX(-50%); text-align: center; font-family: 'Roboto', sans-serif; font-size: 16px; font-weight: 700; color: ${colorTextoInteligente}; background: rgba(255,255,255,0.9); padding: 4px 25px; border-radius: 50px;"></div>
                         </div>`;
                     }
 
