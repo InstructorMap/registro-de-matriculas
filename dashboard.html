@@ -185,8 +185,7 @@
                     <div class="lg:col-span-2">
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col h-full">
                             <h3 class="font-bold text-slate-700 mb-4">Anuncios Activos en Carrusel</h3>
-                            <div id="lista-anuncios" class="space-y-3 overflow-y-auto pr-2 max-h-[600px]">
-                                </div>
+                            <div id="lista-anuncios" class="space-y-3 overflow-y-auto pr-2 max-h-[600px]"></div>
                         </div>
                     </div>
                 </div>
@@ -258,8 +257,7 @@
                     <div class="lg:col-span-2">
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col h-full">
                             <h3 class="font-bold text-slate-700 mb-4">Catálogo Activo (Netflix Mode)</h3>
-                            <div id="lista-seminarios" class="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto pr-2 max-h-[600px]">
-                                </div>
+                            <div id="lista-seminarios" class="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto pr-2 max-h-[600px]"></div>
                         </div>
                     </div>
                 </div>
@@ -362,12 +360,14 @@
         </div>
     </main>
 
+    <!-- Modal Alumno -->
     <div id="modal-alumno" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 relative">
             <button onclick="cerrarModalAlumno()" class="absolute top-4 right-4 text-slate-300 hover:text-slate-600"><i data-lucide="x"></i></button>
             <h3 class="text-xl font-black text-slate-800 mb-6" id="titulo-modal-alumno">Nuevo Alumno</h3>
             <div class="space-y-4">
-                <input type="hidden" id="m-id-edit"> <div id="div-modal-inst-select" class="hidden bg-yellow-50 p-3 rounded-xl border border-yellow-200">
+                <input type="hidden" id="m-id-edit"> 
+                <div id="div-modal-inst-select" class="hidden bg-yellow-50 p-3 rounded-xl border border-yellow-200">
                     <label class="label-form text-yellow-700">Asignar a Instituto:</label>
                     <select id="modal-instituto-select" class="input-form font-bold border-yellow-300 bg-white"><option value="">Cargando...</option></select>
                 </div>
@@ -382,6 +382,7 @@
         </div>
     </div>
 
+    <!-- Modal Curso -->
     <div id="modal-curso" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl p-8 relative max-h-[90vh] overflow-y-auto">
             <button onclick="document.getElementById('modal-curso').classList.add('hidden')" class="absolute top-4 right-4 text-slate-300"><i data-lucide="x"></i></button>
@@ -414,6 +415,118 @@
                 
                 <div id="status-curso" class="text-center text-xs font-bold h-4 text-blue-600"></div>
                 <button onclick="guardarCurso()" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl mt-4 hover:bg-black transition">GUARDAR CAMBIOS</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDITAR INSTITUCIÓN (NUEVO) -->
+    <div id="modal-editar-institucion" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-8 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="cerrarModalEditarInstitucion()" class="absolute top-4 right-4 text-slate-300 hover:text-slate-600">
+                <i data-lucide="x"></i>
+            </button>
+            <h3 class="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
+                <i data-lucide="building" class="text-yellow-500"></i> Editar Institución
+            </h3>
+            
+            <input type="hidden" id="edit-inst-id">
+            
+            <div class="space-y-4">
+                <!-- Datos básicos -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="label-form">Nombre Comercial</label>
+                        <input type="text" id="edit-inst-name" class="input-form">
+                    </div>
+                    <div>
+                        <label class="label-form">Sigla / ID</label>
+                        <input type="text" id="edit-inst-sigla" class="input-form" placeholder="Ej: isf o remaep">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="label-form">Email Admin (Informativo)</label>
+                        <input type="email" id="edit-admin-email" class="input-form bg-slate-50" readonly placeholder="No editable">
+                    </div>
+                    <div>
+                        <label class="label-form">Nueva Contraseña (Opcional)</label>
+                        <input type="text" id="edit-admin-pass" class="input-form" placeholder="Dejar vacío para no cambiar">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="label-form">Color Marca</label>
+                    <input type="color" id="edit-inst-color" class="w-full h-[46px] p-1 rounded-lg cursor-pointer bg-white border border-slate-200">
+                </div>
+
+                <div class="h-px bg-slate-200 my-4"></div>
+                <p class="text-sm font-bold text-slate-600 mb-4">Imágenes Institucionales</p>
+
+                <!-- Logo -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <label class="label-form flex items-center gap-2">
+                        <i data-lucide="image" size="16"></i> Logo (Bucket: logos-instituciones)
+                    </label>
+                    <div class="flex items-center gap-4">
+                        <div class="w-20 h-20 bg-white rounded-lg border border-slate-200 flex items-center justify-center overflow-hidden shrink-0">
+                            <img id="preview-edit-logo" src="" class="w-full h-full object-contain hidden">
+                            <i data-lucide="building-2" class="text-slate-300" size="24"></i>
+                        </div>
+                        <input type="file" id="edit-inst-logo" accept="image/*" class="block w-full text-xs text-slate-500">
+                    </div>
+                </div>
+
+                <!-- Fondo Wallet -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <label class="label-form flex items-center gap-2">
+                        <i data-lucide="credit-card" size="16"></i> Fondo Wallet / Frente Carnet (Bucket: assets-institucionales)
+                    </label>
+                    <div class="flex items-center gap-4">
+                        <div class="w-32 h-20 bg-white rounded-lg border border-slate-200 flex items-center justify-center overflow-hidden shrink-0">
+                            <img id="preview-edit-fondo" src="" class="w-full h-full object-cover hidden">
+                            <i data-lucide="image" class="text-slate-300" size="24"></i>
+                        </div>
+                        <input type="file" id="edit-inst-fondo" accept="image/*" class="block w-full text-xs text-slate-500">
+                    </div>
+                </div>
+
+                <!-- Reverso Wallet -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <label class="label-form flex items-center gap-2">
+                        <i data-lucide="rotate-ccw" size="16"></i> Reverso Wallet / Dorso Carnet (Bucket: assets-institucionales)
+                    </label>
+                    <div class="flex items-center gap-4">
+                        <div class="w-32 h-20 bg-white rounded-lg border border-slate-200 flex items-center justify-center overflow-hidden shrink-0">
+                            <img id="preview-edit-reverso" src="" class="w-full h-full object-cover hidden">
+                            <i data-lucide="image" class="text-slate-300" size="24"></i>
+                        </div>
+                        <input type="file" id="edit-inst-reverso" accept="image/*" class="block w-full text-xs text-slate-500">
+                    </div>
+                </div>
+
+                <!-- Alcance Legal -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <label class="label-form flex items-center gap-2">
+                        <i data-lucide="file-text" size="16"></i> Alcance Legal / Documento (Bucket: assets-institucionales)
+                    </label>
+                    <div class="flex items-center gap-4">
+                        <div class="w-32 h-20 bg-white rounded-lg border border-slate-200 flex items-center justify-center overflow-hidden shrink-0">
+                            <img id="preview-edit-alcance" src="" class="w-full h-full object-cover hidden">
+                            <i data-lucide="file" class="text-slate-300" size="24"></i>
+                        </div>
+                        <input type="file" id="edit-inst-alcance" accept="image/*" class="block w-full text-xs text-slate-500">
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-4">
+                    <button onclick="guardarEdicionInstitucion()" class="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3.5 rounded-xl transition shadow-lg flex items-center justify-center gap-2">
+                        <i data-lucide="save" size="18"></i> GUARDAR CAMBIOS
+                    </button>
+                    <button onclick="cerrarModalEditarInstitucion()" class="px-6 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3.5 rounded-xl transition">
+                        CANCELAR
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -470,7 +583,7 @@
             await cargarOpcionesRegistros();
             await cargarCursos(); 
             await cargarSeminarios(); 
-            await cargarAnuncios(); // CARGA MARKETING
+            await cargarAnuncios();
             await llenarFiltros(); 
             await filtrarAlumnos(); 
             await contarTotal();
@@ -497,12 +610,11 @@
             }
         }
 
-        // --- GESTIÓN DE MARKETING (CORREGIDO PARA RUTAS_CARRERA) ---
+        // --- GESTIÓN DE MARKETING ---
         async function cargarAnuncios() {
             const div = document.getElementById('lista-anuncios');
             div.innerHTML = "<p class='text-xs text-slate-400'>Cargando...</p>";
             
-            // Corregido: Usar 'rutas_carrera'
             let query = db.from('rutas_carrera').select('*').order('created_at', {ascending: false});
             if (currentProfile.rol !== 'superadmin') query = query.eq('institution_id', currentProfile.institucion_id);
             
@@ -536,7 +648,6 @@
             } catch(e) { console.error(e); }
         }
 
-        // --- GESTIÓN DE MARKETING (CORREGIDO PARA RUTAS_CARRERA) ---
         async function guardarAnuncio() {
             const titulo = document.getElementById('mkt-titulo').value;
             const desc = document.getElementById('mkt-desc').value;
@@ -581,7 +692,7 @@
             }
         }
 
-        // --- LÓGICA DE REPORTES & EXCEL (NUEVO) ---
+        // --- LÓGICA DE REPORTES & EXCEL ---
         async function actualizarReporteFinanciero() {
             try {
                 let instId = currentProfile.rol === 'superadmin' ? null : currentProfile.institucion_id;
@@ -594,7 +705,6 @@
                 document.getElementById('repo-carnets').innerText = totalCarnets || 0;
 
                 // 2. Calcular Ventas
-                // Truco: Traemos todas las compras y los seminarios para sumar en JS
                 let qCompras = db.from('compras_alumnos').select('*, seminarios_catalogo(precio, institution_id)');
                 const { data: compras } = await qCompras;
                 
@@ -603,7 +713,6 @@
 
                 if(compras) {
                     compras.forEach(c => {
-                        // Filtrar por institución si no es superadmin
                         if (!instId || (c.seminarios_catalogo && c.seminarios_catalogo.institution_id === instId)) {
                             const precio = parseFloat(c.seminarios_catalogo?.precio || 0);
                             totalPesos += precio;
@@ -632,7 +741,6 @@
                 const datosVentas = [];
                 if(ventas) {
                     ventas.forEach(v => {
-                        // Filtro de seguridad por institución
                         if(!instId || (v.seminarios_catalogo && v.seminarios_catalogo.institution_id === instId)) {
                             datosVentas.push({
                                 "Fecha": new Date(v.created_at).toLocaleDateString(),
@@ -665,7 +773,6 @@
                 const wsAlumnos = XLSX.utils.json_to_sheet(datosAlumnos);
                 XLSX.utils.book_append_sheet(wb, wsAlumnos, "Padrón Carnets");
 
-                // DESCARGAR
                 XLSX.writeFile(wb, `Rendicion_ASARI_${new Date().toISOString().slice(0,10)}.xlsx`);
                 toast("Descarga iniciada");
 
@@ -674,7 +781,7 @@
             }
         }
 
-        // --- GESTIÓN DE CURSOS (ACTUALIZADO PARA MARCA DE AGUA) ---
+        // --- GESTIÓN DE CURSOS ---
         async function cargarCursos() {
             const { data } = await db.from('cursos_oficiales').select('*').order('nombre');
             const div = document.getElementById('lista-cursos-config');
@@ -733,7 +840,6 @@
                 cursoData.diploma_bg_url = data.publicUrl;
             }
 
-            // NUEVO: Guardar Marca de Agua
             const inputWater = document.getElementById('c-watermark');
             if(inputWater.files.length > 0) {
                 const file = inputWater.files[0];
@@ -786,7 +892,6 @@
                     document.getElementById('preview-diploma-img').classList.remove('hidden');
                 }
 
-                // NUEVO: Cargar preview de Marca de Agua
                 if(curso.marca_agua_url) {
                     document.getElementById('preview-watermark-img').src = curso.marca_agua_url;
                     document.getElementById('preview-watermark-img').classList.remove('hidden');
@@ -835,12 +940,11 @@
             lucide.createIcons();
         }
 
-        // --- GESTIÓN DE SEMINARIOS (CORREGIDO PARA TABLA 'SEMINARIOS') ---
+        // --- GESTIÓN DE SEMINARIOS ---
         async function cargarSeminarios() {
             const div = document.getElementById('lista-seminarios');
             div.innerHTML = "<p class='text-xs text-slate-400'>Cargando contenido...</p>";
 
-            // Corrección: Usar la tabla 'seminarios' que creamos en Supabase
             let query = db.from('seminarios').select('*').order('created_at', {ascending: false});
             
             if (currentProfile.rol !== 'superadmin') {
@@ -865,7 +969,6 @@
                 seminariosCache = data;
 
                 data.forEach(s => {
-                    // Corrección: Usar columna id_video
                     const thumb = s.id_video ? `https://img.youtube.com/vi/${s.id_video}/hqdefault.jpg` : 'https://via.placeholder.com/150?text=Sin+Video';
                     
                     div.innerHTML += `
@@ -904,7 +1007,6 @@
 
             status.innerText = "Subiendo...";
 
-            // Corrección: Mapeo exacto a columnas de la tabla 'seminarios'
             let payload = {
                 titulo: titulo,
                 id_video: videoId,
@@ -920,11 +1022,10 @@
                 const fileName = `sem_diploma_${Date.now()}`;
                 await db.storage.from('plantillas-diplomas').upload(fileName, file);
                 const { data } = db.storage.from('plantillas-diplomas').getPublicUrl(fileName);
-                payload.imagen_url = data.publicUrl; // Usamos imagen_url para guardar diploma si se quiere
+                payload.imagen_url = data.publicUrl;
             }
 
             try {
-                // Corrección: Usar tabla 'seminarios'
                 if(idEdit) {
                     const { error } = await db.from('seminarios').update(payload).eq('id', idEdit);
                     if(error) throw error;
@@ -948,7 +1049,7 @@
             if(!sem) return;
             document.getElementById('sem-id-edit').value = sem.id;
             document.getElementById('sem-titulo').value = sem.titulo;
-            document.getElementById('sem-video-id').value = sem.id_video; // Corrección: id_video
+            document.getElementById('sem-video-id').value = sem.id_video;
             document.getElementById('sem-precio').value = sem.precio;
             document.getElementById('sem-desc').value = sem.descripcion || "";
             
@@ -1174,9 +1275,10 @@
             selModal.innerHTML = html; selCarga.innerHTML = html;
         }
 
+        // --- FUNCIÓN MODIFICADA: Cargar Entidades con botón Editar ---
         async function cargarEntidadesTabla() {
             const div = document.getElementById('lista-instituciones');
-            const { data } = await db.from('instituciones').select('*').order('created_at', {ascending:false});
+            const { data } = await db.from('instituciones').select('*').order('created_at', {ascending: false});
             div.innerHTML = "";
             data.forEach(i => {
                 const tipo = i.sigla ? 'REGISTRO' : 'INSTITUTO';
@@ -1186,6 +1288,7 @@
                 const btnStatusColor = estaActivo ? 'text-amber-500 hover:text-amber-700' : 'text-green-500 hover:text-green-700';
                 const estadoTexto = estaActivo ? '<span class="text-[10px] text-green-600 font-bold ml-2">ACTIVO</span>' : '<span class="text-[10px] text-red-600 font-bold ml-2">SUSPENDIDO</span>';
                 const opacidad = estaActivo ? 'opacity-100' : 'opacity-60 bg-red-50';
+                
                 div.innerHTML += `
                 <div class="flex justify-between items-center p-3 border rounded mb-2 hover:bg-slate-50 ${opacidad}">
                     <div class="flex items-center gap-3">
@@ -1193,6 +1296,7 @@
                         <div><p class="font-bold text-sm text-slate-700">${i.nombre} ${estadoTexto}</p><span class="text-[10px] px-1.5 py-0.5 rounded ${colorBadge} font-bold">${tipo}</span></div>
                     </div>
                     <div class="flex gap-2">
+                        <button onclick="abrirModalEditarInstitucion('${i.id}')" class="text-blue-400 hover:text-blue-600" title="Editar Institución"><i data-lucide="pencil" size="18"></i></button>
                         <button onclick="toggleSuspension('${i.id}', ${estaActivo})" class="${btnStatusColor}"><i data-lucide="${btnStatusIcon}" size="18"></i></button>
                         <button onclick="borrar('instituciones', '${i.id}', cargarEntidadesTabla)" class="text-slate-300 hover:text-red-500"><i data-lucide="trash-2" size="18"></i></button>
                     </div>
@@ -1208,6 +1312,7 @@
             if(error) toast("Error: " + error.message, 'error'); else cargarEntidadesTabla();
         }
 
+        // --- FUNCIÓN EXISTENTE (NO MODIFICADA) ---
         async function crearEntidadCompleta() {
             const nombre = document.getElementById('new-inst-name').value;
             const sigla = document.getElementById('new-inst-sigla').value;
@@ -1242,6 +1347,206 @@
                 toast("Entidad Creada OK"); cargarEntidadesTabla();
                 if(currentProfile.rol==='superadmin') cargarListaInstitutosEnSelects();
             } catch(e) { alert(e.message); }
+        }
+
+        // ============================================
+        // NUEVAS FUNCIONES PARA EDITAR INSTITUCIÓN
+        // ============================================
+
+        async function abrirModalEditarInstitucion(id) {
+            try {
+                document.getElementById('modal-editar-institucion').classList.remove('hidden');
+                
+                document.getElementById('preview-edit-logo').classList.add('hidden');
+                document.getElementById('preview-edit-fondo').classList.add('hidden');
+                document.getElementById('preview-edit-reverso').classList.add('hidden');
+                document.getElementById('preview-edit-alcance').classList.add('hidden');
+                
+                document.getElementById('edit-inst-logo').value = '';
+                document.getElementById('edit-inst-fondo').value = '';
+                document.getElementById('edit-inst-reverso').value = '';
+                document.getElementById('edit-inst-alcance').value = '';
+                
+                const { data: institucion, error } = await db
+                    .from('instituciones')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+                    
+                if (error) throw error;
+                
+                document.getElementById('edit-inst-id').value = institucion.id;
+                document.getElementById('edit-inst-name').value = institucion.nombre || '';
+                document.getElementById('edit-inst-sigla').value = institucion.sigla || '';
+                document.getElementById('edit-inst-color').value = institucion.color_primario || '#0033cc';
+                
+                const { data: perfil } = await db
+                    .from('perfiles')
+                    .select('email')
+                    .eq('institucion_id', id)
+                    .eq('rol', 'admin')
+                    .maybeSingle();
+                    
+                document.getElementById('edit-admin-email').value = perfil?.email || 'Sin admin asignado';
+                document.getElementById('edit-admin-pass').value = '';
+                
+                if (institucion.logo_url) {
+                    document.getElementById('preview-edit-logo').src = institucion.logo_url;
+                    document.getElementById('preview-edit-logo').classList.remove('hidden');
+                }
+                
+                if (institucion.fondo_wallet_url) {
+                    document.getElementById('preview-edit-fondo').src = institucion.fondo_wallet_url;
+                    document.getElementById('preview-edit-fondo').classList.remove('hidden');
+                }
+                
+                if (institucion.reverso_url) {
+                    document.getElementById('preview-edit-reverso').src = institucion.reverso_url;
+                    document.getElementById('preview-edit-reverso').classList.remove('hidden');
+                }
+                
+                if (institucion.alcance_url) {
+                    document.getElementById('preview-edit-alcance').src = institucion.alcance_url;
+                    document.getElementById('preview-edit-alcance').classList.remove('hidden');
+                }
+                
+                toast("Institución cargada para edición");
+                
+            } catch (error) {
+                toast("Error al cargar institución: " + error.message, 'error');
+                cerrarModalEditarInstitucion();
+            }
+        }
+
+        function cerrarModalEditarInstitucion() {
+            document.getElementById('modal-editar-institucion').classList.add('hidden');
+        }
+
+        async function guardarEdicionInstitucion() {
+            try {
+                const id = document.getElementById('edit-inst-id').value;
+                if (!id) return toast("Error: ID de institución no encontrado", 'error');
+                
+                toast("Guardando cambios...", 'success');
+                
+                const nombre = document.getElementById('edit-inst-name').value.trim();
+                const sigla = document.getElementById('edit-inst-sigla').value.trim().toLowerCase() || null;
+                const color = document.getElementById('edit-inst-color').value;
+                
+                if (!nombre) {
+                    return toast("El nombre de la institución es obligatorio", 'error');
+                }
+                
+                const updates = {
+                    nombre: nombre,
+                    sigla: sigla,
+                    color_primario: color,
+                    color_tema: color
+                };
+                
+                async function subirArchivo(input, bucket, carpeta = '') {
+                    if (!input.files || input.files.length === 0) return null;
+                    
+                    const file = input.files[0];
+                    if (!file.type.startsWith('image/')) {
+                        throw new Error(`El archivo ${file.name} no es una imagen válida`);
+                    }
+                    
+                    const extension = file.name.split('.').pop();
+                    const fileName = `${carpeta}_${Date.now()}.${extension}`;
+                    
+                    const { error: uploadError } = await db.storage
+                        .from(bucket)
+                        .upload(fileName, file, {
+                            cacheControl: '3600',
+                            upsert: false
+                        });
+                        
+                    if (uploadError) throw uploadError;
+                    
+                    const { data } = db.storage.from(bucket).getPublicUrl(fileName);
+                    return data.publicUrl;
+                }
+                
+                try {
+                    const logoInput = document.getElementById('edit-inst-logo');
+                    if (logoInput.files.length > 0) {
+                        updates.logo_url = await subirArchivo(logoInput, 'logos-instituciones', 'logo');
+                    }
+                    
+                    const fondoInput = document.getElementById('edit-inst-fondo');
+                    if (fondoInput.files.length > 0) {
+                        updates.fondo_wallet_url = await subirArchivo(fondoInput, 'assets-institucionales', 'fondo_wallet');
+                    }
+                    
+                    const reversoInput = document.getElementById('edit-inst-reverso');
+                    if (reversoInput.files.length > 0) {
+                        updates.reverso_url = await subirArchivo(reversoInput, 'assets-institucionales', 'reverso');
+                    }
+                    
+                    const alcanceInput = document.getElementById('edit-inst-alcance');
+                    if (alcanceInput.files.length > 0) {
+                        updates.alcance_url = await subirArchivo(alcanceInput, 'assets-institucionales', 'alcance');
+                    }
+                    
+                } catch (uploadError) {
+                    throw new Error("Error al subir imágenes: " + uploadError.message);
+                }
+                
+                const { error: updateError } = await db
+                    .from('instituciones')
+                    .update(updates)
+                    .eq('id', id);
+                    
+                if (updateError) throw updateError;
+                
+                const newPass = document.getElementById('edit-admin-pass').value.trim();
+                if (newPass) {
+                    try {
+                        const { data: perfil } = await db
+                            .from('perfiles')
+                            .select('id')
+                            .eq('institucion_id', id)
+                            .eq('rol', 'admin')
+                            .maybeSingle();
+                            
+                        if (perfil) {
+                            const { error: passError } = await db.auth.admin.updateUserById(
+                                perfil.id,
+                                { password: newPass }
+                            );
+                            
+                            if (passError) {
+                                console.warn("No se pudo actualizar la contraseña:", passError);
+                                toast("Institución actualizada, pero hubo un error con la contraseña", 'error');
+                            }
+                        }
+                    } catch (passError) {
+                        console.warn("Error al actualizar contraseña:", passError);
+                    }
+                }
+                
+                toast("Institución actualizada correctamente", 'success');
+                cerrarModalEditarInstitucion();
+                
+                await cargarEntidadesTabla();
+                
+                if (currentProfile.institucion_id === id) {
+                    const { data: updatedInst } = await db
+                        .from('instituciones')
+                        .select('*')
+                        .eq('id', id)
+                        .single();
+                        
+                    if (updatedInst) {
+                        aplicarEstilosInstitucion(updatedInst);
+                    }
+                }
+                
+            } catch (error) {
+                console.error("Error guardando edición:", error);
+                toast("Error al guardar: " + error.message, 'error');
+            }
         }
 
         function mostrarSeccion(id) {
