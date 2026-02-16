@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control - ASARI V8.0 (Marketing Edition)</title>
+    <title>Panel de Control - ASARI V8.5 (Instituciones + Wallet)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -360,7 +360,6 @@
         </div>
     </main>
 
-    <!-- Modal Alumno -->
     <div id="modal-alumno" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 relative">
             <button onclick="cerrarModalAlumno()" class="absolute top-4 right-4 text-slate-300 hover:text-slate-600"><i data-lucide="x"></i></button>
@@ -382,7 +381,6 @@
         </div>
     </div>
 
-    <!-- Modal Curso -->
     <div id="modal-curso" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl p-8 relative max-h-[90vh] overflow-y-auto">
             <button onclick="document.getElementById('modal-curso').classList.add('hidden')" class="absolute top-4 right-4 text-slate-300"><i data-lucide="x"></i></button>
@@ -419,7 +417,6 @@
         </div>
     </div>
 
-    <!-- MODAL EDITAR INSTITUCIÓN (NUEVO) -->
     <div id="modal-editar-institucion" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-8 relative max-h-[90vh] overflow-y-auto">
             <button onclick="cerrarModalEditarInstitucion()" class="absolute top-4 right-4 text-slate-300 hover:text-slate-600">
@@ -432,7 +429,6 @@
             <input type="hidden" id="edit-inst-id">
             
             <div class="space-y-4">
-                <!-- Datos básicos -->
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="label-form">Nombre Comercial</label>
@@ -455,15 +451,20 @@
                     </div>
                 </div>
 
-                <div>
-                    <label class="label-form">Color Marca</label>
-                    <input type="color" id="edit-inst-color" class="w-full h-[46px] p-1 rounded-lg cursor-pointer bg-white border border-slate-200">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="label-form">Color Marca</label>
+                        <input type="color" id="edit-inst-color" class="w-full h-[46px] p-1 rounded-lg cursor-pointer bg-white border border-slate-200">
+                    </div>
+                    <div>
+                        <label class="label-form">Color Texto Diploma</label>
+                        <input type="color" id="edit-inst-text-color" class="w-full h-[46px] p-1 rounded-lg cursor-pointer bg-white border border-slate-200">
+                    </div>
                 </div>
 
                 <div class="h-px bg-slate-200 my-4"></div>
                 <p class="text-sm font-bold text-slate-600 mb-4">Imágenes Institucionales</p>
 
-                <!-- Logo -->
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
                     <label class="label-form flex items-center gap-2">
                         <i data-lucide="image" size="16"></i> Logo (Bucket: logos-instituciones)
@@ -477,7 +478,6 @@
                     </div>
                 </div>
 
-                <!-- Fondo Wallet -->
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
                     <label class="label-form flex items-center gap-2">
                         <i data-lucide="credit-card" size="16"></i> Fondo Wallet / Frente Carnet (Bucket: assets-institucionales)
@@ -491,7 +491,6 @@
                     </div>
                 </div>
 
-                <!-- Reverso Wallet -->
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
                     <label class="label-form flex items-center gap-2">
                         <i data-lucide="rotate-ccw" size="16"></i> Reverso Wallet / Dorso Carnet (Bucket: assets-institucionales)
@@ -505,7 +504,6 @@
                     </div>
                 </div>
 
-                <!-- Alcance Legal -->
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
                     <label class="label-form flex items-center gap-2">
                         <i data-lucide="file-text" size="16"></i> Alcance Legal / Documento (Bucket: assets-institucionales)
@@ -1379,6 +1377,7 @@
                 document.getElementById('edit-inst-name').value = institucion.nombre || '';
                 document.getElementById('edit-inst-sigla').value = institucion.sigla || '';
                 document.getElementById('edit-inst-color').value = institucion.color_primario || '#0033cc';
+                document.getElementById('edit-inst-text-color').value = institucion.color_texto_diploma || '#000000'; // CARGAR COLOR TEXTO
                 
                 const { data: perfil } = await db
                     .from('perfiles')
@@ -1432,6 +1431,7 @@
                 const nombre = document.getElementById('edit-inst-name').value.trim();
                 const sigla = document.getElementById('edit-inst-sigla').value.trim().toLowerCase() || null;
                 const color = document.getElementById('edit-inst-color').value;
+                const colorTexto = document.getElementById('edit-inst-text-color').value; // LEER COLOR TEXTO
                 
                 if (!nombre) {
                     return toast("El nombre de la institución es obligatorio", 'error');
@@ -1441,7 +1441,8 @@
                     nombre: nombre,
                     sigla: sigla,
                     color_primario: color,
-                    color_tema: color
+                    color_tema: color,
+                    color_texto_diploma: colorTexto // GUARDAR COLOR TEXTO
                 };
                 
                 async function subirArchivo(input, bucket, carpeta = '') {
