@@ -472,6 +472,7 @@
         let globalMatriculas = [];
         let alumnoActual = null; 
         let cursoActualData = null;
+        let globalInstitucion = null; // NUEVA VARIABLE PARA GUARDAR DATOS DEL INSTITUTO
         let deferredPrompt; 
 
         document.getElementById('app-logo').src = LOGO_ASARI_DEFAULT;
@@ -521,8 +522,17 @@
 
                 if(alumno.institution_id) {
                     try {
-                        const { data: dataInst } = await db.from('instituciones').select('logo_url').eq('id', alumno.institution_id).maybeSingle();
-                        if(dataInst && dataInst.logo_url) cambiarIdentidadVisual(dataInst.logo_url, null); 
+                        // MODIFICACIÓN: AHORA TRAEMOS TAMBIÉN LAS IMÁGENES DE LA WALLET
+                        const { data: dataInst } = await db
+                            .from('instituciones')
+                            .select('logo_url, fondo_wallet_url, reverso_url, alcance_url')
+                            .eq('id', alumno.institution_id)
+                            .maybeSingle();
+                        
+                        if(dataInst) {
+                            globalInstitucion = dataInst; // GUARDAMOS LOS DATOS
+                            if (dataInst.logo_url) cambiarIdentidadVisual(dataInst.logo_url, null); 
+                        }
                     } catch(e) {}
                 }
 
@@ -644,10 +654,19 @@
                 container.innerHTML = CARNET_HTML;
                 llenarDatosCarnet(container, alumnoActual, globalColorTema);
             } else if (vista === 'back') {
-                container.innerHTML = `<img src="${URL_REVERSO}" style="width:1011px; height:638px; object-fit:cover; border-radius:40px; border:5px solid var(--primary);">`;
+                // MODIFICACIÓN: SI EL INSTITUTO TIENE REVERSO, USARLO. SINO, DEFAULT.
+                const imgReverso = globalInstitucion?.reverso_url || URL_REVERSO;
+                container.innerHTML = `<img src="${imgReverso}" style="width:1011px; height:638px; object-fit:cover; border-radius:40px; border:5px solid var(--primary);">`;
                 container.querySelector('img').style.borderColor = globalColorTema || '#0033cc';
             } else if (vista === 'legal') {
-                container.innerHTML = `<img src="${URL_DOC_LEGAL}" style="width:1011px; height:638px; object-fit:contain; background:white; border-radius:40px; border:5px solid #ccc;">`;
+                // MODIFICACIÓN: SI EL INSTITUTO TIENE ALCANCE, USARLO. SINO, DEFAULT.
+                const imgLegal = globalInstitucion?.alcance_url || URL_DOC_LEGAL;
+                // Ajuste de estilo: Si es imagen custom, cover. Si es default (legal.jpg), contain/white bg.
+                const estiloLegal = globalInstitucion?.alcance_url 
+                    ? "width:1011px; height:638px; object-fit:contain; background:white; border-radius:40px; border:5px solid #ccc;"
+                    : "width:1011px; height:638px; object-fit:contain; background:white; border-radius:40px; border:5px solid #ccc;";
+                
+                container.innerHTML = `<img src="${imgLegal}" style="${estiloLegal}">`;
             }
         }
         
@@ -959,7 +978,16 @@
             const panel = el('#bg-panel');
             panel.style.background = ''; panel.style.backgroundColor = colorCarnet; panel.style.backgroundImage = 'none'; panel.style.color = 'white';
 
-            if (registroId === 'rce') { panel.style.backgroundImage = `repeating-linear-gradient(45deg, transparent, transparent 20px, #222 20px, #222 25px)`; panel.style.color = '#fff'; el('#card-base-el').style.borderColor = "#222"; } 
+            // MODIFICACIÓN: Si la institución tiene un fondo de Wallet personalizado, úsalo PRIORITARIAMENTE
+            if (globalInstitucion && globalInstitucion.fondo_wallet_url) {
+                panel.style.backgroundImage = `url('${globalInstitucion.fondo_wallet_url}')`;
+                panel.style.backgroundSize = "cover";
+                panel.style.backgroundPosition = "center";
+                // Aseguramos que el borde sea del color del tema para coherencia
+                el('#card-base-el').style.borderColor = colorCarnet;
+            } 
+            // SINO, USA LA LÓGICA DE REGISTROS POR DEFECTO
+            else if (registroId === 'rce') { panel.style.backgroundImage = `repeating-linear-gradient(45deg, transparent, transparent 20px, #222 20px, #222 25px)`; panel.style.color = '#fff'; el('#card-base-el').style.borderColor = "#222"; } 
             else if (registroId === 'remets' || registroId === 'rmts') { panel.style.backgroundColor = "#1a1a1a"; panel.style.backgroundImage = `linear-gradient(0deg, rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)`; panel.style.backgroundSize = "20px 20px"; el('#card-base-el').style.borderColor = "#333"; } 
             else { el('#card-base-el').style.borderColor = colorCarnet; }
 
@@ -986,12 +1014,21 @@
                 const ghost = document.getElementById('ghost-container'); ghost.innerHTML = "";
                 const wrapper = document.createElement('div');
                 wrapper.style.display = "flex"; wrapper.style.flexDirection = "column"; wrapper.style.gap = "20px"; wrapper.style.padding = "20px"; wrapper.style.backgroundColor = "white";
-                wrapper.insertAdjacentHTML('beforeend', CARNET_HTML); wrapper.insertAdjacentHTML('beforeend', CARNET_BACK_HTML);
+                wrapper.insertAdjacentHTML('beforeend', CARNET_HTML); 
+                
+                // MODIFICACIÓN: RENDERIZAR REVERSO CORRECTO (CUSTOM O DEFAULT)
+                const imgReverso = globalInstitucion?.reverso_url || URL_REVERSO;
+                const reversoHtml = `<img src="${imgReverso}" class="carnet-back-img" id="carnet-back-img">`;
+                
+                wrapper.insertAdjacentHTML('beforeend', reversoHtml);
                 wrapper.querySelector('.live-shimmer').style.display = 'none'; 
                 ghost.appendChild(wrapper);
+                
                 llenarDatosCarnet(ghost, alumnoActual, globalColorTema);
+                
                 ghost.querySelectorAll('.card-base, .carnet-back-img').forEach(c => { c.style.width = "1011px"; c.style.height = "638px"; });
                 ghost.querySelector('#carnet-back-img').style.borderColor = ghost.querySelector('.card-base').style.borderColor;
+                
                 const images = ghost.getElementsByTagName('img');
                 for(let img of images) { if(img.src && !img.complete) await new Promise(r => img.onload = r); }
                 await new Promise(r => setTimeout(r, 500)); 
