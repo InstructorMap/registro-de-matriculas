@@ -468,7 +468,7 @@
         const CARNET_BACK_HTML = `<img src="${URL_REVERSO}" class="carnet-back-img" id="carnet-back-img">`;
 
         let globalColorTema = COLOR_DEFAULT; 
-        let globalColorTexto = '#0033cc'; // ESTE ERA EL CULPABLE
+        let globalColorTexto = '#0033cc'; 
         let globalMatriculas = [];
         let alumnoActual = null; 
         let cursoActualData = null;
@@ -502,13 +502,27 @@
         }
 
         async function ingresar() {
-            const dni = document.getElementById('input-dni').value.trim();
+            // DETECTAR SI VIENE DEL BUSCADOR DEL INDEX (URL?dni=...)
+            const params = new URLSearchParams(window.location.search);
+            const dniUrl = params.get('dni');
+
+            // Si hay DNI en la URL, lo usamos directamente
+            const dni = dniUrl || document.getElementById('input-dni').value.trim();
+            
+            if(dniUrl) {
+                // Auto-rellenar input para feedback visual
+                const inp = document.getElementById('input-dni');
+                if(inp) inp.value = dni;
+            }
+
             const btnText = document.getElementById('btn-text');
             const loader = document.getElementById('loader');
             const errorMsg = document.getElementById('msg-error');
             
             if(!dni) return;
-            btnText.style.display = 'none'; loader.style.display = 'block'; errorMsg.style.display = 'none';
+            if(btnText) btnText.style.display = 'none'; 
+            if(loader) loader.style.display = 'block'; 
+            if(errorMsg) errorMsg.style.display = 'none';
             
             try {
                 const { data: matriculas, error } = await db.from('matriculas').select('*').eq('dni_alumno', dni);
@@ -522,7 +536,6 @@
 
                 if(alumno.institution_id) {
                     try {
-                        // MODIFICACIÓN CRÍTICA: AHORA TRAEMOS 'color_texto_diploma' DE LA BASE DE DATOS
                         const { data: dataInst } = await db
                             .from('instituciones')
                             .select('logo_url, fondo_wallet_url, reverso_url, alcance_url, color_texto_diploma')
@@ -541,11 +554,25 @@
                 });
 
             } catch (err) {
-                errorMsg.style.display = 'block'; errorMsg.innerText = "DNI no encontrado.";
+                if(errorMsg) {
+                    errorMsg.style.display = 'block'; 
+                    errorMsg.innerText = "DNI no encontrado.";
+                }
+                // Si vino por URL y falló, limpiar URL
+                if(dniUrl) window.history.replaceState({}, document.title, window.location.pathname);
             } finally {
-                btnText.style.display = 'block'; loader.style.display = 'none';
+                if(btnText) btnText.style.display = 'block'; 
+                if(loader) loader.style.display = 'none';
             }
         }
+
+        // AUTO-EJECUTAR SI HAY DNI EN URL
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            if(params.get('dni')) {
+                setTimeout(ingresar, 500); // Pequeña espera para asegurar carga
+            }
+        });
 
         function procesarSiguientePantalla(matriculas) {
             const alumno = matriculas[0];
@@ -880,6 +907,7 @@
             navigator.clipboard.writeText(texto).then(() => { alert("¡Texto generado y copiado al portapapeles! Listo para pegar."); });
         }
 
+        // --- NUEVA FUNCIÓN: GENERAR CARTA DE RECOMENDACIÓN PDF ---
         async function descargarCartaRecomendacion() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
@@ -979,6 +1007,8 @@
                 const ghost = document.getElementById('ghost-container'); ghost.innerHTML = "";
                 const wrapper = document.createElement('div');
                 wrapper.style.display = "flex"; wrapper.style.flexDirection = "column"; wrapper.style.gap = "20px"; wrapper.style.padding = "20px"; wrapper.style.backgroundColor = "white";
+                
+                // 1. INYECTAMOS EL HTML PRIMERO
                 wrapper.insertAdjacentHTML('beforeend', CARNET_HTML); 
                 
                 const imgReverso = globalInstitucion?.reverso_url || URL_REVERSO;
@@ -988,10 +1018,13 @@
                 wrapper.querySelector('.live-shimmer').style.display = 'none'; 
                 ghost.appendChild(wrapper);
                 
-                llenarDatosCarnet(ghost, alumnoActual, globalColorTema);
-                
+                // 2. CORRECCIÓN CLAVE: ASIGNAMOS EL TAMAÑO *ANTES* DE ESCRIBIR EL TEXTO
+                // Esto garantiza que 'ajustarTextoAlAncho' tenga un ancho real (1011px) para calcular.
                 ghost.querySelectorAll('.card-base, .carnet-back-img').forEach(c => { c.style.width = "1011px"; c.style.height = "638px"; });
                 ghost.querySelector('#carnet-back-img').style.borderColor = ghost.querySelector('.card-base').style.borderColor;
+
+                // 3. AHORA SÍ LLENAMOS LOS DATOS (Con el ancho ya fijado)
+                llenarDatosCarnet(ghost, alumnoActual, globalColorTema);
                 
                 const images = ghost.getElementsByTagName('img');
                 for(let img of images) { if(img.src && !img.complete) await new Promise(r => img.onload = r); }
@@ -1008,10 +1041,7 @@
             try {
                 const ghost = document.getElementById('ghost-container');
                 
-                // --- NUEVA LÓGICA DE COLOR INTELIGENTE PARA DIPLOMA ---
-                // 1. Intenta usar el color específico del diploma definido en la institución.
-                // 2. Si no existe, usa el color principal del tema del carnet (fallback elegante).
-                // 3. Si todo falla, usa negro.
+                // CORRECCIÓN: USAR EL COLOR DEFINIDO EN LA BASE DE DATOS O EL DEL TEMA
                 const colorTextoInteligente = globalInstitucion?.color_texto_diploma || globalColorTema || '#000000';
 
                 ghost.innerHTML = `
@@ -1078,7 +1108,7 @@
 
                 const ghost = document.getElementById('ghost-container');
                 
-                // --- NUEVA LÓGICA DE COLOR INTELIGENTE PARA ANALÍTICO (Igual que diploma) ---
+                // CORRECCIÓN: USAR EL COLOR DEFINIDO
                 const colorTextoInteligente = globalInstitucion?.color_texto_diploma || globalColorTema || '#000000';
 
                 for (let i = 0; i < urls.length; i++) {
