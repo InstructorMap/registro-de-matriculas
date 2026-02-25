@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0033cc" id="meta-theme-color">
+    <title>Billetera Educativa</title>
+    
+    <link rel="manifest" href="manifest.json">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&family=Roboto+Slab:wght@700;900&display=swap" rel="stylesheet">
+
+    <style>
+        /* ESTILOS BASE */
+        :root { --primary: #0033cc; --bg-app: #f4f6f9; --text-dark: #222; --gold: #D4AF37; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; padding: 0; font-family: 'Roboto', sans-serif; background-color: var(--bg-app); color: #333; height: 100vh; display: flex; flex-direction: column; }
+
+        /* HEADER & CAMPANA NOTIFICACIONES */
+        .app-header { background: white; padding: 10px 20px; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; height: 80px; }
+        .app-logo { height: 60px; width: auto; object-fit: contain; }
+        .header-actions { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); display: flex; gap: 15px; }
+        .btn-bell { position: relative; font-size: 22px; color: var(--primary); cursor: pointer; transition: 0.2s; }
+        .btn-bell:active { transform: scale(0.9); }
+        .bell-badge { position: absolute; top: -5px; right: -5px; background: #ff0000; color: white; font-size: 10px; font-weight: 900; width: 16px; height: 16px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 2px solid white; }
+
+        /* MODAL NOVEDADES */
+        .notif-item { padding: 15px; border-bottom: 1px solid #eee; display: flex; gap: 12px; align-items: flex-start; }
+        .notif-item:last-child { border-bottom: none; }
+        .notif-icon { width: 35px; height: 35px; background: #f0f4ff; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: var(--primary); flex-shrink: 0; }
+        .notif-content h4 { margin: 0 0 4px 0; font-size: 14px; font-weight: 700; color: #333; }
+        .notif-content p { margin: 0; font-size: 12px; color: #666; line-height: 1.4; }
+        .notif-date { font-size: 10px; color: #999; margin-top: 5px; display: block; }
+        .notif-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 900; text-transform: uppercase; margin-bottom: 4px; }
+        .tag-evento { background: #fff3cd; color: #856404; }
+        .tag-curso { background: #d1ecf1; color: #0c5460; }
+        .tag-kit { background: #d4edda; color: #155724; }
+
+        /* PANTALLAS */
+        .screen { display: none; flex: 1; flex-direction: column; padding: 20px; animation: fadeIn 0.3s ease; padding-bottom: 60px; }
+        .screen.active { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* LOGIN */
+        .login-container { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        .login-title { font-size: 22px; font-weight: 900; margin-bottom: 10px; color: #222; }
+        .login-desc { font-size: 14px; color: #666; margin-bottom: 30px; max-width: 280px; }
+        .input-group { width: 100%; max-width: 320px; margin-bottom: 20px; position: relative; }
+        .input-dni { width: 100%; padding: 15px 15px 15px 45px; border: 2px solid #ddd; border-radius: 12px; font-size: 18px; outline: none; transition: 0.3s; }
+        .input-dni:focus { border-color: var(--primary); }
+        .input-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #999; }
+        .btn-main { width: 100%; max-width: 320px; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: transform 0.2s; }
+        .btn-main:active { transform: scale(0.98); }
+        .btn-main:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* UPLOAD */
+        .upload-area { border: 2px dashed #ccc; padding: 30px; border-radius: 15px; background: white; margin-bottom: 20px; cursor: pointer; width: 100%; max-width: 320px; }
+        .upload-icon { font-size: 40px; color: #ccc; margin-bottom: 10px; }
+        #preview-upload { max-width: 100%; max-height: 200px; border-radius: 10px; display: none; margin-top: 10px; object-fit: cover; }
+
+        /* WALLET UI */
+        .wallet-welcome { margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .welcome-sub { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+        .welcome-name { font-size: 20px; font-weight: 900; color: var(--text-dark); }
+        .user-avatar-mini { width: 40px; height: 40px; border-radius: 50%; background: #ddd; object-fit: cover; border: 2px solid var(--primary); }
+        .card-viewport { width: 100%; overflow: hidden; background: transparent; position: relative; margin-bottom: 15px; height: 220px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); transition: height 0.3s; }
+        #carnet-render { width: 1011px; height: 638px; background: white; position: absolute; top: 0; left: 0; transform-origin: top left; }
+
+        /* VISTA TOGGLES */
+        .view-toggles { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; }
+        .btn-toggle { background: white; border: 1px solid #ddd; padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; color: #666; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .btn-toggle i { font-size: 12px; }
+        .btn-toggle.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.2); transform: translateY(-1px); }
+        .btn-toggle:active { transform: scale(0.95); }
+
+        /* SECTION PREMIUM Y KIT INTELIGENTE */
+        .premium-box { background: linear-gradient(135deg, #1e1e1e 0%, #2a2a2a 100%); color: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; overflow: hidden; border: 1px solid #444; }
+        .premium-badge { position: absolute; top: 10px; right: 10px; background: var(--gold); color: black; font-size: 10px; font-weight: 900; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 1px; }
+        .premium-title { font-size: 18px; font-weight: 900; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
+        .premium-desc { font-size: 12px; color: #aaa; margin-bottom: 15px; line-height: 1.4; }
+        
+        .docs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .btn-doc { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 10px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 11px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; text-align: center; transition: 0.2s; height: 80px; }
+        .btn-doc:active { background: rgba(255,255,255,0.2); transform: translateY(-2px); }
+        .btn-doc i { font-size: 20px; color: var(--gold); }
+        .btn-pay { background: var(--gold); color: black; border: none; width: 100%; padding: 12px; border-radius: 8px; font-weight: 900; cursor: pointer; text-transform: uppercase; font-size: 12px; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3); }
+
+        /* CARNET STYLES */
+        .card-base { width: 100%; height: 100%; display: flex; position: relative; border: 5px solid; border-radius: 40px; overflow: hidden; background: white; transition: border-color 0.3s; }
+        .front-left { width: 380px; height: 100%; position: relative; background: #d4d4d4; z-index: 1; border-top-left-radius: 35px; border-bottom-left-radius: 35px; overflow: hidden; flex-shrink: 0; }
+        .student-photo { width: 100%; height: 100%; object-fit: cover; position: relative; z-index: 1; }
+        .rect-banda { position: absolute; bottom: 0; left: 0; width: 120%; height: 120px; background-color: var(--primary); z-index: 2; transition: background-color 0.3s; }
+        .reg-sigla { position: absolute; bottom: 15px; left: 0; width: 100%; text-align: center; color: white; font-size: 22px; font-weight: 900; z-index: 6; text-shadow: 2px 2px 4px rgba(0,0,0,0.9); letter-spacing: 2px; }
+        .qr-container { position: absolute; bottom: 45px; left: 50%; transform: translateX(-50%); width: 160px; height: 160px; background: white; padding: 8px; border-radius: 12px; z-index: 5; box-shadow: 0 6px 20px rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; }
+        .front-right { flex: 1; position: relative; color: white; padding: 20px 35px; display: flex; flex-direction: column; justify-content: space-between; background-color: var(--primary); transition: background 0.3s; min-width: 0; }
+        .holo-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(45deg, rgba(255,255,255,0.08) 0px, rgba(255,255,255,0.08) 1px, transparent 1px, transparent 4px), linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.2) 45%, rgba(200,255,255,0.4) 50%, rgba(255,255,255,0.2) 55%, transparent 70%); mix-blend-mode: overlay; pointer-events: none; }
+        .front-content { position: relative; z-index: 2; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 6px solid rgba(255,255,255,0.9); padding-bottom: 2px; }
+        .header-text { font-size: 85px; font-weight: 900; text-transform: uppercase; line-height: 0.9; text-shadow: 3px 3px 0px rgba(0,0,0,0.2); }
+        
+        /* CONTENEDOR CURSO Y MARCA DE AGUA */
+        .course-container { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 10px 0; background: linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.3)); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 0 10px; overflow: hidden; position: relative; z-index: 10; }
+        .course-title-main, .course-title-sub { font-size: 55px; font-weight: 900; text-transform: uppercase; line-height: 1.1; text-align: center; display: inline-block; white-space: nowrap; max-width: 100%; position: relative; z-index: 2; text-shadow: 3px 3px 0px rgba(0,0,0,0.8), 0px 0px 8px rgba(0,0,0,0.9); }
+        .watermark-layer { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; height: 85%; opacity: 1; z-index: 1; pointer-events: none; display: flex; justify-content: center; align-items: center; }
+        .watermark-layer img { width: 100%; height: 100%; object-fit: contain; }
+
+        .student-name { font-size: 34px; font-weight: 700; text-transform: uppercase; background: transparent; padding: 10px; text-align: center; border-radius: 8px; margin-bottom: 15px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); width: 100%; overflow: hidden; }
+        .data-grid { display: grid; grid-template-columns: 65px 1fr; row-gap: 10px; align-items: center; }
+        .icon-box { font-size: 55px; text-align: center; }
+        .data-box { background: linear-gradient(90deg, rgba(0,0,0,0.2), rgba(0,0,0,0.3)); padding: 6px 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.15); height: 55px; }
+        .label-text { font-size: 32px; font-weight: 700; opacity: 0.9; }
+        .value-text { font-size: 36px; font-weight: 900; text-align: right; }
+        .carnet-back-img { width: 1011px; height: 638px; object-fit: cover; border-radius: 40px; border: 5px solid var(--primary); transition: border-color 0.3s; }
+
+        .live-shimmer { position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%); transform: skewX(-25deg); animation: shimmerMove 4s infinite; z-index: 10; pointer-events: none; }
+        @keyframes shimmerMove { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
+
+        /* ESTADOS ESPECIALES */
+        .overlay-vencido { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(180, 0, 0, 0.75); z-index: 20; display: flex; justify-content: center; align-items: center; flex-direction: column; color: white; text-align: center; border-radius: 35px; backdrop-filter: blur(2px); }
+        .texto-vencido { font-size: 80px; font-weight: 900; transform: rotate(-15deg); border: 8px solid white; padding: 10px 40px; text-transform: uppercase; letter-spacing: 5px; }
+
+        /* DIPLOMA / ANALITICO LAYOUT */
+        .diploma-layout { width: 2000px; height: 1414px; position: relative; overflow: hidden; color: #333; }
+        .diploma-bg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
+        .diploma-overlay { position: relative; z-index: 10; width: 100%; height: 100%; }
+        .dip-linea-unica-container { position: absolute; top: 595px; left: 50%; transform: translateX(-50%); width: 90%; text-align: center; white-space: nowrap; }
+        .dip-texto-formal { font-family: 'Roboto Slab', serif; font-weight: 900; text-transform: uppercase; font-size: 80px; letter-spacing: 1px; text-shadow: 2px 2px 0px rgba(255,255,255,1); }
+        .dip-qr { position: absolute; top: 284px; right: 176px; width: 233px; height: 233px; background: white; padding: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .dip-info-extra { position: absolute; bottom: 1348px; left: 50%; transform: translateX(-50%); text-align: center; font-family: 'Roboto', sans-serif; font-size: 18px; font-weight: 700; color: #222; background: rgba(255,255,255,0.9); padding: 4px 25px; border-radius: 50px; border: 1px solid rgba(0,0,0,0.1); z-index: 20; }
+        .dip-sello { position: absolute; bottom: 614px; left: 1445px; width: 180px; height: 180px; z-index: 15; background-repeat: no-repeat; background-size: contain; background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpath id='textPath' d='M 25,100 A 75,75 0 1,1 175,100 A 75,75 0 1,1 25,100' /%3E%3C/defs%3E%3Ccircle cx='100' cy='100' r='90' fill='none' stroke='%23B8860B' stroke-width='2' /%3E%3Ccircle cx='100' cy='100' r='85' fill='none' stroke='%23B8860B' stroke-width='1' /%3E%3Ccircle cx='100' cy='100' r='65' fill='none' stroke='%23B8860B' stroke-width='1' stroke-dasharray='2,2' /%3E%3Ctext fill='%23B8860B' font-family='Times New Roman, serif' font-weight='bold' font-size='14' letter-spacing='3'%3E%3CtextPath href='%23textPath' startOffset='0' text-anchor='middle'%3E* CERTIFICACIÓN OFICIAL * VALIDADA *%3C/textPath%3E%3C/text%3E%3Cpath d='M100,45 L100,155 M45,100 L155,100' stroke='%23B8860B' stroke-width='0.5' opacity='0.3'/%3E%3Cpath d='M100,55 L120,80 L100,145 L80,80 Z' fill='none' stroke='%23B8860B' stroke-width='1.5' /%3E%3C/svg%3E"); filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2)); opacity: 0.9; }
+
+        /* ACTIONS GRID */
+        .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
+        .action-card { background: white; padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-decoration: none; color: #333; cursor: pointer; }
+        .action-card:active { transform: scale(0.98); }
+        .action-icon { font-size: 24px; color: var(--primary); margin-bottom: 8px; display: block; }
+        .action-title { font-size: 14px; font-weight: 700; }
+        .footer-brand { margin-top: auto; text-align: center; padding: 20px; font-size: 11px; color: #999; }
+        #msg-error { color: #d32f2f; margin-top: 15px; font-weight: bold; display: none; }
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: none; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .curso-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid var(--primary); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .curso-card:active { transform: scale(0.98); }
+
+        /* LEGAL MODAL */
+        .legal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); z-index: 9999; display: flex; justify-content: center; align-items: flex-end; padding: 0; opacity: 0; pointer-events: none; transition: 0.3s; }
+        .legal-overlay.active { opacity: 1; pointer-events: all; }
+        .legal-box { background: white; width: 100%; max-width: 500px; border-radius: 20px 20px 0 0; padding: 30px 25px; box-shadow: 0 -10px 40px rgba(0,0,0,0.5); animation: slideUp 0.4s ease; max-height: 90vh; overflow-y: auto; }
+        @media(min-width: 768px) { .legal-overlay { align-items: center; padding: 20px; } .legal-box { border-radius: 20px; } }
+        .legal-title { font-size: 18px; font-weight: 900; color: var(--primary); margin-bottom: 15px; line-height: 1.3; }
+        .legal-text { font-size: 13px; color: #444; line-height: 1.6; margin-bottom: 20px; text-align: justify; }
+        .legal-list { margin-bottom: 20px; padding-left: 15px; }
+        .legal-list li { font-size: 13px; color: #444; margin-bottom: 8px; }
+        .consent-label { display: flex; align-items: flex-start; gap: 10px; padding: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; cursor: pointer; margin-bottom: 20px; }
+        .consent-checkbox { width: 20px; height: 20px; accent-color: var(--primary); margin-top: 2px; }
+        .consent-text { font-size: 12px; font-weight: 700; color: #222; }
+        .btn-accept { width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; background: #ccc; color: #666; cursor: not-allowed; transition: 0.3s; }
+        .btn-accept.ready { background: linear-gradient(135deg, var(--primary), #001a66); color: white; cursor: pointer; box-shadow: 0 10px 20px rgba(0, 51, 204, 0.3); }
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* PROMOS, EVENTOS Y SEMINARIOS */
+        .promo-banner { background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%); border: 0; position: relative; overflow: hidden; border-radius: 16px; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15); margin-top: 25px; cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease; border: 1px solid rgba(59, 130, 246, 0.2); }
+        .promo-banner:active { transform: scale(0.98); }
+        .promo-badge { background: linear-gradient(90deg, #3b82f6, #2563eb); color: white; padding: 6px 15px; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; display: inline-flex; align-items: center; gap: 5px; border-bottom-right-radius: 12px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); }
+        .promo-content { padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; z-index: 2; position: relative; }
+        .promo-title { font-size: 17px; font-weight: 900; color: #1e3a8a; line-height: 1.2; margin-bottom: 6px; }
+        .promo-desc { font-size: 13px; color: #475569; font-weight: 500; }
+        .promo-icon { font-size: 28px; color: #3b82f6; background: rgba(59, 130, 246, 0.1); width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; border-radius: 50%; }
+        .shine-effect { position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(to right, transparent, rgba(255,255,255,0.8), transparent); transform: skewX(-20deg); animation: shine 3s infinite; }
+        @keyframes shine { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
+        
+        .carousel-container { display: flex; overflow-x: auto; gap: 15px; padding: 0 5px 20px 5px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; margin-top: 10px; }
+        .carousel-item { min-width: 85%; scroll-snap-align: center; flex-shrink: 0; margin-top: 0 !important; }
+        .carousel-container::-webkit-scrollbar { display: none; }
+        .section-header { font-size: 13px; font-weight: 900; color: #666; margin: 25px 0 10px 5px; text-transform: uppercase; letter-spacing: 1px; display: flex; justify-content: space-between; align-items: center; }
+        .event-card { background: white; border-radius: 12px; padding: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 4px solid var(--primary); margin-bottom: 10px; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: 0.2s; }
+        .event-card:active { transform: scale(0.98); background: #f8f9fa; }
+        .event-date { background: #f0f4ff; color: var(--primary); padding: 8px 12px; border-radius: 8px; text-align: center; font-weight: 900; font-size: 14px; min-width: 60px; }
+        .event-info { flex: 1; }
+        .event-title { font-size: 14px; font-weight: 800; color: #222; margin-bottom: 3px; line-height: 1.2; }
+        .event-desc { font-size: 11px; color: #666; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        .seminario-card { background: linear-gradient(145deg, #1a1a1a, #2c2c2c); color: white; border-radius: 12px; overflow: hidden; position: relative; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .seminario-content { padding: 15px; }
+        .sem-badge { position: absolute; top: 10px; right: 10px; background: #e50914; color: white; font-size: 9px; font-weight: 900; padding: 3px 8px; border-radius: 4px; }
+        .sem-title { font-size: 16px; font-weight: 700; margin-bottom: 5px; }
+        .sem-price { font-size: 18px; font-weight: 900; color: #4ade80; margin-top: 8px; }
+        .btn-sem { width: 100%; margin-top: 10px; padding: 10px; background: white; color: black; border: none; font-weight: 900; border-radius: 6px; cursor: pointer; }
+        .btn-sem:active { transform: scale(0.98); }
+
+        /* CORRECCIÓN VITAL PARA QUE EL PDF DEL ANALÍTICO NO SALGA EN BLANCO */
+        #ghost-container { position: absolute; top: 0; left: 0; z-index: -9999; opacity: 0; pointer-events: none; overflow: visible; }
+    </style>
+</head>
+<body>
+
+    <header class="app-header">
+        <img src="https://vxggatcfrywyodovjwxj.supabase.co/storage/v1/object/public/logos-instituciones/Asari%20Logo.jpg" id="app-logo" class="app-logo" alt="Logo">
+        <div class="header-actions" id="wallet-header-actions" style="display:none;">
+            <div class="btn-bell" onclick="abrirNotificaciones()">
+                <i class="far fa-bell"></i>
+                <div id="notif-badge" class="bell-badge" style="display:none;">0</div>
+            </div>
+        </div>
+    </header>
+
+    <div id="screen-login" class="screen active">
+        <div class="login-container">
+            <h1 class="login-title">Acceso Alumnos</h1>
+            <p class="login-desc">Ingresa tu DNI para acceder.</p>
+            <div class="input-group"><i class="fas fa-id-card input-icon"></i><input type="tel" id="input-dni" class="input-dni" placeholder="Número de DNI" autocomplete="off"></div>
+            <button class="btn-main" onclick="ingresar()" id="btn-ingresar"><span id="btn-text">INGRESAR</span><div id="loader" class="loader"></div></button>
+            <div id="msg-error"></div>
+        </div>
+        <div class="footer-brand">POWERED BY <strong>ASARI PLATFORM</strong></div>
+    </div>
+
+    <div id="screen-upload" class="screen">
+        <div class="login-container">
+            <h1 class="login-title">Foto de Perfil</h1>
+            <p class="login-desc">Sube una foto clara para tu credencial.</p>
+            <label class="upload-area">
+                <div class="upload-icon"><i class="fas fa-camera"></i></div>
+                <div id="txt-upload">Tocar para subir</div>
+                <input type="file" id="input-foto-alumno" accept="image/*" style="display:none;" onchange="previsualizarFoto()">
+                <img id="preview-upload" src="">
+            </label>
+            <button class="btn-main" id="btn-subir" onclick="subirFoto()" style="display:none;">GUARDAR</button>
+            <div id="upload-loader" class="loader"></div>
+        </div>
+    </div>
+
+    <div id="screen-selector" class="screen">
+        <div class="wallet-welcome"><div class="welcome-name">Mis Cursos</div></div>
+        <div id="lista-cursos-container"></div>
+        <div class="action-card" onclick="cerrarSesion()" style="margin-top:20px; background: #fff0f0;"><span class="action-title" style="color: #d32f2f;">Salir</span></div>
+        <div class="footer-brand">Validado por <strong>ASARI</strong></div>
+    </div>
+
+    <div id="screen-wallet" class="screen">
+        <div class="wallet-welcome">
+            <div><div class="welcome-sub">Bienvenido/a</div><div class="welcome-name" id="user-name">...</div></div>
+            <img src="" id="user-avatar-wallet" class="user-avatar-mini" style="display:none;">
+        </div>
+        
+        <div class="card-viewport" id="card-viewport"><div id="carnet-render"></div></div>
+        
+        <div class="view-toggles">
+            <div class="btn-toggle active" id="btn-toggle-front" onclick="cambiarVistaCarnet('front')"><i class="fas fa-id-card"></i> FRENTE</div>
+            <div class="btn-toggle" id="btn-toggle-back" onclick="cambiarVistaCarnet('back')"><i class="fas fa-undo"></i> DORSO</div>
+            <div class="btn-toggle" id="btn-toggle-legal" onclick="cambiarVistaCarnet('legal')"><i class="fas fa-file-contract"></i> ALCANCE</div>
+        </div>
+
+        <div id="premium-section"></div>
+
+        <div class="actions-grid">
+            <div class="action-card" onclick="descargarCarnetCompleto()"><span class="action-icon"><i class="fas fa-id-card"></i></span><span class="action-title">Descargar Carnet</span></div>
+            <div class="action-card" id="btn-descargar-diploma" style="display:none;" onclick="descargarDiploma()"><span class="action-icon"><i class="fas fa-certificate"></i></span><span class="action-title">Descargar Diploma</span></div>
+            
+            <div class="action-card" id="btn-descargar-analitico" style="display:none;" onclick="descargarAnalitico()"><span class="action-icon"><i class="fas fa-file-invoice"></i></span><span class="action-title">Descargar Analítico</span></div>
+
+            <div class="action-card" onclick="abrirSoporte()"><span class="action-icon"><i class="fab fa-whatsapp" style="color:#25D366;"></i></span><span class="action-title">Soporte Alumno</span></div>
+            <div id="btn-install-app" class="action-card" onclick="instalarApp()"><span class="action-icon"><i class="fas fa-mobile-alt" style="color:#333;"></i></span><span class="action-title">Instalar App</span></div>
+
+            <div class="action-card" id="btn-cambiar-curso" style="display:none;" onclick="volverAlSelector()"><span class="action-icon" style="color:#666"><i class="fas fa-exchange-alt"></i></span><span class="action-title">Cambiar</span></div>
+            <div class="action-card" onclick="cerrarSesion()"><span class="action-icon"><i class="fas fa-sign-out-alt" style="color:#d32f2f;"></i></span><span class="action-title">Salir</span></div>
+        </div>
+        
+        <div class="footer-brand">Soporte y Seguridad<br><strong>ASARI PLATFORM</strong></div>
+    </div>
+
+    <div id="legal-modal" class="legal-overlay">
+        <div class="legal-box">
+            <div class="legal-title">Aviso de Privacidad y Consentimiento Digital</div>
+            <div class="legal-text">
+                Al continuar, usted acepta que sus datos personales (Nombre, DNI y registro académico) sean procesados por <strong>ASARI S.A.S.</strong>, en su carácter de prestador tecnológico del Instituto Colbert, con la exclusiva finalidad de emitir, gestionar y validar su certificación digital mediante tecnología Blockchain.
+            </div>
+            <ul class="legal-list">
+                <li><strong>1.</strong> ASARI S.A.S. actúa únicamente como soporte técnico y emisor de la infraestructura digital.</li>
+                <li><strong>2.</strong> Sus datos serán utilizados para generar un código QR de validación pública.</li>
+                <li><strong>3.</strong> La revocación de este consentimiento implicará la baja automática de su credencial digital.</li>
+            </ul>
+            <label class="consent-label">
+                <input type="checkbox" id="check-legal" class="consent-checkbox">
+                <span class="consent-text">He leído y acepto los Términos de Uso y la Política de Protección de Datos.</span>
+            </label>
+            <button id="btn-legal-accept" class="btn-accept" disabled>CONTINUAR</button>
+        </div>
+    </div>
+
+    <div id="notif-modal" class="legal-overlay">
+        <div class="legal-box">
+            <div class="legal-title">🔔 Centro de Novedades</div>
+            <div id="lista-notificaciones" style="max-height: 400px; overflow-y: auto;">
+                <div style="text-align:center; padding: 20px; color:#999;">Cargando novedades...</div>
+            </div>
+            <button onclick="document.getElementById('notif-modal').classList.remove('active')" class="btn-main" style="margin-top:15px; width:100%;">ENTENDIDO</button>
+        </div>
+    </div>
+
+    <div id="ghost-container"></div>
+
+    <script>
+        (function() {
+            const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
+            const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
+            const URL_WEB = 'https://asari-platform.vercel.app'; 
+            const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
+            
+            const WHATSAPP_NUMERO = '5492245602445';
+            const LINK_MERCADO_PAGO = "https://mpago.la/24q6RuZ"; 
+            
+            const LOGO_ASARI_DEFAULT = "https://vxggatcfrywyodovjwxj.supabase.co/storage/v1/object/public/logos-instituciones/Asari%20Logo.jpg"; 
+            const URL_REVERSO = "./reverso.jpg"; 
+            const URL_DOC_LEGAL = "legal.jpg";
+
+            const COLOR_DEFAULT = "#b8860b"; 
+            
+            const COLORES_REGISTRO = { 
+                'remaep': '#0033cc', 
+                'rubra': '#cc0000', 
+                'rniue': '#b8860b', 
+                'remets': '#1a1a1a', 
+                'rmts': '#1a1a1a',
+                'rpdye': '#0099ff', 
+                'rpde': '#0099ff',
+                'rce': '#ff6600',
+                'asarin': '#800000', 
+                'colbert': '#2f4f4f', 
+                'default': '#0033cc' 
+            };
+
+            const CARNET_HTML = `
+                <div class="card-base" id="card-base-el">
+                    <div class="front-left" id="panel-izq-bg">
+                        <img id="img-foto" class="student-photo" src="" crossorigin="anonymous">
+                        <div class="rect-banda" id="banda-color"></div>
+                        <div class="qr-container" id="qr-container"></div>
+                        <div class="reg-sigla" id="txt-sigla">REGISTRO</div>
+                    </div>
+                    <div class="front-right" id="bg-panel">
+                        <div class="holo-layer"></div>
+                        <div class="live-shimmer"></div>
+                        
+                        <div id="vencido-overlay" class="overlay-vencido" style="display:none;">
+                            <div class="texto-vencido">VENCIDO</div>
+                            <div style="font-size: 20px; font-weight: bold; margin-top: 10px;">EXPIRÓ SU VIGENCIA</div>
+                        </div>
+
+                        <div id="suspendido-overlay" class="overlay-vencido" style="display:none; background: rgba(50, 0, 0, 0.9);">
+                            <div class="texto-vencido" style="font-size: 55px; border-color: #ef4444; color: #ef4444;">SUSPENDIDO</div>
+                            <div style="font-size: 14px; font-weight: bold; margin-top: 10px; color: white;">MATRÍCULA INACTIVA</div>
+                        </div>
+
+                        <div class="front-content">
+                            <div class="header"><span class="header-text" id="txt-anio-header">CARNET</span></div>
+                            
+                            <div class="course-container">
+                                <div class="watermark-layer" id="watermark-container"></div>
+                                <div class="course-title-main" id="txt-titulo-main">CURSO</div>
+                                <div class="course-title-sub" id="txt-titulo-sub">PROFESIONAL</div>
+                            </div>
+
+                            <div class="student-name" id="txt-nombre" style="white-space: nowrap;">---</div>
+                            <div class="data-grid">
+                                <div class="icon-box">✱</div><div class="data-box"><span class="label-text">DNI:</span><span class="value-text" id="txt-dni">---</span></div>
+                                <div class="icon-box">#</div><div class="data-box"><span class="label-text">MATRÍCULA:</span><span class="value-text" id="txt-matricula">---</span></div>
+                                <div class="icon-box">🚨</div><div class="data-box"><span class="label-text">VENCE:</span><span class="value-text" id="txt-vence">---</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+
+            const CARNET_BACK_HTML = `<img src="${URL_REVERSO}" class="carnet-back-img" id="carnet-back-img" crossorigin="anonymous">`;
+
+            let globalColorTema = COLOR_DEFAULT; 
+            let globalMatriculas = [];
+            let alumnoActual = null; 
+            let cursoActualData = null;
+            let globalInstitucion = null; 
+            let deferredPrompt; 
+            let notificacionesCache = [];
+
+            // Elementos DOM
+            const appLogo = document.getElementById('app-logo');
+            const walletHeaderActions = document.getElementById('wallet-header-actions');
+            const screenLogin = document.getElementById('screen-login');
+            const screenUpload = document.getElementById('screen-upload');
+            const screenSelector = document.getElementById('screen-selector');
+            const screenWallet = document.getElementById('screen-wallet');
+            const legalModal = document.getElementById('legal-modal');
+            const notifModal = document.getElementById('notif-modal');
+            const ghostContainer = document.getElementById('ghost-container');
+            const inputDni = document.getElementById('input-dni');
+            const msgError = document.getElementById('msg-error');
+            const btnIngresar = document.getElementById('btn-ingresar');
+            const btnText = document.getElementById('btn-text');
+            const loader = document.getElementById('loader');
+            const userName = document.getElementById('user-name');
+            const userAvatarWallet = document.getElementById('user-avatar-wallet');
+            const carnetRender = document.getElementById('carnet-render');
+            const cardViewport = document.getElementById('card-viewport');
+            const premiumSection = document.getElementById('premium-section');
+            const btnCambiarCurso = document.getElementById('btn-cambiar-curso');
+            const btnDiploma = document.getElementById('btn-descargar-diploma');
+            const btnAnalitico = document.getElementById('btn-descargar-analitico');
+            const notifBadge = document.getElementById('notif-badge');
+            const listaNotificaciones = document.getElementById('lista-notificaciones');
+
+            appLogo.src = LOGO_ASARI_DEFAULT;
+            document.documentElement.style.setProperty('--primary', COLOR_DEFAULT);
+            window.addEventListener('resize', ajustarCarnetResponsivo);
+
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+            });
+
+            // Funciones globales
+            window.instalarApp = function() {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.finally(() => deferredPrompt = null);
+                } else {
+                    alert("Para instalar en iPhone:\n1. Toca el botón 'Compartir' (cuadrado con flecha)\n2. Selecciona 'Agregar a Inicio'");
+                }
+            };
+
+            window.abrirSoporte = function() {
+                const msg = `Hola, soy alumno (DNI: ${alumnoActual?.dni_alumno || ''}). Tengo una consulta sobre mi credencial.`;
+                window.open(`https://wa.me/${WHATSAPP_NUMERO}?text=${encodeURIComponent(msg)}`, '_blank');
+            };
+
+            window.ingresar = async function() {
+                const params = new URLSearchParams(window.location.search);
+                const dniUrl = params.get('dni');
+                const dni = dniUrl || inputDni.value.trim();
+                
+                if(dniUrl && inputDni) inputDni.value = dni;
+                if(!dni) return;
+
+                btnText.style.display = 'none';
+                loader.style.display = 'block';
+                btnIngresar.disabled = true;
+                if(msgError) msgError.style.display = 'none';
+                
+                try {
+                    const { data: matriculas, error } = await db.from('matriculas').select('*').eq('dni_alumno', dni);
+                    if (error) throw error;
+                    if (!matriculas?.length) throw new Error("No encontrado");
+                    
+                    const fotoEncontrada = matriculas.find(m => m.foto_url)?.foto_url;
+                    if (fotoEncontrada) matriculas.forEach(m => m.foto_url = fotoEncontrada);
+                    
+                    globalMatriculas = matriculas;
+                    const alumno = matriculas[0];
+
+                    if(alumno.institution_id) {
+                        const { data: dataInst } = await db
+                            .from('instituciones')
+                            .select('logo_url, fondo_wallet_url, reverso_url, alcance_url, color_texto_diploma')
+                            .eq('id', alumno.institution_id)
+                            .maybeSingle();
+                        
+                        if(dataInst) {
+                            globalInstitucion = dataInst; 
+                            if (dataInst.logo_url) {
+                                appLogo.src = dataInst.logo_url;
+                            }
+                        }
+                    }
+
+                    verificarConsentimiento(dni, () => {
+                        procesarSiguientePantalla(matriculas);
+                    });
+
+                } catch (err) {
+                    if(msgError) {
+                        msgError.style.display = 'block'; 
+                        msgError.innerText = "Error: " + err.message;
+                    }
+                    if(dniUrl) window.history.replaceState({}, document.title, window.location.pathname);
+                } finally {
+                    btnText.style.display = 'block'; 
+                    loader.style.display = 'none';
+                    btnIngresar.disabled = false;
+                }
+            };
+
+            // Auto-ejecutar si hay DNI en URL
+            document.addEventListener('DOMContentLoaded', () => {
+                const params = new URLSearchParams(window.location.search);
+                if(params.get('dni')) {
+                    setTimeout(window.ingresar, 500); 
+                }
+            });
+
+            function procesarSiguientePantalla(matriculas) {
+                const alumno = matriculas[0];
+                if (!alumno.foto_url) {
+                    alumnoActual = alumno;
+                    mostrarPantalla('screen-upload');
+                } else {
+                    if (matriculas.length === 1) {
+                        cargarWallet(matriculas[0]);
+                        mostrarPantalla('screen-wallet');
+                    } else {
+                        generarListaCursos(matriculas);
+                        mostrarPantalla('screen-selector');
+                    }
+                }
+            }
+
+            function verificarConsentimiento(dni, callback) {
+                const hasConsented = localStorage.getItem(`asari_consent_${dni}`);
+                if (hasConsented) { 
+                    callback(); 
+                } else {
+                    const check = document.getElementById('check-legal');
+                    const btnAccept = document.getElementById('btn-legal-accept');
+                    legalModal.classList.add('active');
+                    
+                    const handleCheck = function() {
+                        if(this.checked) { 
+                            btnAccept.classList.add('ready'); 
+                            btnAccept.disabled = false; 
+                        } else { 
+                            btnAccept.classList.remove('ready'); 
+                            btnAccept.disabled = true; 
+                        }
+                    };
+                    
+                    check.addEventListener('change', handleCheck);
+                    
+                    btnAccept.onclick = function() {
+                        if(!check.checked) return;
+                        localStorage.setItem(`asari_consent_${dni}`, 'true');
+                        legalModal.classList.remove('active');
+                        check.removeEventListener('change', handleCheck);
+                        callback(); 
+                    };
+                }
+            }
+
+            async function comprimirImagen(file, quality = 0.8, maxWidth = 800) {
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = (event) => {
+                        const img = new Image();
+                        img.src = event.target.result;
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            let width = img.width;
+                            let height = img.height;
+                            if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; }
+                            canvas.width = width; canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+                            canvas.toBlob((blob) => {
+                                resolve(new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", { type: 'image/jpeg' }));
+                            }, 'image/jpeg', quality);
+                        };
+                    };
+                });
+            }
+
+            window.previsualizarFoto = function() { 
+                const file = document.getElementById('input-foto-alumno').files[0]; 
+                if(file) { 
+                    const reader = new FileReader(); 
+                    reader.onload = function(e) { 
+                        document.getElementById('preview-upload').src = e.target.result; 
+                        document.getElementById('preview-upload').style.display = 'block'; 
+                        document.getElementById('txt-upload').style.display = 'none'; 
+                        document.getElementById('btn-subir').style.display = 'block'; 
+                    }; 
+                    reader.readAsDataURL(file); 
+                } 
+            };
+            
+            window.subirFoto = async function() { 
+                const fileInput = document.getElementById('input-foto-alumno');
+                if (!fileInput.files[0]) return; 
+                const btn = document.getElementById('btn-subir'); 
+                const loader = document.getElementById('upload-loader'); 
+                btn.style.display = 'none'; 
+                loader.style.display = 'block'; 
+                try { 
+                    const file = await comprimirImagen(fileInput.files[0]); 
+                    const fileName = `${alumnoActual.dni_alumno}_${Date.now()}.jpg`; 
+                    const { error } = await db.storage.from('fotos-alumnos').upload(fileName, file); 
+                    if (error) throw error; 
+                    const { data: urlData } = db.storage.from('fotos-alumnos').getPublicUrl(fileName); 
+                    await db.from('matriculas').update({ foto_url: urlData.publicUrl }).eq('dni_alumno', alumnoActual.dni_alumno); 
+                    alumnoActual.foto_url = urlData.publicUrl; 
+                    globalMatriculas.forEach(m => m.foto_url = urlData.publicUrl); 
+                    alert("¡Foto guardada!"); 
+                    if (globalMatriculas.length === 1) { 
+                        cargarWallet(alumnoActual); 
+                        mostrarPantalla('screen-wallet'); 
+                    } else { 
+                        generarListaCursos(globalMatriculas); 
+                        mostrarPantalla('screen-selector'); 
+                    } 
+                } catch (err) { 
+                    alert("Error: " + err.message); 
+                    btn.style.display = 'block'; 
+                } finally { 
+                    loader.style.display = 'none'; 
+                } 
+            };
+            
+            function generarListaCursos(matriculas) { 
+                const container = document.getElementById('lista-cursos-container'); 
+                container.innerHTML = ''; 
+                matriculas.forEach((m) => { 
+                    const card = document.createElement('div'); 
+                    card.className = 'curso-card'; 
+                    const idReg = (m.registro_id || 'default').toLowerCase();
+                    const color = COLORES_REGISTRO[idReg] || COLORES_REGISTRO.default;
+                    card.style.borderLeftColor = color; 
+                    card.innerHTML = `<div class="curso-info"><h4>${m.curso || 'Curso'}</h4><p>${(m.registro_id || '').toUpperCase()} • ${new Date(m.fecha_inicio).getFullYear()}</p></div><div><i class="fas fa-chevron-right" style="color:#ccc"></i></div>`; 
+                    card.onclick = () => { 
+                        cargarWallet(m); 
+                        mostrarPantalla('screen-wallet'); 
+                    }; 
+                    container.appendChild(card); 
+                }); 
+            }
+
+            window.cambiarVistaCarnet = function(vista) {
+                document.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
+                document.getElementById(`btn-toggle-${vista}`).classList.add('active');
+
+                if (vista === 'front') {
+                    carnetRender.innerHTML = CARNET_HTML;
+                    llenarDatosCarnet(alumnoActual, globalColorTema);
+                } else if (vista === 'back') {
+                    const imgReverso = globalInstitucion?.reverso_url || URL_REVERSO;
+                    carnetRender.innerHTML = `<img src="${imgReverso}" style="width:1011px; height:638px; object-fit:cover; border-radius:40px; border:5px solid ${globalColorTema || '#0033cc'}" crossorigin="anonymous">`;
+                } else if (vista === 'legal') {
+                    const imgLegal = globalInstitucion?.alcance_url || URL_DOC_LEGAL;
+                    carnetRender.innerHTML = `<img src="${imgLegal}" style="width:1011px; height:638px; object-fit:contain; background:white; border-radius:40px; border:5px solid #ccc;" crossorigin="anonymous">`;
+                }
+                setTimeout(ajustarCarnetResponsivo, 50);
+            };
+            
+            async function cargarWallet(alumno) {
+                alumnoActual = alumno; 
+                userName.innerText = alumno.nombre.split(' ')[0];
+                if(alumno.foto_url) { 
+                    userAvatarWallet.src = alumno.foto_url; 
+                    userAvatarWallet.style.display = 'block'; 
+                }
+                btnCambiarCurso.style.display = globalMatriculas.length > 1 ? 'flex' : 'none';
+
+                cursoActualData = null; 
+                await checkPaymentReturn(alumno.id);
+
+                let colorDinamico = null;
+                if(alumno.registro_id) {
+                    try {
+                        const { data: regData } = await db.from('instituciones').select('color_tema').ilike('sigla', alumno.registro_id).maybeSingle();
+                        if(regData?.color_tema) colorDinamico = regData.color_tema;
+                    } catch(e) {}
+                }
+
+                // CARGAR DATOS DE CURSO
+                const { data: cursosEncontrados } = await db.from('cursos_oficiales').select('*').eq('nombre', alumno.curso);
+                if (cursosEncontrados?.length > 0) {
+                    let candidato = cursosEncontrados.find(c => c.institution_id === alumno.institution_id);
+                    if (!candidato) candidato = cursosEncontrados.find(c => !c.institution_id);
+                    if (!candidato) candidato = cursosEncontrados[0];
+                    cursoActualData = candidato;
+                } 
+
+                carnetRender.innerHTML = CARNET_HTML; 
+                llenarDatosCarnet(alumno, colorDinamico); 
+                
+                document.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
+                document.getElementById('btn-toggle-front').classList.add('active');
+
+                registrarAcceso(alumno);
+                renderPremiumSection(alumno);
+                
+                await Promise.all([
+                    cargarContenidosExtra(alumno),
+                    cargarNotificacionesSistema()
+                ]);
+
+                btnDiploma.style.display = (cursoActualData?.diploma_bg_url) ? 'block' : 'none';
+                btnAnalitico.style.display = (cursoActualData?.analitico_bg_url) ? 'block' : 'none';
+
+                setTimeout(ajustarCarnetResponsivo, 100);
+            }
+
+            function renderPremiumSection(alumno) {
+                if (!premiumSection) return;
+                
+                if (alumno.premium) {
+                    const nombreCurso = (alumno.curso || "").toLowerCase();
+                    const esSalud = nombreCurso.match(/param|med|enferm|resca|auxiliar|salud/i);
+                    
+                    let botonesKit = `
+                        <div class="btn-doc" onclick="generarCartaRecomendacion()"><i class="fas fa-file-contract"></i> Carta Recomendación</div>
+                        <div class="btn-doc" onclick="generarTextoIA('cv')"><i class="fas fa-file-alt"></i> Redactar CV</div>
+                    `;
+
+                    if (esSalud) {
+                        botonesKit += `
+                        <div class="btn-doc" onclick="generarNegativaAtencion()"><i class="fas fa-user-slash"></i> Negativa Atención</div>
+                        <div class="btn-doc" onclick="generarConsentimiento()"><i class="fas fa-hand-holding-medical"></i> Consentimiento</div>
+                        `;
+                    }
+
+                    premiumSection.innerHTML = `
+                    <div class="premium-box" style="background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);">
+                        <div class="premium-badge" style="background: #00ff88;">PREMIUM ACTIVO</div>
+                        <div class="premium-title"><i class="fas fa-briefcase"></i> Kit Profesional</div>
+                        <div class="premium-desc">Herramientas digitales activadas para tu perfil de <b>${esSalud ? 'SALUD / EMERGENCIAS' : 'PROFESIONAL'}</b>.</div>
+                        <div class="docs-grid">${botonesKit}</div>
+                    </div>`;
+                } else {
+                    premiumSection.innerHTML = `
+                    <div class="premium-box">
+                        <div class="premium-badge"><i class="fas fa-lock"></i> PRO</div>
+                        <div class="premium-title">Kit de Empleabilidad</div>
+                        <div class="premium-desc">Desbloquea documentos legales, plantillas de consentimiento y carta de recomendación automática.</div>
+                        <button class="btn-pay" onclick="iniciarPago()"><i class="fas fa-bolt"></i> DESBLOQUEAR POR $5.000</button>
+                    </div>`;
+                }
+            }
+
+            // Funciones de generación de PDF
+            function getCommonPDF() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const nombre = alumnoActual.nombre + " " + alumnoActual.apellido;
+                const dni = alumnoActual.dni_alumno;
+                const curso = alumnoActual.curso;
+                const fecha = new Date().toLocaleDateString();
+                return { doc, nombre, dni, curso, fecha };
+            }
+
+            window.generarCartaRecomendacion = function() {
+                const { doc, nombre, dni, curso, fecha } = getCommonPDF();
+                doc.setFont("helvetica", "bold"); doc.setFontSize(20);
+                doc.text("CARTA DE RECOMENDACIÓN", 105, 30, null, null, "center");
+                doc.setFontSize(12); doc.setFont("helvetica", "normal");
+                const texto = `A quien corresponda,\n\nPor medio de la presente, certificamos que ${nombre} (DNI: ${dni}) ha completado satisfactoriamente el curso de formación profesional en "${curso}".\n\nDurante su formación, ha demostrado compromiso, responsabilidad y aptitudes destacadas en el área. La validación de sus competencias se encuentra registrada mediante tecnología Blockchain, garantizando la autenticidad de su certificación.\n\nSe extiende la presente recomendación para los fines que el interesado considere oportunos.\n\nAtentamente,\n\nDirección Académica\n${cursoActualData?.institucion_id || 'ASARI Platform'}\nFecha: ${fecha}`;
+                doc.text(texto, 20, 50, { maxWidth: 170, align: "justify" });
+                doc.save(`Carta_Recomendacion_${dni}.pdf`);
+            };
+
+            window.generarNegativaAtencion = function() {
+                const { doc, nombre, dni, curso, fecha } = getCommonPDF();
+                doc.setFont("helvetica", "bold"); doc.setFontSize(18);
+                doc.text("DESISTIMIENTO / NEGATIVA DE ATENCIÓN", 105, 25, null, null, "center");
+                doc.setFontSize(10); doc.setFont("helvetica", "normal");
+                doc.text(`Profesional Interviniente: ${nombre} - ${curso}`, 20, 40);
+                doc.text(`Fecha y Hora: ${fecha} _____ : _____`, 20, 46);
+                const legal = `Yo, __________________________________________ (DNI: __________________), en pleno uso de mis facultades, RECHAZO la asistencia, tratamiento y/o traslado ofrecido por el personal de salud presente, asumiendo total responsabilidad por las consecuencias médico-legales de mi decisión.\n\nSe me ha informado de los riesgos potenciales para mi salud e integridad física al rechazar la atención.`;
+                doc.text(legal, 20, 60, { maxWidth: 170 });
+                doc.rect(20, 100, 80, 40); doc.text("Firma Paciente", 35, 135);
+                doc.rect(110, 100, 80, 40); doc.text("Firma Testigo / Familiar", 125, 135);
+                doc.save(`Negativa_Atencion_Plantilla.pdf`);
+            };
+
+            window.generarConsentimiento = function() {
+                const { doc, nombre, dni, curso, fecha } = getCommonPDF();
+                doc.setFont("helvetica", "bold"); doc.setFontSize(18);
+                doc.text("CONSENTIMIENTO INFORMADO", 105, 25, null, null, "center");
+                doc.setFontSize(11); doc.setFont("helvetica", "normal");
+                const texto = `Por la presente, autorizo a ${nombre} a realizar el procedimiento de ___________________________________.\n\nDeclaro haber recibido información clara y comprensible sobre la naturaleza del procedimiento, sus beneficios, riesgos y alternativas.\n\nEntiendo que puedo revocar este consentimiento en cualquier momento antes del inicio del procedimiento.`;
+                doc.text(texto, 20, 50, { maxWidth: 170 });
+                doc.line(20, 130, 90, 130); doc.text("Firma del Paciente", 20, 136);
+                doc.line(110, 130, 180, 130); doc.text("Firma del Profesional", 110, 136);
+                doc.save(`Consentimiento_Plantilla.pdf`);
+            };
+
+            window.generarTextoIA = function(tipo) { 
+                const t = tipo === 'linkedin' ? `🚀 ¡Meta Cumplida!\nCertificado como ${alumnoActual.curso}.` : `PERFIL PROFESIONAL:\nCertificado como ${alumnoActual.curso}.`; 
+                navigator.clipboard.writeText(t).then(() => alert("¡Copiado!")); 
+            };
+
+            async function cargarNotificacionesSistema() {
+                try {
+                    const [resRutas, resSem] = await Promise.all([
+                        db.from('rutas_carrera').select('*').eq('activo', true).order('created_at', {ascending:false}).limit(5),
+                        db.from('seminarios').select('*').order('created_at', {ascending:false}).limit(3)
+                    ]);
+                    const noticias = [];
+                    
+                    if(resRutas.data) {
+                        resRutas.data.forEach(item => {
+                            if(item.curso_origen === 'TODOS' || item.curso_origen === alumnoActual.curso) {
+                                noticias.push({ 
+                                    tipo: item.tipo?.includes('Evento') ? 'EVENTO' : 'CURSO', 
+                                    titulo: item.titulo_oferta, 
+                                    desc: item.beneficio_txt, 
+                                    fecha: new Date(item.created_at), 
+                                    link: item.link_destino 
+                                });
+                            }
+                        });
+                    }
+                    
+                    if(resSem.data) {
+                        resSem.data.forEach(sem => {
+                            noticias.push({ 
+                                tipo: 'SEMINARIO', 
+                                titulo: 'Nuevo Seminario: ' + sem.titulo, 
+                                desc: 'Disponible on-demand.', 
+                                fecha: new Date(sem.created_at), 
+                                link: null 
+                            });
+                        });
+                    }
+                    
+                    const esSalud = (alumnoActual.curso || "").match(/param|med|enferm|resca|auxiliar|salud/i);
+                    if(esSalud && alumnoActual.premium) {
+                        noticias.push({ 
+                            tipo: 'KIT', 
+                            titulo: 'Kit Legal de Salud Activado', 
+                            desc: 'Documentos habilitados en Premium.', 
+                            fecha: new Date(), 
+                            link: null 
+                        });
+                    }
+                    
+                    noticias.sort((a, b) => b.fecha - a.fecha);
+                    notificacionesCache = noticias;
+                    actualizarCampana(noticias);
+                } catch(e) { 
+                    console.error("Error notificaciones:", e); 
+                }
+            }
+
+            function actualizarCampana(noticias) {
+                if (!walletHeaderActions || !notifBadge) return;
+                
+                if (screenWallet.classList.contains('active')) { 
+                    walletHeaderActions.style.display = 'block'; 
+                }
+                
+                const hace7dias = new Date(); 
+                hace7dias.setDate(hace7dias.getDate() - 7);
+                const nuevas = noticias.filter(n => n.fecha > hace7dias).length;
+                
+                if(nuevas > 0) { 
+                    notifBadge.innerText = nuevas; 
+                    notifBadge.style.display = 'flex'; 
+                } else { 
+                    notifBadge.style.display = 'none'; 
+                }
+            }
+
+            window.abrirNotificaciones = function() {
+                listaNotificaciones.innerHTML = "";
+                
+                if(notificacionesCache.length === 0) { 
+                    listaNotificaciones.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">No hay novedades.</div>'; 
+                } else {
+                    notificacionesCache.forEach(n => {
+                        let icono = 'fa-info-circle'; 
+                        let claseTag = 'tag-curso'; 
+                        let accion = '';
+                        
+                        if(n.tipo === 'EVENTO') { 
+                            icono = 'fa-calendar-alt'; 
+                            claseTag = 'tag-evento'; 
+                        }
+                        if(n.tipo === 'SEMINARIO') { 
+                            icono = 'fa-play-circle'; 
+                            claseTag = 'tag-curso'; 
+                        }
+                        if(n.tipo === 'KIT') { 
+                            icono = 'fa-briefcase-medical'; 
+                            claseTag = 'tag-kit'; 
+                        }
+                        
+                        if(n.link) { 
+                            accion = `<div style="text-align:right; margin-top:5px;"><a href="${n.link}" target="_blank" style="font-size:11px; font-weight:bold; color:var(--primary); text-decoration:none;">VER MÁS <i class="fas fa-chevron-right"></i></a></div>`; 
+                        }
+                        
+                        listaNotificaciones.innerHTML += `<div class="notif-item">
+                            <div class="notif-icon"><i class="fas ${icono}"></i></div>
+                            <div class="notif-content" style="flex:1;">
+                                <span class="notif-tag ${claseTag}">${n.tipo}</span>
+                                <h4>${n.titulo}</h4>
+                                <p>${n.desc}</p>
+                                ${accion}
+                                <span class="notif-date">${n.fecha.toLocaleDateString()}</span>
+                            </div>
+                        </div>`;
+                    });
+                }
+                notifModal.classList.add('active');
+            };
+
+            async function cargarContenidosExtra(alumno) {
+                const existingArea = document.getElementById('dynamic-content-area');
+                if (existingArea) existingArea.remove();
+                
+                const mainContainer = document.createElement('div'); 
+                mainContainer.id = 'dynamic-content-area';
+                const actionsGrid = document.querySelector('.actions-grid');
+                if (!actionsGrid) return;
+                
+                actionsGrid.parentNode.insertBefore(mainContainer, actionsGrid);
+                
+                try {
+                    const [anunciosRes, seminariosRes] = await Promise.all([
+                        db.from('rutas_carrera').select('*').eq('activo', true),
+                        db.from('seminarios').select('*').limit(5)
+                    ]);
+                    
+                    const anuncios = anunciosRes.data || [];
+                    const seminarios = seminariosRes.data || [];
+                    
+                    const anunciosRelevantes = anuncios.filter(a => 
+                        a.curso_origen === 'TODOS' || 
+                        a.curso_origen?.toLowerCase() === alumno.curso?.toLowerCase()
+                    );
+                    
+                    const cursos = anunciosRelevantes.filter(a => !a.tipo || !a.tipo.includes('Evento'));
+                    const eventos = anunciosRelevantes.filter(a => a.tipo && a.tipo.includes('Evento'));
+
+                    if (cursos.length > 0) {
+                        const wrapper = document.createElement('div'); 
+                        wrapper.innerHTML = `<div class="section-header"><span>🚀 Recomendado para vos</span></div>`;
+                        const carousel = document.createElement('div'); 
+                        carousel.className = 'carousel-container';
+                        
+                        cursos.forEach(oferta => { 
+                            carousel.innerHTML += `<div class="promo-banner carousel-item" onclick="window.open('${oferta.link_destino}', '_blank')">
+                                <div class="shine-effect"></div>
+                                <div class="promo-badge"><i class="fas fa-star"></i> OFERTA</div>
+                                <div class="promo-content">
+                                    <div style="flex: 1; padding-right: 10px;">
+                                        <div class="promo-title">${oferta.titulo_oferta}</div>
+                                        <div class="promo-desc">${oferta.beneficio_txt}</div>
+                                    </div>
+                                    <div class="promo-icon"><i class="fas fa-chevron-right"></i></div>
+                                </div>
+                            </div>`; 
+                        });
+                        
+                        wrapper.appendChild(carousel); 
+                        mainContainer.appendChild(wrapper);
+                    }
+                    
+                    if (eventos.length > 0) {
+                        const wrapper = document.createElement('div'); 
+                        wrapper.innerHTML = `<div class="section-header"><span>📅 Agenda & Eventos</span></div>`;
+                        
+                        eventos.forEach(ev => { 
+                            const fechaTexto = ev.fecha ? new Date(ev.fecha).toLocaleDateString() : "INFO"; 
+                            wrapper.innerHTML += `<div class="event-card" onclick="window.open('${ev.link_destino}', '_blank')">
+                                <div class="event-date">${fechaTexto.split('/')[0] || '★'}</div>
+                                <div class="event-info">
+                                    <div class="event-title">${ev.titulo_oferta}</div>
+                                    <div class="event-desc">${ev.beneficio_txt}</div>
+                                </div>
+                                <div style="color:#ccc"><i class="fas fa-external-link-alt"></i></div>
+                            </div>`; 
+                        });
+                        
+                        mainContainer.appendChild(wrapper);
+                    }
+                    
+                    if (seminarios.length > 0) {
+                        const wrapper = document.createElement('div'); 
+                        wrapper.innerHTML = `<div class="section-header"><span>🎓 Seminarios On-Demand</span></div>`;
+                        
+                        seminarios.forEach(sem => {
+                            let bgStyle = sem.imagen_url ? 
+                                `background: url('${sem.imagen_url}') center/cover no-repeat;` : 
+                                `background: url('https://img.youtube.com/vi/${sem.id_video}/hqdefault.jpg') center/cover no-repeat;`;
+                            
+                            wrapper.innerHTML += `<div class="seminario-card">
+                                <div style="height: 140px; ${bgStyle} position: relative;">
+                                    <div class="sem-badge">ONLINE</div>
+                                </div>
+                                <div class="seminario-content">
+                                    <div class="sem-title">${sem.titulo}</div>
+                                    <div style="font-size:11px; opacity:0.8;">${sem.descripcion}</div>
+                                    <div class="sem-price">$${sem.precio || '0'}</div>
+                                    <button class="btn-sem" onclick="comprarSeminario('${sem.id}', '${sem.link_pago}')">VER AHORA</button>
+                                </div>
+                            </div>`;
+                        });
+                        
+                        mainContainer.appendChild(wrapper);
+                    }
+                } catch (err) { 
+                    console.log("Error cargando contenidos:", err); 
+                }
+            }
+
+            window.comprarSeminario = function(id, link) { 
+                if(link && link !== '#') window.open(link, '_blank'); 
+                else alert("Inscripción abierta."); 
+            };
+            
+            window.iniciarPago = function() { 
+                if (!LINK_MERCADO_PAGO || LINK_MERCADO_PAGO.includes("AQUI_TU_LINK")) { 
+                    alert("Error de Configuración"); 
+                    return; 
+                } 
+                window.location.href = LINK_MERCADO_PAGO; 
+            };
+            
+            async function checkPaymentReturn(alumnoId) { 
+                const params = new URLSearchParams(window.location.search); 
+                if (params.get('status') === 'approved') { 
+                    try { 
+                        await db.from('matriculas').update({ premium: true }).eq('id', alumnoId);
+                        if (alumnoActual) alumnoActual.premium = true;
+                        alert("¡Pago Exitoso!"); 
+                    } catch(e) { 
+                        console.error("Error actualizando premium:", e);
+                    } 
+                } 
+            }
+            
+            function registrarAcceso(alumno) { 
+                try { 
+                    db.from('logs_accesos').insert({ 
+                        alumno_id: alumno.id, 
+                        curso: alumno.curso, 
+                        fecha: new Date().toISOString() 
+                    }).then(); 
+                } catch(e) { 
+                    console.error("Error registrando acceso:", e);
+                } 
+            }
+            
+            function llenarDatosCarnet(alumno, colorOverride) {
+                const container = carnetRender;
+                const el = (sel) => container.querySelector(sel);
+                
+                const nombreEl = el('#txt-nombre'); 
+                nombreEl.innerText = `${alumno.nombre} ${alumno.apellido}`;
+                el('#txt-dni').innerText = new Intl.NumberFormat('es-AR').format(alumno.dni_alumno);
+                el('#txt-matricula').innerText = generarHashMatricula(String(alumno.dni_alumno));
+                
+                const fechaInicio = alumno.fecha_inicio ? new Date(alumno.fecha_inicio) : new Date(); 
+                el('#txt-anio-header').innerText = `CARNET ${fechaInicio.getFullYear()}`;
+                
+                let vence = alumno.fecha_vencimiento ? new Date(alumno.fecha_vencimiento) : new Date(fechaInicio);
+                vence.setFullYear(vence.getFullYear() + 1);
+                el('#txt-vence').innerText = vence.toLocaleDateString('es-AR');
+                
+                if(new Date() > vence) el('#vencido-overlay').style.display = 'flex';
+                if (alumno.estado === 'SUSPENDIDO') { 
+                    el('#suspendido-overlay').style.display = 'flex'; 
+                    el('#vencido-overlay').style.display = 'none'; 
+                }
+                
+                if (alumno.foto_url) { 
+                    const img = el('#img-foto'); 
+                    img.src = alumno.foto_url + "?t=" + Date.now(); 
+                }
+                
+                el('#qr-container').innerHTML = ""; 
+                new QRCode(el('#qr-container'), { 
+                    text: `${URL_WEB}/validador.html?id=${alumno.id}`, 
+                    width: 144, 
+                    height: 144 
+                });
+
+                if (cursoActualData?.marca_agua_url) { 
+                    const wm = el('#watermark-container'); 
+                    if(wm) wm.innerHTML = `<img src="${cursoActualData.marca_agua_url}" crossorigin="anonymous">`; 
+                } else { 
+                    const wm = el('#watermark-container'); 
+                    if(wm) wm.innerHTML = ''; 
+                }
+
+                const regId = (alumno.registro_id || 'default').toLowerCase(); 
+                const color = colorOverride || COLORES_REGISTRO[regId] || COLORES_REGISTRO.default; 
+                globalColorTema = color;
+                
+                const panel = el('#bg-panel'); 
+                panel.style.background = ''; 
+                panel.style.backgroundColor = color; 
+                panel.style.backgroundImage = 'none'; 
+                
+                if (globalInstitucion?.fondo_wallet_url) { 
+                    panel.style.backgroundImage = `url('${globalInstitucion.fondo_wallet_url}')`; 
+                    panel.style.backgroundSize = "cover"; 
+                    panel.style.backgroundPosition = "center"; 
+                }
+                
+                el('#card-base-el').style.borderColor = color;
+                el('#banda-color').style.backgroundColor = color; 
+                el('#txt-sigla').innerText = (alumno.registro_id || 'OFICIAL').toUpperCase();
+                
+                const t = (alumno.curso || "CURSO PROFESIONAL").trim().toUpperCase().split(/\s+/);
+                if(t.length < 2) { 
+                    el('#txt-titulo-main').innerText = t.join(' '); 
+                    el('#txt-titulo-sub').innerText = ""; 
+                } else { 
+                    el('#txt-titulo-main').innerText = t[0]; 
+                    el('#txt-titulo-sub').innerText = t.slice(1).join(' '); 
+                }
+                
+                ajustarTextoAlAncho(nombreEl, 34); 
+                ajustarTextoAlAncho(el('#txt-titulo-main'), 55, 600); 
+                ajustarTextoAlAncho(el('#txt-titulo-sub'), 55, 500); 
+            }
+
+            function ajustarTextoAlAncho(element, startSize, maxWidth) { 
+                if (!element) return;
+                let size = startSize; 
+                element.style.fontSize = size + 'px'; 
+                const limit = maxWidth || element.parentElement?.clientWidth || 600; 
+                while (element.scrollWidth > limit && size > 10) { 
+                    size -= 2; 
+                    element.style.fontSize = size + 'px'; 
+                } 
+            }
+            
+            window.descargarCarnetCompleto = async function() { 
+                if(!alumnoActual) return; 
+                const btn = document.querySelector('.action-card'); 
+                const txt = btn.innerHTML; 
+                btn.innerHTML = '⏳'; 
+                btn.disabled = true;
+                
+                try { 
+                    ghostContainer.innerHTML = ""; 
+                    const wrapper = document.createElement('div'); 
+                    wrapper.style.display = "flex"; 
+                    wrapper.style.flexDirection = "column"; 
+                    wrapper.style.gap = "20px"; 
+                    wrapper.style.padding = "20px"; 
+                    wrapper.style.backgroundColor = "white"; 
+                    wrapper.insertAdjacentHTML('beforeend', CARNET_HTML); 
+                    
+                    const imgReverso = globalInstitucion?.reverso_url || URL_REVERSO; 
+                    const reversoHtml = `<img src="${imgReverso}" class="carnet-back-img" id="carnet-back-img" crossorigin="anonymous">`; 
+                    wrapper.insertAdjacentHTML('beforeend', reversoHtml); 
+                    
+                    const shimmer = wrapper.querySelector('.live-shimmer');
+                    if (shimmer) shimmer.style.display = 'none';
+                    
+                    ghostContainer.appendChild(wrapper); 
+                    
+                    wrapper.querySelectorAll('.card-base, .carnet-back-img').forEach(c => { 
+                        c.style.width = "1011px"; 
+                        c.style.height = "638px"; 
+                    }); 
+                    
+                    const backImg = wrapper.querySelector('#carnet-back-img');
+                    if (backImg) backImg.style.borderColor = globalColorTema;
+                    
+                    // Llenar datos temporalmente
+                    const tempContainer = wrapper;
+                    const tempEl = (sel) => tempContainer.querySelector(sel);
+                    
+                    tempEl('#txt-nombre').innerText = `${alumnoActual.nombre} ${alumnoActual.apellido}`;
+                    tempEl('#txt-dni').innerText = new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno);
+                    tempEl('#txt-matricula').innerText = generarHashMatricula(String(alumnoActual.dni_alumno));
+                    
+                    const fechaInicio = alumnoActual.fecha_inicio ? new Date(alumnoActual.fecha_inicio) : new Date(); 
+                    tempEl('#txt-anio-header').innerText = `CARNET ${fechaInicio.getFullYear()}`;
+                    
+                    let vence = alumnoActual.fecha_vencimiento ? new Date(alumnoActual.fecha_vencimiento) : new Date(fechaInicio);
+                    vence.setFullYear(vence.getFullYear() + 1);
+                    tempEl('#txt-vence').innerText = vence.toLocaleDateString('es-AR');
+                    
+                    if (alumnoActual.foto_url) { 
+                        const img = tempEl('#img-foto'); 
+                        img.src = alumnoActual.foto_url + "?t=" + Date.now(); 
+                    }
+                    
+                    tempEl('#qr-container').innerHTML = ""; 
+                    new QRCode(tempEl('#qr-container'), { 
+                        text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, 
+                        width: 144, 
+                        height: 144 
+                    });
+
+                    tempEl('#card-base-el').style.borderColor = globalColorTema;
+                    tempEl('#banda-color').style.backgroundColor = globalColorTema; 
+                    tempEl('#txt-sigla').innerText = (alumnoActual.registro_id || 'OFICIAL').toUpperCase();
+                    
+                    const t = (alumnoActual.curso || "CURSO PROFESIONAL").trim().toUpperCase().split(/\s+/);
+                    if(t.length < 2) { 
+                        tempEl('#txt-titulo-main').innerText = t.join(' '); 
+                        tempEl('#txt-titulo-sub').innerText = ""; 
+                    } else { 
+                        tempEl('#txt-titulo-main').innerText = t[0]; 
+                        tempEl('#txt-titulo-sub').innerText = t.slice(1).join(' '); 
+                    }
+                    
+                    // Esperar imágenes
+                    const images = wrapper.getElementsByTagName('img'); 
+                    for(let img of images) { 
+                        if(img.src && !img.complete) await new Promise(r => { img.onload = r; img.onerror = r; }); 
+                    } 
+                    
+                    await new Promise(r => setTimeout(r, 300)); 
+                    
+                    const canvas = await html2canvas(wrapper, { scale: 1.5, useCORS: true }); 
+                    const link = document.createElement('a'); 
+                    link.download = `Carnet_${alumnoActual.dni_alumno}.png`; 
+                    link.href = canvas.toDataURL("image/png"); 
+                    link.click(); 
+                    ghostContainer.innerHTML = ''; 
+                } catch(e) { 
+                    alert("Error: " + e.message); 
+                } finally { 
+                    btn.innerHTML = txt; 
+                    btn.disabled = false;
+                } 
+            };
+            
+            window.descargarDiploma = async function() { 
+                if(!cursoActualData?.diploma_bg_url) return alert("Diploma no disponible."); 
+                
+                const btn = btnDiploma; 
+                const originalText = btn.innerHTML; 
+                btn.innerHTML = '⏳'; 
+                btn.disabled = true;
+                
+                try { 
+                    const colorTextoInteligente = globalInstitucion?.color_texto_diploma || globalColorTema || '#000000'; 
+                    
+                    ghostContainer.innerHTML = `<div class="diploma-layout" id="diploma-final">
+                        <img id="dip-bg-img" class="diploma-bg" src="" crossorigin="anonymous">
+                        <div class="diploma-overlay">
+                            <div class="dip-linea-unica-container" id="dip-texto-container">
+                                <span class="dip-texto-formal" id="dip-texto-completo" style="color: ${colorTextoInteligente} !important;"></span>
+                            </div>
+                            <div class="dip-qr" id="dip-qr-code"></div>
+                            <div class="dip-info-extra" id="dip-fecha-registro" style="color: ${colorTextoInteligente} !important; border-color: ${colorTextoInteligente}33;"></div>
+                            <div class="dip-sello"></div>
+                        </div>
+                    </div>`; 
+                    
+                    const bgImg = document.getElementById('dip-bg-img'); 
+                    let bgUrl = cursoActualData.diploma_bg_url; 
+                    
+                    if (bgUrl.startsWith('[')) { 
+                        try { 
+                            bgUrl = JSON.parse(bgUrl)[0]; 
+                        } catch(e) {} 
+                    } 
+                    
+                    const response = await fetch(bgUrl); 
+                    const blob = await response.blob(); 
+                    const objectURL = URL.createObjectURL(blob); 
+                    bgImg.src = objectURL; 
+                    
+                    await new Promise((resolve, reject) => { 
+                        bgImg.onload = resolve; 
+                        bgImg.onerror = () => reject(new Error("Error carga diploma")); 
+                        setTimeout(() => reject(new Error("Timeout")), 10000); 
+                    }); 
+                    
+                    const txtElem = document.getElementById('dip-texto-completo'); 
+                    txtElem.innerText = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno)}`; 
+                    
+                    new QRCode(document.getElementById('dip-qr-code'), { 
+                        text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, 
+                        width: 223, 
+                        height: 223 
+                    }); 
+                    
+                    const f = new Date(alumnoActual.fecha_inicio || new Date()).toLocaleDateString('es-ES', {year:'numeric', month:'long', day:'numeric'}); 
+                    document.getElementById('dip-fecha-registro').innerHTML = `REGISTRO: <b>${(alumnoActual.registro_id||'OFICIAL').toUpperCase()}</b> • Fecha: ${f}`; 
+                    
+                    await document.fonts.ready; 
+                    txtElem.style.display = 'inline-block'; 
+                    txtElem.style.whiteSpace = 'nowrap'; 
+                    
+                    // Ajustar tamaño
+                    let size = 100;
+                    txtElem.style.fontSize = size + 'px';
+                    while (txtElem.scrollWidth > 1600 && size > 20) {
+                        size -= 2;
+                        txtElem.style.fontSize = size + 'px';
+                    }
+                    
+                    await new Promise(r => setTimeout(r, 300)); 
+                    
+                    const canvas = await html2canvas(document.getElementById('diploma-final'), { scale: 1, useCORS: true }); 
+                    const link = document.createElement('a'); 
+                    link.download = `Diploma_${alumnoActual.dni_alumno}.png`; 
+                    link.href = canvas.toDataURL("image/png"); 
+                    link.click(); 
+                    URL.revokeObjectURL(objectURL); 
+                    ghostContainer.innerHTML = ''; 
+                } catch(e) { 
+                    alert("Error diploma: " + e.message); 
+                } finally { 
+                    btn.innerHTML = originalText; 
+                    btn.disabled = false;
+                } 
+            };
+            
+            window.descargarAnalitico = async function() { 
+                if(!cursoActualData?.analitico_bg_url) return alert("Analítico no disponible."); 
+                
+                const btn = btnAnalitico; 
+                const originalText = btn.innerHTML; 
+                btn.innerHTML = 'Generando PDF ⏳'; 
+                btn.disabled = true;
+                
+                try { 
+                    let urls = []; 
+                    try { 
+                        if (cursoActualData.analitico_bg_url.trim().startsWith('[')) { 
+                            urls = JSON.parse(cursoActualData.analitico_bg_url); 
+                        } else { 
+                            urls = [cursoActualData.analitico_bg_url]; 
+                        } 
+                    } catch(e) { 
+                        urls = [cursoActualData.analitico_bg_url]; 
+                    } 
+                    
+                    const { jsPDF } = window.jspdf; 
+                    const pdf = new jsPDF('p', 'mm', 'a4'); 
+                    const pdfWidth = pdf.internal.pageSize.getWidth(); 
+                    const pdfHeight = pdf.internal.pageSize.getHeight(); 
+                    
+                    const colorTextoInteligente = globalInstitucion?.color_texto_diploma || globalColorTema || '#000000'; 
+                    
+                    for (let i = 0; i < urls.length; i++) { 
+                        const url = urls[i]; 
+                        let overlayHTML = ''; 
+                        
+                        if (i === 0) { 
+                            overlayHTML = `<div class="diploma-overlay">
+                                <div style="position: absolute; top: 120px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; white-space: nowrap;">
+                                    <span class="dip-texto-formal" id="ana-text-${i}" style="color: ${colorTextoInteligente} !important; font-size: 50px;"></span>
+                                </div>
+                                <div id="ana-qr-${i}" style="position: absolute; top: 60px; right: 60px; width: 150px; height: 150px; background: white; padding: 5px;"></div>
+                                <div id="ana-info-${i}" style="position: absolute; top: 200px; left: 50%; transform: translateX(-50%); text-align: center; font-family: 'Roboto', sans-serif; font-size: 16px; font-weight: 700; color: ${colorTextoInteligente}; background: rgba(255,255,255,0.9); padding: 4px 25px; border-radius: 50px;"></div>
+                            </div>`; 
+                        } 
+                        
+                        ghostContainer.innerHTML = `<div class="diploma-layout" id="analitico-page-${i}" style="width: 1414px; height: 2000px; position: relative;">
+                            <img id="ana-bg-${i}" src="" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover;">
+                            ${overlayHTML}
+                        </div>`; 
+                        
+                        const bgImg = document.getElementById(`ana-bg-${i}`); 
+                        const response = await fetch(url); 
+                        const blob = await response.blob(); 
+                        const objectURL = URL.createObjectURL(blob); 
+                        bgImg.src = objectURL; 
+                        
+                        await new Promise((resolve, reject) => { 
+                            bgImg.onload = resolve; 
+                            bgImg.onerror = () => reject(new Error(`Error cargando página ${i+1}`)); 
+                            setTimeout(() => reject(new Error(`Timeout página ${i+1}`)), 15000); 
+                        }); 
+                        
+                        if (i === 0) { 
+                            const txtElem = document.getElementById(`ana-text-${i}`); 
+                            txtElem.innerText = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno)}`; 
+                            
+                            new QRCode(document.getElementById(`ana-qr-${i}`), { 
+                                text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, 
+                                width: 140, 
+                                height: 140 
+                            }); 
+                            
+                            const f = new Date(alumnoActual.fecha_inicio || new Date()).toLocaleDateString('es-ES', {year:'numeric', month:'long', day:'numeric'}); 
+                            document.getElementById(`ana-info-${i}`).innerHTML = `REGISTRO: <b>${(alumnoActual.registro_id||'OFICIAL').toUpperCase()}</b> • Fecha: ${f}`; 
+                            
+                            await document.fonts.ready; 
+                            txtElem.style.display = 'inline-block'; 
+                            
+                            // Ajustar tamaño
+                            let size = 50;
+                            txtElem.style.fontSize = size + 'px';
+                            while (txtElem.scrollWidth > 1200 && size > 15) {
+                                size -= 1;
+                                txtElem.style.fontSize = size + 'px';
+                            }
+                            
+                            await new Promise(r => setTimeout(r, 300)); 
+                        } 
+                        
+                        const canvas = await html2canvas(document.getElementById(`analitico-page-${i}`), { scale: 1, useCORS: true, backgroundColor: '#ffffff' }); 
+                        const imgData = canvas.toDataURL('image/jpeg', 0.90); 
+                        URL.revokeObjectURL(objectURL); 
+                        
+                        if (i > 0) pdf.addPage(); 
+                        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight); 
+                    } 
+                    
+                    pdf.save(`Analitico_${alumnoActual.dni_alumno}.pdf`); 
+                    ghostContainer.innerHTML = ''; 
+                } catch(e) { 
+                    console.error(e); 
+                    alert("Error generando PDF: " + e.message); 
+                } finally { 
+                    btn.innerHTML = originalText; 
+                    btn.disabled = false;
+                } 
+            };
+            
+            function mostrarPantalla(id) { 
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); 
+                document.getElementById(id).classList.add('active'); 
+                
+                if (id === 'screen-wallet') {
+                    walletHeaderActions.style.display = 'block';
+                    actualizarCampana(notificacionesCache);
+                } else {
+                    walletHeaderActions.style.display = 'none';
+                }
+            }
+            
+            window.volverAlSelector = function() { 
+                mostrarPantalla('screen-selector'); 
+            };
+            
+            window.cerrarSesion = function() { 
+                location.reload(); 
+            };
+            
+            function ajustarCarnetResponsivo() { 
+                if(cardViewport && carnetRender) { 
+                    const s = cardViewport.offsetWidth / 1011; 
+                    carnetRender.style.transform = `scale(${s})`; 
+                    cardViewport.style.height = `${638 * s}px`; 
+                } 
+            }
+            
+            function generarHashMatricula(d) { 
+                let h = 0; 
+                for (let i = 0; i < d.length; i++) { 
+                    h = ((h << 5) - h) + d.charCodeAt(i); 
+                    h |= 0; 
+                } 
+                return String(Math.abs(h)).substring(0, 6).padStart(6, '9'); 
+            }
+        })();
+    </script>
+</body>
+</html>
