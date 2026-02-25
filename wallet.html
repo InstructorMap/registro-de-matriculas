@@ -19,7 +19,7 @@
         /* ESTILOS BASE */
         :root { --primary: #0033cc; --bg-app: #f4f6f9; --text-dark: #222; --gold: #D4AF37; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; padding: 0; font-family: 'Roboto', sans-serif; background-color: var(--bg-app); color: #333; height: 100vh; display: flex; flex-direction: column; }
+        body { margin: 0; padding: 0; font-family: 'Roboto', sans-serif; background-color: var(--bg-app); color: #333; height: 100vh; display: flex; flex-direction: column; position: relative; }
 
         /* HEADER & CAMPANA NOTIFICACIONES */
         .app-header { background: white; padding: 10px 20px; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; height: 80px; }
@@ -42,7 +42,7 @@
         .tag-kit { background: #d4edda; color: #155724; }
 
         /* PANTALLAS */
-        .screen { display: none; flex: 1; flex-direction: column; padding: 20px; animation: fadeIn 0.3s ease; padding-bottom: 60px; }
+        .screen { display: none; flex: 1; flex-direction: column; padding: 20px; animation: fadeIn 0.3s ease; padding-bottom: 60px; z-index: 2; position: relative; background: var(--bg-app); }
         .screen.active { display: flex; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -77,7 +77,7 @@
         .btn-toggle.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.2); transform: translateY(-1px); }
         .btn-toggle:active { transform: scale(0.95); }
 
-        /* SECTION PREMIUM Y KIT INTELIGENTE */
+        /* SECTION PREMIUM & KIT INTELIGENTE */
         .premium-box { background: linear-gradient(135deg, #1e1e1e 0%, #2a2a2a 100%); color: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; overflow: hidden; border: 1px solid #444; }
         .premium-badge { position: absolute; top: 10px; right: 10px; background: var(--gold); color: black; font-size: 10px; font-weight: 900; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 1px; }
         .premium-title { font-size: 18px; font-weight: 900; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
@@ -102,7 +102,7 @@
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 6px solid rgba(255,255,255,0.9); padding-bottom: 2px; }
         .header-text { font-size: 85px; font-weight: 900; text-transform: uppercase; line-height: 0.9; text-shadow: 3px 3px 0px rgba(0,0,0,0.2); }
         
-        /* CONTENEDOR CURSO Y MARCA DE AGUA (Colores originales tras texto) */
+        /* CONTENEDOR CURSO Y MARCA DE AGUA */
         .course-container { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 10px 0; background: linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.3)); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 0 10px; overflow: hidden; position: relative; z-index: 10; }
         .course-title-main, .course-title-sub { font-size: 55px; font-weight: 900; text-transform: uppercase; line-height: 1.1; text-align: center; display: inline-block; white-space: nowrap; max-width: 100%; position: relative; z-index: 2; text-shadow: 3px 3px 0px rgba(0,0,0,0.8), 0px 0px 8px rgba(0,0,0,0.9); }
         .watermark-layer { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; height: 85%; opacity: 1; z-index: 1; pointer-events: none; display: flex; justify-content: center; align-items: center; }
@@ -116,19 +116,16 @@
         .value-text { font-size: 36px; font-weight: 900; text-align: right; }
         .carnet-back-img { width: 1011px; height: 638px; object-fit: cover; border-radius: 40px; border: 5px solid var(--primary); transition: border-color 0.3s; }
 
-        .live-shimmer { position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%); transform: skewX(-25deg); animation: shimmerMove 4s infinite; z-index: 10; pointer-events: none; }
-        @keyframes shimmerMove { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
-
         /* ESTADOS ESPECIALES */
         .overlay-vencido { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(180, 0, 0, 0.75); z-index: 20; display: flex; justify-content: center; align-items: center; flex-direction: column; color: white; text-align: center; border-radius: 35px; backdrop-filter: blur(2px); }
         .texto-vencido { font-size: 80px; font-weight: 900; transform: rotate(-15deg); border: 8px solid white; padding: 10px 40px; text-transform: uppercase; letter-spacing: 5px; }
 
         /* DIPLOMA / ANALITICO LAYOUT */
-        .diploma-layout { width: 2000px; height: 1414px; position: relative; overflow: hidden; color: #333; }
+        .diploma-layout { width: 2000px; height: 1414px; position: relative; overflow: hidden; color: #333; background: #fff; }
         .diploma-bg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
         .diploma-overlay { position: relative; z-index: 10; width: 100%; height: 100%; }
         .dip-linea-unica-container { position: absolute; top: 595px; left: 50%; transform: translateX(-50%); width: 90%; text-align: center; white-space: nowrap; }
-        .dip-texto-formal { font-family: 'Roboto Slab', serif; font-weight: 900; text-transform: uppercase; font-size: 80px; letter-spacing: 1px; text-shadow: 2px 2px 0px rgba(255,255,255,1); }
+        .dip-texto-formal { font-family: 'Roboto Slab', serif; font-weight: 900; text-transform: uppercase; font-size: 80px; letter-spacing: 1px; }
         .dip-qr { position: absolute; top: 284px; right: 176px; width: 233px; height: 233px; background: white; padding: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .dip-info-extra { position: absolute; bottom: 1348px; left: 50%; transform: translateX(-50%); text-align: center; font-family: 'Roboto', sans-serif; font-size: 18px; font-weight: 700; color: #222; background: rgba(255,255,255,0.9); padding: 4px 25px; border-radius: 50px; border: 1px solid rgba(0,0,0,0.1); z-index: 20; }
         .dip-sello { position: absolute; bottom: 614px; left: 1445px; width: 180px; height: 180px; z-index: 15; background-repeat: no-repeat; background-size: contain; background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpath id='textPath' d='M 25,100 A 75,75 0 1,1 175,100 A 75,75 0 1,1 25,100' /%3E%3C/defs%3E%3Ccircle cx='100' cy='100' r='90' fill='none' stroke='%23B8860B' stroke-width='2' /%3E%3Ccircle cx='100' cy='100' r='85' fill='none' stroke='%23B8860B' stroke-width='1' /%3E%3Ccircle cx='100' cy='100' r='65' fill='none' stroke='%23B8860B' stroke-width='1' stroke-dasharray='2,2' /%3E%3Ctext fill='%23B8860B' font-family='Times New Roman, serif' font-weight='bold' font-size='14' letter-spacing='3'%3E%3CtextPath href='%23textPath' startOffset='0' text-anchor='middle'%3E* CERTIFICACIÓN OFICIAL * VALIDADA *%3C/textPath%3E%3C/text%3E%3Cpath d='M100,45 L100,155 M45,100 L155,100' stroke='%23B8860B' stroke-width='0.5' opacity='0.3'/%3E%3Cpath d='M100,55 L120,80 L100,145 L80,80 Z' fill='none' stroke='%23B8860B' stroke-width='1.5' /%3E%3C/svg%3E"); filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2)); opacity: 0.9; }
@@ -189,8 +186,17 @@
         .sem-price { font-size: 18px; font-weight: 900; color: #4ade80; margin-top: 8px; }
         .btn-sem { width: 100%; margin-top: 10px; padding: 10px; background: white; color: black; border: none; font-weight: 900; border-radius: 6px; cursor: pointer; }
 
-        /* CORRECCIÓN VITAL PARA QUE EL PDF DEL ANALÍTICO NO SALGA EN BLANCO */
-        #ghost-container { position: absolute; top: 0; left: 0; z-index: -9999; opacity: 0; pointer-events: none; overflow: visible; }
+        /* -------------------------------------------------------------
+           CORRECCIÓN VITAL PARA QUE HTML2CANVAS IMPRIMA EL TEXTO BIEN
+           Posicionamos el ghost-container detrás de la app, sin ocultarlo.
+        ------------------------------------------------------------- */
+        #ghost-container { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            z-index: -9999; 
+            pointer-events: none; 
+        }
     </style>
 </head>
 <body>
@@ -380,7 +386,7 @@
         let cursoActualData = null;
         let globalInstitucion = null; 
         let deferredPrompt; 
-        let notificacionesCache = []; // Novedades
+        let notificacionesCache = []; 
 
         document.getElementById('app-logo').src = LOGO_ASARI_DEFAULT;
         document.documentElement.style.setProperty('--primary', COLOR_DEFAULT);
@@ -409,11 +415,8 @@
         }
 
         async function ingresar() {
-            // DETECTAR SI VIENE DEL BUSCADOR DEL INDEX (URL?dni=...)
             const params = new URLSearchParams(window.location.search);
             const dniUrl = params.get('dni');
-
-            // Si hay DNI en la URL, lo usamos directamente
             const dni = dniUrl || document.getElementById('input-dni').value.trim();
             
             if(dniUrl) {
@@ -462,7 +465,7 @@
             } catch (err) {
                 if(errorMsg) {
                     errorMsg.style.display = 'block'; 
-                    errorMsg.innerText = "Error: " + err.message; // Muestra el error real
+                    errorMsg.innerText = "Error: " + err.message; 
                 }
                 if(dniUrl) window.history.replaceState({}, document.title, window.location.pathname);
             } finally {
@@ -471,7 +474,6 @@
             }
         }
 
-        // AUTO-EJECUTAR SI HAY DNI EN URL
         document.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
             if(params.get('dni')) {
@@ -614,7 +616,6 @@
                 } catch(e) {}
             }
 
-            // CARGAR DATOS DE CURSO (Marca de Agua)
             const { data: cursosEncontrados } = await db.from('cursos_oficiales').select('*').eq('nombre', alumno.curso);
             if (cursosEncontrados && cursosEncontrados.length > 0) {
                 let candidato = cursosEncontrados.find(c => c.institution_id === alumno.institution_id);
@@ -635,10 +636,8 @@
 
             registrarAcceso(alumno);
             renderPremiumSection(alumno);
-            
-            // CARGAR SISTEMAS NUEVOS
             cargarContenidosExtra(alumno);
-            cargarNotificacionesSistema();
+            cargarNotificacionesSistema(); 
 
             const btnDiploma = document.getElementById('btn-descargar-diploma');
             const btnAnalitico = document.getElementById('btn-descargar-analitico');
@@ -649,7 +648,6 @@
             setTimeout(ajustarCarnetResponsivo, 100);
         }
 
-        // --- SISTEMA INTELIGENTE DE KIT PROFESIONAL ---
         function renderPremiumSection(alumno) {
             const container = document.getElementById('premium-section');
             if (alumno.premium) {
@@ -686,7 +684,6 @@
             }
         }
 
-        // --- GENERADORES DE PDF INTELIGENTES ---
         function getCommonPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
@@ -733,7 +730,6 @@
             doc.save(`Consentimiento_Plantilla.pdf`);
         }
 
-        // --- SISTEMA DE NOTIFICACIONES ---
         async function cargarNotificacionesSistema() {
             try {
                 const [resRutas, resSem] = await Promise.all([
@@ -790,7 +786,6 @@
             modal.classList.add('active');
         }
 
-        // --- GESTOR DE CONTENIDOS MASIVOS ---
         async function cargarContenidosExtra(alumno) {
             document.getElementById('dynamic-content-area')?.remove();
             const mainContainer = document.createElement('div'); mainContainer.id = 'dynamic-content-area';
@@ -830,9 +825,22 @@
         function generarTextoIA(tipo) { const t = tipo === 'linkedin' ? `🚀 ¡Meta Cumplida!\nCertificado como ${alumnoActual.curso}.` : `PERFIL PROFESIONAL:\nCertificado como ${alumnoActual.curso}.`; navigator.clipboard.writeText(t).then(() => alert("Copiado!")); }
         function registrarAcceso(alumno) { try { db.from('logs_accesos').insert({ alumno_id: alumno.id, curso: alumno.curso, fecha: new Date().toISOString() }).then(); } catch(e) { } }
         
+        // CORRECCIÓN PROTECCIÓN DE TEXTO (Evita que el texto desaparezca en html2canvas)
+        function ajustarTextoAlAncho(element, startSize, maxWidth) { 
+            let size = startSize; 
+            element.style.fontSize = size + 'px'; 
+            const limit = maxWidth || element.parentElement.clientWidth; 
+            // Si el contenedor colapsa por estar oculto, abortamos para no desaparecer el texto
+            if (!limit || limit <= 0) return; 
+            while (element.scrollWidth > limit && size > 10) { 
+                size -= 2; element.style.fontSize = size + 'px'; 
+            } 
+        }
+
         function llenarDatosCarnet(container, alumno, colorOverride) {
             const el = (sel) => container.querySelector(sel);
-            const nombreEl = el('#txt-nombre'); nombreEl.innerText = `${alumno.nombre} ${alumno.apellido}`;
+            const nombreEl = el('#txt-nombre'); 
+            nombreEl.innerText = `${alumno.nombre} ${alumno.apellido}`;
             el('#txt-dni').innerText = new Intl.NumberFormat('es-AR').format(alumno.dni_alumno);
             el('#txt-matricula').innerText = generarHashMatricula(String(alumno.dni_alumno));
             const fechaInicio = new Date(alumno.fecha_inicio || new Date()); el('#txt-anio-header').innerText = `CARNET ${fechaInicio.getFullYear()}`;
@@ -858,16 +866,18 @@
             
             const t = (alumno.curso || "CURSO PROFESIONAL").trim().toUpperCase().split(/\s+/);
             if(t.length < 2) { el('#txt-titulo-main').innerText = t.join(' '); el('#txt-titulo-sub').innerText = ""; } else { el('#txt-titulo-main').innerText = t[0]; el('#txt-titulo-sub').innerText = t.slice(1).join(' '); }
-            ajustarTextoAlAncho(nombreEl, 34); ajustarTextoAlAncho(el('#txt-titulo-main'), 55, 600); ajustarTextoAlAncho(el('#txt-titulo-sub'), 55, 500); 
+            
+            /* PASAMOS EL ANCHO DURO (550) PARA EVITAR QUE SE ENCOJA AL DESCARGAR */
+            ajustarTextoAlAncho(nombreEl, 34, 550); 
+            ajustarTextoAlAncho(el('#txt-titulo-main'), 55, 600); 
+            ajustarTextoAlAncho(el('#txt-titulo-sub'), 55, 500); 
         }
 
-        function ajustarTextoAlAncho(element, startSize, maxWidth) { let size = startSize; element.style.fontSize = size + 'px'; const limit = maxWidth || element.parentElement.clientWidth; while (element.scrollWidth > limit && size > 10) { size -= 2; element.style.fontSize = size + 'px'; } }
-        
         async function descargarCarnetCompleto() { if(!alumnoActual) return; const btn = document.querySelector('.action-card'); const txt = btn.innerHTML; btn.innerHTML = '⏳'; try { const ghost = document.getElementById('ghost-container'); ghost.innerHTML = ""; const wrapper = document.createElement('div'); wrapper.style.display = "flex"; wrapper.style.flexDirection = "column"; wrapper.style.gap = "20px"; wrapper.style.padding = "20px"; wrapper.style.backgroundColor = "white"; wrapper.insertAdjacentHTML('beforeend', CARNET_HTML); const imgReverso = globalInstitucion?.reverso_url || URL_REVERSO; const reversoHtml = `<img src="${imgReverso}" class="carnet-back-img" id="carnet-back-img">`; wrapper.insertAdjacentHTML('beforeend', reversoHtml); wrapper.querySelector('.live-shimmer').style.display = 'none'; ghost.appendChild(wrapper); ghost.querySelectorAll('.card-base, .carnet-back-img').forEach(c => { c.style.width = "1011px"; c.style.height = "638px"; }); ghost.querySelector('#carnet-back-img').style.borderColor = ghost.querySelector('.card-base').style.borderColor; llenarDatosCarnet(ghost, alumnoActual, globalColorTema); const images = ghost.getElementsByTagName('img'); for(let img of images) { if(img.src && !img.complete) await new Promise(r => img.onload = r); } await new Promise(r => setTimeout(r, 500)); const canvas = await html2canvas(wrapper, { scale: 1.5, useCORS: true }); const link = document.createElement('a'); link.download = `Carnet_${alumnoActual.dni_alumno}.png`; link.href = canvas.toDataURL("image/png"); link.click(); ghost.innerHTML = ''; } catch(e) { alert("Error: " + e.message); } finally { btn.innerHTML = txt; } }
         
-        async function descargarDiploma() { if(!cursoActualData || !cursoActualData.diploma_bg_url) return alert("Diploma no disponible."); const btn = document.getElementById('btn-descargar-diploma'); const originalText = btn.innerHTML; btn.innerHTML = '⏳'; try { const ghost = document.getElementById('ghost-container'); const colorTextoInteligente = globalInstitucion?.color_texto_diploma || globalColorTema || '#000000'; ghost.innerHTML = `<div class="diploma-layout" id="diploma-final"><img id="dip-bg-img" class="diploma-bg" src="" crossorigin="anonymous"><div class="diploma-overlay"><div class="dip-linea-unica-container" id="dip-texto-container"><span class="dip-texto-formal" id="dip-texto-completo" style="color: ${colorTextoInteligente} !important;"></span></div><div class="dip-qr" id="dip-qr-code"></div><div class="dip-info-extra" id="dip-fecha-registro" style="color: ${colorTextoInteligente} !important; border-color: ${colorTextoInteligente}33;"></div><div class="dip-sello"></div></div></div>`; const bgImg = ghost.querySelector('#dip-bg-img'); let bgUrl = cursoActualData.diploma_bg_url; if (bgUrl.startsWith('["') || bgUrl.startsWith('[')) { try { bgUrl = JSON.parse(bgUrl)[0]; } catch(e) {} } const response = await fetch(bgUrl); const blob = await response.blob(); const objectURL = URL.createObjectURL(blob); bgImg.src = objectURL; await new Promise((resolve, reject) => { bgImg.onload = resolve; bgImg.onerror = () => reject(new Error("Error carga diploma")); setTimeout(() => reject(new Error("Timeout")), 10000); }); const txtElem = ghost.querySelector('#dip-texto-completo'); txtElem.innerText = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno)}`; new QRCode(ghost.querySelector('#dip-qr-code'), { text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, width: 223, height: 223 }); const f = new Date(alumnoActual.fecha_inicio || new Date()).toLocaleDateString('es-ES', {year:'numeric', month:'long', day:'numeric'}); ghost.querySelector('#dip-fecha-registro').innerHTML = `REGISTRO: <b>${(alumnoActual.registro_id||'OFICIAL').toUpperCase()}</b> • Fecha: ${f}`; await document.fonts.ready; txtElem.style.display = 'inline-block'; txtElem.style.whiteSpace = 'nowrap'; await new Promise(r => setTimeout(r, 100)); ajustarTextoAlAncho(txtElem, 100, 1600); await new Promise(r => setTimeout(r, 500)); const canvas = await html2canvas(ghost.querySelector('#diploma-final'), { scale: 1, useCORS: true }); const link = document.createElement('a'); link.download = `Diploma_${alumnoActual.dni_alumno}.png`; link.href = canvas.toDataURL("image/png"); link.click(); URL.revokeObjectURL(objectURL); ghost.innerHTML = ''; } catch(e) { alert("Error diploma: " + e.message); } finally { btn.innerHTML = originalText; } }
+        async function descargarDiploma() { if(!cursoActualData || !cursoActualData.diploma_bg_url) return alert("Diploma no disponible."); const btn = document.getElementById('btn-descargar-diploma'); const originalText = btn.innerHTML; btn.innerHTML = '⏳'; try { const ghost = document.getElementById('ghost-container'); const colorTextoInteligente = globalInstitucion?.color_texto_diploma || globalColorTema || '#000000'; ghost.innerHTML = `<div class="diploma-layout" id="diploma-final"><img id="dip-bg-img" class="diploma-bg" src="" crossorigin="anonymous"><div class="diploma-overlay"><div class="dip-linea-unica-container" id="dip-texto-container"><span class="dip-texto-formal" id="dip-texto-completo" style="color: ${colorTextoInteligente};"></span></div><div class="dip-qr" id="dip-qr-code"></div><div class="dip-info-extra" id="dip-fecha-registro" style="color: ${colorTextoInteligente}; border-color: ${colorTextoInteligente}33;"></div><div class="dip-sello"></div></div></div>`; const bgImg = ghost.querySelector('#dip-bg-img'); let bgUrl = cursoActualData.diploma_bg_url; if (bgUrl.startsWith('["') || bgUrl.startsWith('[')) { try { bgUrl = JSON.parse(bgUrl)[0]; } catch(e) {} } const response = await fetch(bgUrl); const blob = await response.blob(); const objectURL = URL.createObjectURL(blob); bgImg.src = objectURL; await new Promise((resolve, reject) => { bgImg.onload = resolve; bgImg.onerror = () => reject(new Error("Error carga diploma")); setTimeout(() => reject(new Error("Timeout")), 10000); }); const txtElem = ghost.querySelector('#dip-texto-completo'); txtElem.innerHTML = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno)}`; new QRCode(ghost.querySelector('#dip-qr-code'), { text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, width: 223, height: 223 }); const f = new Date(alumnoActual.fecha_inicio || new Date()).toLocaleDateString('es-ES', {year:'numeric', month:'long', day:'numeric'}); ghost.querySelector('#dip-fecha-registro').innerHTML = `REGISTRO: <b>${(alumnoActual.registro_id||'OFICIAL').toUpperCase()}</b> • Fecha: ${f}`; await document.fonts.ready; txtElem.style.display = 'inline-block'; txtElem.style.whiteSpace = 'nowrap'; await new Promise(r => setTimeout(r, 100)); ajustarTextoAlAncho(txtElem, 80, 1600); await new Promise(r => setTimeout(r, 500)); const canvas = await html2canvas(ghost.querySelector('#diploma-final'), { scale: 1, useCORS: true }); const link = document.createElement('a'); link.download = `Diploma_${alumnoActual.dni_alumno}.png`; link.href = canvas.toDataURL("image/png"); link.click(); URL.revokeObjectURL(objectURL); ghost.innerHTML = ''; } catch(e) { alert("Error diploma: " + e.message); } finally { btn.innerHTML = originalText; } }
         
-        async function descargarAnalitico() { if(!cursoActualData || !cursoActualData.analitico_bg_url) return alert("Analítico no disponible."); const btn = document.getElementById('btn-descargar-analitico'); const originalText = btn.innerHTML; btn.innerHTML = 'Generando PDF ⏳'; try { let urls = []; try { if (cursoActualData.analitico_bg_url.trim().startsWith('[')) { urls = JSON.parse(cursoActualData.analitico_bg_url); } else { urls = [cursoActualData.analitico_bg_url]; } } catch(e) { urls = [cursoActualData.analitico_bg_url]; } const { jsPDF } = window.jspdf; const pdf = new jsPDF('p', 'mm', 'a4'); const pdfWidth = pdf.internal.pageSize.getWidth(); const pdfHeight = pdf.internal.pageSize.getHeight(); const ghost = document.getElementById('ghost-container'); const colorTextoInteligente = globalInstitucion?.color_texto_diploma || globalColorTema || '#000000'; for (let i = 0; i < urls.length; i++) { const url = urls[i]; let overlayHTML = ''; if (i === 0) { overlayHTML = `<div class="diploma-overlay"><div style="position: absolute; top: 120px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; white-space: nowrap;"><span class="dip-texto-formal" id="ana-text-${i}" style="color: ${colorTextoInteligente} !important; font-size: 50px;"></span></div><div id="ana-qr-${i}" style="position: absolute; top: 60px; right: 60px; width: 150px; height: 150px; background: white; padding: 5px;"></div><div id="ana-info-${i}" style="position: absolute; top: 200px; left: 50%; transform: translateX(-50%); text-align: center; font-family: 'Roboto', sans-serif; font-size: 16px; font-weight: 700; color: ${colorTextoInteligente}; background: rgba(255,255,255,0.9); padding: 4px 25px; border-radius: 50px;"></div></div>`; } ghost.innerHTML = `<div class="diploma-layout" id="analitico-page-${i}" style="width: 1414px; height: 2000px; position: relative;"><img id="ana-bg-${i}" src="" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover;">${overlayHTML}</div>`; const bgImg = document.getElementById(`ana-bg-${i}`); const response = await fetch(url); const blob = await response.blob(); const objectURL = URL.createObjectURL(blob); bgImg.src = objectURL; await new Promise((resolve, reject) => { bgImg.onload = resolve; bgImg.onerror = () => reject(new Error(`Error cargando página ${i+1}`)); setTimeout(() => reject(new Error(`Timeout página ${i+1}`)), 15000); }); if (i === 0) { const txtElem = document.getElementById(`ana-text-${i}`); txtElem.innerText = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno)}`; new QRCode(document.getElementById(`ana-qr-${i}`), { text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, width: 140, height: 140 }); const f = new Date(alumnoActual.fecha_inicio || new Date()).toLocaleDateString('es-ES', {year:'numeric', month:'long', day:'numeric'}); document.getElementById(`ana-info-${i}`).innerHTML = `REGISTRO: <b>${(alumnoActual.registro_id||'OFICIAL').toUpperCase()}</b> • Fecha: ${f}`; await document.fonts.ready; txtElem.style.display = 'inline-block'; await new Promise(r => setTimeout(r, 200)); ajustarTextoAlAncho(txtElem, 50, 1200); await new Promise(r => setTimeout(r, 500)); } const canvas = await html2canvas(document.getElementById(`analitico-page-${i}`), { scale: 1, useCORS: true, backgroundColor: '#ffffff' }); const imgData = canvas.toDataURL('image/jpeg', 0.90); URL.revokeObjectURL(objectURL); if (i > 0) pdf.addPage(); pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight); } pdf.save(`Analitico_${alumnoActual.dni_alumno}.pdf`); ghost.innerHTML = ''; } catch(e) { console.error(e); alert("Error generando PDF: " + e.message); } finally { btn.innerHTML = originalText; } }
+        async function descargarAnalitico() { if(!cursoActualData || !cursoActualData.analitico_bg_url) return alert("Analítico no disponible."); const btn = document.getElementById('btn-descargar-analitico'); const originalText = btn.innerHTML; btn.innerHTML = 'Generando PDF ⏳'; try { let urls = []; try { if (cursoActualData.analitico_bg_url.trim().startsWith('[')) { urls = JSON.parse(cursoActualData.analitico_bg_url); } else { urls = [cursoActualData.analitico_bg_url]; } } catch(e) { urls = [cursoActualData.analitico_bg_url]; } const { jsPDF } = window.jspdf; const pdf = new jsPDF('p', 'mm', 'a4'); const pdfWidth = pdf.internal.pageSize.getWidth(); const pdfHeight = pdf.internal.pageSize.getHeight(); const ghost = document.getElementById('ghost-container'); const colorTextoInteligente = globalInstitucion?.color_texto_diploma || globalColorTema || '#000000'; for (let i = 0; i < urls.length; i++) { const url = urls[i]; let overlayHTML = ''; if (i === 0) { overlayHTML = `<div class="diploma-overlay"><div style="position: absolute; top: 120px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; white-space: nowrap;"><span class="dip-texto-formal" id="ana-text-${i}" style="color: ${colorTextoInteligente}; font-size: 50px;"></span></div><div id="ana-qr-${i}" style="position: absolute; top: 60px; right: 60px; width: 150px; height: 150px; background: white; padding: 5px;"></div><div id="ana-info-${i}" style="position: absolute; top: 200px; left: 50%; transform: translateX(-50%); text-align: center; font-family: 'Roboto', sans-serif; font-size: 16px; font-weight: 700; color: ${colorTextoInteligente}; background: rgba(255,255,255,0.9); padding: 4px 25px; border-radius: 50px;"></div></div>`; } ghost.innerHTML = `<div class="diploma-layout" id="analitico-page-${i}" style="width: 1414px; height: 2000px; position: relative;"><img id="ana-bg-${i}" src="" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover;">${overlayHTML}</div>`; const bgImg = document.getElementById(`ana-bg-${i}`); const response = await fetch(url); const blob = await response.blob(); const objectURL = URL.createObjectURL(blob); bgImg.src = objectURL; await new Promise((resolve, reject) => { bgImg.onload = resolve; bgImg.onerror = () => reject(new Error(`Error cargando página ${i+1}`)); setTimeout(() => reject(new Error(`Timeout página ${i+1}`)), 15000); }); if (i === 0) { const txtElem = ghost.querySelector(`#ana-text-${i}`); txtElem.innerHTML = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno)}`; new QRCode(ghost.querySelector(`#ana-qr-${i}`), { text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, width: 140, height: 140 }); const f = new Date(alumnoActual.fecha_inicio || new Date()).toLocaleDateString('es-ES', {year:'numeric', month:'long', day:'numeric'}); ghost.querySelector(`#ana-info-${i}`).innerHTML = `REGISTRO: <b>${(alumnoActual.registro_id||'OFICIAL').toUpperCase()}</b> • Fecha: ${f}`; await document.fonts.ready; txtElem.style.display = 'inline-block'; await new Promise(r => setTimeout(r, 200)); ajustarTextoAlAncho(txtElem, 50, 1200); await new Promise(r => setTimeout(r, 500)); } const canvas = await html2canvas(document.getElementById(`analitico-page-${i}`), { scale: 1, useCORS: true, backgroundColor: '#ffffff' }); const imgData = canvas.toDataURL('image/jpeg', 0.90); URL.revokeObjectURL(objectURL); if (i > 0) pdf.addPage(); pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight); } pdf.save(`Analitico_${alumnoActual.dni_alumno}.pdf`); ghost.innerHTML = ''; } catch(e) { console.error(e); alert("Error generando PDF: " + e.message); } finally { btn.innerHTML = originalText; } }
         
         function mostrarPantalla(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
         function volverAlSelector() { mostrarPantalla('screen-selector'); }
