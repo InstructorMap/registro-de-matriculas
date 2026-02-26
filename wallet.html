@@ -102,12 +102,12 @@
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 6px solid rgba(255,255,255,0.9); padding-bottom: 2px; }
         .header-text { font-size: 85px; font-weight: 900; text-transform: uppercase; line-height: 0.9; text-shadow: 3px 3px 0px rgba(0,0,0,0.2); }
         
-        /* CONTENEDOR CURSO Y MARCA DE AGUA (Corregido Opacidad Sutil) */
+        /* CONTENEDOR CURSO Y MARCA DE AGUA */
         .course-container { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 10px 0; background: linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.3)); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 0 10px; overflow: hidden; position: relative; z-index: 10; }
         .course-title-main, .course-title-sub { font-size: 55px; font-weight: 900; text-transform: uppercase; line-height: 1.1; text-align: center; display: inline-block; white-space: nowrap; max-width: 100%; position: relative; z-index: 2; text-shadow: 3px 3px 0px rgba(0,0,0,0.8), 0px 0px 8px rgba(0,0,0,0.9); }
         
-        /* MARCA DE AGUA SUTIL DETRÁS DEL TEXTO (Opacity 0.15) */
-        .watermark-layer { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; height: 85%; opacity: 0.15; z-index: 1; pointer-events: none; display: flex; justify-content: center; align-items: center; }
+        /* MARCA DE AGUA SUTIL (Opacity 0.08) */
+        .watermark-layer { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; height: 85%; opacity: 0.08; z-index: 1; pointer-events: none; display: flex; justify-content: center; align-items: center; }
         .watermark-layer img { width: 100%; height: 100%; object-fit: contain; }
 
         .student-name { font-size: 34px; font-weight: 700; text-transform: uppercase; background: transparent; padding: 10px; text-align: center; border-radius: 8px; margin-bottom: 15px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); width: 100%; overflow: hidden; }
@@ -191,10 +191,7 @@
         .sem-price { font-size: 18px; font-weight: 900; color: #4ade80; margin-top: 8px; }
         .btn-sem { width: 100%; margin-top: 10px; padding: 10px; background: white; color: black; border: none; font-weight: 900; border-radius: 6px; cursor: pointer; }
 
-        /* -------------------------------------------------------------
-           CORRECCIÓN VITAL PARA QUE HTML2CANVAS IMPRIMA EL TEXTO BIEN
-           Ubicado a la izquierda fuera de la pantalla, no colapsa dimensiones
-        ------------------------------------------------------------- */
+        /* GHOST CONTAINER (Oculto a la izquierda para no estropear capturas) */
         #ghost-container { 
             position: absolute; 
             top: 0; 
@@ -391,7 +388,7 @@
         let cursoActualData = null;
         let globalInstitucion = null; 
         let deferredPrompt; 
-        let notificacionesCache = []; // Novedades
+        let notificacionesCache = []; 
 
         document.getElementById('app-logo').src = LOGO_ASARI_DEFAULT;
         document.documentElement.style.setProperty('--primary', COLOR_DEFAULT);
@@ -621,7 +618,6 @@
                 } catch(e) {}
             }
 
-            // CARGAR DATOS DE CURSO (Marca de Agua)
             const { data: cursosEncontrados } = await db.from('cursos_oficiales').select('*').eq('nombre', alumno.curso);
             if (cursosEncontrados && cursosEncontrados.length > 0) {
                 let candidato = cursosEncontrados.find(c => c.institution_id === alumno.institution_id);
@@ -642,10 +638,8 @@
 
             registrarAcceso(alumno);
             renderPremiumSection(alumno);
-            
-            // CARGAR SISTEMAS NUEVOS
             cargarContenidosExtra(alumno);
-            cargarNotificacionesSistema();
+            cargarNotificacionesSistema(); 
 
             const btnDiploma = document.getElementById('btn-descargar-diploma');
             const btnAnalitico = document.getElementById('btn-descargar-analitico');
@@ -656,7 +650,6 @@
             setTimeout(ajustarCarnetResponsivo, 100);
         }
 
-        // --- SISTEMA INTELIGENTE DE KIT PROFESIONAL ---
         function renderPremiumSection(alumno) {
             const container = document.getElementById('premium-section');
             if (alumno.premium) {
@@ -693,7 +686,6 @@
             }
         }
 
-        // --- GENERADORES DE PDF INTELIGENTES ---
         function getCommonPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
@@ -740,7 +732,6 @@
             doc.save(`Consentimiento_Plantilla.pdf`);
         }
 
-        // --- SISTEMA DE NOTIFICACIONES ---
         async function cargarNotificacionesSistema() {
             try {
                 const [resRutas, resSem] = await Promise.all([
@@ -836,12 +827,11 @@
         function generarTextoIA(tipo) { const t = tipo === 'linkedin' ? `🚀 ¡Meta Cumplida!\nCertificado como ${alumnoActual.curso}.` : `PERFIL PROFESIONAL:\nCertificado como ${alumnoActual.curso}.`; navigator.clipboard.writeText(t).then(() => alert("Copiado!")); }
         function registrarAcceso(alumno) { try { db.from('logs_accesos').insert({ alumno_id: alumno.id, curso: alumno.curso, fecha: new Date().toISOString() }).then(); } catch(e) { } }
         
-        // --- CORRECCIÓN QUIRÚRGICA: AJUSTE DE TEXTO SEGURO ---
+        // --- FUNCIÓN SEGURA ---
         function ajustarTextoAlAncho(element, startSize, maxWidth) { 
             let size = startSize; 
             element.style.fontSize = size + 'px'; 
             const limit = maxWidth || element.parentElement.clientWidth; 
-            // PREVENCIÓN: Si el contenedor está colapsado (0px) no achicamos la letra a 10px.
             if (!limit || limit <= 0) return; 
             while (element.scrollWidth > limit && size > 10) { 
                 size -= 2; element.style.fontSize = size + 'px'; 
@@ -878,7 +868,6 @@
             const t = (alumno.curso || "CURSO PROFESIONAL").trim().toUpperCase().split(/\s+/);
             if(t.length < 2) { el('#txt-titulo-main').innerText = t.join(' '); el('#txt-titulo-sub').innerText = ""; } else { el('#txt-titulo-main').innerText = t[0]; el('#txt-titulo-sub').innerText = t.slice(1).join(' '); }
             
-            /* PASAMOS EL ANCHO DURO PARA EVITAR QUE SE ENCOJA AL DESCARGAR */
             ajustarTextoAlAncho(nombreEl, 34, 550); 
             ajustarTextoAlAncho(el('#txt-titulo-main'), 55, 600); 
             ajustarTextoAlAncho(el('#txt-titulo-sub'), 55, 500); 
@@ -907,20 +896,22 @@
                 
                 for (let i = 0; i < urls.length; i++) { 
                     const url = urls[i]; 
-                    let overlayHTML = ''; 
                     
+                    // --- REUBICACIÓN EN LA HOJA ANALÍTICA ---
+                    let overlayHTML = ''; 
                     if (i === 0) { 
                         overlayHTML = `
                         <div class="diploma-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%; z-index:10;">
-                            <div style="position: absolute; top: 120px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; white-space: nowrap;">
-                                <span class="dip-texto-formal" id="ana-text-${i}" style="color: ${colorTextoInteligente} !important; font-size: 50px;"></span>
+                            <div style="position: absolute; top: 480px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; white-space: nowrap;">
+                                <span class="dip-texto-formal" id="ana-text-${i}" style="color: ${colorTextoInteligente} !important; font-size: 45px;"></span>
                             </div>
-                            <div id="ana-qr-${i}" style="position: absolute; top: 60px; right: 60px; width: 150px; height: 150px; background: white; padding: 5px;"></div>
-                            <div id="ana-info-${i}" style="position: absolute; top: 200px; left: 50%; transform: translateX(-50%); text-align: center; font-family: 'Roboto', sans-serif; font-size: 16px; font-weight: 700; color: ${colorTextoInteligente}; background: rgba(255,255,255,0.9); padding: 4px 25px; border-radius: 50px;"></div>
+                            
+                            <div id="ana-info-${i}" style="position: absolute; top: 550px; left: 50%; transform: translateX(-50%); text-align: center; font-family: 'Roboto', sans-serif; font-size: 18px; font-weight: 700; color: ${colorTextoInteligente}; background: rgba(255,255,255,0.9); padding: 4px 25px; border-radius: 50px;"></div>
+
+                            <div id="ana-qr-${i}" style="position: absolute; top: 220px; right: 120px; width: 160px; height: 160px; background: white; padding: 10px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"></div>
                         </div>`; 
                     } 
                     
-                    // CORRECCIÓN: AGREGADO 'position: absolute' a la imagen de fondo para que no empuje al texto
                     ghost.innerHTML = `
                     <div class="diploma-layout" id="analitico-page-${i}" style="width: 1414px; height: 2000px; position: relative; background: white;">
                         <img id="ana-bg-${i}" src="" crossorigin="anonymous" style="position: absolute; top:0; left:0; width: 100%; height: 100%; object-fit: cover; z-index:1;">
@@ -945,7 +936,7 @@
                         await document.fonts.ready; 
                         txtElem.style.display = 'inline-block'; 
                         await new Promise(r => setTimeout(r, 200)); 
-                        ajustarTextoAlAncho(txtElem, 50, 1200); 
+                        ajustarTextoAlAncho(txtElem, 45, 1200); 
                         await new Promise(r => setTimeout(r, 500)); 
                     } 
                     
