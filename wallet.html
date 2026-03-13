@@ -106,7 +106,6 @@
         .course-container { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 10px 0; background: linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.3)); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 0 10px; overflow: hidden; position: relative; z-index: 10; }
         .course-title-main, .course-title-sub { font-size: 55px; font-weight: 900; text-transform: uppercase; line-height: 1.1; text-align: center; display: inline-block; white-space: nowrap; max-width: 100%; position: relative; z-index: 2; text-shadow: 3px 3px 0px rgba(0,0,0,0.8), 0px 0px 8px rgba(0,0,0,0.9); }
         
-        /* MARCA DE AGUA SUTIL */
         .watermark-layer { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; height: 85%; opacity: 0.08; z-index: 1; pointer-events: none; display: flex; justify-content: center; align-items: center; }
         .watermark-layer img { width: 100%; height: 100%; object-fit: contain; }
 
@@ -135,7 +134,8 @@
         .dip-texto-formal { font-family: 'Roboto Slab', serif; font-weight: 900; text-transform: uppercase; font-size: 80px; letter-spacing: 1px; text-shadow: 2px 2px 0px rgba(255,255,255,1); }
         .dip-qr { position: absolute; top: 284px; right: 176px; width: 233px; height: 233px; background: white; padding: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .dip-info-extra { position: absolute; bottom: 1348px; left: 50%; transform: translateX(-50%); text-align: center; font-family: 'Roboto', sans-serif; font-size: 18px; font-weight: 700; color: #222; background: rgba(255,255,255,0.9); padding: 4px 25px; border-radius: 50px; border: 1px solid rgba(0,0,0,0.1); z-index: 20; }
-        
+        .dip-sello { position: absolute; bottom: 614px; left: 1445px; width: 180px; height: 180px; z-index: 15; background-repeat: no-repeat; background-size: contain; background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpath id='textPath' d='M 25,100 A 75,75 0 1,1 175,100 A 75,75 0 1,1 25,100' /%3E%3C/defs%3E%3Ccircle cx='100' cy='100' r='90' fill='none' stroke='%23B8860B' stroke-width='2' /%3E%3Ccircle cx='100' cy='100' r='85' fill='none' stroke='%23B8860B' stroke-width='1' /%3E%3Ccircle cx='100' cy='100' r='65' fill='none' stroke='%23B8860B' stroke-width='1' stroke-dasharray='2,2' /%3E%3Ctext fill='%23B8860B' font-family='Times New Roman, serif' font-weight='bold' font-size='14' letter-spacing='3'%3E%3CtextPath href='%23textPath' startOffset='0' text-anchor='middle'%3E* CERTIFICACIÓN OFICIAL * VALIDADA *%3C/textPath%3E%3C/text%3E%3Cpath d='M100,45 L100,155 M45,100 L155,100' stroke='%23B8860B' stroke-width='0.5' opacity='0.3'/%3E%3Cpath d='M100,55 L120,80 L100,145 L80,80 Z' fill='none' stroke='%23B8860B' stroke-width='1.5' /%3E%3C/svg%3E"); filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2)); opacity: 0.9; }
+
         /* ACTIONS GRID */
         .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
         .action-card { background: white; padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-decoration: none; color: #333; cursor: pointer; }
@@ -892,18 +892,21 @@
                 
                 for (let i = 0; i < urls.length; i++) { 
                     const url = urls[i]; 
-                    let overlayHTML = ''; 
                     
+                    // --- CORRECCIÓN DEFINITIVA DE COORDENADAS PARA HOJA 1 Y 3 ---
+                    let overlayHTML = ''; 
                     if (i === 0) { 
+                        // HOJA 1: NOTAS (Ajustado abajo en el espacio en blanco)
                         overlayHTML = `
                         <div class="diploma-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%; z-index:10;">
-                            <div style="position: absolute; top: 120px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; white-space: nowrap;">
-                                <span class="dip-texto-formal" id="ana-text-${i}" style="color: ${colorTextoInteligente} !important; font-size: 50px;"></span>
+                            <div style="position: absolute; top: 380px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; white-space: nowrap;">
+                                <span class="dip-texto-formal" id="ana-text-${i}" style="color: ${colorTextoInteligente} !important; font-size: 45px;"></span>
                             </div>
-                            <div id="ana-qr-${i}" style="position: absolute; top: 60px; right: 60px; width: 150px; height: 150px; background: white; padding: 5px;"></div>
-                            <div id="ana-info-${i}" style="position: absolute; top: 200px; left: 50%; transform: translateX(-50%); text-align: center; font-family: 'Roboto', sans-serif; font-size: 16px; font-weight: 700; color: ${colorTextoInteligente}; background: rgba(255,255,255,0.9); padding: 4px 25px; border-radius: 50px;"></div>
+                            <div id="ana-info-${i}" style="position: absolute; top: 450px; left: 50%; transform: translateX(-50%); text-align: center; font-family: 'Roboto', sans-serif; font-size: 16px; font-weight: 700; color: ${colorTextoInteligente}; background: rgba(255,255,255,0.9); padding: 4px 25px; border-radius: 50px;"></div>
+                            <div id="ana-qr-${i}" style="position: absolute; top: 220px; right: 120px; width: 160px; height: 160px; background: white; padding: 10px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"></div>
                         </div>`; 
                     } else if (i === 2) {
+                        // HOJA 3: CERTIFICADO (Se mantiene perfecto como indicaste)
                         overlayHTML = `
                         <div class="diploma-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%; z-index:10;">
                             <div style="position: absolute; top: 480px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; white-space: nowrap;">
@@ -937,7 +940,7 @@
                         await document.fonts.ready; 
                         txtElem.style.display = 'inline-block'; 
                         await new Promise(r => setTimeout(r, 200)); 
-                        ajustarTextoAlAncho(txtElem, 50, 1200, 25); 
+                        ajustarTextoAlAncho(txtElem, 45, 1200, 25); 
                         await new Promise(r => setTimeout(r, 500)); 
                     } else if (i === 2) {
                         const txtElemCert = ghost.querySelector(`#cert-text-${i}`); 
@@ -966,6 +969,7 @@
         function cerrarSesion() { location.reload(); }
         function ajustarCarnetResponsivo() { const v = document.getElementById('card-viewport'); const c = document.getElementById('carnet-render'); if(v && c) { const s = v.offsetWidth / 1011; c.style.transform = `scale(${s})`; v.style.height = `${638 * s}px`; } }
         
+        // MATRÍCULA ÚNICA DE 6 DÍGITOS
         function generarHashMatricula(dni, curso, id) { 
             const str = String(dni) + String(curso).trim().toLowerCase() + String(id);
             let h = 0x811c9dc5; 
