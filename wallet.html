@@ -106,11 +106,10 @@
         .course-container { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 10px 0; background: linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.3)); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 0 10px; overflow: hidden; position: relative; z-index: 10; }
         .course-title-main, .course-title-sub { font-size: 55px; font-weight: 900; text-transform: uppercase; line-height: 1.1; text-align: center; display: inline-block; white-space: nowrap; max-width: 100%; position: relative; z-index: 2; text-shadow: 3px 3px 0px rgba(0,0,0,0.8), 0px 0px 8px rgba(0,0,0,0.9); }
         
-        /* MARCA DE AGUA SUTIL (Opacity 0.08) */
         .watermark-layer { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; height: 85%; opacity: 0.08; z-index: 1; pointer-events: none; display: flex; justify-content: center; align-items: center; }
         .watermark-layer img { width: 100%; height: 100%; object-fit: contain; }
 
-        /* TEXTO DEL NOMBRE (TAMAÑO MODO DIOS: 55px Base - Extra Bold) */
+        /* NOMBRE MODO DIOS: MÁS GRANDE Y ANCHO */
         .student-name { font-size: 55px; font-weight: 900; text-transform: uppercase; background: transparent; padding: 10px; text-align: center; border-radius: 8px; margin-bottom: 15px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); width: 100%; overflow: hidden; }
         
         .data-grid { display: grid; grid-template-columns: 65px 1fr; row-gap: 10px; align-items: center; }
@@ -135,8 +134,7 @@
         .dip-texto-formal { font-family: 'Roboto Slab', serif; font-weight: 900; text-transform: uppercase; font-size: 80px; letter-spacing: 1px; text-shadow: 2px 2px 0px rgba(255,255,255,1); }
         .dip-qr { position: absolute; top: 284px; right: 176px; width: 233px; height: 233px; background: white; padding: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .dip-info-extra { position: absolute; bottom: 1348px; left: 50%; transform: translateX(-50%); text-align: center; font-family: 'Roboto', sans-serif; font-size: 18px; font-weight: 700; color: #222; background: rgba(255,255,255,0.9); padding: 4px 25px; border-radius: 50px; border: 1px solid rgba(0,0,0,0.1); z-index: 20; }
-        .dip-sello { position: absolute; bottom: 614px; left: 1445px; width: 180px; height: 180px; z-index: 15; background-repeat: no-repeat; background-size: contain; background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpath id='textPath' d='M 25,100 A 75,75 0 1,1 175,100 A 75,75 0 1,1 25,100' /%3E%3C/defs%3E%3Ccircle cx='100' cy='100' r='90' fill='none' stroke='%23B8860B' stroke-width='2' /%3E%3Ccircle cx='100' cy='100' r='85' fill='none' stroke='%23B8860B' stroke-width='1' /%3E%3Ccircle cx='100' cy='100' r='65' fill='none' stroke='%23B8860B' stroke-width='1' stroke-dasharray='2,2' /%3E%3Ctext fill='%23B8860B' font-family='Times New Roman, serif' font-weight='bold' font-size='14' letter-spacing='3'%3E%3CtextPath href='%23textPath' startOffset='0' text-anchor='middle'%3E* CERTIFICACIÓN OFICIAL * VALIDADA *%3C/textPath%3E%3C/text%3E%3Cpath d='M100,45 L100,155 M45,100 L155,100' stroke='%23B8860B' stroke-width='0.5' opacity='0.3'/%3E%3Cpath d='M100,55 L120,80 L100,145 L80,80 Z' fill='none' stroke='%23B8860B' stroke-width='1.5' /%3E%3C/svg%3E"); filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2)); opacity: 0.9; }
-
+        
         /* ACTIONS GRID */
         .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
         .action-card { background: white; padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-decoration: none; color: #333; cursor: pointer; }
@@ -193,14 +191,8 @@
         .sem-price { font-size: 18px; font-weight: 900; color: #4ade80; margin-top: 8px; }
         .btn-sem { width: 100%; margin-top: 10px; padding: 10px; background: white; color: black; border: none; font-weight: 900; border-radius: 6px; cursor: pointer; }
 
-        /* GHOST CONTAINER (Oculto a la izquierda para no estropear capturas) */
-        #ghost-container { 
-            position: absolute; 
-            top: 0; 
-            left: -9999px; 
-            z-index: -9999; 
-            pointer-events: none; 
-        }
+        /* GHOST CONTAINER */
+        #ghost-container { position: absolute; top: 0; left: -9999px; z-index: -9999; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -829,6 +821,7 @@
         function generarTextoIA(tipo) { const t = tipo === 'linkedin' ? `🚀 ¡Meta Cumplida!\nCertificado como ${alumnoActual.curso}.` : `PERFIL PROFESIONAL:\nCertificado como ${alumnoActual.curso}.`; navigator.clipboard.writeText(t).then(() => alert("Copiado!")); }
         function registrarAcceso(alumno) { try { db.from('logs_accesos').insert({ alumno_id: alumno.id, curso: alumno.curso, fecha: new Date().toISOString() }).then(); } catch(e) { } }
         
+        // --- SEGURO MATEMÁTICO DE TEXTO ---
         function ajustarTextoAlAncho(element, startSize, maxWidth, minLimit) { 
             let size = startSize; 
             element.style.fontSize = size + 'px'; 
@@ -846,7 +839,10 @@
             const nombreEl = el('#txt-nombre'); 
             nombreEl.innerText = `${alumno.nombre} ${alumno.apellido}`;
             el('#txt-dni').innerText = new Intl.NumberFormat('es-AR').format(alumno.dni_alumno);
-            el('#txt-matricula').innerText = generarHashMatricula(String(alumno.dni_alumno));
+            
+            // --- MATRÍCULA ÚNICA DE 6 DÍGITOS ---
+            el('#txt-matricula').innerText = generarHashMatricula(alumno.dni_alumno, alumno.curso, alumno.id);
+            
             const fechaInicio = new Date(alumno.fecha_inicio || new Date()); el('#txt-anio-header').innerText = `CARNET ${fechaInicio.getFullYear()}`;
             let vence = alumno.fecha_vencimiento ? new Date(alumno.fecha_vencimiento) : new Date(fechaInicio.setFullYear(fechaInicio.getFullYear() + 1));
             el('#txt-vence').innerText = vence.toLocaleDateString('es-AR');
@@ -871,6 +867,7 @@
             const t = (alumno.curso || "CURSO PROFESIONAL").trim().toUpperCase().split(/\s+/);
             if(t.length < 2) { el('#txt-titulo-main').innerText = t.join(' '); el('#txt-titulo-sub').innerText = ""; } else { el('#txt-titulo-main').innerText = t[0]; el('#txt-titulo-sub').innerText = t.slice(1).join(' '); }
             
+            // --- NOMBRE GRANDE (BASE 55px - MÍNIMO 28px) ---
             ajustarTextoAlAncho(nombreEl, 55, 550, 28); 
             ajustarTextoAlAncho(el('#txt-titulo-main'), 55, 600, 20); 
             ajustarTextoAlAncho(el('#txt-titulo-sub'), 55, 500, 20); 
@@ -902,23 +899,23 @@
                     let overlayHTML = ''; 
                     
                     if (i === 0) { 
-                        // --- HOJA 1: USANDO LAS MISMAS COORDENADAS QUE LA PÁGINA 3 (CERTIFICADO) ---
+                        // --- HOJA 1: NOTAS (ARRIBA CENTRO Y DERECHA) ---
                         overlayHTML = `
                         <div class="diploma-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%; z-index:10;">
-                            <div style="position: absolute; top: 500px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; white-space: nowrap;">
+                            <div style="position: absolute; top: 120px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; white-space: nowrap;">
                                 <span class="dip-texto-formal" id="ana-text-${i}" style="color: ${colorTextoInteligente} !important; font-size: 50px;"></span>
                             </div>
-                            <div id="ana-qr-${i}" style="position: absolute; top: 250px; right: 120px; width: 150px; height: 150px; background: white; padding: 5px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"></div>
-                            <div id="ana-info-${i}" style="position: absolute; top: 600px; left: 50%; transform: translateX(-50%); text-align: center; font-family: 'Roboto', sans-serif; font-size: 16px; font-weight: 700; color: ${colorTextoInteligente}; background: rgba(255,255,255,0.9); padding: 4px 25px; border-radius: 50px;"></div>
+                            <div id="ana-qr-${i}" style="position: absolute; top: 60px; right: 60px; width: 150px; height: 150px; background: white; padding: 5px;"></div>
+                            <div id="ana-info-${i}" style="position: absolute; top: 200px; left: 50%; transform: translateX(-50%); text-align: center; font-family: 'Roboto', sans-serif; font-size: 16px; font-weight: 700; color: ${colorTextoInteligente}; background: rgba(255,255,255,0.9); padding: 4px 25px; border-radius: 50px;"></div>
                         </div>`; 
                     } else if (i === 2) {
-                        // --- HOJA 3 (CERTIFICADO): SE MANTIENE IGUAL ---
+                        // --- HOJA 3: CERTIFICADO (MEDIO ABAJO PARA NO TAPAR LOGOS) ---
                         overlayHTML = `
                         <div class="diploma-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%; z-index:10;">
-                            <div style="position: absolute; top: 500px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; white-space: nowrap;">
+                            <div style="position: absolute; top: 480px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; white-space: nowrap;">
                                 <span class="dip-texto-formal" id="cert-text-${i}" style="color: ${colorTextoInteligente} !important; font-size: 45px;"></span>
                             </div>
-                            <div id="cert-qr-${i}" style="position: absolute; top: 250px; right: 120px; width: 160px; height: 160px; background: white; padding: 10px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"></div>
+                            <div id="cert-qr-${i}" style="position: absolute; top: 220px; right: 120px; width: 160px; height: 160px; background: white; padding: 10px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"></div>
                         </div>`;
                     }
                     
@@ -974,7 +971,17 @@
         function volverAlSelector() { mostrarPantalla('screen-selector'); }
         function cerrarSesion() { location.reload(); }
         function ajustarCarnetResponsivo() { const v = document.getElementById('card-viewport'); const c = document.getElementById('carnet-render'); if(v && c) { const s = v.offsetWidth / 1011; c.style.transform = `scale(${s})`; v.style.height = `${638 * s}px`; } }
-        function generarHashMatricula(d) { let h = 0; for (let i = 0; i < d.length; i++) { h = ((h << 5) - h) + d.charCodeAt(i); h |= 0; } return String(Math.abs(h)).substring(0, 6).padStart(6, '9'); }
+        
+        // --- MATRÍCULA INTELIGENTE (6 DÍGITOS ÚNICOS) ---
+        function generarHashMatricula(dni, curso, id) { 
+            const str = String(dni) + String(curso).trim().toLowerCase() + String(id);
+            let h = 0x811c9dc5; 
+            for (let i = 0; i < str.length; i++) { 
+                h ^= str.charCodeAt(i); 
+                h = Math.imul(h, 0x01000193); 
+            } 
+            return String(Math.abs(h)).substring(0, 6).padStart(6, '1'); 
+        }
     </script>
 </body>
 </html>
