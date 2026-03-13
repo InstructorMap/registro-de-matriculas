@@ -239,7 +239,8 @@
             document.getElementById('val-hash').innerText = hashDisplay;
             document.getElementById('val-vencimiento').innerText = fechaVence.toLocaleDateString('es-AR');
             
-            document.getElementById('val-matricula').innerText = generarHashMatricula(String(alumno.dni_alumno));
+            // --- INYECCIÓN MODO DIOS: LLAMADA ACTUALIZADA ---
+            document.getElementById('val-matricula').innerText = generarHashMatricula(alumno.dni_alumno, alumno.curso, alumno.id);
             document.getElementById('val-matricula').style.color = colorTema;
 
             // Logo
@@ -249,7 +250,7 @@
                 logo.classList.remove('hidden');
             }
 
-// FIX FOTO DEFINITIVO: Carga segura y manejo de errores
+            // FIX FOTO DEFINITIVO: Carga segura y manejo de errores
             const imgEl = document.getElementById('val-foto');
             
             // URL de respaldo (Silueta gris)
@@ -342,10 +343,15 @@
             lucide.createIcons();
         }
 
-        function generarHashMatricula(d) { 
-            let h = 0; 
-            for (let i = 0; i < d.length; i++) { h = ((h << 5) - h) + d.charCodeAt(i); h |= 0; } 
-            return String(Math.abs(h)).substring(0, 6).padStart(6, '9'); 
+        // --- INYECCIÓN MODO DIOS: MOTOR MATEMÁTICO DE 6 DÍGITOS ---
+        function generarHashMatricula(dni, curso, id) { 
+            const str = String(dni) + String(curso).trim().toLowerCase() + String(id);
+            let h = 0x811c9dc5; 
+            for (let i = 0; i < str.length; i++) { 
+                h ^= str.charCodeAt(i); 
+                h = Math.imul(h, 0x01000193); 
+            } 
+            return String(Math.abs(h)).substring(0, 6).padStart(6, '1'); 
         }
 
         function copiarHash() {
