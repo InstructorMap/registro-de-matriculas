@@ -12,6 +12,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&family=Roboto+Slab:wght@700;900&display=swap" rel="stylesheet">
 
@@ -23,7 +27,7 @@
 
         /* HEADER & CAMPANA NOTIFICACIONES */
         .app-header { background: white; padding: 10px 20px; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; height: 80px; }
-        .app-logo { height: 60px; width: auto; object-fit: contain; }
+        .app-logo { height: 60px; width: auto; object-fit: contain; transition: all 0.3s ease; }
         .header-actions { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); display: flex; gap: 15px; }
         .btn-bell { position: relative; font-size: 22px; color: var(--primary); cursor: pointer; transition: 0.2s; }
         .btn-bell:active { transform: scale(0.9); }
@@ -54,13 +58,16 @@
         .input-dni { width: 100%; padding: 15px 15px 15px 45px; border: 2px solid #ddd; border-radius: 12px; font-size: 18px; outline: none; transition: 0.3s; }
         .input-dni:focus { border-color: var(--primary); }
         .input-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #999; }
-        .btn-main { width: 100%; max-width: 320px; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: transform 0.2s; }
+        .btn-main { width: 100%; max-width: 320px; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: transform 0.2s; display: flex; justify-content: center; align-items: center; gap: 10px;}
         .btn-main:active { transform: scale(0.98); }
 
-        /* UPLOAD */
-        .upload-area { border: 2px dashed #ccc; padding: 30px; border-radius: 15px; background: white; margin-bottom: 20px; cursor: pointer; width: 100%; max-width: 320px; }
-        .upload-icon { font-size: 40px; color: #ccc; margin-bottom: 10px; }
-        #preview-upload { max-width: 100%; max-height: 200px; border-radius: 10px; display: none; margin-top: 10px; object-fit: cover; }
+        /* UPLOAD & CROPPER */
+        .upload-area { border: 2px dashed #ccc; padding: 30px; border-radius: 15px; background: white; margin-bottom: 20px; cursor: pointer; width: 100%; max-width: 320px; transition: 0.3s; }
+        .upload-area:hover { border-color: var(--primary); background: #f0f4ff; }
+        .upload-icon { font-size: 40px; color: #ccc; margin-bottom: 10px; transition: 0.3s; }
+        .upload-area:hover .upload-icon { color: var(--primary); }
+        #cropper-container { width: 100%; max-width: 320px; height: 350px; margin-bottom: 20px; border-radius: 10px; overflow: hidden; background: #000; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .cropper-view-box, .cropper-face { border-radius: 10px; }
 
         /* WALLET UI */
         .wallet-welcome { margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
@@ -219,17 +226,25 @@
     </div>
 
     <div id="screen-upload" class="screen">
-        <div class="login-container">
+        <div class="login-container" style="justify-content: flex-start; padding-top: 20px;">
             <h1 class="login-title">Foto de Perfil</h1>
-            <p class="login-desc">Sube una foto clara para tu credencial.</p>
-            <label class="upload-area">
+            <p class="login-desc">Sube y encuadra tu foto para la credencial oficial. Tu rostro debe verse centrado.</p>
+            
+            <label class="upload-area" id="label-upload-area">
                 <div class="upload-icon"><i class="fas fa-camera"></i></div>
-                <div id="txt-upload">Tocar para subir</div>
+                <div id="txt-upload" style="font-weight: bold; color: #555;">Tocar para buscar foto</div>
                 <input type="file" id="input-foto-alumno" accept="image/*" style="display:none;" onchange="previsualizarFoto()">
-                <img id="preview-upload" src="">
             </label>
-            <button class="btn-main" id="btn-subir" onclick="subirFoto()" style="display:none;">GUARDAR</button>
-            <div id="upload-loader" class="loader"></div>
+
+            <div id="cropper-container" style="display:none;">
+                <img id="image-to-crop" src="" style="max-width: 100%;">
+            </div>
+
+            <div style="display: flex; gap: 10px; width: 100%; max-width: 320px;">
+                <button class="btn-main" id="btn-reselect" onclick="resetearFoto()" style="display:none; background: #666; width: 40%;"><i class="fas fa-undo"></i> OTRA</button>
+                <button class="btn-main" id="btn-subir" onclick="subirFotoRecortada()" style="display:none; width: 60%;"><i class="fas fa-check"></i> GUARDAR</button>
+            </div>
+            <div id="upload-loader" class="loader" style="margin-top: 15px;"></div>
         </div>
     </div>
 
@@ -332,6 +347,16 @@
             'default': '#0033cc' 
         };
 
+        // --- REGISTRO DEL SERVICE WORKER (Para permitir instalación) ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log("SW registrado correctamente"))
+                .catch(err => console.error("Error al registrar SW", err));
+            });
+        }
+        // ---------------------------------------------------------------
+
         const CARNET_HTML = `
             <div class="card-base" id="card-base-el">
                 <div class="front-left" id="panel-izq-bg">
@@ -383,11 +408,13 @@
         let globalInstitucion = null; 
         let deferredPrompt; 
         let notificacionesCache = []; 
+        let cropper = null; // Variable global para el recortador de fotos
 
         document.getElementById('app-logo').src = LOGO_ASARI_DEFAULT;
         document.documentElement.style.setProperty('--primary', COLOR_DEFAULT);
         window.addEventListener('resize', ajustarCarnetResponsivo);
 
+        // --- CAPTURAR EVENTO DE INSTALACIÓN ---
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
@@ -397,13 +424,19 @@
             if (deferredPrompt) {
                 deferredPrompt.prompt();
                 deferredPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') { console.log('User accepted'); }
+                    if (choiceResult.outcome === 'accepted') { console.log('App Instalada por el usuario'); }
                     deferredPrompt = null;
                 });
             } else {
-                alert("Para instalar en iPhone:\n1. Toca el botón 'Compartir' (cuadrado con flecha)\n2. Selecciona 'Agregar a Inicio'");
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                if (isIOS) {
+                    alert("Para instalar en iPhone o iPad:\n1. Toca el botón 'Compartir' (cuadrado con flechita apuntando hacia arriba).\n2. Desliza hacia abajo y selecciona 'Agregar a inicio'.");
+                } else {
+                    alert("La aplicación ya está instalada o tu navegador no soporta esta función directa.");
+                }
             }
         }
+        // ----------------------------------------
 
         function abrirSoporte() {
             const msg = `Hola, soy alumno (DNI: ${alumnoActual?.dni_alumno || ''}). Tengo una consulta sobre mi credencial.`;
@@ -431,9 +464,10 @@
             
             try {
                 const { data: matriculas, error } = await db.from('matriculas').select('*').eq('dni_alumno', dni);
-                if (!matriculas || matriculas.length === 0) throw new Error("No encontrado");
+                if (!matriculas || matriculas.length === 0) throw new Error("No encontrado o DNI incorrecto.");
                 
-                const fotoEncontrada = matriculas.find(m => m.foto_url && m.foto_url.length > 5)?.foto_url;
+                // Muro de validación: Nos aseguramos de que la foto no sea "null" ni un texto vacío
+                const fotoEncontrada = matriculas.find(m => m.foto_url && m.foto_url !== "null" && m.foto_url.trim().length > 10)?.foto_url;
                 if (fotoEncontrada) { matriculas.forEach(m => m.foto_url = fotoEncontrada); }
                 
                 globalMatriculas = matriculas;
@@ -465,7 +499,7 @@
                 }
                 if(dniUrl) window.history.replaceState({}, document.title, window.location.pathname);
             } finally {
-                if(btnText) btnText.style.display = 'block'; 
+                if(btnText) btnText.style.display = 'flex'; 
                 if(loader) loader.style.display = 'none';
             }
         }
@@ -477,9 +511,83 @@
             }
         });
 
-        function procesarSiguientePantalla(matriculas) {
+        // --- LÓGICA DE MANIFIESTO DINÁMICO E IPHONE ---
+        function actualizarManifiestoDinamico(logoUrl, nombreInstitucion) {
+            const myDynamicManifest = {
+                "short_name": "Credencial",
+                "name": `Credencial - ${nombreInstitucion}`,
+                "icons": [
+                    {
+                        "src": logoUrl,
+                        "sizes": "512x512",
+                        "type": "image/png",
+                        "purpose": "any maskable"
+                    }
+                ],
+                "start_url": ".",
+                "display": "standalone",
+                "theme_color": "#0033cc",
+                "background_color": "#ffffff"
+            };
+            
+            const stringManifest = JSON.stringify(myDynamicManifest);
+            const blob = new Blob([stringManifest], {type: 'application/json'});
+            const manifestURL = URL.createObjectURL(blob);
+            
+            let manifestTag = document.querySelector('link[rel="manifest"]');
+            if (manifestTag) {
+                manifestTag.setAttribute('href', manifestURL);
+            }
+
+            // Parche para iPhone (Apple Touch Icon)
+            let appleIcon = document.querySelector('link[rel="apple-touch-icon"]');
+            if (!appleIcon) {
+                appleIcon = document.createElement('link');
+                appleIcon.rel = 'apple-touch-icon';
+                document.head.appendChild(appleIcon);
+            }
+            appleIcon.href = logoUrl;
+        }
+        // -------------------------------------
+
+        async function procesarSiguientePantalla(matriculas) {
             const alumno = matriculas[0];
-            if (!alumno.foto_url) {
+
+            // --- CÁLCULO DEL INSTITUTO CON MÁS CURSOS (Para la App) ---
+            const conteo = {};
+            matriculas.forEach(m => {
+                if (m.institution_id) {
+                    conteo[m.institution_id] = (conteo[m.institution_id] || 0) + 1;
+                }
+            });
+
+            let maxCursos = 0;
+            let idGanador = alumno.institution_id;
+            for (const id in conteo) {
+                if (conteo[id] > maxCursos) {
+                    maxCursos = conteo[id];
+                    idGanador = id;
+                }
+            }
+
+            if (idGanador) {
+                try {
+                    const { data: instGanadora } = await db.from('instituciones')
+                        .select('nombre, logo_url')
+                        .eq('id', idGanador)
+                        .maybeSingle();
+                    
+                    if (instGanadora) {
+                        actualizarManifiestoDinamico(instGanadora.logo_url || LOGO_ASARI_DEFAULT, instGanadora.nombre);
+                    }
+                } catch(e) { console.warn("Error manifiesto", e); }
+            }
+            // -----------------------------------------------------------
+
+            // Muro Infranqueable de la Foto
+            const tieneFotoValida = alumno.foto_url && alumno.foto_url !== "null" && alumno.foto_url.trim().length > 10;
+
+            if (!tieneFotoValida) {
                 alumnoActual = alumno;
                 mostrarPantalla('screen-upload');
             } else {
@@ -513,48 +621,109 @@
             }
         }
 
-        async function comprimirImagen(file, quality = 0.8, maxWidth = 800) {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = (event) => {
-                    const img = new Image();
-                    img.src = event.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        let width = img.width;
-                        let height = img.height;
-                        if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; }
-                        canvas.width = width; canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
-                        canvas.toBlob((blob) => {
-                            resolve(new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", { type: 'image/jpeg' }));
-                        }, 'image/jpeg', quality);
-                    };
-                };
-            });
+        // --- SISTEMA DE RECORTE DE FOTO (CROPPER.JS) ---
+        function previsualizarFoto() { 
+            const file = document.getElementById('input-foto-alumno').files[0]; 
+            if(file) { 
+                const reader = new FileReader(); 
+                reader.onload = function(e) { 
+                    // Ocultamos el botón de subir y mostramos el editor
+                    document.getElementById('label-upload-area').style.display = 'none';
+                    document.getElementById('cropper-container').style.display = 'block';
+                    document.getElementById('btn-subir').style.display = 'flex';
+                    document.getElementById('btn-reselect').style.display = 'flex';
+
+                    const image = document.getElementById('image-to-crop');
+                    image.src = e.target.result;
+
+                    // Si ya había un cropper abierto, lo destruimos
+                    if (cropper) { cropper.destroy(); }
+                    
+                    // Iniciamos el modo recorte con proporción de Carnet (3:4)
+                    cropper = new Cropper(image, {
+                        aspectRatio: 3 / 4, 
+                        viewMode: 1,
+                        dragMode: 'move',
+                        autoCropArea: 0.9,
+                        restore: false,
+                        guides: true,
+                        center: true,
+                        highlight: false,
+                        cropBoxMovable: true,
+                        cropBoxResizable: true,
+                        toggleDragModeOnDblclick: false,
+                    });
+                }; 
+                reader.readAsDataURL(file); 
+            } 
         }
 
-        function previsualizarFoto() { const file = document.getElementById('input-foto-alumno').files[0]; if(file) { const reader = new FileReader(); reader.onload = function(e) { document.getElementById('preview-upload').src = e.target.result; document.getElementById('preview-upload').style.display = 'block'; document.getElementById('txt-upload').style.display = 'none'; document.getElementById('btn-subir').style.display = 'block'; }; reader.readAsDataURL(file); } }
-        
-        async function subirFoto() { 
-            const fileInput = document.getElementById('input-foto-alumno');
-            if (!fileInput.files[0]) return; 
-            const btn = document.getElementById('btn-subir'); const loader = document.getElementById('upload-loader'); 
-            btn.style.display = 'none'; loader.style.display = 'block'; 
-            try { 
-                const file = await comprimirImagen(fileInput.files[0]); 
-                const fileName = `${alumnoActual.dni_alumno}_${Date.now()}.jpg`; 
-                const { data, error } = await db.storage.from('fotos-alumnos').upload(fileName, file); 
-                if (error) throw error; 
-                const { data: urlData } = db.storage.from('fotos-alumnos').getPublicUrl(fileName); 
-                await db.from('matriculas').update({ foto_url: urlData.publicUrl }).eq('dni_alumno', alumnoActual.dni_alumno); 
-                alumnoActual.foto_url = urlData.publicUrl; globalMatriculas.forEach(m => m.foto_url = urlData.publicUrl); 
-                alert("¡Foto guardada!"); 
-                if (globalMatriculas.length === 1) { cargarWallet(alumnoActual); mostrarPantalla('screen-wallet'); } else { generarListaCursos(globalMatriculas); mostrarPantalla('screen-selector'); } 
-            } catch (err) { alert("Error: " + err.message); btn.style.display = 'block'; } finally { loader.style.display = 'none'; } 
+        function resetearFoto() {
+            if(cropper) { cropper.destroy(); cropper = null; }
+            document.getElementById('input-foto-alumno').value = "";
+            document.getElementById('label-upload-area').style.display = 'block';
+            document.getElementById('cropper-container').style.display = 'none';
+            document.getElementById('btn-subir').style.display = 'none';
+            document.getElementById('btn-reselect').style.display = 'none';
         }
+        
+        async function subirFotoRecortada() { 
+            if (!cropper) return; 
+            
+            const btnSubir = document.getElementById('btn-subir'); 
+            const btnReselect = document.getElementById('btn-reselect');
+            const loader = document.getElementById('upload-loader'); 
+            
+            btnSubir.style.display = 'none'; 
+            btnReselect.style.display = 'none';
+            loader.style.display = 'block'; 
+            
+            try { 
+                // Obtenemos el recorte final en alta calidad
+                const canvas = cropper.getCroppedCanvas({
+                    width: 600,
+                    height: 800,
+                    imageSmoothingEnabled: true,
+                    imageSmoothingQuality: 'high',
+                });
+
+                // Convertimos el recorte a archivo JPG optimizado
+                canvas.toBlob(async (blob) => {
+                    const fileName = `${alumnoActual.dni_alumno}_${Date.now()}.jpg`; 
+                    const file = new File([blob], fileName, { type: 'image/jpeg' });
+
+                    const { data, error } = await db.storage.from('fotos-alumnos').upload(fileName, file); 
+                    if (error) throw error; 
+
+                    const { data: urlData } = db.storage.from('fotos-alumnos').getPublicUrl(fileName); 
+                    
+                    // Guardamos la foto en la base de datos
+                    await db.from('matriculas').update({ foto_url: urlData.publicUrl }).eq('dni_alumno', alumnoActual.dni_alumno); 
+                    
+                    alumnoActual.foto_url = urlData.publicUrl; 
+                    globalMatriculas.forEach(m => m.foto_url = urlData.publicUrl); 
+                    
+                    alert("¡Foto recortada y guardada con éxito!"); 
+                    
+                    // Limpiamos y avanzamos a la siguiente pantalla
+                    if (globalMatriculas.length === 1) { 
+                        cargarWallet(alumnoActual); 
+                        mostrarPantalla('screen-wallet'); 
+                    } else { 
+                        generarListaCursos(globalMatriculas); 
+                        mostrarPantalla('screen-selector'); 
+                    } 
+                }, 'image/jpeg', 0.85);
+
+            } catch (err) { 
+                alert("Error: " + err.message); 
+                btnSubir.style.display = 'flex'; 
+                btnReselect.style.display = 'flex';
+            } finally { 
+                loader.style.display = 'none'; 
+            } 
+        }
+        // -----------------------------------------------
 
         function cambiarIdentidadVisual(logo, color) { 
             const img = document.getElementById('app-logo'); 
@@ -596,6 +765,23 @@
         
         async function cargarWallet(alumno) {
             alumnoActual = alumno; 
+
+            if(alumno.institution_id) {
+                try {
+                    const { data: dataInst } = await db.from('instituciones')
+                        .select('logo_url, fondo_wallet_url, reverso_url, alcance_url, color_texto_diploma')
+                        .eq('id', alumno.institution_id)
+                        .maybeSingle();
+
+                    if(dataInst) {
+                        globalInstitucion = dataInst;
+                        if(dataInst.logo_url) {
+                            document.getElementById('app-logo').src = dataInst.logo_url;
+                        }
+                    }
+                } catch(e) { console.warn("Error al cargar instituto:", e); }
+            }
+
             document.getElementById('user-name').innerText = alumno.nombre.split(' ')[0];
             const av = document.getElementById('user-avatar-wallet');
             if(alumno.foto_url) { av.src = alumno.foto_url; av.style.display = 'block'; }
@@ -817,7 +1003,18 @@
 
         function comprarSeminario(id, link) { if(link && link !== '#') window.open(link, '_blank'); else alert("Inscripción abierta."); }
         function iniciarPago() { if (!LINK_MERCADO_PAGO || LINK_MERCADO_PAGO.includes("AQUI_TU_LINK")) { alert("Error de Configuración"); return; } window.location.href = LINK_MERCADO_PAGO; }
-        async function checkPaymentReturn(alumnoId) { const params = new URLSearchParams(window.location.search); if (params.get('status') === 'approved') { try { await db.from('matriculas').update({ premium: true }).eq('id', alumnoId); alumnoActual.premium = true; renderPremiumSection(alumnoActual); alert("¡Pago Exitoso!"); } catch(e) { } } }
+        
+        // PARCHE DE SEGURIDAD PARA EL PAGO
+        async function checkPaymentReturn(alumnoId) { 
+            const params = new URLSearchParams(window.location.search); 
+            if (params.get('status') === 'approved') { 
+                alumnoActual.premium = true; 
+                renderPremiumSection(alumnoActual); 
+                window.history.replaceState({}, document.title, window.location.pathname);
+                alert("¡Pago Registrado! Si en un rato no ves las herramientas activadas, escríbenos al WhatsApp."); 
+            } 
+        }
+
         function generarTextoIA(tipo) { const t = tipo === 'linkedin' ? `🚀 ¡Meta Cumplida!\nCertificado como ${alumnoActual.curso}.` : `PERFIL PROFESIONAL:\nCertificado como ${alumnoActual.curso}.`; navigator.clipboard.writeText(t).then(() => alert("Copiado!")); }
         function registrarAcceso(alumno) { try { db.from('logs_accesos').insert({ alumno_id: alumno.id, curso: alumno.curso, fecha: new Date().toISOString() }).then(); } catch(e) { } }
         
