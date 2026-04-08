@@ -31,7 +31,7 @@
         .header-actions { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); display: flex; gap: 15px; }
         .btn-bell { position: relative; font-size: 22px; color: var(--primary); cursor: pointer; transition: 0.2s; }
         .btn-bell:active { transform: scale(0.9); }
-        .bell-badge { position: absolute; top: -5px; right: -5px; background: #ff0000; color: white; font-size: 10px; font-weight: 900; width: 16px; height: 16px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 2px solid white; }
+        .bell-badge { position: absolute top: -5px; right: -5px; background: #ff0000; color: white; font-size: 10px; font-weight: 900; width: 16px; height: 16px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 2px solid white; }
 
         /* MODAL NOVEDADES */
         .notif-item { padding: 15px; border-bottom: 1px solid #eee; display: flex; gap: 12px; align-items: flex-start; }
@@ -408,13 +408,12 @@
         let globalInstitucion = null; 
         let deferredPrompt; 
         let notificacionesCache = []; 
-        let cropper = null; // Variable global para el recortador de fotos
+        let cropper = null; 
 
         document.getElementById('app-logo').src = LOGO_ASARI_DEFAULT;
         document.documentElement.style.setProperty('--primary', COLOR_DEFAULT);
         window.addEventListener('resize', ajustarCarnetResponsivo);
 
-        // --- CAPTURAR EVENTO DE INSTALACIÓN ---
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
@@ -424,7 +423,7 @@
             if (deferredPrompt) {
                 deferredPrompt.prompt();
                 deferredPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') { console.log('App Instalada por el usuario'); }
+                    if (choiceResult.outcome === 'accepted') { console.log('App Instalada'); }
                     deferredPrompt = null;
                 });
             } else {
@@ -436,7 +435,6 @@
                 }
             }
         }
-        // ----------------------------------------
 
         function abrirSoporte() {
             const msg = `Hola, soy alumno (DNI: ${alumnoActual?.dni_alumno || ''}). Tengo una consulta sobre mi credencial.`;
@@ -466,7 +464,6 @@
                 const { data: matriculas, error } = await db.from('matriculas').select('*').eq('dni_alumno', dni);
                 if (!matriculas || matriculas.length === 0) throw new Error("No encontrado o DNI incorrecto.");
                 
-                // Muro de validación: Nos aseguramos de que la foto no sea "null" ni un texto vacío
                 const fotoEncontrada = matriculas.find(m => m.foto_url && m.foto_url !== "null" && m.foto_url.trim().length > 10)?.foto_url;
                 if (fotoEncontrada) { matriculas.forEach(m => m.foto_url = fotoEncontrada); }
                 
@@ -511,7 +508,6 @@
             }
         });
 
-        // --- LÓGICA DE MANIFIESTO DINÁMICO E IPHONE ---
         function actualizarManifiestoDinamico(logoUrl, nombreInstitucion) {
             const myDynamicManifest = {
                 "short_name": "Credencial",
@@ -539,7 +535,6 @@
                 manifestTag.setAttribute('href', manifestURL);
             }
 
-            // Parche para iPhone (Apple Touch Icon)
             let appleIcon = document.querySelector('link[rel="apple-touch-icon"]');
             if (!appleIcon) {
                 appleIcon = document.createElement('link');
@@ -548,12 +543,10 @@
             }
             appleIcon.href = logoUrl;
         }
-        // -------------------------------------
 
         async function procesarSiguientePantalla(matriculas) {
             const alumno = matriculas[0];
 
-            // --- CÁLCULO DEL INSTITUTO CON MÁS CURSOS (Para la App) ---
             const conteo = {};
             matriculas.forEach(m => {
                 if (m.institution_id) {
@@ -582,9 +575,7 @@
                     }
                 } catch(e) { console.warn("Error manifiesto", e); }
             }
-            // -----------------------------------------------------------
 
-            // Muro Infranqueable de la Foto
             const tieneFotoValida = alumno.foto_url && alumno.foto_url !== "null" && alumno.foto_url.trim().length > 10;
 
             if (!tieneFotoValida) {
@@ -621,13 +612,11 @@
             }
         }
 
-        // --- SISTEMA DE RECORTE DE FOTO (CROPPER.JS) ---
         function previsualizarFoto() { 
             const file = document.getElementById('input-foto-alumno').files[0]; 
             if(file) { 
                 const reader = new FileReader(); 
                 reader.onload = function(e) { 
-                    // Ocultamos el botón de subir y mostramos el editor
                     document.getElementById('label-upload-area').style.display = 'none';
                     document.getElementById('cropper-container').style.display = 'block';
                     document.getElementById('btn-subir').style.display = 'flex';
@@ -636,10 +625,8 @@
                     const image = document.getElementById('image-to-crop');
                     image.src = e.target.result;
 
-                    // Si ya había un cropper abierto, lo destruimos
                     if (cropper) { cropper.destroy(); }
                     
-                    // Iniciamos el modo recorte con proporción de Carnet (3:4)
                     cropper = new Cropper(image, {
                         aspectRatio: 3 / 4, 
                         viewMode: 1,
@@ -679,7 +666,6 @@
             loader.style.display = 'block'; 
             
             try { 
-                // Obtenemos el recorte final en alta calidad
                 const canvas = cropper.getCroppedCanvas({
                     width: 600,
                     height: 800,
@@ -687,7 +673,6 @@
                     imageSmoothingQuality: 'high',
                 });
 
-                // Convertimos el recorte a archivo JPG optimizado
                 canvas.toBlob(async (blob) => {
                     const fileName = `${alumnoActual.dni_alumno}_${Date.now()}.jpg`; 
                     const file = new File([blob], fileName, { type: 'image/jpeg' });
@@ -697,7 +682,6 @@
 
                     const { data: urlData } = db.storage.from('fotos-alumnos').getPublicUrl(fileName); 
                     
-                    // Guardamos la foto en la base de datos
                     await db.from('matriculas').update({ foto_url: urlData.publicUrl }).eq('dni_alumno', alumnoActual.dni_alumno); 
                     
                     alumnoActual.foto_url = urlData.publicUrl; 
@@ -705,7 +689,6 @@
                     
                     alert("¡Foto recortada y guardada con éxito!"); 
                     
-                    // Limpiamos y avanzamos a la siguiente pantalla
                     if (globalMatriculas.length === 1) { 
                         cargarWallet(alumnoActual); 
                         mostrarPantalla('screen-wallet'); 
@@ -723,7 +706,6 @@
                 loader.style.display = 'none'; 
             } 
         }
-        // -----------------------------------------------
 
         function cambiarIdentidadVisual(logo, color) { 
             const img = document.getElementById('app-logo'); 
@@ -1004,7 +986,6 @@
         function comprarSeminario(id, link) { if(link && link !== '#') window.open(link, '_blank'); else alert("Inscripción abierta."); }
         function iniciarPago() { if (!LINK_MERCADO_PAGO || LINK_MERCADO_PAGO.includes("AQUI_TU_LINK")) { alert("Error de Configuración"); return; } window.location.href = LINK_MERCADO_PAGO; }
         
-        // PARCHE DE SEGURIDAD PARA EL PAGO
         async function checkPaymentReturn(alumnoId) { 
             const params = new URLSearchParams(window.location.search); 
             if (params.get('status') === 'approved') { 
@@ -1030,6 +1011,7 @@
             } 
         }
 
+        // --- MODO DIOS: FUNCIÓN DE RENDERIZADO CORREGIDA ---
         function llenarDatosCarnet(container, alumno, colorOverride) {
             const el = (sel) => container.querySelector(sel);
             const nombreEl = el('#txt-nombre'); 
@@ -1048,17 +1030,60 @@
             else { const wm = el('#watermark-container'); if(wm) wm.innerHTML = ''; }
 
             const regId = (alumno.registro_id || 'default').toLowerCase(); const color = colorOverride || COLORES_REGISTRO[regId] || COLORES_REGISTRO['default']; globalColorTema = color;
-            const panel = el('#bg-panel'); panel.style.background = ''; panel.style.backgroundColor = color; panel.style.backgroundImage = 'none'; panel.style.color = 'white';
             
-            if (globalInstitucion && globalInstitucion.fondo_wallet_url) { panel.style.backgroundImage = `url('${globalInstitucion.fondo_wallet_url}')`; panel.style.backgroundSize = "cover"; panel.style.backgroundPosition = "center"; el('#card-base-el').style.borderColor = color; } 
-            else if (regId === 'rce') { panel.style.backgroundImage = `repeating-linear-gradient(45deg, transparent, transparent 20px, #222 20px, #222 25px)`; panel.style.color = '#fff'; el('#card-base-el').style.borderColor = "#222"; } 
-            else if (regId === 'remets') { panel.style.backgroundColor = "#1a1a1a"; panel.style.backgroundImage = `linear-gradient(0deg, rgba(255,255,255,0.05) 1px, transparent 1px)`; el('#card-base-el').style.borderColor = "#333"; } 
-            else { el('#card-base-el').style.borderColor = color; }
+            // Elementos estructurales para el Fondo
+            const panelDer = el('#bg-panel');
+            const panelIzq = el('#panel-izq-bg');
+            const cardBase = el('#card-base-el');
+            const bandaColor = el('#banda-color');
+
+            // Reset de estilos base (Por si cambias de usuario)
+            panelDer.style.background = ''; panelDer.style.backgroundColor = color; panelDer.style.backgroundImage = 'none'; panelDer.style.color = 'white';
+            panelIzq.style.backgroundColor = '#d4d4d4';
+            cardBase.style.backgroundImage = 'none';
+            bandaColor.style.backgroundColor = color;
+            bandaColor.style.display = 'block';
             
-            el('#banda-color').style.backgroundColor = color; el('#txt-sigla').innerText = (alumno.registro_id || 'OFICIAL').toUpperCase();
+            if (globalInstitucion && globalInstitucion.fondo_wallet_url) { 
+                // FIX 1: FONDO DE BORDE A BORDE
+                cardBase.style.backgroundImage = `url('${globalInstitucion.fondo_wallet_url}')`; 
+                cardBase.style.backgroundSize = "cover"; 
+                cardBase.style.backgroundPosition = "center"; 
+                cardBase.style.borderColor = color; 
+                
+                // Hacemos transparentes los paneles contenedores
+                panelDer.style.backgroundColor = 'transparent';
+                panelIzq.style.backgroundColor = 'transparent';
+                bandaColor.style.display = 'none'; // Ocultamos la banda sólida para no tapar diseño
+            } 
+            else if (regId === 'rce') { panelDer.style.backgroundImage = `repeating-linear-gradient(45deg, transparent, transparent 20px, #222 20px, #222 25px)`; panelDer.style.color = '#fff'; cardBase.style.borderColor = "#222"; } 
+            else if (regId === 'remets') { panelDer.style.backgroundColor = "#1a1a1a"; panelDer.style.backgroundImage = `linear-gradient(0deg, rgba(255,255,255,0.05) 1px, transparent 1px)`; cardBase.style.borderColor = "#333"; } 
+            else { cardBase.style.borderColor = color; }
             
-            const t = (alumno.curso || "CURSO PROFESIONAL").trim().toUpperCase().split(/\s+/);
-            if(t.length < 2) { el('#txt-titulo-main').innerText = t.join(' '); el('#txt-titulo-sub').innerText = ""; } else { el('#txt-titulo-main').innerText = t[0]; el('#txt-titulo-sub').innerText = t.slice(1).join(' '); }
+            el('#txt-sigla').innerText = (alumno.registro_id || 'OFICIAL').toUpperCase();
+            
+            // FIX 2: CORTE INTELIGENTE DE TÍTULO
+            const cursoTexto = (alumno.curso || "CURSO PROFESIONAL").trim().toUpperCase();
+            const palabras = cursoTexto.split(/\s+/);
+            let tituloMain = "";
+            let tituloSub = "";
+
+            if (palabras.length < 2) {
+                tituloMain = cursoTexto;
+            } else {
+                // Lista de preposiciones que deben ir arriba
+                const preposiciones = ["EN", "DE", "DEL", "LA", "EL", "LOS", "LAS", "Y"];
+                if (preposiciones.includes(palabras[1])) {
+                    tituloMain = palabras[0] + " " + palabras[1]; // ej: "INSTRUCTOR EN"
+                    tituloSub = palabras.slice(2).join(' '); // ej: "EMERGENTOLOGIA"
+                } else {
+                    tituloMain = palabras[0]; // ej: "TECNICO"
+                    tituloSub = palabras.slice(1).join(' '); // ej: "AUXILIAR"
+                }
+            }
+            
+            el('#txt-titulo-main').innerText = tituloMain;
+            el('#txt-titulo-sub').innerText = tituloSub;
             
             ajustarTextoAlAncho(nombreEl, 55, 550, 28); 
             ajustarTextoAlAncho(el('#txt-titulo-main'), 55, 600, 20); 
@@ -1089,10 +1114,8 @@
                 for (let i = 0; i < urls.length; i++) { 
                     const url = urls[i]; 
                     
-                    // --- SOLUCIÓN: COORDENADAS BAJAS (480px) PARA HOJA 1 Y HOJA 3 ---
                     let overlayHTML = ''; 
                     if (i === 0) { 
-                        // HOJA 1 (NOTAS): Todo el texto bajado para no pisar el logo
                         overlayHTML = `
                         <div class="diploma-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%; z-index:10;">
                             <div style="position: absolute; top: 480px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; white-space: nowrap;">
@@ -1102,7 +1125,6 @@
                             <div id="ana-qr-${i}" style="position: absolute; top: 220px; right: 120px; width: 160px; height: 160px; background: white; padding: 10px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"></div>
                         </div>`; 
                     } else if (i === 2) {
-                        // HOJA 3 (CERTIFICADO)
                         overlayHTML = `
                         <div class="diploma-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%; z-index:10;">
                             <div style="position: absolute; top: 480px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; white-space: nowrap;">
