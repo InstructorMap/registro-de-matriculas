@@ -1022,12 +1022,13 @@
             let size = startSize; 
             element.style.fontSize = size + 'px'; 
             const limit = maxWidth || element.parentElement.clientWidth; 
-            if (!limit || limit <= 0) return; 
+            if (!limit || limit <= 0) return size; 
             const limitInferior = minLimit || 22; 
             while (element.scrollWidth > limit && size > limitInferior) { 
                 size -= 1; 
                 element.style.fontSize = size + 'px'; 
             } 
+            return size;
         }
 
         function llenarDatosCarnet(container, alumno, colorOverride) {
@@ -1057,12 +1058,33 @@
             
             el('#banda-color').style.backgroundColor = color; el('#txt-sigla').innerText = (alumno.registro_id || 'OFICIAL').toUpperCase();
             
-            const t = (alumno.curso || "CURSO PROFESIONAL").trim().toUpperCase().split(/\s+/);
-            if(t.length < 2) { el('#txt-titulo-main').innerText = t.join(' '); el('#txt-titulo-sub').innerText = ""; } else { el('#txt-titulo-main').innerText = t[0]; el('#txt-titulo-sub').innerText = t.slice(1).join(' '); }
+            let cursoText = (alumno.curso || "CURSO PROFESIONAL").trim().toUpperCase();
+            let mainText = ""; 
+            let subText = "";
             
+            let matchObj = cursoText.match(/^(.*?\b(?:DE|EN)\b)\s+(.*)$/);
+
+            if (matchObj) {
+                mainText = matchObj[1];
+                subText = matchObj[2]; 
+            } else {
+                const t = cursoText.split(/\s+/);
+                if(t.length < 2) { mainText = t.join(' '); subText = ""; } 
+                else { mainText = t[0]; subText = t.slice(1).join(' '); }
+            }
+
+            el('#txt-titulo-main').innerText = mainText;
+            el('#txt-titulo-sub').innerText = subText;
+
             ajustarTextoAlAncho(nombreEl, 55, 550, 28); 
-            ajustarTextoAlAncho(el('#txt-titulo-main'), 55, 600, 20); 
-            ajustarTextoAlAncho(el('#txt-titulo-sub'), 55, 500, 20); 
+
+            let sMain = ajustarTextoAlAncho(el('#txt-titulo-main'), 55, 600, 20);
+            let sSub = subText ? ajustarTextoAlAncho(el('#txt-titulo-sub'), 55, 500, 20) : 55;
+            
+            let sizeIgualado = Math.min(sMain, sSub); 
+            
+            el('#txt-titulo-main').style.fontSize = sizeIgualado + 'px';
+            if (subText) el('#txt-titulo-sub').style.fontSize = sizeIgualado + 'px';
         }
 
         async function descargarCarnetCompleto() { if(!alumnoActual) return; const btn = document.querySelector('.action-card'); const txt = btn.innerHTML; btn.innerHTML = '⏳'; try { const ghost = document.getElementById('ghost-container'); ghost.innerHTML = ""; const wrapper = document.createElement('div'); wrapper.style.display = "flex"; wrapper.style.flexDirection = "column"; wrapper.style.gap = "20px"; wrapper.style.padding = "20px"; wrapper.style.backgroundColor = "white"; wrapper.insertAdjacentHTML('beforeend', CARNET_HTML); const imgReverso = globalInstitucion?.reverso_url || URL_REVERSO; const reversoHtml = `<img src="${imgReverso}" class="carnet-back-img" id="carnet-back-img">`; wrapper.insertAdjacentHTML('beforeend', reversoHtml); wrapper.querySelector('.live-shimmer').style.display = 'none'; ghost.appendChild(wrapper); ghost.querySelectorAll('.card-base, .carnet-back-img').forEach(c => { c.style.width = "1011px"; c.style.height = "638px"; }); ghost.querySelector('#carnet-back-img').style.borderColor = ghost.querySelector('.card-base').style.borderColor; llenarDatosCarnet(ghost, alumnoActual, globalColorTema); const images = ghost.getElementsByTagName('img'); for(let img of images) { if(img.src && !img.complete) await new Promise(r => img.onload = r); } await new Promise(r => setTimeout(r, 500)); const canvas = await html2canvas(wrapper, { scale: 1.5, useCORS: true }); const link = document.createElement('a'); link.download = `Carnet_${alumnoActual.dni_alumno}.png`; link.href = canvas.toDataURL("image/png"); link.click(); ghost.innerHTML = ''; } catch(e) { alert("Error: " + e.message); } finally { btn.innerHTML = txt; } }
