@@ -96,7 +96,7 @@
         .btn-doc i { font-size: 20px; color: var(--gold); }
         .btn-pay { background: var(--gold); color: black; border: none; width: 100%; padding: 12px; border-radius: 8px; font-weight: 900; cursor: pointer; text-transform: uppercase; font-size: 12px; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3); }
 
-        /* CARNET STYLES */
+        /* CARNET STYLES (GENERICO) */
         .card-base { width: 100%; height: 100%; display: flex; position: relative; border: 5px solid; border-radius: 40px; overflow: hidden; background: white; transition: border-color 0.3s; }
         .front-left { width: 380px; height: 100%; position: relative; background: #d4d4d4; z-index: 1; border-top-left-radius: 35px; border-bottom-left-radius: 35px; overflow: hidden; flex-shrink: 0; }
         .student-photo { width: 100%; height: 100%; object-fit: cover; position: relative; z-index: 1; }
@@ -127,47 +127,108 @@
         .live-shimmer { position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%); transform: skewX(-25deg); animation: shimmerMove 4s infinite; z-index: 10; pointer-events: none; }
         @keyframes shimmerMove { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
 
-        .overlay-vencido { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(180, 0, 0, 0.75); z-index: 20; display: flex; justify-content: center; align-items: center; flex-direction: column; color: white; text-align: center; border-radius: 35px; backdrop-filter: blur(2px); }
+        .overlay-vencido { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(180, 0, 0, 0.75); z-index: 200; display: flex; justify-content: center; align-items: center; flex-direction: column; color: white; text-align: center; border-radius: 35px; backdrop-filter: blur(2px); }
         .texto-vencido { font-size: 80px; font-weight: 900; transform: rotate(-15deg); border: 8px solid white; padding: 10px 40px; text-transform: uppercase; letter-spacing: 5px; }
 
         /* ==========================================================================
-           MODO DIOS: CSS EXCLUSIVO REUIM (Identico al JPG FRENTE INSTRUCTORES)
+           MODO DIOS: CSS EXCLUSIVO REUIM (CÓDIGO PURO, DISEÑO RECTANGULAR METÁLICO)
            ========================================================================== */
-        .reuim-card { width: 100%; height: 100%; display: flex; border-radius: 35px; overflow: hidden; background: #0b192c; font-family: 'Roboto', sans-serif; position: relative; border: 5px solid #a8823b; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); }
+        .reuim-card { 
+            width: 100%; height: 100%; display: flex; border-radius: 35px; overflow: hidden; 
+            font-family: 'Roboto', sans-serif; position: relative; 
+            border: 6px solid #C5A059; /* Borde Dorado General */
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.6); 
+        }
         
-        /* Panel Izquierdo Metálico Plateado */
-        .reuim-left { width: 360px; background: linear-gradient(135deg, #fdfdfd 0%, #cfcfcf 50%, #fdfdfd 100%); display: flex; flex-direction: column; align-items: center; padding-top: 50px; position: relative; z-index: 2; box-shadow: inset -5px 0 15px rgba(0,0,0,0.1); }
-        
-        /* FOTO: Rectángulo estándar con borde dorado */
-        .reuim-photo { width: 210px; height: 280px; object-fit: cover; border: 3px solid #b8860b; box-shadow: 0 8px 20px rgba(0,0,0,0.2); border-radius: 4px; background: #fff; }
-        
-        /* QR: Margen superior grande para bajarlo */
-        .reuim-qr-box { margin-top: 70px; width: 160px; height: 160px; background: white; padding: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); display: flex; justify-content: center; align-items: center; border-radius: 0; }
-        .reuim-left-title { font-size: 38px; font-weight: 900; color: #111; margin-top: 15px; letter-spacing: 1px; text-transform: uppercase; }
+        /* PANEL IZQUIERDO: Metal Plateado */
+        .reuim-left { 
+            width: 360px; 
+            background: linear-gradient(135deg, #fdfdfd 0%, #c9c9c9 50%, #fdfdfd 100%); 
+            display: flex; flex-direction: column; align-items: center; padding-top: 50px; 
+            position: relative; z-index: 2; border-right: 3px solid #C5A059;
+            box-shadow: inset -5px 0 15px rgba(0,0,0,0.15); 
+        }
+        /* FOTO RECTANGULAR CON BORDE DORADO */
+        .reuim-photo { 
+            width: 200px; height: 260px; object-fit: cover; 
+            border: 4px solid #C5A059; border-radius: 4px; 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3); background: #fff; margin-bottom: 30px;
+        }
+        /* QR Y SIGLA MÁS ABAJO */
+        .reuim-qr-box { 
+            width: 140px; height: 140px; background: white; padding: 8px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); display: flex; justify-content: center; align-items: center; 
+            margin-bottom: 10px;
+        }
+        .reuim-left-title { 
+            font-size: 38px; font-weight: 900; color: #111; letter-spacing: 1px; text-transform: uppercase; 
+        }
 
-        /* Panel Derecho Azul Marino/Topográfico */
-        .reuim-right { flex: 1; padding: 30px 40px; display: flex; flex-direction: column; position: relative; z-index: 2; }
-        .reuim-bg-pattern { position: absolute; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle at right top, rgba(255,255,255,0.06) 0%, transparent 50%), radial-gradient(circle at left bottom, rgba(255,255,255,0.04) 0%, transparent 50%); pointer-events: none; z-index: 1; }
+        /* PANEL DERECHO: Azul Marino */
+        .reuim-right { 
+            flex: 1; padding: 30px 40px; display: flex; flex-direction: column; position: relative; z-index: 2; 
+            background: linear-gradient(135deg, #0a192f 0%, #112240 100%); /* Azul Profundo */
+        }
+        /* Textura sutil en el azul */
+        .reuim-right::before {
+            content: ''; position: absolute; top:0; left:0; right:0; bottom:0;
+            background-image: radial-gradient(rgba(255,255,255,0.05) 2px, transparent 2px);
+            background-size: 30px 30px; opacity: 0.8; pointer-events: none; z-index: 1;
+        }
         
-        /* CARNET 2026 */
-        .reuim-top-year { font-size: 65px; font-weight: 900; color: white; text-align: center; text-transform: uppercase; text-shadow: 2px 2px 0px #b8860b, 0 0 15px rgba(184,134,11,0.5); margin-bottom: 20px; z-index: 2; position: relative;}
+        .reuim-top-year { 
+            font-size: 65px; font-weight: 900; color: white; text-align: right; text-transform: uppercase; 
+            text-shadow: 2px 2px 0px #b8860b, -1px -1px 0 #b8860b, 1px -1px 0 #b8860b, -1px 1px 0 #b8860b, 0 0 15px rgba(184,134,11,0.5); 
+            margin-bottom: 15px; z-index: 2; position: relative;
+        }
         
-        /* Caja del Curso */
-        .reuim-header { background: rgba(0,0,0,0.3); border: 2px solid #b8860b; border-radius: 12px; padding: 20px 10px; text-align: center; margin-bottom: 15px; box-shadow: inset 0 0 20px rgba(0,0,0,0.3); z-index: 2; position: relative; }
-        .reuim-course-text { font-size: 45px; font-weight: 900; color: white; text-transform: uppercase; line-height: 1.15; text-shadow: 2px 2px 4px rgba(0,0,0,0.6); }
+        /* CAJA DEL CURSO */
+        .reuim-header { 
+            background: rgba(0,0,0,0.4); border: 2px solid #C5A059; border-radius: 10px; 
+            padding: 15px; text-align: center; margin-bottom: 15px; 
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.5); z-index: 2; position: relative; 
+        }
+        .reuim-course-text { 
+            font-size: 42px; font-weight: 900; color: white; text-transform: uppercase; 
+            line-height: 1.1; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); 
+        }
         
-        /* Nombre del Alumno */
-        .reuim-right-name { font-size: 32px; font-weight: 700; color: white; text-align: center; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 1px; z-index: 2; position: relative; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+        /* NOMBRE DEL ALUMNO FLOTANTE */
+        .reuim-right-name { 
+            font-size: 30px; font-weight: 700; color: white; text-align: center; margin-bottom: 25px; 
+            text-transform: uppercase; letter-spacing: 1px; z-index: 2; position: relative; 
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8); 
+        }
         
-        /* Contenedor Cajas Doradas */
-        .reuim-fields-container { display: flex; flex-direction: column; gap: 18px; z-index: 2; position: relative; }
-        
-        /* Caja Dorada Individual */
-        .reuim-gold-box { background: linear-gradient(90deg, #d4af37, #fff2cd, #d4af37, #aa771c); border-radius: 8px; padding: 8px 25px; display: flex; align-items: center; box-shadow: 0 6px 15px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.7); height: 68px; }
-        .reuim-box-icon { font-size: 35px; color: #fff; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); width: 50px; text-align: center; margin-right: 20px; }
+        /* CAJAS DORADAS (3 Filas) */
+        .reuim-fields-container { display: flex; flex-direction: column; gap: 15px; z-index: 2; position: relative; }
+        .reuim-gold-box { 
+            background: linear-gradient(to bottom, #fceabb 0%, #f8b500 50%, #fbdf93 100%); /* Oro Puro CSS */
+            border-radius: 8px; padding: 5px 25px; display: flex; align-items: center; 
+            box-shadow: 0 5px 10px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.8); height: 60px; 
+        }
+        .reuim-box-icon { font-size: 32px; color: #111; width: 45px; text-align: center; margin-right: 15px; }
         .reuim-box-content { flex: 1; display: flex; align-items: center; justify-content: space-between; }
-        .reuim-box-label { font-size: 28px; font-weight: 900; color: #fff; text-transform: uppercase; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
-        .reuim-box-value { font-size: 36px; font-weight: 900; color: #fff; text-align: right; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+        .reuim-box-label { font-size: 26px; font-weight: 900; color: #111; text-transform: uppercase; }
+        .reuim-box-value { font-size: 32px; font-weight: 900; color: #111; text-align: right; text-transform: uppercase; white-space: nowrap; overflow: hidden; }
+
+        /* SIMULACIÓN DE LAURELES Y LOGO INFERIOR */
+        .reuim-footer-decor {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 40px;
+            background: linear-gradient(to bottom, #C5A059 0%, #8c6b2b 100%);
+            border-top: 2px solid #fff; z-index: 5;
+            display: flex; justify-content: center; align-items: center; gap: 20px;
+        }
+        .reuim-leaf { color: rgba(255,255,255,0.3); font-size: 20px; }
+
+        /* DIPLOMA / ANALITICO LAYOUT */
+        .diploma-layout { width: 2000px; height: 1414px; position: relative; overflow: hidden; color: #333; background: #fff; }
+        .diploma-bg { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1; }
+        .diploma-overlay { position: relative; z-index: 10; width: 100%; height: 100%; }
+        .dip-linea-unica-container { position: absolute; top: 595px; left: 50%; transform: translateX(-50%); width: 90%; text-align: center; white-space: nowrap; }
+        .dip-texto-formal { font-family: 'Roboto Slab', serif; font-weight: 900; text-transform: uppercase; font-size: 80px; letter-spacing: 1px; text-shadow: 2px 2px 0px rgba(255,255,255,1); }
+        .dip-qr { position: absolute; top: 284px; right: 176px; width: 233px; height: 233px; background: white; padding: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .dip-info-extra { position: absolute; bottom: 1348px; left: 50%; transform: translateX(-50%); text-align: center; font-family: 'Roboto', sans-serif; font-size: 18px; font-weight: 700; color: #222; background: rgba(255,255,255,0.9); padding: 4px 25px; border-radius: 50px; border: 1px solid rgba(0,0,0,0.1); z-index: 20; }
 
         /* ACTIONS GRID */
         .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
@@ -195,6 +256,35 @@
         .btn-accept { width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 14px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; background: #ccc; color: #666; cursor: not-allowed; transition: 0.3s; }
         .btn-accept.ready { background: linear-gradient(135deg, var(--primary), #001a66); color: white; cursor: pointer; box-shadow: 0 10px 20px rgba(0, 51, 204, 0.3); }
         @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* PROMOS, EVENTOS Y SEMINARIOS */
+        .promo-banner { background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%); border: 0; position: relative; overflow: hidden; border-radius: 16px; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15); margin-top: 25px; cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease; border: 1px solid rgba(59, 130, 246, 0.2); }
+        .promo-banner:active { transform: scale(0.98); }
+        .promo-badge { background: linear-gradient(90deg, #3b82f6, #2563eb); color: white; padding: 6px 15px; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; display: inline-flex; align-items: center; gap: 5px; border-bottom-right-radius: 12px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); }
+        .promo-content { padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; z-index: 2; position: relative; }
+        .promo-title { font-size: 17px; font-weight: 900; color: #1e3a8a; line-height: 1.2; margin-bottom: 6px; }
+        .promo-desc { font-size: 13px; color: #475569; font-weight: 500; }
+        .promo-icon { font-size: 28px; color: #3b82f6; background: rgba(59, 130, 246, 0.1); width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; border-radius: 50%; }
+        .shine-effect { position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(to right, transparent, rgba(255,255,255,0.8), transparent); transform: skewX(-20deg); animation: shine 3s infinite; }
+        @keyframes shine { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
+        
+        .carousel-container { display: flex; overflow-x: auto; gap: 15px; padding: 0 5px 20px 5px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; margin-top: 10px; }
+        .carousel-item { min-width: 85%; scroll-snap-align: center; flex-shrink: 0; margin-top: 0 !important; }
+        .carousel-container::-webkit-scrollbar { display: none; }
+        .section-header { font-size: 13px; font-weight: 900; color: #666; margin: 25px 0 10px 5px; text-transform: uppercase; letter-spacing: 1px; display: flex; justify-content: space-between; align-items: center; }
+        .event-card { background: white; border-radius: 12px; padding: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 4px solid var(--primary); margin-bottom: 10px; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: 0.2s; }
+        .event-card:active { transform: scale(0.98); background: #f8f9fa; }
+        .event-date { background: #f0f4ff; color: var(--primary); padding: 8px 12px; border-radius: 8px; text-align: center; font-weight: 900; font-size: 14px; min-width: 60px; }
+        .event-info { flex: 1; }
+        .event-title { font-size: 14px; font-weight: 800; color: #222; margin-bottom: 3px; line-height: 1.2; }
+        .event-desc { font-size: 11px; color: #666; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        .seminario-card { background: linear-gradient(145deg, #1a1a1a, #2c2c2c); color: white; border-radius: 12px; overflow: hidden; position: relative; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .seminario-content { padding: 15px; }
+        .sem-badge { position: absolute; top: 10px; right: 10px; background: #e50914; color: white; font-size: 9px; font-weight: 900; padding: 3px 8px; border-radius: 4px; }
+        .sem-title { font-size: 16px; font-weight: 700; margin-bottom: 5px; }
+        .sem-price { font-size: 18px; font-weight: 900; color: #4ade80; margin-top: 8px; }
+        .btn-sem { width: 100%; margin-top: 10px; padding: 10px; background: white; color: black; border: none; font-weight: 900; border-radius: 6px; cursor: pointer; }
 
         /* GHOST CONTAINER (Oculto a la izquierda para no estropear capturas) */
         #ghost-container { position: absolute; top: 0; left: -9999px; z-index: -9999; pointer-events: none; }
@@ -273,6 +363,8 @@
             <div class="action-card" onclick="descargarCarnetCompleto()"><span class="action-icon"><i class="fas fa-id-card"></i></span><span class="action-title">Descargar Carnet</span></div>
             <div class="action-card" id="btn-descargar-diploma" style="display:none;" onclick="descargarDiploma()"><span class="action-icon"><i class="fas fa-certificate"></i></span><span class="action-title">Descargar Diploma</span></div>
             
+            <div class="action-card" id="btn-descargar-analitico" style="display:none;" onclick="descargarAnalitico()"><span class="action-icon"><i class="fas fa-file-invoice"></i></span><span class="action-title">Descargar Analítico</span></div>
+
             <div class="action-card" onclick="abrirSoporte()"><span class="action-icon"><i class="fab fa-whatsapp" style="color:#25D366;"></i></span><span class="action-title">Soporte Alumno</span></div>
             <div id="btn-install-app" class="action-card" onclick="instalarApp()"><span class="action-icon"><i class="fas fa-mobile-alt" style="color:#333;"></i></span><span class="action-title">Instalar App</span></div>
 
@@ -336,7 +428,7 @@
             'asarin': '#800000', 
             'colbert': '#2f4f4f', 
             'default': '#0033cc',
-            'reuim': '#0b192c' /* Añadido color REUIM por defecto */
+            'reuim': '#0b192c'
         };
 
         if ('serviceWorker' in navigator) {
@@ -382,25 +474,25 @@
             </div>`;
 
         // ==========================================================================
-        // MODO DIOS: PLANTILLA HTML EXCLUSIVA PARA REUIM (Identica a la imagen solicitada)
+        // MODO DIOS: PLANTILLA HTML EXCLUSIVA PARA REUIM (CSS PURO, SIN JPG DE FONDO)
         // ==========================================================================
         const CARNET_REUIM_HTML = `
             <div class="reuim-card" id="card-base-el">
+                
+                <div id="vencido-overlay" class="overlay-vencido" style="display:none; z-index: 200;">
+                    <div class="texto-vencido">VENCIDO</div>
+                </div>
+                <div id="suspendido-overlay" class="overlay-vencido" style="display:none; background: rgba(50, 0, 0, 0.9); z-index: 200;">
+                    <div class="texto-vencido" style="font-size: 55px; border-color: #ef4444; color: #ef4444;">SUSPENDIDO</div>
+                </div>
+
                 <div class="reuim-left">
                     <img id="reuim-img-foto" class="reuim-photo" src="" crossorigin="anonymous">
                     <div class="reuim-qr-box" id="reuim-qr-container"></div>
                     <div class="reuim-left-title">REUIM</div>
                 </div>
+                
                 <div class="reuim-right">
-                    <div class="reuim-bg-pattern"></div>
-                    
-                    <div id="vencido-overlay" class="overlay-vencido" style="display:none; z-index: 100;">
-                        <div class="texto-vencido">VENCIDO</div>
-                    </div>
-                    <div id="suspendido-overlay" class="overlay-vencido" style="display:none; background: rgba(50, 0, 0, 0.9); z-index: 100;">
-                        <div class="texto-vencido" style="font-size: 55px; border-color: #ef4444; color: #ef4444;">SUSPENDIDO</div>
-                    </div>
-
                     <div class="reuim-top-year" id="reuim-txt-anio">CARNET 2026</div>
                     
                     <div class="reuim-header">
@@ -432,6 +524,12 @@
                             </div>
                         </div>
                     </div>
+                </div>
+                
+                <div class="reuim-footer-decor">
+                    <i class="fas fa-leaf reuim-leaf" style="transform: scaleX(-1);"></i>
+                    <i class="fas fa-star-of-life" style="color: #fff; font-size: 24px; text-shadow: 0 0 5px rgba(0,0,0,0.8);"></i>
+                    <i class="fas fa-leaf reuim-leaf"></i>
                 </div>
             </div>
         `;
@@ -610,19 +708,19 @@
         }
 
         // ==========================================================================
-        // MODO DIOS: LÓGICA DE INYECCIÓN DE DATOS Y DISEÑO
+        // MODO DIOS: LÓGICA DE INYECCIÓN DE DATOS (REUIM EN CSS PURO)
         // ==========================================================================
         function llenarDatosCarnet(container, alumno, colorOverride) {
             const regId = (alumno.registro_id || 'default').toLowerCase(); 
             const color = colorOverride || COLORES_REGISTRO[regId] || COLORES_REGISTRO['default']; 
             globalColorTema = color;
 
-            // --- CASO 1: REUIM (DISEÑO ESPECÍFICO) ---
+            // --- CASO 1: REUIM (TODO CSS NATIVO) ---
             if (regId === 'reuim') {
                 container.innerHTML = CARNET_REUIM_HTML;
                 const el = (sel) => container.querySelector(sel);
                 
-                // Textos
+                // Textos Básicos
                 const nombreCompleto = `${alumno.nombre} ${alumno.apellido}`;
                 el('#reuim-txt-nombre').innerText = nombreCompleto;
                 el('#reuim-txt-dni').innerText = new Intl.NumberFormat('es-AR').format(alumno.dni_alumno);
@@ -634,14 +732,15 @@
                 
                 let vence = alumno.fecha_vencimiento ? new Date(alumno.fecha_vencimiento) : new Date(fechaInicio.setFullYear(fechaInicio.getFullYear() + 1));
                 el('#reuim-txt-vence').innerText = vence.toLocaleDateString('es-AR');
+                
                 if(new Date() > vence) el('#vencido-overlay').style.display = 'flex';
                 if (alumno.estado === 'SUSPENDIDO') { el('#suspendido-overlay').style.display = 'flex'; el('#vencido-overlay').style.display = 'none'; }
                 
-                // Imagen y QR
+                // Foto y QR
                 if (alumno.foto_url) { const img = el('#reuim-img-foto'); img.crossOrigin = "anonymous"; img.src = alumno.foto_url + "?t=" + Date.now(); }
-                el('#reuim-qr-container').innerHTML = ""; new QRCode(el('#reuim-qr-container'), { text: `${URL_WEB}/validador.html?id=${alumno.id}`, width: 140, height: 140 });
+                el('#reuim-qr-container').innerHTML = ""; new QRCode(el('#reuim-qr-container'), { text: `${URL_WEB}/validador.html?id=${alumno.id}`, width: 124, height: 124 });
 
-                // Corte Inteligente Curso
+                // Lógica Smart Split
                 const cursoTexto = (alumno.curso || "CURSO PROFESIONAL").trim().toUpperCase();
                 const palabras = cursoTexto.split(/\s+/);
                 let tituloReuim = cursoTexto;
@@ -655,10 +754,11 @@
                 }
                 el('#reuim-txt-curso').innerHTML = tituloReuim;
 
-                // Ajustes Responsive en Cajas
-                ajustarTextoAlAncho(el('#reuim-txt-curso'), 45, 550, 20);
-                ajustarTextoAlAncho(el('#reuim-txt-nombre'), 32, 500, 18);
-                return;
+                // Ajustes de tamaño
+                ajustarTextoAlAncho(el('#reuim-txt-curso'), 42, 530, 20);
+                ajustarTextoAlAncho(el('#reuim-txt-nombre'), 30, 530, 16);
+                
+                return; // Cortamos ejecución genérica
             }
 
             // --- CASO 2: GENÉRICO PARA OTROS INSTITUTOS ---
