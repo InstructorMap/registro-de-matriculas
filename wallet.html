@@ -1061,8 +1061,13 @@
             // MODO DIOS: Aclarar fondo y sombras EXCLUSIVAMENTE para REUIM
             const courseContainer = el('.course-container');
             const dataBoxes = container.querySelectorAll('.data-box');
+            const holoLayer = container.querySelector('.holo-layer');
             
             if (regId === 'reuim' || regId === 'ruim') {
+                // Removemos el color de fondo que ensucia la imagen PNG y ocultamos la capa holográfica
+                panel.style.backgroundColor = 'transparent';
+                if (holoLayer) holoLayer.style.display = 'none';
+
                 if (courseContainer) {
                     courseContainer.style.background = 'rgba(0,0,0,0.05)';
                     courseContainer.style.backdropFilter = 'blur(1px)';
@@ -1074,6 +1079,10 @@
                     box.style.boxShadow = 'none';
                 });
             } else {
+                // Restauramos para los demás registros
+                panel.style.backgroundColor = color;
+                if (holoLayer) holoLayer.style.display = 'block';
+
                 if (courseContainer) {
                     courseContainer.style.background = '';
                     courseContainer.style.backdropFilter = '';
