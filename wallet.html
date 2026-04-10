@@ -17,11 +17,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&family=Roboto+Slab:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&family=Roboto+Slab:wght@700;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
 
     <style>
         /* ESTILOS BASE */
-        :root { --primary: #041130; --bg-app: #f4f6f9; --text-dark: #222; --gold: #D4AF37; }
+        :root { --primary: #041130; --bg-app: #f4f6f9; --text-dark: #222; --gold: #D4AF37; --gold-light: #F5E6A3; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; padding: 0; font-family: 'Roboto', sans-serif; background-color: var(--bg-app); color: #333; height: 100vh; display: flex; flex-direction: column; position: relative; overflow-x: hidden; }
 
@@ -130,33 +130,36 @@
         .texto-vencido { font-size: 80px; font-weight: 900; transform: rotate(-15deg); border: 8px solid white; padding: 10px 40px; text-transform: uppercase; letter-spacing: 5px; }
 
         /* ========================================================= */
-        /* MODO DIOS: ESTILOS ESTRICTOS EXCLUSIVOS PARA REUIM        */
+        /* MODO DIOS: ESTILOS PREMIUM EXCLUSIVOS PARA REUIM           */
         /* ========================================================= */
         .card-reuim { 
             width: 100%; 
             height: 100%; 
             display: flex; 
             position: relative; 
-            border: 12px solid #041130; 
+            border: 8px solid #D4AF37; 
             border-radius: 40px; 
             overflow: hidden; 
-            background: #041130; 
+            background: #041130;
+            box-shadow: inset 0 0 0 2px #F5E6A3, 0 20px 40px rgba(0,0,0,0.5);
         }
         .reuim-left { 
             width: 350px; 
             height: 100%; 
             display: flex; 
             flex-direction: column; 
-            background: #041130; 
+            background: linear-gradient(135deg, #041130 0%, #0a1a4a 100%);
             position: relative; 
             z-index: 2; 
-            flex-shrink: 0; 
+            flex-shrink: 0;
+            border-right: 3px solid #D4AF37;
         }
         .reuim-photo-container { 
             height: 420px; 
             overflow: hidden; 
             background: #fff; 
-            width: 100%; 
+            width: 100%;
+            border-bottom: 3px solid #D4AF37;
         }
         .reuim-photo { 
             width: 100%; 
@@ -169,7 +172,8 @@
             flex-direction: column; 
             justify-content: center; 
             align-items: center; 
-            position: relative; 
+            position: relative;
+            background: linear-gradient(0deg, rgba(4,17,48,1) 0%, rgba(10,26,74,0.9) 100%);
         }
         .reuim-qr-box { 
             position: absolute; 
@@ -181,18 +185,19 @@
             background: white; 
             padding: 12px; 
             border-radius: 15px; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5); 
+            box-shadow: 0 0 0 3px #D4AF37, 0 10px 30px rgba(0,0,0,0.5); 
             display: flex; 
             justify-content: center; 
             align-items: center; 
         }
         .reuim-brand-text { 
-            color: white; 
-            font-size: 35px; 
+            color: #D4AF37; 
+            font-size: 38px; 
             font-weight: 900; 
-            letter-spacing: 2px; 
+            letter-spacing: 3px; 
             margin-top: 80px; 
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8); 
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            font-family: 'Playfair Display', serif;
         }
 
         .reuim-right { 
@@ -205,17 +210,55 @@
             background-image: 
                 repeating-linear-gradient(
                     0deg,
-                    rgba(255, 255, 255, 0.04) 0px,
-                    rgba(255, 255, 255, 0.04) 1px,
+                    rgba(255, 255, 255, 0.03) 0px,
+                    rgba(255, 255, 255, 0.03) 1px,
                     transparent 1px,
-                    transparent 4px
+                    transparent 6px
                 ),
-                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 250" width="500" height="250"><text x="50%" y="50%" font-size="140" font-family="Arial" font-weight="900" fill="rgba(255,255,255,0.05)" text-anchor="middle" dominant-baseline="middle" transform="rotate(-12, 250, 125)">REUIM</text></svg>');
-            background-size: auto, 500px 250px;
-            background-position: 0 0, center;
-            background-repeat: repeat, no-repeat;
+                repeating-linear-gradient(
+                    90deg,
+                    rgba(212, 175, 55, 0.05) 0px,
+                    rgba(212, 175, 55, 0.05) 1px,
+                    transparent 1px,
+                    transparent 20px
+                ),
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300" width="600" height="300"><text x="50%" y="50%" font-size="160" font-family="Arial" font-weight="900" fill="rgba(255,255,255,0.04)" text-anchor="middle" dominant-baseline="middle" transform="rotate(-10, 300, 150)">REUIM</text></svg>');
+            background-size: auto, auto, 600px 300px;
+            background-position: 0 0, 0 0, center;
+            background-repeat: repeat, repeat, no-repeat;
             min-width: 0;
         }
+
+        /* Marco blanco interno */
+        .reuim-right::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            bottom: 15px;
+            border: 2px solid rgba(255,255,255,0.15);
+            border-radius: 25px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Laurel inferior */
+        .reuim-right::after {
+            content: '⚜ ⚜ ⚜';
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 40px;
+            color: #D4AF37;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            letter-spacing: 15px;
+            opacity: 0.7;
+            z-index: 5;
+            font-family: serif;
+        }
+
         .reuim-header-box { 
             text-align: right; 
             color: white; 
@@ -223,10 +266,12 @@
             font-weight: 900; 
             text-shadow: 3px 3px 6px rgba(0,0,0,0.8); 
             margin-bottom: 5px; 
-            line-height: 1; 
+            line-height: 1;
+            position: relative;
+            z-index: 10;
         }
         .reuim-header-box span.underline { 
-            border-bottom: 8px solid white; 
+            border-bottom: 8px solid #D4AF37; 
             padding-bottom: 2px; 
             display: inline-block; 
         }
@@ -238,7 +283,13 @@
             flex-grow: 1; 
             display: flex; 
             flex-direction: column; 
-            justify-content: center; 
+            justify-content: center;
+            position: relative;
+            z-index: 10;
+            background: linear-gradient(90deg, transparent, rgba(212,175,55,0.1), transparent);
+            border-top: 1px solid rgba(212,175,55,0.3);
+            border-bottom: 1px solid rgba(212,175,55,0.3);
+            padding: 15px 0;
         }
         .reuim-title-main, .reuim-title-sub { 
             font-weight: 900; 
@@ -250,36 +301,41 @@
         .reuim-data-box { 
             display: flex; 
             flex-direction: column; 
-            gap: 15px; 
-            margin-bottom: 10px; 
+            gap: 12px; 
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 10;
         }
         .reuim-pill { 
-            background: linear-gradient(180deg, #d3a453, #9e7422); 
-            border: 3px solid #eec465; 
-            border-radius: 15px; 
+            background: linear-gradient(180deg, #D4AF37, #a67c26); 
+            border: 2px solid #F5E6A3; 
+            border-radius: 12px; 
             padding: 5px 25px; 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            box-shadow: inset 0 2px 5px rgba(255,255,255,0.3), 0 6px 12px rgba(0,0,0,0.6); 
-            height: 60px; 
+            box-shadow: inset 0 2px 5px rgba(255,255,255,0.3), 0 6px 12px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1); 
+            height: 55px; 
             color: white; 
             text-shadow: 2px 2px 4px rgba(0,0,0,0.8); 
             font-weight: 900; 
         }
         .reuim-pill.name-pill { 
             justify-content: center; 
-            height: 65px; 
-            background: linear-gradient(180deg, #d3a453, #a67c26); 
+            height: 60px; 
+            background: linear-gradient(180deg, #D4AF37, #8B6914);
+            border: 2px solid #FFD700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
         .reuim-pill-label { 
-            font-size: 30px; 
+            font-size: 26px; 
             display: flex; 
             align-items: center; 
-            gap: 12px; 
+            gap: 10px; 
         }
         .reuim-pill-value { 
-            font-size: 34px; 
+            font-size: 30px; 
         }
         .reuim-watermark { 
             position: absolute; 
@@ -288,6 +344,23 @@
             transform: translate(-50%, -50%); 
             height: 75px; 
             opacity: 0.9; 
+        }
+
+        /* Texto DNI OFICIAL */
+        .official-badge {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #D4AF37;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            border: 1px solid #D4AF37;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: rgba(4,17,48,0.8);
+            z-index: 20;
         }
         /* ========================================================= */
 
@@ -560,10 +633,13 @@
             </div>`;
 
         // ==========================================
-        // TEMPLATE MODO DIOS EXCLUSIVO PARA REUIM
+        // TEMPLATE PREMIUM EXCLUSIVO PARA REUIM
         // ==========================================
         const CARNET_REUIM_HTML = `
             <div class="card-reuim" id="card-base-el">
+                <div class="official-badge">
+                    <i class="fas fa-certificate" style="margin-right: 5px;"></i> DOCUMENTO OFICIAL
+                </div>
                 <div class="reuim-left">
                     <div class="reuim-photo-container">
                         <img id="img-foto" class="reuim-photo" src="">
@@ -571,6 +647,7 @@
                     <div class="reuim-bottom-left">
                         <div class="reuim-qr-box" id="qr-container"></div>
                         <div class="reuim-brand-text">REUIM</div>
+                        <div style="color: #D4AF37; font-size: 10px; margin-top: 5px; letter-spacing: 2px;">REGISTRO ÚNICO</div>
                     </div>
                 </div>
                 <div class="reuim-right" id="bg-panel">
@@ -597,15 +674,15 @@
                             <span id="txt-nombre">---</span>
                         </div>
                         <div class="reuim-pill">
-                            <div class="reuim-pill-label"><span style="font-size:45px; line-height:0; margin-top:15px;">✱</span> DNI:</div>
+                            <div class="reuim-pill-label"><span style="font-size:35px; line-height:0;">✱</span> DNI:</div>
                             <div class="reuim-pill-value" id="txt-dni">---</div>
                         </div>
                         <div class="reuim-pill">
-                            <div class="reuim-pill-label"><span style="font-size:35px; line-height:0;">#</span> MATRÍCULA:</div>
+                            <div class="reuim-pill-label"><span style="font-size:30px; line-height:0;">#</span> MATRÍCULA:</div>
                             <div class="reuim-pill-value" id="txt-matricula">---</div>
                         </div>
                         <div class="reuim-pill" style="position:relative;">
-                            <div class="reuim-pill-label"><span style="font-size:30px; line-height:0;">🚨</span> VENCE:</div>
+                            <div class="reuim-pill-label"><span style="font-size:25px; line-height:0;">🚨</span> VENCE:</div>
                             <div class="reuim-pill-value" id="txt-vence">---</div>
                             <div id="watermark-container" class="reuim-watermark"></div>
                         </div>
@@ -1295,7 +1372,7 @@
             if (subText) el('#txt-titulo-sub').style.fontSize = sizeIgualado + 'px';
         }
 
-        // LLENADO EXCLUSIVO PARA REUIM
+        // LLENADO PREMIUM EXCLUSIVO PARA REUIM
         function llenarDatosCarnetReuim(container, alumno) {
             const el = (sel) => container.querySelector(sel);
             const nombreEl = el('#txt-nombre'); 
@@ -1321,27 +1398,11 @@
             } 
 
             const panel = el('#bg-panel');
-            // SIEMPRE aplicar el fondo REUIM por defecto (líneas + marca de agua "REUIM")
-            // a menos que exista un fondo personalizado en globalInstitucion
             if (globalInstitucion && globalInstitucion.fondo_wallet_url) { 
                 panel.style.backgroundImage = `url('${globalInstitucion.fondo_wallet_url}')`; 
                 panel.style.backgroundColor = '#041130';
             } else {
-                // Fondo exacto como en la imagen del carnet REUIM
-                panel.style.backgroundColor = '#041130';
-                panel.style.backgroundImage = `
-                    repeating-linear-gradient(
-                        0deg,
-                        rgba(255, 255, 255, 0.04) 0px,
-                        rgba(255, 255, 255, 0.04) 1px,
-                        transparent 1px,
-                        transparent 4px
-                    ),
-                    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 250" width="500" height="250"><text x="50%" y="50%" font-size="140" font-family="Arial" font-weight="900" fill="rgba(255,255,255,0.05)" text-anchor="middle" dominant-baseline="middle" transform="rotate(-12, 250, 125)">REUIM</text></svg>')
-                `;
-                panel.style.backgroundSize = 'auto, 500px 250px';
-                panel.style.backgroundPosition = '0 0, center';
-                panel.style.backgroundRepeat = 'repeat, no-repeat';
+                // El fondo ya está definido en CSS, no es necesario reasignar
             }
 
             let cursoText = (alumno.curso || "CURSO PROFESIONAL").trim().toUpperCase();
@@ -1358,10 +1419,10 @@
             el('#txt-titulo-main').innerText = mainText;
             el('#txt-titulo-sub').innerText = subText;
 
-            ajustarTextoAlAncho(nombreEl, 34, 520, 16); 
+            ajustarTextoAlAncho(nombreEl, 30, 480, 14); 
 
-            let sMain = ajustarTextoAlAncho(el('#txt-titulo-main'), 60, 580, 20);
-            let sSub = subText ? ajustarTextoAlAncho(el('#txt-titulo-sub'), 60, 580, 20) : 60;
+            let sMain = ajustarTextoAlAncho(el('#txt-titulo-main'), 55, 550, 20);
+            let sSub = subText ? ajustarTextoAlAncho(el('#txt-titulo-sub'), 55, 550, 20) : 55;
             let sizeIgualado = Math.min(sMain, sSub); 
             
             el('#txt-titulo-main').style.fontSize = sizeIgualado + 'px';
