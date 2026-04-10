@@ -96,7 +96,7 @@
         .btn-doc i { font-size: 20px; color: var(--gold); }
         .btn-pay { background: var(--gold); color: black; border: none; width: 100%; padding: 12px; border-radius: 8px; font-weight: 900; cursor: pointer; text-transform: uppercase; font-size: 12px; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3); }
 
-        /* CARNET STYLES */
+        /* CARNET STYLES (ESTANDAR) */
         .card-base { width: 100%; height: 100%; display: flex; position: relative; border: 5px solid; border-radius: 40px; overflow: hidden; background: white; transition: border-color 0.3s; }
         .front-left { width: 380px; height: 100%; position: relative; background: #d4d4d4; z-index: 1; border-top-left-radius: 35px; border-bottom-left-radius: 35px; overflow: hidden; flex-shrink: 0; }
         .student-photo { width: 100%; height: 100%; object-fit: cover; position: relative; z-index: 1; }
@@ -109,14 +109,11 @@
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 6px solid rgba(255,255,255,0.9); padding-bottom: 2px; }
         .header-text { font-size: 85px; font-weight: 900; text-transform: uppercase; line-height: 0.9; text-shadow: 3px 3px 0px rgba(0,0,0,0.2); }
         
-        /* CONTENEDOR CURSO Y MARCA DE AGUA */
         .course-container { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 10px 0; background: linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.3)); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 0 10px; overflow: hidden; position: relative; z-index: 10; }
         .course-title-main, .course-title-sub { font-size: 55px; font-weight: 900; text-transform: uppercase; line-height: 1.1; text-align: center; display: inline-block; white-space: nowrap; max-width: 100%; position: relative; z-index: 2; text-shadow: 3px 3px 0px rgba(0,0,0,0.8), 0px 0px 8px rgba(0,0,0,0.9); }
-        
         .watermark-layer { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; height: 85%; opacity: 0.08; z-index: 1; pointer-events: none; display: flex; justify-content: center; align-items: center; }
         .watermark-layer img { width: 100%; height: 100%; object-fit: contain; }
 
-        /* NOMBRE MODO DIOS: MÁS GRANDE Y ANCHO */
         .student-name { font-size: 55px; font-weight: 900; text-transform: uppercase; background: transparent; padding: 10px; text-align: center; border-radius: 8px; margin-bottom: 15px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); width: 100%; overflow: hidden; }
         
         .data-grid { display: grid; grid-template-columns: 65px 1fr; row-gap: 10px; align-items: center; }
@@ -129,9 +126,34 @@
         .live-shimmer { position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(to right, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%); transform: skewX(-25deg); animation: shimmerMove 4s infinite; z-index: 10; pointer-events: none; }
         @keyframes shimmerMove { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
 
-        /* ESTADOS ESPECIALES */
         .overlay-vencido { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(180, 0, 0, 0.75); z-index: 20; display: flex; justify-content: center; align-items: center; flex-direction: column; color: white; text-align: center; border-radius: 35px; backdrop-filter: blur(2px); }
         .texto-vencido { font-size: 80px; font-weight: 900; transform: rotate(-15deg); border: 8px solid white; padding: 10px 40px; text-transform: uppercase; letter-spacing: 5px; }
+
+        /* ========================================================= */
+        /* MODO DIOS: ESTILOS ESTRICTOS EXCLUSIVOS PARA REUIM        */
+        /* ========================================================= */
+        .card-reuim { width: 100%; height: 100%; display: flex; position: relative; border: 12px solid #041130; border-radius: 40px; overflow: hidden; background: #041130; }
+        .reuim-left { width: 350px; height: 100%; display: flex; flex-direction: column; background: #041130; position: relative; z-index: 2; flex-shrink: 0; }
+        .reuim-photo-container { height: 420px; overflow: hidden; background: #fff; width: 100%; }
+        .reuim-photo { width: 100%; height: 100%; object-fit: cover; }
+        .reuim-bottom-left { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
+        .reuim-qr-box { position: absolute; top: -90px; left: 50%; transform: translateX(-50%); width: 180px; height: 180px; background: white; padding: 12px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; }
+        .reuim-brand-text { color: white; font-size: 35px; font-weight: 900; letter-spacing: 2px; margin-top: 80px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
+
+        .reuim-right { flex: 1; position: relative; display: flex; flex-direction: column; padding: 25px 40px; background-size: cover; background-position: center; min-width: 0; }
+        .reuim-header-box { text-align: right; color: white; font-size: 75px; font-weight: 900; text-shadow: 3px 3px 6px rgba(0,0,0,0.8); margin-bottom: 5px; line-height: 1; }
+        .reuim-header-box span.underline { border-bottom: 8px solid white; padding-bottom: 2px; display: inline-block; }
+        
+        .reuim-title-box { text-align: center; color: white; margin-bottom: 20px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
+        .reuim-title-main, .reuim-title-sub { font-weight: 900; text-transform: uppercase; text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000, 5px 5px 8px rgba(0,0,0,0.8); white-space: nowrap;}
+        
+        .reuim-data-box { display: flex; flex-direction: column; gap: 15px; margin-bottom: 10px; }
+        .reuim-pill { background: linear-gradient(180deg, #d3a453, #9e7422); border: 3px solid #eec465; border-radius: 15px; padding: 5px 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: inset 0 2px 5px rgba(255,255,255,0.3), 0 6px 12px rgba(0,0,0,0.6); height: 60px; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); font-weight: 900; }
+        .reuim-pill.name-pill { justify-content: center; height: 65px; background: linear-gradient(180deg, #d3a453, #a67c26); }
+        .reuim-pill-label { font-size: 30px; display: flex; align-items: center; gap: 12px; }
+        .reuim-pill-value { font-size: 34px; }
+        .reuim-watermark { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); height: 75px; opacity: 0.9; }
+        /* ========================================================= */
 
         /* DIPLOMA / ANALITICO LAYOUT */
         .diploma-layout { width: 2000px; height: 1414px; position: relative; overflow: hidden; color: #333; background: #fff; }
@@ -142,7 +164,7 @@
         .dip-qr { position: absolute; top: 284px; right: 176px; width: 233px; height: 233px; background: white; padding: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .dip-info-extra { position: absolute; bottom: 1348px; left: 50%; transform: translateX(-50%); text-align: center; font-family: 'Roboto', sans-serif; font-size: 18px; font-weight: 700; color: #222; background: rgba(255,255,255,0.9); padding: 4px 25px; border-radius: 50px; border: 1px solid rgba(0,0,0,0.1); z-index: 20; }
         
-        /* ACTIONS GRID */
+        /* ACTIONS GRID & OTHERS */
         .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
         .action-card { background: white; padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-decoration: none; color: #333; cursor: pointer; }
         .action-icon { font-size: 24px; color: var(--primary); margin-bottom: 8px; display: block; }
@@ -169,7 +191,7 @@
         .btn-accept.ready { background: linear-gradient(135deg, var(--primary), #001a66); color: white; cursor: pointer; box-shadow: 0 10px 20px rgba(0, 51, 204, 0.3); }
         @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* PROMOS, EVENTOS Y SEMINARIOS */
+        /* PROMOS Y EVENTOS */
         .promo-banner { background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%); border: 0; position: relative; overflow: hidden; border-radius: 16px; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15); margin-top: 25px; cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease; border: 1px solid rgba(59, 130, 246, 0.2); }
         .promo-banner:active { transform: scale(0.98); }
         .promo-badge { background: linear-gradient(90deg, #3b82f6, #2563eb); color: white; padding: 6px 15px; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; display: inline-flex; align-items: center; gap: 5px; border-bottom-right-radius: 12px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); }
@@ -198,7 +220,7 @@
         .sem-price { font-size: 18px; font-weight: 900; color: #4ade80; margin-top: 8px; }
         .btn-sem { width: 100%; margin-top: 10px; padding: 10px; background: white; color: black; border: none; font-weight: 900; border-radius: 6px; cursor: pointer; }
 
-        /* GHOST CONTAINER (Oculto a la izquierda para no estropear capturas) */
+        /* GHOST CONTAINER */
         #ghost-container { position: absolute; top: 0; left: -9999px; z-index: -9999; pointer-events: none; }
     </style>
 </head>
@@ -347,7 +369,6 @@
             'default': '#0033cc' 
         };
 
-        // --- REGISTRO DEL SERVICE WORKER (Para permitir instalación) ---
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js')
@@ -355,8 +376,10 @@
                 .catch(err => console.error("Error al registrar SW", err));
             });
         }
-        // ---------------------------------------------------------------
 
+        // ==========================================
+        // TEMPLATE ESTANDAR (TODOS LOS REGISTROS)
+        // ==========================================
         const CARNET_HTML = `
             <div class="card-base" id="card-base-el">
                 <div class="front-left" id="panel-izq-bg">
@@ -398,6 +421,60 @@
                 </div>
             </div>`;
 
+        // ==========================================
+        // TEMPLATE MODO DIOS EXCLUSIVO PARA REUIM
+        // ==========================================
+        const CARNET_REUIM_HTML = `
+            <div class="card-reuim" id="card-base-el">
+                <div class="reuim-left">
+                    <div class="reuim-photo-container">
+                        <img id="img-foto" class="reuim-photo" src="">
+                    </div>
+                    <div class="reuim-bottom-left">
+                        <div class="reuim-qr-box" id="qr-container"></div>
+                        <div class="reuim-brand-text">REUIM</div>
+                    </div>
+                </div>
+                <div class="reuim-right" id="bg-panel">
+                    <div id="vencido-overlay" class="overlay-vencido" style="display:none; z-index:100;">
+                        <div class="texto-vencido">VENCIDO</div>
+                        <div style="font-size: 20px; font-weight: bold; margin-top: 10px;">EXPIRÓ SU VIGENCIA</div>
+                    </div>
+                    <div id="suspendido-overlay" class="overlay-vencido" style="display:none; background: rgba(50, 0, 0, 0.9); z-index:100;">
+                        <div class="texto-vencido" style="font-size: 55px; border-color: #ef4444; color: #ef4444;">SUSPENDIDO</div>
+                        <div style="font-size: 14px; font-weight: bold; margin-top: 10px; color: white;">MATRÍCULA INACTIVA</div>
+                    </div>
+
+                    <div class="reuim-header-box">
+                        <span class="underline">CARNET</span> <span id="txt-anio-header">2026</span>
+                    </div>
+                    
+                    <div class="reuim-title-box">
+                        <div class="reuim-title-main" id="txt-titulo-main"></div>
+                        <div class="reuim-title-sub" id="txt-titulo-sub"></div>
+                    </div>
+
+                    <div class="reuim-data-box">
+                        <div class="reuim-pill name-pill">
+                            <span id="txt-nombre">---</span>
+                        </div>
+                        <div class="reuim-pill">
+                            <div class="reuim-pill-label"><span style="font-size:45px; line-height:0; margin-top:15px;">✱</span> DNI:</div>
+                            <div class="reuim-pill-value" id="txt-dni">---</div>
+                        </div>
+                        <div class="reuim-pill">
+                            <div class="reuim-pill-label"><span style="font-size:35px; line-height:0;">#</span> MATRÍCULA:</div>
+                            <div class="reuim-pill-value" id="txt-matricula">---</div>
+                        </div>
+                        <div class="reuim-pill" style="position:relative;">
+                            <div class="reuim-pill-label"><span style="font-size:30px; line-height:0;">🚨</span> VENCE:</div>
+                            <div class="reuim-pill-value" id="txt-vence">---</div>
+                            <div id="watermark-container" class="reuim-watermark"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+
         const CARNET_BACK_HTML = `<img src="${URL_REVERSO}" class="carnet-back-img" id="carnet-back-img">`;
 
         let globalColorTema = COLOR_DEFAULT; 
@@ -408,13 +485,12 @@
         let globalInstitucion = null; 
         let deferredPrompt; 
         let notificacionesCache = []; 
-        let cropper = null; // Variable global para el recortador de fotos
+        let cropper = null; 
 
         document.getElementById('app-logo').src = LOGO_ASARI_DEFAULT;
         document.documentElement.style.setProperty('--primary', COLOR_DEFAULT);
         window.addEventListener('resize', ajustarCarnetResponsivo);
 
-        // --- CAPTURAR EVENTO DE INSTALACIÓN ---
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
@@ -436,7 +512,6 @@
                 }
             }
         }
-        // ----------------------------------------
 
         function abrirSoporte() {
             const msg = `Hola, soy alumno (DNI: ${alumnoActual?.dni_alumno || ''}). Tengo una consulta sobre mi credencial.`;
@@ -466,7 +541,6 @@
                 const { data: matriculas, error } = await db.from('matriculas').select('*').eq('dni_alumno', dni);
                 if (!matriculas || matriculas.length === 0) throw new Error("No encontrado o DNI incorrecto.");
                 
-                // Muro de validación: Nos aseguramos de que la foto no sea "null" ni un texto vacío
                 const fotoEncontrada = matriculas.find(m => m.foto_url && m.foto_url !== "null" && m.foto_url.trim().length > 10)?.foto_url;
                 if (fotoEncontrada) { matriculas.forEach(m => m.foto_url = fotoEncontrada); }
                 
@@ -511,7 +585,6 @@
             }
         });
 
-        // --- LÓGICA DE MANIFIESTO DINÁMICO E IPHONE ---
         function actualizarManifiestoDinamico(logoUrl, nombreInstitucion) {
             const myDynamicManifest = {
                 "short_name": "Credencial",
@@ -539,7 +612,6 @@
                 manifestTag.setAttribute('href', manifestURL);
             }
 
-            // Parche para iPhone (Apple Touch Icon)
             let appleIcon = document.querySelector('link[rel="apple-touch-icon"]');
             if (!appleIcon) {
                 appleIcon = document.createElement('link');
@@ -548,12 +620,9 @@
             }
             appleIcon.href = logoUrl;
         }
-        // -------------------------------------
 
         async function procesarSiguientePantalla(matriculas) {
             const alumno = matriculas[0];
-
-            // --- CÁLCULO DEL INSTITUTO CON MÁS CURSOS (Para la App) ---
             const conteo = {};
             matriculas.forEach(m => {
                 if (m.institution_id) {
@@ -582,9 +651,7 @@
                     }
                 } catch(e) { console.warn("Error manifiesto", e); }
             }
-            // -----------------------------------------------------------
 
-            // Muro Infranqueable de la Foto
             const tieneFotoValida = alumno.foto_url && alumno.foto_url !== "null" && alumno.foto_url.trim().length > 10;
 
             if (!tieneFotoValida) {
@@ -621,13 +688,11 @@
             }
         }
 
-        // --- SISTEMA DE RECORTE DE FOTO (CROPPER.JS) ---
         function previsualizarFoto() { 
             const file = document.getElementById('input-foto-alumno').files[0]; 
             if(file) { 
                 const reader = new FileReader(); 
                 reader.onload = function(e) { 
-                    // Ocultamos el botón de subir y mostramos el editor
                     document.getElementById('label-upload-area').style.display = 'none';
                     document.getElementById('cropper-container').style.display = 'block';
                     document.getElementById('btn-subir').style.display = 'flex';
@@ -636,10 +701,8 @@
                     const image = document.getElementById('image-to-crop');
                     image.src = e.target.result;
 
-                    // Si ya había un cropper abierto, lo destruimos
                     if (cropper) { cropper.destroy(); }
                     
-                    // Iniciamos el modo recorte con proporción de Carnet (3:4)
                     cropper = new Cropper(image, {
                         aspectRatio: 3 / 4, 
                         viewMode: 1,
@@ -679,7 +742,6 @@
             loader.style.display = 'block'; 
             
             try { 
-                // Obtenemos el recorte final en alta calidad
                 const canvas = cropper.getCroppedCanvas({
                     width: 600,
                     height: 800,
@@ -687,7 +749,6 @@
                     imageSmoothingQuality: 'high',
                 });
 
-                // Convertimos el recorte a archivo JPG optimizado
                 canvas.toBlob(async (blob) => {
                     const fileName = `${alumnoActual.dni_alumno}_${Date.now()}.jpg`; 
                     const file = new File([blob], fileName, { type: 'image/jpeg' });
@@ -697,7 +758,6 @@
 
                     const { data: urlData } = db.storage.from('fotos-alumnos').getPublicUrl(fileName); 
                     
-                    // Guardamos la foto en la base de datos
                     await db.from('matriculas').update({ foto_url: urlData.publicUrl }).eq('dni_alumno', alumnoActual.dni_alumno); 
                     
                     alumnoActual.foto_url = urlData.publicUrl; 
@@ -705,7 +765,6 @@
                     
                     alert("¡Foto recortada y guardada con éxito!"); 
                     
-                    // Limpiamos y avanzamos a la siguiente pantalla
                     if (globalMatriculas.length === 1) { 
                         cargarWallet(alumnoActual); 
                         mostrarPantalla('screen-wallet'); 
@@ -723,7 +782,6 @@
                 loader.style.display = 'none'; 
             } 
         }
-        // -----------------------------------------------
 
         function cambiarIdentidadVisual(logo, color) { 
             const img = document.getElementById('app-logo'); 
@@ -750,8 +808,14 @@
             document.getElementById(`btn-toggle-${vista}`).classList.add('active');
 
             if (vista === 'front') {
-                container.innerHTML = CARNET_HTML;
-                llenarDatosCarnet(container, alumnoActual, globalColorTema);
+                const regId = (alumnoActual.registro_id || 'default').toLowerCase();
+                if (regId === 'reuim' || regId === 'ruim') {
+                    container.innerHTML = CARNET_REUIM_HTML;
+                    llenarDatosCarnetReuim(container, alumnoActual);
+                } else {
+                    container.innerHTML = CARNET_HTML;
+                    llenarDatosCarnet(container, alumnoActual, globalColorTema);
+                }
             } else if (vista === 'back') {
                 const imgReverso = globalInstitucion?.reverso_url || URL_REVERSO;
                 container.innerHTML = `<img src="${imgReverso}" style="width:1011px; height:638px; object-fit:cover; border-radius:40px; border:5px solid var(--primary);">`;
@@ -811,8 +875,16 @@
             } 
 
             const container = document.getElementById('carnet-render');
-            container.innerHTML = CARNET_HTML; 
-            llenarDatosCarnet(container, alumno, colorDinamico); 
+            const regId = (alumno.registro_id || 'default').toLowerCase();
+            
+            if (regId === 'reuim' || regId === 'ruim') {
+                container.innerHTML = CARNET_REUIM_HTML;
+                llenarDatosCarnetReuim(container, alumno);
+            } else {
+                container.innerHTML = CARNET_HTML; 
+                llenarDatosCarnet(container, alumno, colorDinamico); 
+            }
+
             document.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-toggle-front').classList.add('active');
 
@@ -1004,7 +1076,6 @@
         function comprarSeminario(id, link) { if(link && link !== '#') window.open(link, '_blank'); else alert("Inscripción abierta."); }
         function iniciarPago() { if (!LINK_MERCADO_PAGO || LINK_MERCADO_PAGO.includes("AQUI_TU_LINK")) { alert("Error de Configuración"); return; } window.location.href = LINK_MERCADO_PAGO; }
         
-        // PARCHE DE SEGURIDAD PARA EL PAGO
         async function checkPaymentReturn(alumnoId) { 
             const params = new URLSearchParams(window.location.search); 
             if (params.get('status') === 'approved') { 
@@ -1057,48 +1128,10 @@
             else { el('#card-base-el').style.borderColor = color; }
             
             el('#banda-color').style.backgroundColor = color; el('#txt-sigla').innerText = (alumno.registro_id || 'OFICIAL').toUpperCase();
-
-            // MODO DIOS: Aclarar fondo y sombras EXCLUSIVAMENTE para REUIM
-            const courseContainer = el('.course-container');
-            const dataBoxes = container.querySelectorAll('.data-box');
-            const holoLayer = container.querySelector('.holo-layer');
-            
-            if (regId === 'reuim' || regId === 'ruim') {
-                // Removemos el color de fondo que ensucia la imagen PNG y ocultamos la capa holográfica
-                panel.style.backgroundColor = 'transparent';
-                if (holoLayer) holoLayer.style.display = 'none';
-
-                if (courseContainer) {
-                    courseContainer.style.background = 'rgba(0,0,0,0.05)';
-                    courseContainer.style.backdropFilter = 'blur(1px)';
-                    courseContainer.style.boxShadow = 'none';
-                }
-                dataBoxes.forEach(box => {
-                    box.style.background = 'rgba(0,0,0,0.05)';
-                    box.style.backdropFilter = 'blur(1px)';
-                    box.style.boxShadow = 'none';
-                });
-            } else {
-                // Restauramos para los demás registros
-                panel.style.backgroundColor = color;
-                if (holoLayer) holoLayer.style.display = 'block';
-
-                if (courseContainer) {
-                    courseContainer.style.background = '';
-                    courseContainer.style.backdropFilter = '';
-                    courseContainer.style.boxShadow = '';
-                }
-                dataBoxes.forEach(box => {
-                    box.style.background = '';
-                    box.style.backdropFilter = '';
-                    box.style.boxShadow = '';
-                });
-            }
             
             let cursoText = (alumno.curso || "CURSO PROFESIONAL").trim().toUpperCase();
             let mainText = ""; 
             let subText = "";
-            
             let matchObj = cursoText.match(/^(.*?\b(?:DE|EN)\b)\s+(.*)$/);
 
             if (matchObj) {
@@ -1124,7 +1157,123 @@
             if (subText) el('#txt-titulo-sub').style.fontSize = sizeIgualado + 'px';
         }
 
-        async function descargarCarnetCompleto() { if(!alumnoActual) return; const btn = document.querySelector('.action-card'); const txt = btn.innerHTML; btn.innerHTML = '⏳'; try { const ghost = document.getElementById('ghost-container'); ghost.innerHTML = ""; const wrapper = document.createElement('div'); wrapper.style.display = "flex"; wrapper.style.flexDirection = "column"; wrapper.style.gap = "20px"; wrapper.style.padding = "20px"; wrapper.style.backgroundColor = "white"; wrapper.insertAdjacentHTML('beforeend', CARNET_HTML); const imgReverso = globalInstitucion?.reverso_url || URL_REVERSO; const reversoHtml = `<img src="${imgReverso}" class="carnet-back-img" id="carnet-back-img">`; wrapper.insertAdjacentHTML('beforeend', reversoHtml); wrapper.querySelector('.live-shimmer').style.display = 'none'; ghost.appendChild(wrapper); ghost.querySelectorAll('.card-base, .carnet-back-img').forEach(c => { c.style.width = "1011px"; c.style.height = "638px"; }); ghost.querySelector('#carnet-back-img').style.borderColor = ghost.querySelector('.card-base').style.borderColor; llenarDatosCarnet(ghost, alumnoActual, globalColorTema); const images = ghost.getElementsByTagName('img'); for(let img of images) { if(img.src && !img.complete) await new Promise(r => img.onload = r); } await new Promise(r => setTimeout(r, 500)); const canvas = await html2canvas(wrapper, { scale: 1.5, useCORS: true }); const link = document.createElement('a'); link.download = `Carnet_${alumnoActual.dni_alumno}.png`; link.href = canvas.toDataURL("image/png"); link.click(); ghost.innerHTML = ''; } catch(e) { alert("Error: " + e.message); } finally { btn.innerHTML = txt; } }
+        // LLENADO EXCLUSIVO PARA REUIM
+        function llenarDatosCarnetReuim(container, alumno) {
+            const el = (sel) => container.querySelector(sel);
+            const nombreEl = el('#txt-nombre'); 
+            nombreEl.innerText = `${alumno.nombre} ${alumno.apellido}`;
+            el('#txt-dni').innerText = new Intl.NumberFormat('es-AR').format(alumno.dni_alumno);
+            el('#txt-matricula').innerText = generarHashMatricula(alumno.dni_alumno, alumno.curso, alumno.id);
+            
+            const fechaInicio = new Date(alumno.fecha_inicio || new Date()); 
+            el('#txt-anio-header').innerText = fechaInicio.getFullYear();
+            
+            let vence = alumno.fecha_vencimiento ? new Date(alumno.fecha_vencimiento) : new Date(fechaInicio.setFullYear(fechaInicio.getFullYear() + 1));
+            el('#txt-vence').innerText = vence.toLocaleDateString('es-AR');
+            
+            if(new Date() > vence) el('#vencido-overlay').style.display = 'flex';
+            if (alumno.estado === 'SUSPENDIDO') { el('#suspendido-overlay').style.display = 'flex'; el('#vencido-overlay').style.display = 'none'; }
+            
+            if (alumno.foto_url) { const img = el('#img-foto'); img.crossOrigin = "anonymous"; img.src = alumno.foto_url + "?t=" + Date.now(); }
+            el('#qr-container').innerHTML = ""; new QRCode(el('#qr-container'), { text: `${URL_WEB}/validador.html?id=${alumno.id}`, width: 156, height: 156 });
+
+            if (cursoActualData && cursoActualData.marca_agua_url) { 
+                const wm = el('#watermark-container'); 
+                if(wm) wm.innerHTML = `<img src="${cursoActualData.marca_agua_url}" style="height:100%; object-fit:contain;">`; 
+            } 
+
+            const panel = el('#bg-panel');
+            if (globalInstitucion && globalInstitucion.fondo_wallet_url) { 
+                panel.style.backgroundImage = `url('${globalInstitucion.fondo_wallet_url}')`; 
+            } else {
+                panel.style.backgroundColor = '#1e3a8a';
+            }
+
+            let cursoText = (alumno.curso || "CURSO PROFESIONAL").trim().toUpperCase();
+            let mainText = ""; 
+            let subText = "";
+            let matchObj = cursoText.match(/^(.*?\b(?:DE|EN)\b)\s+(.*)$/);
+            if (matchObj) { mainText = matchObj[1]; subText = matchObj[2]; } 
+            else {
+                const t = cursoText.split(/\s+/);
+                if(t.length < 2) { mainText = t.join(' '); subText = ""; } 
+                else { mainText = t[0]; subText = t.slice(1).join(' '); }
+            }
+
+            el('#txt-titulo-main').innerText = mainText;
+            el('#txt-titulo-sub').innerText = subText;
+
+            ajustarTextoAlAncho(nombreEl, 34, 520, 16); 
+
+            let sMain = ajustarTextoAlAncho(el('#txt-titulo-main'), 60, 580, 20);
+            let sSub = subText ? ajustarTextoAlAncho(el('#txt-titulo-sub'), 60, 580, 20) : 60;
+            let sizeIgualado = Math.min(sMain, sSub); 
+            
+            el('#txt-titulo-main').style.fontSize = sizeIgualado + 'px';
+            if (subText) el('#txt-titulo-sub').style.fontSize = sizeIgualado + 'px';
+        }
+
+        async function descargarCarnetCompleto() { 
+            if(!alumnoActual) return; 
+            const btn = document.querySelector('.action-card'); 
+            const txt = btn.innerHTML; 
+            btn.innerHTML = '⏳'; 
+            try { 
+                const ghost = document.getElementById('ghost-container'); 
+                ghost.innerHTML = ""; 
+                const wrapper = document.createElement('div'); 
+                wrapper.style.display = "flex"; 
+                wrapper.style.flexDirection = "column"; 
+                wrapper.style.gap = "20px"; 
+                wrapper.style.padding = "20px"; 
+                wrapper.style.backgroundColor = "white"; 
+                
+                const regId = (alumnoActual.registro_id || 'default').toLowerCase();
+                const esReuim = (regId === 'reuim' || regId === 'ruim');
+                
+                wrapper.insertAdjacentHTML('beforeend', esReuim ? CARNET_REUIM_HTML : CARNET_HTML); 
+                
+                const imgReverso = globalInstitucion?.reverso_url || URL_REVERSO; 
+                const reversoHtml = `<img src="${imgReverso}" class="carnet-back-img" id="carnet-back-img">`; 
+                wrapper.insertAdjacentHTML('beforeend', reversoHtml); 
+                
+                const shimmer = wrapper.querySelector('.live-shimmer');
+                if (shimmer) shimmer.style.display = 'none'; 
+                
+                ghost.appendChild(wrapper); 
+                
+                ghost.querySelectorAll(esReuim ? '.card-reuim' : '.card-base').forEach(c => { 
+                    c.style.width = "1011px"; c.style.height = "638px"; 
+                });
+                ghost.querySelectorAll('.carnet-back-img').forEach(c => { 
+                    c.style.width = "1011px"; c.style.height = "638px"; 
+                }); 
+                
+                const baseCard = ghost.querySelector(esReuim ? '.card-reuim' : '.card-base');
+                ghost.querySelector('#carnet-back-img').style.borderColor = baseCard.style.borderColor; 
+                
+                if (esReuim) {
+                    llenarDatosCarnetReuim(ghost, alumnoActual);
+                } else {
+                    llenarDatosCarnet(ghost, alumnoActual, globalColorTema); 
+                }
+
+                const images = ghost.getElementsByTagName('img'); 
+                for(let img of images) { if(img.src && !img.complete) await new Promise(r => img.onload = r); } 
+                await new Promise(r => setTimeout(r, 500)); 
+                
+                const canvas = await html2canvas(wrapper, { scale: 1.5, useCORS: true }); 
+                const link = document.createElement('a'); 
+                link.download = `Carnet_${alumnoActual.dni_alumno}.png`; 
+                link.href = canvas.toDataURL("image/png"); 
+                link.click(); 
+                ghost.innerHTML = ''; 
+            } catch(e) { 
+                alert("Error: " + e.message); 
+            } finally { 
+                btn.innerHTML = txt; 
+            } 
+        }
         
         async function descargarDiploma() { if(!cursoActualData || !cursoActualData.diploma_bg_url) return alert("Diploma no disponible."); const btn = document.getElementById('btn-descargar-diploma'); const originalText = btn.innerHTML; btn.innerHTML = '⏳'; try { const ghost = document.getElementById('ghost-container'); const colorTextoInteligente = globalInstitucion?.color_texto_diploma || globalColorTema || '#000000'; ghost.innerHTML = `<div class="diploma-layout" id="diploma-final"><img id="dip-bg-img" class="diploma-bg" src="" crossorigin="anonymous"><div class="diploma-overlay"><div class="dip-linea-unica-container" id="dip-texto-container"><span class="dip-texto-formal" id="dip-texto-completo" style="color: ${colorTextoInteligente};"></span></div><div class="dip-qr" id="dip-qr-code"></div><div class="dip-info-extra" id="dip-fecha-registro" style="color: ${colorTextoInteligente}; border-color: ${colorTextoInteligente}33;"></div><div class="dip-sello"></div></div></div>`; const bgImg = ghost.querySelector('#dip-bg-img'); let bgUrl = cursoActualData.diploma_bg_url; if (bgUrl.startsWith('["') || bgUrl.startsWith('[')) { try { bgUrl = JSON.parse(bgUrl)[0]; } catch(e) {} } const response = await fetch(bgUrl); const blob = await response.blob(); const objectURL = URL.createObjectURL(blob); bgImg.src = objectURL; await new Promise((resolve, reject) => { bgImg.onload = resolve; bgImg.onerror = () => reject(new Error("Error carga diploma")); setTimeout(() => reject(new Error("Timeout")), 10000); }); const txtElem = ghost.querySelector('#dip-texto-completo'); txtElem.innerHTML = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno)}`; new QRCode(ghost.querySelector('#dip-qr-code'), { text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, width: 223, height: 223 }); const f = new Date(alumnoActual.fecha_inicio || new Date()).toLocaleDateString('es-ES', {year:'numeric', month:'long', day:'numeric'}); ghost.querySelector('#dip-fecha-registro').innerHTML = `REGISTRO: <b>${(alumnoActual.registro_id||'OFICIAL').toUpperCase()}</b> • Fecha: ${f}`; await document.fonts.ready; txtElem.style.display = 'inline-block'; txtElem.style.whiteSpace = 'nowrap'; await new Promise(r => setTimeout(r, 100)); ajustarTextoAlAncho(txtElem, 80, 1600, 40); await new Promise(r => setTimeout(r, 500)); const canvas = await html2canvas(ghost.querySelector('#diploma-final'), { scale: 1, useCORS: true }); const link = document.createElement('a'); link.download = `Diploma_${alumnoActual.dni_alumno}.png`; link.href = canvas.toDataURL("image/png"); link.click(); URL.revokeObjectURL(objectURL); ghost.innerHTML = ''; } catch(e) { alert("Error diploma: " + e.message); } finally { btn.innerHTML = originalText; } }
         
@@ -1147,11 +1296,8 @@
                 
                 for (let i = 0; i < urls.length; i++) { 
                     const url = urls[i]; 
-                    
-                    // --- SOLUCIÓN: COORDENADAS BAJAS (480px) PARA HOJA 1 Y HOJA 3 ---
                     let overlayHTML = ''; 
                     if (i === 0) { 
-                        // HOJA 1 (NOTAS): Todo el texto bajado para no pisar el logo
                         overlayHTML = `
                         <div class="diploma-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%; z-index:10;">
                             <div style="position: absolute; top: 480px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; white-space: nowrap;">
@@ -1161,7 +1307,6 @@
                             <div id="ana-qr-${i}" style="position: absolute; top: 220px; right: 120px; width: 160px; height: 160px; background: white; padding: 10px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"></div>
                         </div>`; 
                     } else if (i === 2) {
-                        // HOJA 3 (CERTIFICADO)
                         overlayHTML = `
                         <div class="diploma-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%; z-index:10;">
                             <div style="position: absolute; top: 480px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; white-space: nowrap;">
@@ -1224,7 +1369,6 @@
         function cerrarSesion() { location.reload(); }
         function ajustarCarnetResponsivo() { const v = document.getElementById('card-viewport'); const c = document.getElementById('carnet-render'); if(v && c) { const s = v.offsetWidth / 1011; c.style.transform = `scale(${s})`; v.style.height = `${638 * s}px`; } }
         
-        // MATRÍCULA ÚNICA DE 6 DÍGITOS
         function generarHashMatricula(dni, curso, id) { 
             const str = String(dni) + String(curso).trim().toLowerCase() + String(id);
             let h = 0x811c9dc5; 
