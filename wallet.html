@@ -1057,6 +1057,34 @@
             else { el('#card-base-el').style.borderColor = color; }
             
             el('#banda-color').style.backgroundColor = color; el('#txt-sigla').innerText = (alumno.registro_id || 'OFICIAL').toUpperCase();
+
+            // MODO DIOS: Aclarar fondo y sombras EXCLUSIVAMENTE para REUIM
+            const courseContainer = el('.course-container');
+            const dataBoxes = container.querySelectorAll('.data-box');
+            
+            if (regId === 'reuim' || regId === 'ruim') {
+                if (courseContainer) {
+                    courseContainer.style.background = 'rgba(0,0,0,0.05)';
+                    courseContainer.style.backdropFilter = 'blur(1px)';
+                    courseContainer.style.boxShadow = 'none';
+                }
+                dataBoxes.forEach(box => {
+                    box.style.background = 'rgba(0,0,0,0.05)';
+                    box.style.backdropFilter = 'blur(1px)';
+                    box.style.boxShadow = 'none';
+                });
+            } else {
+                if (courseContainer) {
+                    courseContainer.style.background = '';
+                    courseContainer.style.backdropFilter = '';
+                    courseContainer.style.boxShadow = '';
+                }
+                dataBoxes.forEach(box => {
+                    box.style.background = '';
+                    box.style.backdropFilter = '';
+                    box.style.boxShadow = '';
+                });
+            }
             
             let cursoText = (alumno.curso || "CURSO PROFESIONAL").trim().toUpperCase();
             let mainText = ""; 
