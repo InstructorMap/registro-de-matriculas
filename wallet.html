@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0033cc" id="meta-theme-color">
-    <title>Billetera Educativa</title>
+    <meta name="theme-color" content="#041130" id="meta-theme-color">
+    <title>Billetera Educativa - REUIM</title>
     
     <link rel="manifest" href="manifest.json">
     
@@ -21,7 +21,7 @@
 
     <style>
         /* ESTILOS BASE */
-        :root { --primary: #0033cc; --bg-app: #f4f6f9; --text-dark: #222; --gold: #D4AF37; }
+        :root { --primary: #041130; --bg-app: #f4f6f9; --text-dark: #222; --gold: #D4AF37; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; padding: 0; font-family: 'Roboto', sans-serif; background-color: var(--bg-app); color: #333; height: 100vh; display: flex; flex-direction: column; position: relative; overflow-x: hidden; }
 
@@ -132,27 +132,163 @@
         /* ========================================================= */
         /* MODO DIOS: ESTILOS ESTRICTOS EXCLUSIVOS PARA REUIM        */
         /* ========================================================= */
-        .card-reuim { width: 100%; height: 100%; display: flex; position: relative; border: 12px solid #041130; border-radius: 40px; overflow: hidden; background: #041130; }
-        .reuim-left { width: 350px; height: 100%; display: flex; flex-direction: column; background: #041130; position: relative; z-index: 2; flex-shrink: 0; }
-        .reuim-photo-container { height: 420px; overflow: hidden; background: #fff; width: 100%; }
-        .reuim-photo { width: 100%; height: 100%; object-fit: cover; }
-        .reuim-bottom-left { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
-        .reuim-qr-box { position: absolute; top: -90px; left: 50%; transform: translateX(-50%); width: 180px; height: 180px; background: white; padding: 12px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; }
-        .reuim-brand-text { color: white; font-size: 35px; font-weight: 900; letter-spacing: 2px; margin-top: 80px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
+        .card-reuim { 
+            width: 100%; 
+            height: 100%; 
+            display: flex; 
+            position: relative; 
+            border: 12px solid #041130; 
+            border-radius: 40px; 
+            overflow: hidden; 
+            background: #041130; 
+        }
+        .reuim-left { 
+            width: 350px; 
+            height: 100%; 
+            display: flex; 
+            flex-direction: column; 
+            background: #041130; 
+            position: relative; 
+            z-index: 2; 
+            flex-shrink: 0; 
+        }
+        .reuim-photo-container { 
+            height: 420px; 
+            overflow: hidden; 
+            background: #fff; 
+            width: 100%; 
+        }
+        .reuim-photo { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+        }
+        .reuim-bottom-left { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            position: relative; 
+        }
+        .reuim-qr-box { 
+            position: absolute; 
+            top: -90px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            width: 180px; 
+            height: 180px; 
+            background: white; 
+            padding: 12px; 
+            border-radius: 15px; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+        }
+        .reuim-brand-text { 
+            color: white; 
+            font-size: 35px; 
+            font-weight: 900; 
+            letter-spacing: 2px; 
+            margin-top: 80px; 
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8); 
+        }
 
-        .reuim-right { flex: 1; position: relative; display: flex; flex-direction: column; padding: 25px 40px; background-size: cover; background-position: center; min-width: 0; }
-        .reuim-header-box { text-align: right; color: white; font-size: 75px; font-weight: 900; text-shadow: 3px 3px 6px rgba(0,0,0,0.8); margin-bottom: 5px; line-height: 1; }
-        .reuim-header-box span.underline { border-bottom: 8px solid white; padding-bottom: 2px; display: inline-block; }
-        
-        .reuim-title-box { text-align: center; color: white; margin-bottom: 20px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
-        .reuim-title-main, .reuim-title-sub { font-weight: 900; text-transform: uppercase; text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000, 5px 5px 8px rgba(0,0,0,0.8); white-space: nowrap;}
-        
-        .reuim-data-box { display: flex; flex-direction: column; gap: 15px; margin-bottom: 10px; }
-        .reuim-pill { background: linear-gradient(180deg, #d3a453, #9e7422); border: 3px solid #eec465; border-radius: 15px; padding: 5px 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: inset 0 2px 5px rgba(255,255,255,0.3), 0 6px 12px rgba(0,0,0,0.6); height: 60px; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); font-weight: 900; }
-        .reuim-pill.name-pill { justify-content: center; height: 65px; background: linear-gradient(180deg, #d3a453, #a67c26); }
-        .reuim-pill-label { font-size: 30px; display: flex; align-items: center; gap: 12px; }
-        .reuim-pill-value { font-size: 34px; }
-        .reuim-watermark { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); height: 75px; opacity: 0.9; }
+        .reuim-right { 
+            flex: 1; 
+            position: relative; 
+            display: flex; 
+            flex-direction: column; 
+            padding: 25px 40px; 
+            background-color: #041130;
+            background-image: 
+                repeating-linear-gradient(
+                    0deg,
+                    rgba(255, 255, 255, 0.04) 0px,
+                    rgba(255, 255, 255, 0.04) 1px,
+                    transparent 1px,
+                    transparent 4px
+                ),
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 250" width="500" height="250"><text x="50%" y="50%" font-size="140" font-family="Arial" font-weight="900" fill="rgba(255,255,255,0.05)" text-anchor="middle" dominant-baseline="middle" transform="rotate(-12, 250, 125)">REUIM</text></svg>');
+            background-size: auto, 500px 250px;
+            background-position: 0 0, center;
+            background-repeat: repeat, no-repeat;
+            min-width: 0;
+        }
+        .reuim-header-box { 
+            text-align: right; 
+            color: white; 
+            font-size: 75px; 
+            font-weight: 900; 
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.8); 
+            margin-bottom: 5px; 
+            line-height: 1; 
+        }
+        .reuim-header-box span.underline { 
+            border-bottom: 8px solid white; 
+            padding-bottom: 2px; 
+            display: inline-block; 
+        }
+
+        .reuim-title-box { 
+            text-align: center; 
+            color: white; 
+            margin-bottom: 20px; 
+            flex-grow: 1; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+        }
+        .reuim-title-main, .reuim-title-sub { 
+            font-weight: 900; 
+            text-transform: uppercase; 
+            text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000, 5px 5px 8px rgba(0,0,0,0.8); 
+            white-space: nowrap;
+        }
+
+        .reuim-data-box { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+            margin-bottom: 10px; 
+        }
+        .reuim-pill { 
+            background: linear-gradient(180deg, #d3a453, #9e7422); 
+            border: 3px solid #eec465; 
+            border-radius: 15px; 
+            padding: 5px 25px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            box-shadow: inset 0 2px 5px rgba(255,255,255,0.3), 0 6px 12px rgba(0,0,0,0.6); 
+            height: 60px; 
+            color: white; 
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8); 
+            font-weight: 900; 
+        }
+        .reuim-pill.name-pill { 
+            justify-content: center; 
+            height: 65px; 
+            background: linear-gradient(180deg, #d3a453, #a67c26); 
+        }
+        .reuim-pill-label { 
+            font-size: 30px; 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+        }
+        .reuim-pill-value { 
+            font-size: 34px; 
+        }
+        .reuim-watermark { 
+            position: absolute; 
+            left: 50%; 
+            top: 50%; 
+            transform: translate(-50%, -50%); 
+            height: 75px; 
+            opacity: 0.9; 
+        }
         /* ========================================================= */
 
         /* DIPLOMA / ANALITICO LAYOUT */
@@ -353,7 +489,7 @@
         const URL_REVERSO = "./reverso.jpg"; 
         const URL_DOC_LEGAL = "legal.jpg";
 
-        const COLOR_DEFAULT = "#b8860b"; 
+        const COLOR_DEFAULT = "#041130"; 
         
         const COLORES_REGISTRO = { 
             'remaep': '#0033cc', 
@@ -365,8 +501,10 @@
             'rpde': '#0099ff',
             'rce': '#ff6600',
             'asarin': '#800000', 
-            'colbert': '#2f4f4f', 
-            'default': '#0033cc' 
+            'colbert': '#2f4f4f',
+            'reuim': '#041130',
+            'ruim': '#041130',
+            'default': '#041130' 
         };
 
         if ('serviceWorker' in navigator) {
@@ -478,7 +616,7 @@
         const CARNET_BACK_HTML = `<img src="${URL_REVERSO}" class="carnet-back-img" id="carnet-back-img">`;
 
         let globalColorTema = COLOR_DEFAULT; 
-        let globalColorTexto = '#0033cc'; 
+        let globalColorTexto = '#041130'; 
         let globalMatriculas = [];
         let alumnoActual = null; 
         let cursoActualData = null;
@@ -599,7 +737,7 @@
                 ],
                 "start_url": ".",
                 "display": "standalone",
-                "theme_color": "#0033cc",
+                "theme_color": "#041130",
                 "background_color": "#ffffff"
             };
             
@@ -819,7 +957,7 @@
             } else if (vista === 'back') {
                 const imgReverso = globalInstitucion?.reverso_url || URL_REVERSO;
                 container.innerHTML = `<img src="${imgReverso}" style="width:1011px; height:638px; object-fit:cover; border-radius:40px; border:5px solid var(--primary);">`;
-                container.querySelector('img').style.borderColor = globalColorTema || '#0033cc';
+                container.querySelector('img').style.borderColor = globalColorTema || '#041130';
             } else if (vista === 'legal') {
                 const imgLegal = globalInstitucion?.alcance_url || URL_DOC_LEGAL;
                 const estiloLegal = "width:1011px; height:638px; object-fit:contain; background:white; border-radius:40px; border:5px solid #ccc;";
@@ -1183,10 +1321,27 @@
             } 
 
             const panel = el('#bg-panel');
+            // SIEMPRE aplicar el fondo REUIM por defecto (líneas + marca de agua "REUIM")
+            // a menos que exista un fondo personalizado en globalInstitucion
             if (globalInstitucion && globalInstitucion.fondo_wallet_url) { 
                 panel.style.backgroundImage = `url('${globalInstitucion.fondo_wallet_url}')`; 
+                panel.style.backgroundColor = '#041130';
             } else {
-                panel.style.backgroundColor = '#1e3a8a';
+                // Fondo exacto como en la imagen del carnet REUIM
+                panel.style.backgroundColor = '#041130';
+                panel.style.backgroundImage = `
+                    repeating-linear-gradient(
+                        0deg,
+                        rgba(255, 255, 255, 0.04) 0px,
+                        rgba(255, 255, 255, 0.04) 1px,
+                        transparent 1px,
+                        transparent 4px
+                    ),
+                    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 250" width="500" height="250"><text x="50%" y="50%" font-size="140" font-family="Arial" font-weight="900" fill="rgba(255,255,255,0.05)" text-anchor="middle" dominant-baseline="middle" transform="rotate(-12, 250, 125)">REUIM</text></svg>')
+                `;
+                panel.style.backgroundSize = 'auto, 500px 250px';
+                panel.style.backgroundPosition = '0 0, center';
+                panel.style.backgroundRepeat = 'repeat, no-repeat';
             }
 
             let cursoText = (alumno.curso || "CURSO PROFESIONAL").trim().toUpperCase();
