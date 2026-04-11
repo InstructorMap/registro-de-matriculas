@@ -109,8 +109,8 @@
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 6px solid rgba(255,255,255,0.9); padding-bottom: 2px; }
         .header-text { font-size: 85px; font-weight: 900; text-transform: uppercase; line-height: 0.9; text-shadow: 3px 3px 0px rgba(0,0,0,0.2); }
         
-        .course-container { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 10px 0; background: linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.3)); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 0 10px; overflow: hidden; position: relative; z-index: 10; }
-        .course-title-main, .course-title-sub { font-weight: 900; text-transform: uppercase; text-align: center; display: inline-block; max-width: 100%; position: relative; z-index: 2; text-shadow: 3px 3px 0px rgba(0,0,0,0.8), 0px 0px 8px rgba(0,0,0,0.9); white-space: nowrap; }
+        .course-container { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 10px 0; background: linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.3)); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 0 20px; overflow: visible; position: relative; z-index: 10; min-height: 0; }
+        .course-title-main, .course-title-sub { font-weight: 900; text-transform: uppercase; text-align: center; display: inline-block; max-width: 100%; position: relative; z-index: 2; text-shadow: 3px 3px 0px rgba(0,0,0,0.8), 0px 0px 8px rgba(0,0,0,0.9); white-space: nowrap; line-height: 1.2; }
         .watermark-layer { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; height: 85%; opacity: 0.08; z-index: 1; pointer-events: none; display: flex; justify-content: center; align-items: center; }
         .watermark-layer img { width: 100%; height: 100%; object-fit: contain; }
 
@@ -150,14 +150,14 @@
         .reuim-header-box span.underline { font-size: 75px; font-weight: 900; text-shadow: 3px 3px 6px rgba(0,0,0,0.8); display: inline; }
         .reuim-header-box span.year { font-size: 75px; font-weight: 900; text-shadow: 3px 3px 6px rgba(0,0,0,0.8); margin-left: 15px; }
 
-        .reuim-title-box { text-align: center; color: white; margin: 20px 0; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; position: relative; z-index: 10; background: linear-gradient(90deg, transparent, rgba(212,175,55,0.15), transparent); border-top: 1px solid rgba(212,175,55,0.4); border-bottom: 1px solid rgba(212,175,55,0.4); padding: 20px 0; }
-        .reuim-title-main, .reuim-title-sub { font-weight: 900; text-transform: uppercase; text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000, 5px 5px 8px rgba(0,0,0,0.8); white-space: nowrap; line-height: 1.2; text-align: center; }
+        .reuim-title-box { text-align: center; color: white; margin: 20px 0; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; position: relative; z-index: 10; background: linear-gradient(90deg, transparent, rgba(212,175,55,0.15), transparent); border-top: 1px solid rgba(212,175,55,0.4); border-bottom: 1px solid rgba(212,175,55,0.4); padding: 20px 0; overflow: visible; min-height: 0; }
+        .reuim-title-main, .reuim-title-sub { font-weight: 900; text-transform: uppercase; text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000, 5px 5px 8px rgba(0,0,0,0.8); white-space: nowrap; line-height: 1.2; text-align: center; display: inline-block; max-width: 100%; }
 
         .reuim-data-box { display: flex; flex-direction: column; gap: 12px; margin-bottom: 10px; position: relative; z-index: 10; }
         .reuim-pill { background: linear-gradient(180deg, #D4AF37, #a67c26); border: 2px solid #F5E6A3; border-radius: 12px; padding: 8px 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: inset 0 2px 5px rgba(255,255,255,0.3), 0 6px 12px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1); height: 60px; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); font-weight: 900; }
         .reuim-pill.name-pill { justify-content: center; height: 65px; background: linear-gradient(180deg, #D4AF37, #8B6914); border: 2px solid #FFD700; text-transform: uppercase; letter-spacing: 2px; }
-        .reuim-pill-label { font-size: 28px; display: flex; align-items: center; gap: 10px; }
-        .reuim-pill-value { font-size: 32px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+        .reuim-pill-label { font-size: 28px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        .reuim-pill-value { font-size: 32px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; text-align: right; }
         .reuim-watermark { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); height: 75px; opacity: 0.9; }
 
         /* DIPLOMA / ANALITICO LAYOUT */
@@ -1104,7 +1104,7 @@
         function registrarAcceso(alumno) { try { db.from('logs_accesos').insert({ alumno_id: alumno.id, curso: alumno.curso, fecha: new Date().toISOString() }).then(); } catch(e) { } }
         
         // =========================================================
-        // FUNCIÓN INTELIGENTE DE MEDICIÓN Y AJUSTE DE TEXTO
+        // FUNCIÓN INTELIGENTE DE MEDICIÓN Y AJUSTE DE TEXTO (CORREGIDA)
         // =========================================================
         function medirAnchoTextoCanvas(texto, fontSize, fontFamily = 'Roboto, sans-serif', fontWeight = '900') {
             const canvas = document.createElement('canvas');
@@ -1115,6 +1115,12 @@
 
         function ajustarTextoInteligente(elemento, texto, maxWidth, minSize, maxSize, fontFamily = 'Roboto, sans-serif', fontWeight = '900') {
             if (!elemento || !texto) return maxSize;
+            
+            // Guardar estilo original temporalmente
+            const originalWhiteSpace = elemento.style.whiteSpace;
+            elemento.style.whiteSpace = 'nowrap';
+            elemento.style.display = 'inline-block';
+            elemento.innerText = texto;
             
             let mejorSize = maxSize;
             let currentSize = maxSize;
@@ -1131,10 +1137,8 @@
             if (mejorSize < minSize) mejorSize = minSize;
             
             elemento.style.fontSize = mejorSize + 'px';
-            elemento.style.whiteSpace = 'nowrap';
-            elemento.style.display = 'inline-block';
-            elemento.style.maxWidth = '100%';
-            elemento.innerText = texto;
+            elemento.style.whiteSpace = originalWhiteSpace || 'nowrap';
+            elemento.style.display = '';
             
             return mejorSize;
         }
@@ -1180,30 +1184,31 @@
             
             if (!mainEl) return;
             
-            // Configurar dimensiones según tipo de carnet
+            // Configurar dimensiones según tipo de carnet - VALORES CORREGIDOS
             let maxWidthMain, maxWidthSub, maxSizeMain, maxSizeSub, minSize, fontFamily, fontWeight;
             
             if (esReuim) {
-                maxWidthMain = 560;  // Ancho disponible en REUIM
-                maxWidthSub = 560;
-                maxSizeMain = 68;
-                maxSizeSub = 64;
+                // Espacio real en REUIM: contenedor .reuim-title-box tiene padding 20px 0, ancho ~570px
+                maxWidthMain = 540;  // Reducido de 560 a 540
+                maxWidthSub = 540;
+                maxSizeMain = 65;
+                maxSizeSub = 60;
                 minSize = 26;
                 fontFamily = "'Playfair Display', 'Roboto', serif";
                 fontWeight = '900';
             } else {
-                maxWidthMain = 620;  // Ancho disponible en carnet estándar
-                maxWidthSub = 620;
-                maxSizeMain = 58;
-                maxSizeSub = 54;
+                // Espacio real en carnet estándar: .course-container tiene padding 0 20px, ancho ~580px
+                maxWidthMain = 560;  // Reducido de 620 a 560
+                maxWidthSub = 560;
+                maxSizeMain = 55;
+                maxSizeSub = 50;
                 minSize = 22;
                 fontFamily = "'Roboto', sans-serif";
                 fontWeight = '900';
             }
             
             // Aplicar al título principal
-            const mainText = main;
-            ajustarTextoInteligente(mainEl, mainText, maxWidthMain, minSize, maxSizeMain, fontFamily, fontWeight);
+            ajustarTextoInteligente(mainEl, main, maxWidthMain, minSize, maxSizeMain, fontFamily, fontWeight);
             
             // Aplicar al subtítulo si existe
             if (subEl && sub) {
@@ -1217,9 +1222,16 @@
             const nombreEl = container.querySelector('#txt-nombre');
             if (nombreEl) {
                 const nombreCompleto = `${alumno.nombre} ${alumno.apellido}`.toUpperCase();
-                const maxWidthNombre = esReuim ? 480 : 550;
-                const maxSizeNombre = esReuim ? 42 : 55;
-                const minSizeNombre = esReuim ? 20 : 28;
+                let maxWidthNombre, maxSizeNombre, minSizeNombre;
+                if (esReuim) {
+                    maxWidthNombre = 460;
+                    maxSizeNombre = 42;
+                    minSizeNombre = 20;
+                } else {
+                    maxWidthNombre = 520;
+                    maxSizeNombre = 52;
+                    minSizeNombre = 26;
+                }
                 ajustarTextoInteligente(nombreEl, nombreCompleto, maxWidthNombre, minSizeNombre, maxSizeNombre, fontFamily, fontWeight);
             }
         }
@@ -1337,6 +1349,7 @@
                     while (size > minSize && medirAnchoTextoCanvas(el.innerText, size, "'Roboto', sans-serif", '900') > maxWidth) {
                         size -= 2;
                     }
+                    if (size < minSize) size = minSize;
                     el.style.fontSize = size + 'px';
                 }
             };
