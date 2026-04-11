@@ -110,11 +110,11 @@
         .header-text { font-size: 85px; font-weight: 900; text-transform: uppercase; line-height: 0.9; text-shadow: 3px 3px 0px rgba(0,0,0,0.2); }
         
         .course-container { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 10px 0; background: linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.3)); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 0 10px; overflow: hidden; position: relative; z-index: 10; }
-        .course-title-main, .course-title-sub { font-size: 55px; font-weight: 900; text-transform: uppercase; line-height: 1.1; text-align: center; display: inline-block; white-space: nowrap; max-width: 100%; position: relative; z-index: 2; text-shadow: 3px 3px 0px rgba(0,0,0,0.8), 0px 0px 8px rgba(0,0,0,0.9); }
+        .course-title-main, .course-title-sub { font-weight: 900; text-transform: uppercase; text-align: center; display: inline-block; max-width: 100%; position: relative; z-index: 2; text-shadow: 3px 3px 0px rgba(0,0,0,0.8), 0px 0px 8px rgba(0,0,0,0.9); white-space: nowrap; }
         .watermark-layer { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; height: 85%; opacity: 0.08; z-index: 1; pointer-events: none; display: flex; justify-content: center; align-items: center; }
         .watermark-layer img { width: 100%; height: 100%; object-fit: contain; }
 
-        .student-name { font-size: 55px; font-weight: 900; text-transform: uppercase; background: transparent; padding: 10px; text-align: center; border-radius: 8px; margin-bottom: 15px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); width: 100%; overflow: hidden; }
+        .student-name { font-size: 55px; font-weight: 900; text-transform: uppercase; background: transparent; padding: 10px; text-align: center; border-radius: 8px; margin-bottom: 15px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); width: 100%; overflow: hidden; white-space: nowrap; }
         
         .data-grid { display: grid; grid-template-columns: 65px 1fr; row-gap: 10px; align-items: center; }
         .icon-box { font-size: 55px; text-align: center; }
@@ -129,254 +129,36 @@
         .overlay-vencido { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(180, 0, 0, 0.75); z-index: 20; display: flex; justify-content: center; align-items: center; flex-direction: column; color: white; text-align: center; border-radius: 35px; backdrop-filter: blur(2px); }
         .texto-vencido { font-size: 80px; font-weight: 900; transform: rotate(-15deg); border: 8px solid white; padding: 10px 40px; text-transform: uppercase; letter-spacing: 5px; }
 
-        /* ========================================================= */
-        /* MODO DIOS: ESTILOS PREMIUM EXCLUSIVOS PARA REUIM           */
-        /* ========================================================= */
-        .card-reuim { 
-            width: 100%; 
-            height: 100%; 
-            display: flex; 
-            position: relative; 
-            border: 8px solid #D4AF37; 
-            border-radius: 40px; 
-            overflow: visible;
-            background: #041130;
-            box-shadow: inset 0 0 0 2px #F5E6A3, 0 20px 40px rgba(0,0,0,0.5);
-        }
-        .reuim-left { 
-            width: 350px; 
-            height: 100%; 
-            display: flex; 
-            flex-direction: column; 
-            background: linear-gradient(135deg, #041130 0%, #0a1a4a 100%);
-            position: relative; 
-            z-index: 2; 
-            flex-shrink: 0;
-            border-right: 3px solid #D4AF37;
-            border-top-left-radius: 32px;
-            border-bottom-left-radius: 32px;
-            overflow: hidden;
-        }
-        .reuim-photo-container { 
-            height: 420px; 
-            overflow: hidden; 
-            background: #fff; 
-            width: 100%;
-            border-bottom: 3px solid #D4AF37;
-        }
-        .reuim-photo { 
-            width: 100%; 
-            height: 100%; 
-            object-fit: cover; 
-        }
-        .reuim-bottom-left { 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            justify-content: center; 
-            align-items: center; 
-            position: relative;
-            background: linear-gradient(0deg, rgba(4,17,48,1) 0%, rgba(10,26,74,0.9) 100%);
-        }
-        .reuim-qr-box { 
-            position: absolute; 
-            top: -90px; 
-            left: 50%; 
-            transform: translateX(-50%); 
-            width: 180px; 
-            height: 180px; 
-            background: white; 
-            padding: 12px; 
-            border-radius: 15px; 
-            box-shadow: 0 0 0 3px #D4AF37, 0 10px 30px rgba(0,0,0,0.5); 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            z-index: 10;
-        }
-        .reuim-brand-text { 
-            color: #D4AF37; 
-            font-size: 38px; 
-            font-weight: 900; 
-            letter-spacing: 3px; 
-            margin-top: 80px; 
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-            font-family: 'Playfair Display', serif;
-        }
+        /* MODO DIOS: ESTILOS PREMIUM EXCLUSIVOS PARA REUIM */
+        .card-reuim { width: 100%; height: 100%; display: flex; position: relative; border: 8px solid #D4AF37; border-radius: 40px; overflow: visible; background: #041130; box-shadow: inset 0 0 0 2px #F5E6A3, 0 20px 40px rgba(0,0,0,0.5); }
+        .reuim-left { width: 350px; height: 100%; display: flex; flex-direction: column; background: linear-gradient(135deg, #041130 0%, #0a1a4a 100%); position: relative; z-index: 2; flex-shrink: 0; border-right: 3px solid #D4AF37; border-top-left-radius: 32px; border-bottom-left-radius: 32px; overflow: hidden; }
+        .reuim-photo-container { height: 420px; overflow: hidden; background: #fff; width: 100%; border-bottom: 3px solid #D4AF37; }
+        .reuim-photo { width: 100%; height: 100%; object-fit: cover; }
+        .reuim-bottom-left { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; background: linear-gradient(0deg, rgba(4,17,48,1) 0%, rgba(10,26,74,0.9) 100%); }
+        .reuim-qr-box { position: absolute; top: -90px; left: 50%; transform: translateX(-50%); width: 180px; height: 180px; background: white; padding: 12px; border-radius: 15px; box-shadow: 0 0 0 3px #D4AF37, 0 10px 30px rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 10; }
+        .reuim-brand-text { color: #D4AF37; font-size: 38px; font-weight: 900; letter-spacing: 3px; margin-top: 80px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); font-family: 'Playfair Display', serif; }
 
-        .reuim-right { 
-            flex: 1; 
-            position: relative; 
-            display: flex; 
-            flex-direction: column; 
-            padding: 25px 40px 65px 40px;
-            background-color: #041130;
-            background-image: 
-                repeating-linear-gradient(
-                    0deg,
-                    rgba(255, 255, 255, 0.03) 0px,
-                    rgba(255, 255, 255, 0.03) 1px,
-                    transparent 1px,
-                    transparent 6px
-                ),
-                repeating-linear-gradient(
-                    90deg,
-                    rgba(212, 175, 55, 0.05) 0px,
-                    rgba(212, 175, 55, 0.05) 1px,
-                    transparent 1px,
-                    transparent 20px
-                ),
-                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300" width="600" height="300"><text x="50%" y="50%" font-size="160" font-family="Arial" font-weight="900" fill="rgba(255,255,255,0.04)" text-anchor="middle" dominant-baseline="middle" transform="rotate(-10, 300, 150)">REUIM</text></svg>');
-            background-size: auto, auto, 600px 300px;
-            background-position: 0 0, 0 0, center;
-            background-repeat: repeat, repeat, no-repeat;
-            min-width: 0;
-            border-top-right-radius: 32px;
-            border-bottom-right-radius: 32px;
-            overflow: visible;
-        }
+        .reuim-right { flex: 1; position: relative; display: flex; flex-direction: column; padding: 25px 40px 65px 40px; background-color: #041130; background-image: repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 6px), repeating-linear-gradient(90deg, rgba(212,175,55,0.05) 0px, rgba(212,175,55,0.05) 1px, transparent 1px, transparent 20px), url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300" width="600" height="300"><text x="50%" y="50%" font-size="160" font-family="Arial" font-weight="900" fill="rgba(255,255,255,0.04)" text-anchor="middle" dominant-baseline="middle" transform="rotate(-10, 300, 150)">REUIM</text></svg>'); background-size: auto, auto, 600px 300px; background-position: 0 0, 0 0, center; background-repeat: repeat, repeat, no-repeat; min-width: 0; border-top-right-radius: 32px; border-bottom-right-radius: 32px; overflow: visible; }
 
-        /* Marco blanco interno */
-        .reuim-right::before {
-            content: '';
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            right: 15px;
-            bottom: 15px;
-            border: 2px solid rgba(255,255,255,0.15);
-            border-radius: 25px;
-            pointer-events: none;
-            z-index: 1;
-        }
+        .reuim-right::before { content: ''; position: absolute; top: 15px; left: 15px; right: 15px; bottom: 15px; border: 2px solid rgba(255,255,255,0.15); border-radius: 25px; pointer-events: none; z-index: 1; }
 
-        /* Laurel inferior - AHORA VISIBLE */
-        .laurel-bottom {
-            position: absolute;
-            bottom: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 45px;
-            color: #D4AF37;
-            text-shadow: 0 2px 8px rgba(0,0,0,0.7);
-            letter-spacing: 20px;
-            opacity: 0.9;
-            z-index: 30;
-            font-family: serif;
-            white-space: nowrap;
-            width: 100%;
-            text-align: center;
-        }
+        .laurel-bottom { position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); font-size: 45px; color: #D4AF37; text-shadow: 0 2px 8px rgba(0,0,0,0.7); letter-spacing: 20px; opacity: 0.9; z-index: 30; font-family: serif; white-space: nowrap; width: 100%; text-align: center; }
 
-        .official-badge {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            color: #D4AF37;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            border: 1px solid #D4AF37;
-            padding: 4px 12px;
-            border-radius: 20px;
-            background: rgba(4,17,48,0.8);
-            z-index: 20;
-        }
+        .official-badge { position: absolute; top: 20px; left: 20px; color: #D4AF37; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 3px; border: 1px solid #D4AF37; padding: 4px 12px; border-radius: 20px; background: rgba(4,17,48,0.8); z-index: 20; }
 
-        .reuim-header-box { 
-            text-align: right; 
-            color: white; 
-            margin-bottom: 5px; 
-            position: relative;
-            z-index: 10;
-            border-bottom: 8px solid #D4AF37;
-            padding-bottom: 8px;
-        }
-        .reuim-header-box span.underline { 
-            font-size: 75px;
-            font-weight: 900;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
-            display: inline;
-        }
-        .reuim-header-box span.year {
-            font-size: 75px;
-            font-weight: 900;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
-            margin-left: 15px;
-        }
+        .reuim-header-box { text-align: right; color: white; margin-bottom: 5px; position: relative; z-index: 10; border-bottom: 8px solid #D4AF37; padding-bottom: 8px; }
+        .reuim-header-box span.underline { font-size: 75px; font-weight: 900; text-shadow: 3px 3px 6px rgba(0,0,0,0.8); display: inline; }
+        .reuim-header-box span.year { font-size: 75px; font-weight: 900; text-shadow: 3px 3px 6px rgba(0,0,0,0.8); margin-left: 15px; }
 
-        .reuim-title-box { 
-            text-align: center; 
-            color: white; 
-            margin: 20px 0; 
-            flex-grow: 1; 
-            display: flex; 
-            flex-direction: column; 
-            justify-content: center;
-            position: relative;
-            z-index: 10;
-            background: linear-gradient(90deg, transparent, rgba(212,175,55,0.15), transparent);
-            border-top: 1px solid rgba(212,175,55,0.4);
-            border-bottom: 1px solid rgba(212,175,55,0.4);
-            padding: 20px 0;
-        }
-        .reuim-title-main, .reuim-title-sub { 
-            font-weight: 900; 
-            text-transform: uppercase; 
-            text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000, 5px 5px 8px rgba(0,0,0,0.8); 
-            white-space: nowrap;
-            line-height: 1.2;
-        }
+        .reuim-title-box { text-align: center; color: white; margin: 20px 0; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; position: relative; z-index: 10; background: linear-gradient(90deg, transparent, rgba(212,175,55,0.15), transparent); border-top: 1px solid rgba(212,175,55,0.4); border-bottom: 1px solid rgba(212,175,55,0.4); padding: 20px 0; }
+        .reuim-title-main, .reuim-title-sub { font-weight: 900; text-transform: uppercase; text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000, 5px 5px 8px rgba(0,0,0,0.8); white-space: nowrap; line-height: 1.2; text-align: center; }
 
-        .reuim-data-box { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 12px; 
-            margin-bottom: 10px;
-            position: relative;
-            z-index: 10;
-        }
-        .reuim-pill { 
-            background: linear-gradient(180deg, #D4AF37, #a67c26); 
-            border: 2px solid #F5E6A3; 
-            border-radius: 12px; 
-            padding: 8px 25px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            box-shadow: inset 0 2px 5px rgba(255,255,255,0.3), 0 6px 12px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1); 
-            height: 60px; 
-            color: white; 
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8); 
-            font-weight: 900; 
-        }
-        .reuim-pill.name-pill { 
-            justify-content: center; 
-            height: 65px; 
-            background: linear-gradient(180deg, #D4AF37, #8B6914);
-            border: 2px solid #FFD700;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        .reuim-pill-label { 
-            font-size: 28px; 
-            display: flex; 
-            align-items: center; 
-            gap: 10px; 
-        }
-        .reuim-pill-value { 
-            font-size: 32px; 
-        }
-        .reuim-watermark { 
-            position: absolute; 
-            left: 50%; 
-            top: 50%; 
-            transform: translate(-50%, -50%); 
-            height: 75px; 
-            opacity: 0.9; 
-        }
-        /* ========================================================= */
+        .reuim-data-box { display: flex; flex-direction: column; gap: 12px; margin-bottom: 10px; position: relative; z-index: 10; }
+        .reuim-pill { background: linear-gradient(180deg, #D4AF37, #a67c26); border: 2px solid #F5E6A3; border-radius: 12px; padding: 8px 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: inset 0 2px 5px rgba(255,255,255,0.3), 0 6px 12px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1); height: 60px; color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); font-weight: 900; }
+        .reuim-pill.name-pill { justify-content: center; height: 65px; background: linear-gradient(180deg, #D4AF37, #8B6914); border: 2px solid #FFD700; text-transform: uppercase; letter-spacing: 2px; }
+        .reuim-pill-label { font-size: 28px; display: flex; align-items: center; gap: 10px; }
+        .reuim-pill-value { font-size: 32px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+        .reuim-watermark { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); height: 75px; opacity: 0.9; }
 
         /* DIPLOMA / ANALITICO LAYOUT */
         .diploma-layout { width: 2000px; height: 1414px; position: relative; overflow: hidden; color: #333; background: #fff; }
@@ -1321,77 +1103,191 @@
         function generarTextoIA(tipo) { const t = tipo === 'linkedin' ? `🚀 ¡Meta Cumplida!\nCertificado como ${alumnoActual.curso}.` : `PERFIL PROFESIONAL:\nCertificado como ${alumnoActual.curso}.`; navigator.clipboard.writeText(t).then(() => alert("Copiado!")); }
         function registrarAcceso(alumno) { try { db.from('logs_accesos').insert({ alumno_id: alumno.id, curso: alumno.curso, fecha: new Date().toISOString() }).then(); } catch(e) { } }
         
-        function ajustarTextoAlAncho(element, startSize, maxWidth, minLimit) { 
-            let size = startSize; 
-            element.style.fontSize = size + 'px'; 
-            const limit = maxWidth || element.parentElement.clientWidth; 
-            if (!limit || limit <= 0) return size; 
-            const limitInferior = minLimit || 22; 
-            while (element.scrollWidth > limit && size > limitInferior) { 
-                size -= 1; 
-                element.style.fontSize = size + 'px'; 
-            } 
-            return size;
+        // =========================================================
+        // FUNCIÓN INTELIGENTE DE MEDICIÓN Y AJUSTE DE TEXTO
+        // =========================================================
+        function medirAnchoTextoCanvas(texto, fontSize, fontFamily = 'Roboto, sans-serif', fontWeight = '900') {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+            return ctx.measureText(texto).width;
+        }
+
+        function ajustarTextoInteligente(elemento, texto, maxWidth, minSize, maxSize, fontFamily = 'Roboto, sans-serif', fontWeight = '900') {
+            if (!elemento || !texto) return maxSize;
+            
+            let mejorSize = maxSize;
+            let currentSize = maxSize;
+            
+            while (currentSize >= minSize) {
+                const anchoNecesario = medirAnchoTextoCanvas(texto, currentSize, fontFamily, fontWeight);
+                if (anchoNecesario <= maxWidth) {
+                    mejorSize = currentSize;
+                    break;
+                }
+                currentSize -= 1;
+            }
+            
+            if (mejorSize < minSize) mejorSize = minSize;
+            
+            elemento.style.fontSize = mejorSize + 'px';
+            elemento.style.whiteSpace = 'nowrap';
+            elemento.style.display = 'inline-block';
+            elemento.style.maxWidth = '100%';
+            elemento.innerText = texto;
+            
+            return mejorSize;
+        }
+
+        function dividirTituloInteligente(cursoText) {
+            let text = cursoText.trim().toUpperCase();
+            
+            // Patrones de conectores para quiebre natural
+            const conectores = [' DE ', ' EN ', ' PARA ', ' Y ', ' CON ', ' A ', ' POR ', ' DEL ', ' LA ', ' EL ', ' LOS ', ' LAS '];
+            
+            for (let conector of conectores) {
+                if (text.includes(conector)) {
+                    const partes = text.split(conector);
+                    if (partes.length >= 2) {
+                        const primeraParte = partes[0] + conector.trim();
+                        const segundaParte = partes.slice(1).join(conector.trim());
+                        if (primeraParte.length > 0 && segundaParte.length > 0) {
+                            return { main: primeraParte, sub: segundaParte };
+                        }
+                    }
+                }
+            }
+            
+            // Si no hay conector, dividir por la mitad buscando espacio
+            const palabras = text.split(' ');
+            if (palabras.length === 1) {
+                return { main: text, sub: '' };
+            }
+            
+            const mitad = Math.floor(palabras.length / 2);
+            const main = palabras.slice(0, mitad).join(' ');
+            const sub = palabras.slice(mitad).join(' ');
+            
+            return { main, sub };
+        }
+
+        function aplicarTitulosInteligentes(container, alumno, esReuim = false) {
+            const cursoText = (alumno.curso || "CURSO PROFESIONAL").trim().toUpperCase();
+            const { main, sub } = dividirTituloInteligente(cursoText);
+            
+            const mainEl = container.querySelector('#txt-titulo-main');
+            const subEl = container.querySelector('#txt-titulo-sub');
+            
+            if (!mainEl) return;
+            
+            // Configurar dimensiones según tipo de carnet
+            let maxWidthMain, maxWidthSub, maxSizeMain, maxSizeSub, minSize, fontFamily, fontWeight;
+            
+            if (esReuim) {
+                maxWidthMain = 560;  // Ancho disponible en REUIM
+                maxWidthSub = 560;
+                maxSizeMain = 68;
+                maxSizeSub = 64;
+                minSize = 26;
+                fontFamily = "'Playfair Display', 'Roboto', serif";
+                fontWeight = '900';
+            } else {
+                maxWidthMain = 620;  // Ancho disponible en carnet estándar
+                maxWidthSub = 620;
+                maxSizeMain = 58;
+                maxSizeSub = 54;
+                minSize = 22;
+                fontFamily = "'Roboto', sans-serif";
+                fontWeight = '900';
+            }
+            
+            // Aplicar al título principal
+            const mainText = main;
+            ajustarTextoInteligente(mainEl, mainText, maxWidthMain, minSize, maxSizeMain, fontFamily, fontWeight);
+            
+            // Aplicar al subtítulo si existe
+            if (subEl && sub) {
+                ajustarTextoInteligente(subEl, sub, maxWidthSub, minSize, maxSizeSub, fontFamily, fontWeight);
+                subEl.style.display = 'block';
+            } else if (subEl) {
+                subEl.style.display = 'none';
+            }
+            
+            // Ajustar también el nombre del alumno
+            const nombreEl = container.querySelector('#txt-nombre');
+            if (nombreEl) {
+                const nombreCompleto = `${alumno.nombre} ${alumno.apellido}`.toUpperCase();
+                const maxWidthNombre = esReuim ? 480 : 550;
+                const maxSizeNombre = esReuim ? 42 : 55;
+                const minSizeNombre = esReuim ? 20 : 28;
+                ajustarTextoInteligente(nombreEl, nombreCompleto, maxWidthNombre, minSizeNombre, maxSizeNombre, fontFamily, fontWeight);
+            }
         }
 
         function llenarDatosCarnet(container, alumno, colorOverride) {
             const el = (sel) => container.querySelector(sel);
+            
+            // Datos básicos
             const nombreEl = el('#txt-nombre'); 
             nombreEl.innerText = `${alumno.nombre} ${alumno.apellido}`;
             el('#txt-dni').innerText = new Intl.NumberFormat('es-AR').format(alumno.dni_alumno);
             el('#txt-matricula').innerText = generarHashMatricula(alumno.dni_alumno, alumno.curso, alumno.id);
-            const fechaInicio = new Date(alumno.fecha_inicio || new Date()); el('#txt-anio-header').innerText = `CARNET ${fechaInicio.getFullYear()}`;
+            const fechaInicio = new Date(alumno.fecha_inicio || new Date()); 
+            el('#txt-anio-header').innerText = `CARNET ${fechaInicio.getFullYear()}`;
             let vence = alumno.fecha_vencimiento ? new Date(alumno.fecha_vencimiento) : new Date(fechaInicio.setFullYear(fechaInicio.getFullYear() + 1));
             el('#txt-vence').innerText = vence.toLocaleDateString('es-AR');
+            
             if(new Date() > vence) el('#vencido-overlay').style.display = 'flex';
-            if (alumno.estado === 'SUSPENDIDO') { el('#suspendido-overlay').style.display = 'flex'; el('#vencido-overlay').style.display = 'none'; }
-            if (alumno.foto_url) { const img = el('#img-foto'); img.crossOrigin = "anonymous"; img.src = alumno.foto_url + "?t=" + Date.now(); }
-            el('#qr-container').innerHTML = ""; new QRCode(el('#qr-container'), { text: `${URL_WEB}/validador.html?id=${alumno.id}`, width: 144, height: 144 });
-
-            if (cursoActualData && cursoActualData.marca_agua_url) { const wm = el('#watermark-container'); if(wm) wm.innerHTML = `<img src="${cursoActualData.marca_agua_url}">`; } 
-            else { const wm = el('#watermark-container'); if(wm) wm.innerHTML = ''; }
-
-            const regId = (alumno.registro_id || 'default').toLowerCase(); const color = colorOverride || COLORES_REGISTRO[regId] || COLORES_REGISTRO['default']; globalColorTema = color;
-            const panel = el('#bg-panel'); panel.style.background = ''; panel.style.backgroundColor = color; panel.style.backgroundImage = 'none'; panel.style.color = 'white';
+            if (alumno.estado === 'SUSPENDIDO') { 
+                el('#suspendido-overlay').style.display = 'flex'; 
+                el('#vencido-overlay').style.display = 'none'; 
+            }
             
-            if (globalInstitucion && globalInstitucion.fondo_wallet_url) { panel.style.backgroundImage = `url('${globalInstitucion.fondo_wallet_url}')`; panel.style.backgroundSize = "cover"; panel.style.backgroundPosition = "center"; el('#card-base-el').style.borderColor = color; } 
-            else if (regId === 'rce') { panel.style.backgroundImage = `repeating-linear-gradient(45deg, transparent, transparent 20px, #222 20px, #222 25px)`; panel.style.color = '#fff'; el('#card-base-el').style.borderColor = "#222"; } 
-            else if (regId === 'remets') { panel.style.backgroundColor = "#1a1a1a"; panel.style.backgroundImage = `linear-gradient(0deg, rgba(255,255,255,0.05) 1px, transparent 1px)`; el('#card-base-el').style.borderColor = "#333"; } 
-            else { el('#card-base-el').style.borderColor = color; }
+            if (alumno.foto_url) { 
+                const img = el('#img-foto'); 
+                img.crossOrigin = "anonymous"; 
+                img.src = alumno.foto_url + "?t=" + Date.now(); 
+            }
             
-            el('#banda-color').style.backgroundColor = color; el('#txt-sigla').innerText = (alumno.registro_id || 'OFICIAL').toUpperCase();
-            
-            let cursoText = (alumno.curso || "CURSO PROFESIONAL").trim().toUpperCase();
-            let mainText = ""; 
-            let subText = "";
-            let matchObj = cursoText.match(/^(.*?\b(?:DE|EN)\b)\s+(.*)$/);
+            el('#qr-container').innerHTML = ""; 
+            new QRCode(el('#qr-container'), { 
+                text: `${URL_WEB}/validador.html?id=${alumno.id}`, 
+                width: 144, 
+                height: 144 
+            });
 
-            if (matchObj) {
-                mainText = matchObj[1];
-                subText = matchObj[2]; 
-            } else {
-                const t = cursoText.split(/\s+/);
-                if(t.length < 2) { mainText = t.join(' '); subText = ""; } 
-                else { mainText = t[0]; subText = t.slice(1).join(' '); }
+            if (cursoActualData && cursoActualData.marca_agua_url) { 
+                const wm = el('#watermark-container'); 
+                if(wm) wm.innerHTML = `<img src="${cursoActualData.marca_agua_url}">`; 
+            } else { 
+                const wm = el('#watermark-container'); 
+                if(wm) wm.innerHTML = ''; 
             }
 
-            el('#txt-titulo-main').innerText = mainText;
-            el('#txt-titulo-sub').innerText = subText;
-
-            ajustarTextoAlAncho(nombreEl, 55, 550, 28); 
-
-            let sMain = ajustarTextoAlAncho(el('#txt-titulo-main'), 55, 600, 20);
-            let sSub = subText ? ajustarTextoAlAncho(el('#txt-titulo-sub'), 55, 500, 20) : 55;
+            // Aplicar colores y estilos
+            const regId = (alumno.registro_id || 'default').toLowerCase(); 
+            const color = colorOverride || COLORES_REGISTRO[regId] || COLORES_REGISTRO['default']; 
+            globalColorTema = color;
+            const panel = el('#bg-panel'); 
+            panel.style.backgroundColor = color; 
+            if (globalInstitucion && globalInstitucion.fondo_wallet_url) { 
+                panel.style.backgroundImage = `url('${globalInstitucion.fondo_wallet_url}')`; 
+                panel.style.backgroundSize = "cover"; 
+                panel.style.backgroundPosition = "center"; 
+            }
+            el('#card-base-el').style.borderColor = color;
+            el('#banda-color').style.backgroundColor = color; 
+            el('#txt-sigla').innerText = (alumno.registro_id || 'OFICIAL').toUpperCase();
             
-            let sizeIgualado = Math.min(sMain, sSub); 
-            
-            el('#txt-titulo-main').style.fontSize = sizeIgualado + 'px';
-            if (subText) el('#txt-titulo-sub').style.fontSize = sizeIgualado + 'px';
+            // APLICAR LÓGICA INTELIGENTE DE TÍTULOS
+            aplicarTitulosInteligentes(container, alumno, false);
         }
 
-        // LLENADO PREMIUM EXCLUSIVO PARA REUIM
+        // LLENADO PREMIUM EXCLUSIVO PARA REUIM CON TAMAÑOS MEJORADOS
         function llenarDatosCarnetReuim(container, alumno) {
             const el = (sel) => container.querySelector(sel);
+            
+            // Datos básicos
             const nombreEl = el('#txt-nombre'); 
             nombreEl.innerText = `${alumno.nombre} ${alumno.apellido}`;
             el('#txt-dni').innerText = new Intl.NumberFormat('es-AR').format(alumno.dni_alumno);
@@ -1425,49 +1321,29 @@
             if (cursoActualData && cursoActualData.marca_agua_url) { 
                 const wm = el('#watermark-container'); 
                 if(wm) wm.innerHTML = `<img src="${cursoActualData.marca_agua_url}" style="height:100%; object-fit:contain;">`; 
-            } 
-
-            let cursoText = (alumno.curso || "CURSO PROFESIONAL").trim().toUpperCase();
-            let mainText = ""; 
-            let subText = "";
-            let matchObj = cursoText.match(/^(.*?\b(?:DE|EN)\b)\s+(.*)$/);
-            if (matchObj) { 
-                mainText = matchObj[1]; 
-                subText = matchObj[2]; 
-            } else {
-                const t = cursoText.split(/\s+/);
-                if(t.length < 2) { 
-                    mainText = t.join(' '); 
-                    subText = ""; 
-                } else { 
-                    mainText = t[0]; 
-                    subText = t.slice(1).join(' '); 
-                }
             }
-
-            el('#txt-titulo-main').innerText = mainText;
-            el('#txt-titulo-sub').innerText = subText;
-
-            // AJUSTES DE TEXTO MEJORADOS - TAMAÑOS INICIALES MÁS GRANDES
-            // Nombre: máximo 480px de ancho, tamaño inicial 38px (antes 30px)
-            ajustarTextoAlAncho(nombreEl, 38, 480, 18); 
-
-            // Títulos: máximo 550px de ancho, tamaño inicial 65px (antes 55px)
-            let sMain = ajustarTextoAlAncho(el('#txt-titulo-main'), 65, 550, 24);
-            let sSub = subText ? ajustarTextoAlAncho(el('#txt-titulo-sub'), 65, 550, 24) : 65;
-            let sizeIgualado = Math.min(sMain, sSub); 
             
-            el('#txt-titulo-main').style.fontSize = sizeIgualado + 'px';
-            if (subText) el('#txt-titulo-sub').style.fontSize = sizeIgualado + 'px';
+            // APLICAR LÓGICA INTELIGENTE DE TÍTULOS PARA REUIM
+            aplicarTitulosInteligentes(container, alumno, true);
             
             // Ajustar valores de los pills para que no se desborden
             const dniEl = el('#txt-dni');
             const matEl = el('#txt-matricula');
             const venceEl = el('#txt-vence');
             
-            if (dniEl.scrollWidth > 200) ajustarTextoAlAncho(dniEl, 32, 200, 20);
-            if (matEl.scrollWidth > 200) ajustarTextoAlAncho(matEl, 32, 200, 20);
-            if (venceEl.scrollWidth > 200) ajustarTextoAlAncho(venceEl, 32, 200, 20);
+            const ajustarPill = (el, maxWidth, defaultSize, minSize) => {
+                if (el && el.innerText) {
+                    let size = defaultSize;
+                    while (size > minSize && medirAnchoTextoCanvas(el.innerText, size, "'Roboto', sans-serif", '900') > maxWidth) {
+                        size -= 2;
+                    }
+                    el.style.fontSize = size + 'px';
+                }
+            };
+            
+            ajustarPill(dniEl, 200, 32, 18);
+            ajustarPill(matEl, 200, 32, 18);
+            ajustarPill(venceEl, 200, 32, 18);
         }
 
         async function descargarCarnetCompleto() { 
@@ -1532,7 +1408,7 @@
             } 
         }
         
-        async function descargarDiploma() { if(!cursoActualData || !cursoActualData.diploma_bg_url) return alert("Diploma no disponible."); const btn = document.getElementById('btn-descargar-diploma'); const originalText = btn.innerHTML; btn.innerHTML = '⏳'; try { const ghost = document.getElementById('ghost-container'); const colorTextoInteligente = globalInstitucion?.color_texto_diploma || globalColorTema || '#000000'; ghost.innerHTML = `<div class="diploma-layout" id="diploma-final"><img id="dip-bg-img" class="diploma-bg" src="" crossorigin="anonymous"><div class="diploma-overlay"><div class="dip-linea-unica-container" id="dip-texto-container"><span class="dip-texto-formal" id="dip-texto-completo" style="color: ${colorTextoInteligente};"></span></div><div class="dip-qr" id="dip-qr-code"></div><div class="dip-info-extra" id="dip-fecha-registro" style="color: ${colorTextoInteligente}; border-color: ${colorTextoInteligente}33;"></div><div class="dip-sello"></div></div></div>`; const bgImg = ghost.querySelector('#dip-bg-img'); let bgUrl = cursoActualData.diploma_bg_url; if (bgUrl.startsWith('["') || bgUrl.startsWith('[')) { try { bgUrl = JSON.parse(bgUrl)[0]; } catch(e) {} } const response = await fetch(bgUrl); const blob = await response.blob(); const objectURL = URL.createObjectURL(blob); bgImg.src = objectURL; await new Promise((resolve, reject) => { bgImg.onload = resolve; bgImg.onerror = () => reject(new Error("Error carga diploma")); setTimeout(() => reject(new Error("Timeout")), 10000); }); const txtElem = ghost.querySelector('#dip-texto-completo'); txtElem.innerHTML = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno)}`; new QRCode(ghost.querySelector('#dip-qr-code'), { text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, width: 223, height: 223 }); const f = new Date(alumnoActual.fecha_inicio || new Date()).toLocaleDateString('es-ES', {year:'numeric', month:'long', day:'numeric'}); ghost.querySelector('#dip-fecha-registro').innerHTML = `REGISTRO: <b>${(alumnoActual.registro_id||'OFICIAL').toUpperCase()}</b> • Fecha: ${f}`; await document.fonts.ready; txtElem.style.display = 'inline-block'; txtElem.style.whiteSpace = 'nowrap'; await new Promise(r => setTimeout(r, 100)); ajustarTextoAlAncho(txtElem, 80, 1600, 40); await new Promise(r => setTimeout(r, 500)); const canvas = await html2canvas(ghost.querySelector('#diploma-final'), { scale: 1, useCORS: true }); const link = document.createElement('a'); link.download = `Diploma_${alumnoActual.dni_alumno}.png`; link.href = canvas.toDataURL("image/png"); link.click(); URL.revokeObjectURL(objectURL); ghost.innerHTML = ''; } catch(e) { alert("Error diploma: " + e.message); } finally { btn.innerHTML = originalText; } }
+        async function descargarDiploma() { if(!cursoActualData || !cursoActualData.diploma_bg_url) return alert("Diploma no disponible."); const btn = document.getElementById('btn-descargar-diploma'); const originalText = btn.innerHTML; btn.innerHTML = '⏳'; try { const ghost = document.getElementById('ghost-container'); const colorTextoInteligente = globalInstitucion?.color_texto_diploma || globalColorTema || '#000000'; ghost.innerHTML = `<div class="diploma-layout" id="diploma-final"><img id="dip-bg-img" class="diploma-bg" src="" crossorigin="anonymous"><div class="diploma-overlay"><div class="dip-linea-unica-container" id="dip-texto-container"><span class="dip-texto-formal" id="dip-texto-completo" style="color: ${colorTextoInteligente};"></span></div><div class="dip-qr" id="dip-qr-code"></div><div class="dip-info-extra" id="dip-fecha-registro" style="color: ${colorTextoInteligente}; border-color: ${colorTextoInteligente}33;"></div><div class="dip-sello"></div></div></div>`; const bgImg = ghost.querySelector('#dip-bg-img'); let bgUrl = cursoActualData.diploma_bg_url; if (bgUrl.startsWith('["') || bgUrl.startsWith('[')) { try { bgUrl = JSON.parse(bgUrl)[0]; } catch(e) {} } const response = await fetch(bgUrl); const blob = await response.blob(); const objectURL = URL.createObjectURL(blob); bgImg.src = objectURL; await new Promise((resolve, reject) => { bgImg.onload = resolve; bgImg.onerror = () => reject(new Error("Error carga diploma")); setTimeout(() => reject(new Error("Timeout")), 10000); }); const txtElem = ghost.querySelector('#dip-texto-completo'); txtElem.innerHTML = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno)}`; new QRCode(ghost.querySelector('#dip-qr-code'), { text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, width: 223, height: 223 }); const f = new Date(alumnoActual.fecha_inicio || new Date()).toLocaleDateString('es-ES', {year:'numeric', month:'long', day:'numeric'}); ghost.querySelector('#dip-fecha-registro').innerHTML = `REGISTRO: <b>${(alumnoActual.registro_id||'OFICIAL').toUpperCase()}</b> • Fecha: ${f}`; await document.fonts.ready; txtElem.style.display = 'inline-block'; txtElem.style.whiteSpace = 'nowrap'; await new Promise(r => setTimeout(r, 100)); ajustarTextoInteligente(txtElem, txtElem.innerText, 1600, 40, 80, "'Roboto Slab', serif", '900'); await new Promise(r => setTimeout(r, 500)); const canvas = await html2canvas(ghost.querySelector('#diploma-final'), { scale: 1, useCORS: true }); const link = document.createElement('a'); link.download = `Diploma_${alumnoActual.dni_alumno}.png`; link.href = canvas.toDataURL("image/png"); link.click(); URL.revokeObjectURL(objectURL); ghost.innerHTML = ''; } catch(e) { alert("Error diploma: " + e.message); } finally { btn.innerHTML = originalText; } }
         
         async function descargarAnalitico() { 
             if(!cursoActualData || !cursoActualData.analitico_bg_url) return alert("Analítico no disponible."); 
@@ -1597,7 +1473,7 @@
                         await document.fonts.ready; 
                         txtElem.style.display = 'inline-block'; 
                         await new Promise(r => setTimeout(r, 200)); 
-                        ajustarTextoAlAncho(txtElem, 45, 1200, 25); 
+                        ajustarTextoInteligente(txtElem, txtElem.innerText, 1200, 25, 45, "'Roboto Slab', serif", '900'); 
                         await new Promise(r => setTimeout(r, 500)); 
                     } else if (i === 2) {
                         const txtElemCert = ghost.querySelector(`#cert-text-${i}`); 
@@ -1606,7 +1482,7 @@
                         await document.fonts.ready; 
                         txtElemCert.style.display = 'inline-block'; 
                         await new Promise(r => setTimeout(r, 200)); 
-                        ajustarTextoAlAncho(txtElemCert, 45, 1200, 25); 
+                        ajustarTextoInteligente(txtElemCert, txtElemCert.innerText, 1200, 25, 45, "'Roboto Slab', serif", '900'); 
                         await new Promise(r => setTimeout(r, 500));
                     }
                     
