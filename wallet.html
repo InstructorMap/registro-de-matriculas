@@ -139,7 +139,7 @@
             position: relative; 
             border: 8px solid #D4AF37; 
             border-radius: 40px; 
-            overflow: hidden; 
+            overflow: visible;
             background: #041130;
             box-shadow: inset 0 0 0 2px #F5E6A3, 0 20px 40px rgba(0,0,0,0.5);
         }
@@ -153,6 +153,9 @@
             z-index: 2; 
             flex-shrink: 0;
             border-right: 3px solid #D4AF37;
+            border-top-left-radius: 32px;
+            border-bottom-left-radius: 32px;
+            overflow: hidden;
         }
         .reuim-photo-container { 
             height: 420px; 
@@ -189,6 +192,7 @@
             display: flex; 
             justify-content: center; 
             align-items: center; 
+            z-index: 10;
         }
         .reuim-brand-text { 
             color: #D4AF37; 
@@ -205,7 +209,7 @@
             position: relative; 
             display: flex; 
             flex-direction: column; 
-            padding: 25px 40px; 
+            padding: 25px 40px 65px 40px;
             background-color: #041130;
             background-image: 
                 repeating-linear-gradient(
@@ -227,6 +231,9 @@
             background-position: 0 0, 0 0, center;
             background-repeat: repeat, repeat, no-repeat;
             min-width: 0;
+            border-top-right-radius: 32px;
+            border-bottom-right-radius: 32px;
+            overflow: visible;
         }
 
         /* Marco blanco interno */
@@ -243,110 +250,24 @@
             z-index: 1;
         }
 
-        /* Laurel inferior */
-        .reuim-right::after {
-            content: '⚜ ⚜ ⚜';
+        /* Laurel inferior - AHORA VISIBLE */
+        .laurel-bottom {
             position: absolute;
-            bottom: 20px;
+            bottom: 15px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 40px;
+            font-size: 45px;
             color: #D4AF37;
-            text-shadow: 0 2px 5px rgba(0,0,0,0.5);
-            letter-spacing: 15px;
-            opacity: 0.7;
-            z-index: 5;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+            letter-spacing: 20px;
+            opacity: 0.9;
+            z-index: 30;
             font-family: serif;
-        }
-
-        .reuim-header-box { 
-            text-align: right; 
-            color: white; 
-            font-size: 75px; 
-            font-weight: 900; 
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.8); 
-            margin-bottom: 5px; 
-            line-height: 1;
-            position: relative;
-            z-index: 10;
-        }
-        .reuim-header-box span.underline { 
-            border-bottom: 8px solid #D4AF37; 
-            padding-bottom: 2px; 
-            display: inline-block; 
-        }
-
-        .reuim-title-box { 
-            text-align: center; 
-            color: white; 
-            margin-bottom: 20px; 
-            flex-grow: 1; 
-            display: flex; 
-            flex-direction: column; 
-            justify-content: center;
-            position: relative;
-            z-index: 10;
-            background: linear-gradient(90deg, transparent, rgba(212,175,55,0.1), transparent);
-            border-top: 1px solid rgba(212,175,55,0.3);
-            border-bottom: 1px solid rgba(212,175,55,0.3);
-            padding: 15px 0;
-        }
-        .reuim-title-main, .reuim-title-sub { 
-            font-weight: 900; 
-            text-transform: uppercase; 
-            text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000, 5px 5px 8px rgba(0,0,0,0.8); 
             white-space: nowrap;
+            width: 100%;
+            text-align: center;
         }
 
-        .reuim-data-box { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 12px; 
-            margin-bottom: 10px;
-            position: relative;
-            z-index: 10;
-        }
-        .reuim-pill { 
-            background: linear-gradient(180deg, #D4AF37, #a67c26); 
-            border: 2px solid #F5E6A3; 
-            border-radius: 12px; 
-            padding: 5px 25px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            box-shadow: inset 0 2px 5px rgba(255,255,255,0.3), 0 6px 12px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1); 
-            height: 55px; 
-            color: white; 
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8); 
-            font-weight: 900; 
-        }
-        .reuim-pill.name-pill { 
-            justify-content: center; 
-            height: 60px; 
-            background: linear-gradient(180deg, #D4AF37, #8B6914);
-            border: 2px solid #FFD700;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        .reuim-pill-label { 
-            font-size: 26px; 
-            display: flex; 
-            align-items: center; 
-            gap: 10px; 
-        }
-        .reuim-pill-value { 
-            font-size: 30px; 
-        }
-        .reuim-watermark { 
-            position: absolute; 
-            left: 50%; 
-            top: 50%; 
-            transform: translate(-50%, -50%); 
-            height: 75px; 
-            opacity: 0.9; 
-        }
-
-        /* Texto DNI OFICIAL */
         .official-badge {
             position: absolute;
             top: 20px;
@@ -361,6 +282,99 @@
             border-radius: 20px;
             background: rgba(4,17,48,0.8);
             z-index: 20;
+        }
+
+        .reuim-header-box { 
+            text-align: right; 
+            color: white; 
+            margin-bottom: 5px; 
+            position: relative;
+            z-index: 10;
+            border-bottom: 8px solid #D4AF37;
+            padding-bottom: 8px;
+        }
+        .reuim-header-box span.underline { 
+            font-size: 75px;
+            font-weight: 900;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+            display: inline;
+        }
+        .reuim-header-box span.year {
+            font-size: 75px;
+            font-weight: 900;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+            margin-left: 15px;
+        }
+
+        .reuim-title-box { 
+            text-align: center; 
+            color: white; 
+            margin: 20px 0; 
+            flex-grow: 1; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center;
+            position: relative;
+            z-index: 10;
+            background: linear-gradient(90deg, transparent, rgba(212,175,55,0.15), transparent);
+            border-top: 1px solid rgba(212,175,55,0.4);
+            border-bottom: 1px solid rgba(212,175,55,0.4);
+            padding: 20px 0;
+        }
+        .reuim-title-main, .reuim-title-sub { 
+            font-weight: 900; 
+            text-transform: uppercase; 
+            text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000, 5px 5px 8px rgba(0,0,0,0.8); 
+            white-space: nowrap;
+            line-height: 1.2;
+        }
+
+        .reuim-data-box { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 10;
+        }
+        .reuim-pill { 
+            background: linear-gradient(180deg, #D4AF37, #a67c26); 
+            border: 2px solid #F5E6A3; 
+            border-radius: 12px; 
+            padding: 8px 25px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            box-shadow: inset 0 2px 5px rgba(255,255,255,0.3), 0 6px 12px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1); 
+            height: 60px; 
+            color: white; 
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8); 
+            font-weight: 900; 
+        }
+        .reuim-pill.name-pill { 
+            justify-content: center; 
+            height: 65px; 
+            background: linear-gradient(180deg, #D4AF37, #8B6914);
+            border: 2px solid #FFD700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .reuim-pill-label { 
+            font-size: 28px; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+        }
+        .reuim-pill-value { 
+            font-size: 32px; 
+        }
+        .reuim-watermark { 
+            position: absolute; 
+            left: 50%; 
+            top: 50%; 
+            transform: translate(-50%, -50%); 
+            height: 75px; 
+            opacity: 0.9; 
         }
         /* ========================================================= */
 
@@ -642,7 +656,7 @@
                 </div>
                 <div class="reuim-left">
                     <div class="reuim-photo-container">
-                        <img id="img-foto" class="reuim-photo" src="">
+                        <img id="img-foto" class="reuim-photo" src="" crossorigin="anonymous">
                     </div>
                     <div class="reuim-bottom-left">
                         <div class="reuim-qr-box" id="qr-container"></div>
@@ -661,7 +675,8 @@
                     </div>
 
                     <div class="reuim-header-box">
-                        <span class="underline">CARNET</span> <span id="txt-anio-header">2026</span>
+                        <span class="underline">CARNET</span>
+                        <span class="year" id="txt-anio-header">2026</span>
                     </div>
                     
                     <div class="reuim-title-box">
@@ -687,6 +702,8 @@
                             <div id="watermark-container" class="reuim-watermark"></div>
                         </div>
                     </div>
+                    
+                    <div class="laurel-bottom">⚜ ⚜ ⚜</div>
                 </div>
             </div>`;
 
@@ -1387,46 +1404,70 @@
             el('#txt-vence').innerText = vence.toLocaleDateString('es-AR');
             
             if(new Date() > vence) el('#vencido-overlay').style.display = 'flex';
-            if (alumno.estado === 'SUSPENDIDO') { el('#suspendido-overlay').style.display = 'flex'; el('#vencido-overlay').style.display = 'none'; }
+            if (alumno.estado === 'SUSPENDIDO') { 
+                el('#suspendido-overlay').style.display = 'flex'; 
+                el('#vencido-overlay').style.display = 'none'; 
+            }
             
-            if (alumno.foto_url) { const img = el('#img-foto'); img.crossOrigin = "anonymous"; img.src = alumno.foto_url + "?t=" + Date.now(); }
-            el('#qr-container').innerHTML = ""; new QRCode(el('#qr-container'), { text: `${URL_WEB}/validador.html?id=${alumno.id}`, width: 156, height: 156 });
+            if (alumno.foto_url) { 
+                const img = el('#img-foto'); 
+                img.crossOrigin = "anonymous"; 
+                img.src = alumno.foto_url + "?t=" + Date.now(); 
+            }
+            
+            el('#qr-container').innerHTML = ""; 
+            new QRCode(el('#qr-container'), { 
+                text: `${URL_WEB}/validador.html?id=${alumno.id}`, 
+                width: 156, 
+                height: 156 
+            });
 
             if (cursoActualData && cursoActualData.marca_agua_url) { 
                 const wm = el('#watermark-container'); 
                 if(wm) wm.innerHTML = `<img src="${cursoActualData.marca_agua_url}" style="height:100%; object-fit:contain;">`; 
             } 
 
-            const panel = el('#bg-panel');
-            if (globalInstitucion && globalInstitucion.fondo_wallet_url) { 
-                panel.style.backgroundImage = `url('${globalInstitucion.fondo_wallet_url}')`; 
-                panel.style.backgroundColor = '#041130';
-            } else {
-                // El fondo ya está definido en CSS, no es necesario reasignar
-            }
-
             let cursoText = (alumno.curso || "CURSO PROFESIONAL").trim().toUpperCase();
             let mainText = ""; 
             let subText = "";
             let matchObj = cursoText.match(/^(.*?\b(?:DE|EN)\b)\s+(.*)$/);
-            if (matchObj) { mainText = matchObj[1]; subText = matchObj[2]; } 
-            else {
+            if (matchObj) { 
+                mainText = matchObj[1]; 
+                subText = matchObj[2]; 
+            } else {
                 const t = cursoText.split(/\s+/);
-                if(t.length < 2) { mainText = t.join(' '); subText = ""; } 
-                else { mainText = t[0]; subText = t.slice(1).join(' '); }
+                if(t.length < 2) { 
+                    mainText = t.join(' '); 
+                    subText = ""; 
+                } else { 
+                    mainText = t[0]; 
+                    subText = t.slice(1).join(' '); 
+                }
             }
 
             el('#txt-titulo-main').innerText = mainText;
             el('#txt-titulo-sub').innerText = subText;
 
-            ajustarTextoAlAncho(nombreEl, 30, 480, 14); 
+            // AJUSTES DE TEXTO MEJORADOS - TAMAÑOS INICIALES MÁS GRANDES
+            // Nombre: máximo 480px de ancho, tamaño inicial 38px (antes 30px)
+            ajustarTextoAlAncho(nombreEl, 38, 480, 18); 
 
-            let sMain = ajustarTextoAlAncho(el('#txt-titulo-main'), 55, 550, 20);
-            let sSub = subText ? ajustarTextoAlAncho(el('#txt-titulo-sub'), 55, 550, 20) : 55;
+            // Títulos: máximo 550px de ancho, tamaño inicial 65px (antes 55px)
+            let sMain = ajustarTextoAlAncho(el('#txt-titulo-main'), 65, 550, 24);
+            let sSub = subText ? ajustarTextoAlAncho(el('#txt-titulo-sub'), 65, 550, 24) : 65;
             let sizeIgualado = Math.min(sMain, sSub); 
             
             el('#txt-titulo-main').style.fontSize = sizeIgualado + 'px';
             if (subText) el('#txt-titulo-sub').style.fontSize = sizeIgualado + 'px';
+            
+            // Ajustar valores de los pills para que no se desborden
+            const dniEl = el('#txt-dni');
+            const matEl = el('#txt-matricula');
+            const venceEl = el('#txt-vence');
+            
+            if (dniEl.scrollWidth > 200) ajustarTextoAlAncho(dniEl, 32, 200, 20);
+            if (matEl.scrollWidth > 200) ajustarTextoAlAncho(matEl, 32, 200, 20);
+            if (venceEl.scrollWidth > 200) ajustarTextoAlAncho(venceEl, 32, 200, 20);
         }
 
         async function descargarCarnetCompleto() { 
