@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verificación Oficial Blockchain</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Verificador Oficial Blockchain - ASARI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -19,8 +19,70 @@
         @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
         
         /* Estilo Seminarios */
-        .seminario-item { display: flex; align-items: center; gap: 10px; padding: 10px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 8px; }
+        .seminario-item { display: flex; align-items: center; gap: 10px; padding: 10px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 8px; transition: all 0.2s; }
+        .seminario-item:hover { background: #f8fafc; transform: translateX(4px); }
         .icon-check { color: #10b981; flex-shrink: 0; }
+        
+        /* Mejora para la foto */
+        .foto-container {
+            width: 64px;
+            height: 64px;
+            background: #e2e8f0;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .foto-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        /* Tooltip para copiar */
+        .tooltip {
+            position: relative;
+            cursor: pointer;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 120px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 11px;
+            font-family: 'Inter', sans-serif;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Badge de estado */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .status-valid { background: #10b98120; color: #059669; border: 1px solid #10b98140; }
+        .status-expired { background: #f9731620; color: #ea580c; border: 1px solid #f9731640; }
+        .status-suspended { background: #ef444420; color: #dc2626; border: 1px solid #ef444440; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-4">
@@ -28,6 +90,7 @@
     <div id="loader" class="flex flex-col items-center text-center">
         <div class="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full loader-spin mb-4"></div>
         <p class="text-slate-500 font-bold text-sm tracking-widest animate-pulse">CONSULTANDO LEDGER...</p>
+        <p class="text-slate-400 text-xs mt-2">Verificando autenticidad en blockchain</p>
     </div>
 
     <div id="error-screen" class="hidden w-full max-w-md bg-white rounded-2xl shadow-xl p-8 text-center fade-in">
@@ -36,6 +99,7 @@
         </div>
         <h1 class="text-2xl font-black text-slate-800 mb-2">No Encontrado</h1>
         <p class="text-slate-500 text-sm">El código solicitado no existe en el registro oficial o ha sido eliminado permanentemente.</p>
+        <button onclick="window.location.href='https://asari-platform.vercel.app'" class="mt-6 px-6 py-2 bg-slate-800 text-white rounded-lg text-sm font-bold hover:bg-slate-700 transition">Volver al Inicio</button>
     </div>
 
     <div id="suspended-screen" class="hidden w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border-t-8 border-red-600 fade-in relative">
@@ -57,6 +121,7 @@
                 <p class="text-sm font-bold text-slate-700" id="susp-curso">---</p>
             </div>
             <p class="mt-6 text-xs text-slate-400">Esta credencial digital carece de validez oficial por decisión administrativa.</p>
+            <button onclick="window.location.href='https://asari-platform.vercel.app'" class="mt-4 px-6 py-2 bg-slate-800 text-white rounded-lg text-sm font-bold hover:bg-slate-700 transition">Volver al Inicio</button>
         </div>
     </div>
 
@@ -79,6 +144,7 @@
                 <p class="text-sm font-bold text-slate-700">NO VIGENTE / REQUIERE RENOVACIÓN</p>
             </div>
             <p class="mt-6 text-xs text-slate-400">Este documento fue válido en el pasado pero ha superado su fecha límite de validez.</p>
+            <button onclick="window.location.href='https://asari-platform.vercel.app'" class="mt-4 px-6 py-2 bg-slate-800 text-white rounded-lg text-sm font-bold hover:bg-slate-700 transition">Volver al Inicio</button>
         </div>
     </div>
 
@@ -96,10 +162,10 @@
             <img id="val-logo-inst" src="" class="absolute top-4 right-4 h-8 object-contain opacity-80 hidden">
 
             <div class="flex items-center gap-4">
-                <div id="foto-border" class="w-16 h-16 bg-slate-200 rounded-full overflow-hidden border-2 border-white shadow-md flex-shrink-0">
-                    <img id="val-foto" src="" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/150?text=FOTO'">
+                <div id="foto-border" class="foto-container transition-all duration-300">
+                    <img id="val-foto" src="" alt="Foto del alumno" onerror="this.src='https://ui-avatars.com/api/?background=0D9488&color=fff&rounded=true&bold=true&size=64&name=Usuario'">
                 </div>
-                <div>
+                <div class="flex-1">
                     <p class="text-xs text-slate-400 font-bold uppercase">Alumno Certificado</p>
                     <h2 class="text-lg font-black text-slate-800 leading-tight" id="val-nombre">---</h2>
                     <p class="text-sm font-mono text-slate-500" id="val-dni">DNI: ---</p>
@@ -109,7 +175,7 @@
             <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
                 <div class="flex items-start gap-3 mb-4">
                     <i data-lucide="award" class="text-slate-400 mt-1" size="20"></i>
-                    <div>
+                    <div class="flex-1">
                         <p class="text-xs text-slate-400 font-bold uppercase">Título / Formación</p>
                         <p class="text-sm font-bold text-slate-700 leading-snug" id="val-curso">---</p>
                     </div>
@@ -117,7 +183,7 @@
                 
                 <div class="flex items-start gap-3 mb-4">
                     <i data-lucide="hash" class="text-slate-400 mt-1" size="20"></i>
-                    <div>
+                    <div class="flex-1">
                         <p class="text-xs text-slate-400 font-bold uppercase">Matrícula Nº</p>
                         <p class="text-lg font-black text-slate-800 leading-none tracking-tight" id="val-matricula">---</p>
                     </div>
@@ -125,7 +191,7 @@
 
                 <div class="flex items-start gap-3">
                     <i data-lucide="building-2" class="text-slate-400 mt-1" size="20"></i>
-                    <div>
+                    <div class="flex-1">
                         <p class="text-xs text-slate-400 font-bold uppercase">Institución Emisora</p>
                         <p class="text-sm font-bold text-slate-600" id="val-instituto">---</p>
                     </div>
@@ -138,22 +204,33 @@
             </div>
 
             <div id="container-seminarios" class="hidden pt-4 border-t border-slate-100">
-                <p class="text-[10px] text-slate-400 font-bold uppercase mb-3">Certificaciones Adicionales (Seminarios)</p>
+                <p class="text-[10px] text-slate-400 font-bold uppercase mb-3 flex items-center gap-2">
+                    <i data-lucide="graduation-cap" size="14"></i>
+                    Certificaciones Adicionales (Seminarios)
+                </p>
                 <div id="lista-seminarios"></div>
             </div>
 
-            <div>
+            <div class="tooltip">
                 <p class="text-[10px] text-slate-400 font-bold uppercase mb-1">Hash de Transacción (TXID)</p>
-                <div class="bg-slate-900 text-emerald-400 p-3 rounded-lg text-[10px] hash-font break-all leading-relaxed relative group cursor-pointer" onclick="copiarHash()">
+                <div class="bg-slate-900 text-emerald-400 p-3 rounded-lg text-[10px] hash-font break-all leading-relaxed relative group" onclick="copiarHash()">
                     <span id="val-hash">---</span>
                     <i data-lucide="copy" class="absolute top-2 right-2 text-slate-600 w-3 h-3 group-hover:text-white transition"></i>
                 </div>
-                <p id="copy-msg" class="text-[10px] text-emerald-600 text-center mt-1 hidden">Copiado al portapapeles</p>
+                <span class="tooltiptext">Copiar hash</span>
+                <p id="copy-msg" class="text-[10px] text-emerald-600 text-center mt-1 hidden">✓ Copiado al portapapeles</p>
             </div>
+            
+            <!-- Botón para volver al inicio -->
+            <button onclick="window.location.href='https://asari-platform.vercel.app'" class="w-full py-3 bg-slate-100 text-slate-700 rounded-lg text-sm font-bold hover:bg-slate-200 transition flex items-center justify-center gap-2">
+                <i data-lucide="home" size="16"></i>
+                Volver al Inicio
+            </button>
         </div>
         
         <div class="bg-slate-50 p-4 text-center border-t border-slate-100">
             <img src="https://vxggatcfrywyodovjwxj.supabase.co/storage/v1/object/public/logos-instituciones/Asari%20Logo.jpg" class="h-6 mx-auto opacity-50 grayscale hover:grayscale-0 transition">
+            <p class="text-[10px] text-slate-400 mt-2">Verificación en tiempo real · Blockchain inmutable</p>
         </div>
     </div>
 
@@ -162,7 +239,7 @@
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
 
-        // Paleta de colores
+        // Paleta de colores por registro
         const COLORES_REGISTRO = { 
             'remaep': '#0033cc', 
             'rubra': '#cc0000', 
@@ -173,7 +250,9 @@
             'rpde': '#0099ff',
             'rce': '#ff6600',
             'asarin': '#800000', 
-            'colbert': '#2f4f4f', 
+            'colbert': '#2f4f4f',
+            'reuim': '#041130',
+            'ruim': '#041130',
             'default': '#0033cc' 
         };
 
@@ -181,151 +260,263 @@
         const idAlumno = params.get('id');
 
         async function validar() {
-            if (!idAlumno) return mostrarError();
+            if (!idAlumno) {
+                mostrarError();
+                return;
+            }
 
             try {
-                // 1. Buscar en Matriculas (Carrera Principal)
+                // Buscar en Matriculas (Carrera Principal)
                 const { data: alumno, error } = await db
                     .from('matriculas')
-                    .select('*, instituciones(nombre, logo_url)')
+                    .select('*, instituciones(id, nombre, logo_url)')
                     .eq('id', idAlumno)
-                    .single();
+                    .maybeSingle();
 
-                if (error || !alumno) throw new Error("No encontrado");
+                if (error || !alumno) {
+                    console.error("Error o no encontrado:", error);
+                    throw new Error("No encontrado");
+                }
 
                 // --- CHECK ESTADOS ---
-                if (alumno.estado === 'SUSPENDIDO') return mostrarSuspendido(alumno);
+                if (alumno.estado === 'SUSPENDIDO') {
+                    mostrarSuspendido(alumno);
+                    return;
+                }
 
-                const fechaInicio = new Date(alumno.fecha_inicio);
+                // Calcular fecha de vencimiento
                 let fechaVence;
-                
                 if (alumno.fecha_vencimiento) {
-                    const partes = alumno.fecha_vencimiento.split('-'); 
-                    fechaVence = new Date(partes[0], partes[1] - 1, partes[2]);
+                    fechaVence = new Date(alumno.fecha_vencimiento);
                 } else {
+                    const fechaInicio = new Date(alumno.fecha_inicio || new Date());
                     fechaVence = new Date(fechaInicio);
                     fechaVence.setFullYear(fechaVence.getFullYear() + 1);
                 }
 
-                if (new Date() > fechaVence) return mostrarVencido(fechaVence);
+                if (new Date() > fechaVence) {
+                    mostrarVencido(fechaVence);
+                    return;
+                }
 
                 // --- ÉXITO ---
-                renderizarExito(alumno, fechaVence);
+                await renderizarExito(alumno, fechaVence);
 
             } catch (err) {
-                console.error(err);
+                console.error("Error en validación:", err);
                 mostrarError();
             }
         }
 
         async function renderizarExito(alumno, fechaVence) {
-            // Hash Principal
-            const { data: ledger } = await db.from('ledger_transacciones').select('id').eq('matricula_id', idAlumno).limit(1).maybeSingle();
-            const hashDisplay = ledger ? ledger.id : `GENESIS_${alumno.id.replace(/-/g,'').substring(0,32)}_ASARI_CHAIN`;
+            // Obtener hash del ledger
+            let hashDisplay = '';
+            try {
+                const { data: ledger } = await db
+                    .from('ledger_transacciones')
+                    .select('id')
+                    .eq('matricula_id', idAlumno)
+                    .limit(1)
+                    .maybeSingle();
+                
+                hashDisplay = ledger ? ledger.id : `GENESIS_${String(alumno.id).replace(/-/g, '').substring(0, 32)}_ASARI`;
+            } catch(e) {
+                console.warn("Error obteniendo ledger:", e);
+                hashDisplay = `GENESIS_${String(alumno.id).replace(/-/g, '').substring(0, 32)}_ASARI`;
+            }
             
+            // Ocultar loader y mostrar éxito
             document.getElementById('loader').classList.add('hidden');
             document.getElementById('success-screen').classList.remove('hidden');
 
-            // Colores
+            // Aplicar colores según registro
             const regId = (alumno.registro_id || 'default').toLowerCase();
             const colorTema = COLORES_REGISTRO[regId] || COLORES_REGISTRO['default'];
             aplicarEstilos(colorTema);
 
-            // Datos
+            // Llenar datos básicos
             document.getElementById('val-nombre').innerText = `${alumno.nombre} ${alumno.apellido}`;
-            document.getElementById('val-dni').innerText = `DNI: ${new Intl.NumberFormat('es-AR').format(alumno.dni_alumno)}`;
+            document.getElementById('val-dni').innerHTML = `DNI: ${new Intl.NumberFormat('es-AR').format(alumno.dni_alumno)}`;
             document.getElementById('val-curso').innerText = alumno.curso;
             document.getElementById('val-instituto').innerText = alumno.instituciones?.nombre || 'INSTITUTO OFICIAL';
             document.getElementById('val-hash').innerText = hashDisplay;
             document.getElementById('val-vencimiento').innerText = fechaVence.toLocaleDateString('es-AR');
             
-            // --- INYECCIÓN MODO DIOS: LLAMADA ACTUALIZADA ---
-            document.getElementById('val-matricula').innerText = generarHashMatricula(alumno.dni_alumno, alumno.curso, alumno.id);
-            document.getElementById('val-matricula').style.color = colorTema;
+            // Generar matrícula (6 dígitos)
+            const matricula = generarHashMatricula(alumno.dni_alumno, alumno.curso, alumno.id);
+            const matriculaEl = document.getElementById('val-matricula');
+            matriculaEl.innerText = matricula;
+            matriculaEl.style.color = colorTema;
 
-            // Logo
-            if (alumno.instituciones?.logo_url) {
+            // Logo de institución
+            if (alumno.instituciones?.logo_url && alumno.instituciones.logo_url.trim().length > 0) {
                 const logo = document.getElementById('val-logo-inst');
                 logo.src = alumno.instituciones.logo_url;
                 logo.classList.remove('hidden');
             }
 
-            // FIX FOTO DEFINITIVO: Carga segura y manejo de errores
+            // --- CORRECCIÓN DE LA FOTO ---
             const imgEl = document.getElementById('val-foto');
+            const fotoBorder = document.getElementById('foto-border');
             
-            // URL de respaldo (Silueta gris)
-            const FOTO_DEFAULT = "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png";
-
-            // 1. Limpiamos cualquier restricción anterior
-            imgEl.removeAttribute('crossOrigin');
-
-            // 2. Definimos qué hacer si la foto falla (Event Listener)
-            imgEl.onerror = function() {
-                console.log("Falló la foto del alumno, cargando default...");
-                this.src = FOTO_DEFAULT;
-                // Evitamos bucles infinitos si la default también falla
-                this.onerror = null; 
+            // URL de respaldo por defecto (avatar con iniciales)
+            const getDefaultAvatar = () => {
+                const nombre = (alumno.nombre || 'U').charAt(0).toUpperCase();
+                const apellido = (alumno.apellido || 'S').charAt(0).toUpperCase();
+                return `https://ui-avatars.com/api/?background=${colorTema.replace('#', '')}&color=fff&rounded=true&bold=true&size=64&name=${nombre}${apellido}`;
             };
-
-            // 3. Cargamos la imagen
-            if (alumno.foto_url && alumno.foto_url.length > 10) {
-                // Usamos timestamp para evitar caché vieja
-                imgEl.src = alumno.foto_url + "?t=" + Date.now();
-            } else {
-                imgEl.src = FOTO_DEFAULT;
-            }
-            // --- CARGAR SEMINARIOS ADICIONALES ---
-            cargarSeminariosValidados(alumno.id);
             
-            lucide.createIcons();
-        }
-
-        async function cargarSeminariosValidados(alumnoId) {
-            // Buscamos compras de seminarios para este alumno
-            const { data: compras } = await db
-                .from('compras_alumnos')
-                .select('seminarios_catalogo(titulo)')
-                .eq('alumno_id', alumnoId);
-
-            if (compras && compras.length > 0) {
-                const divSem = document.getElementById('container-seminarios');
-                const lista = document.getElementById('lista-seminarios');
-                divSem.classList.remove('hidden');
-                lista.innerHTML = "";
-
-                compras.forEach(c => {
-                    if(c.seminarios_catalogo) {
-                        lista.innerHTML += `
-                        <div class="seminario-item">
-                            <i data-lucide="check-circle" class="icon-check" size="16"></i>
-                            <span class="text-xs font-bold text-slate-700">${c.seminarios_catalogo.titulo}</span>
-                        </div>`;
+            const defaultFoto = getDefaultAvatar();
+            
+            // Función para cargar imagen con manejo de errores mejorado
+            const cargarFoto = (url) => {
+                if (!url || url === "null" || url.trim() === "") {
+                    imgEl.src = defaultFoto;
+                    return;
+                }
+                
+                // Crear una imagen temporal para probar la URL
+                const testImg = new Image();
+                testImg.crossOrigin = "Anonymous";
+                
+                testImg.onload = function() {
+                    // La imagen cargó correctamente
+                    imgEl.src = url;
+                    imgEl.onerror = null;
+                    // Aplicar efecto de borde con color del tema
+                    if (fotoBorder) fotoBorder.style.borderColor = colorTema;
+                };
+                
+                testImg.onerror = function() {
+                    console.log("Error cargando foto desde:", url);
+                    // Intentar con la URL limpia (sin timestamp)
+                    const cleanUrl = url.split('?')[0];
+                    if (cleanUrl !== url) {
+                        const testImg2 = new Image();
+                        testImg2.onload = function() {
+                            imgEl.src = cleanUrl;
+                            if (fotoBorder) fotoBorder.style.borderColor = colorTema;
+                        };
+                        testImg2.onerror = function() {
+                            imgEl.src = defaultFoto;
+                        };
+                        testImg2.src = cleanUrl;
+                    } else {
+                        imgEl.src = defaultFoto;
                     }
-                });
+                };
+                
+                // Agregar timestamp para evitar caché
+                const urlConTimestamp = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
+                testImg.src = urlConTimestamp;
+            };
+            
+            // Cargar la foto del alumno
+            cargarFoto(alumno.foto_url);
+            
+            // Asegurar que el contenedor de la foto tenga el estilo correcto
+            if (fotoBorder) {
+                fotoBorder.style.border = `3px solid ${colorTema}`;
+                fotoBorder.style.boxShadow = `0 0 0 2px ${colorTema}20`;
+            }
+            
+            // Cargar seminarios adicionales
+            await cargarSeminariosValidados(alumno.id);
+            
+            // Recrear íconos de Lucide
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
                 lucide.createIcons();
             }
         }
 
+        async function cargarSeminariosValidados(alumnoId) {
+            try {
+                // Buscar compras de seminarios para este alumno
+                const { data: compras, error } = await db
+                    .from('compras_alumnos')
+                    .select(`
+                        id,
+                        seminario_id,
+                        seminarios_catalogo!inner (
+                            id,
+                            titulo,
+                            descripcion
+                        )
+                    `)
+                    .eq('alumno_id', alumnoId)
+                    .eq('estado', 'aprobado');
+
+                if (error) {
+                    console.warn("Error cargando seminarios:", error);
+                    return;
+                }
+
+                if (compras && compras.length > 0) {
+                    const divSem = document.getElementById('container-seminarios');
+                    const lista = document.getElementById('lista-seminarios');
+                    divSem.classList.remove('hidden');
+                    lista.innerHTML = "";
+
+                    compras.forEach(compra => {
+                        if (compra.seminarios_catalogo) {
+                            lista.innerHTML += `
+                            <div class="seminario-item">
+                                <i data-lucide="check-circle" class="icon-check" size="16"></i>
+                                <div class="flex-1">
+                                    <span class="text-xs font-bold text-slate-700">${escapeHtml(compra.seminarios_catalogo.titulo)}</span>
+                                    <p class="text-[10px] text-slate-500 mt-0.5">${escapeHtml(compra.seminarios_catalogo.descripcion?.substring(0, 60) || 'Certificación completada')}</p>
+                                </div>
+                            </div>`;
+                        }
+                    });
+                    
+                    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                        lucide.createIcons();
+                    }
+                }
+            } catch(e) {
+                console.warn("Error en seminarios:", e);
+            }
+        }
+        
+        // Función para escapar HTML
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         function aplicarEstilos(colorTema) {
             const hexToRgba = (hex, alpha) => {
+                if (!hex || hex === '#') return `rgba(0, 51, 204, ${alpha})`;
                 const r = parseInt(hex.slice(1, 3), 16);
                 const g = parseInt(hex.slice(3, 5), 16);
                 const b = parseInt(hex.slice(5, 7), 16);
                 return `rgba(${r}, ${g}, ${b}, ${alpha})`;
             };
 
-            document.getElementById('header-bg').style.backgroundColor = hexToRgba(colorTema, 0.1);
-            document.getElementById('success-screen').style.borderColor = colorTema;
-            document.getElementById('header-title').style.color = colorTema;
-            document.getElementById('header-subtitle').style.color = colorTema;
-            document.getElementById('icon-bg').style.color = colorTema;
-            document.getElementById('foto-border').style.borderColor = colorTema;
+            const headerBg = document.getElementById('header-bg');
+            const successScreen = document.getElementById('success-screen');
+            const headerTitle = document.getElementById('header-title');
+            const headerSubtitle = document.getElementById('header-subtitle');
+            const iconBg = document.getElementById('icon-bg');
+            const fotoBorder = document.getElementById('foto-border');
+            
+            if (headerBg) headerBg.style.backgroundColor = hexToRgba(colorTema, 0.08);
+            if (successScreen) successScreen.style.borderTopColor = colorTema;
+            if (headerTitle) headerTitle.style.color = colorTema;
+            if (headerSubtitle) headerSubtitle.style.color = colorTema;
+            if (iconBg) iconBg.style.color = colorTema;
+            if (fotoBorder) fotoBorder.style.borderColor = colorTema;
         }
 
         function mostrarError() {
             document.getElementById('loader').classList.add('hidden');
             document.getElementById('error-screen').classList.remove('hidden');
-            lucide.createIcons();
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                lucide.createIcons();
+            }
         }
 
         function mostrarSuspendido(alumno) {
@@ -333,19 +524,23 @@
             document.getElementById('suspended-screen').classList.remove('hidden');
             document.getElementById('susp-nombre').innerText = `${alumno.nombre} ${alumno.apellido}`;
             document.getElementById('susp-curso').innerText = alumno.curso;
-            lucide.createIcons();
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                lucide.createIcons();
+            }
         }
 
         function mostrarVencido(fecha) {
             document.getElementById('loader').classList.add('hidden');
             document.getElementById('expired-screen').classList.remove('hidden');
             document.getElementById('exp-fecha').innerText = fecha.toLocaleDateString('es-AR');
-            lucide.createIcons();
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                lucide.createIcons();
+            }
         }
 
-        // --- INYECCIÓN MODO DIOS: MOTOR MATEMÁTICO DE 6 DÍGITOS ---
+        // Generador de matrícula de 6 dígitos (misma función que en la billetera)
         function generarHashMatricula(dni, curso, id) { 
-            const str = String(dni) + String(curso).trim().toLowerCase() + String(id);
+            const str = String(dni) + String(curso || '').trim().toLowerCase() + String(id);
             let h = 0x811c9dc5; 
             for (let i = 0; i < str.length; i++) { 
                 h ^= str.charCodeAt(i); 
@@ -355,14 +550,21 @@
         }
 
         function copiarHash() {
-            const t = document.getElementById('val-hash').innerText;
-            navigator.clipboard.writeText(t);
-            const msg = document.getElementById('copy-msg');
-            msg.classList.remove('hidden');
-            setTimeout(() => msg.classList.add('hidden'), 2000);
+            const hashText = document.getElementById('val-hash').innerText;
+            if (!hashText) return;
+            
+            navigator.clipboard.writeText(hashText).then(() => {
+                const msg = document.getElementById('copy-msg');
+                if (msg) {
+                    msg.classList.remove('hidden');
+                    setTimeout(() => msg.classList.add('hidden'), 2000);
+                }
+            }).catch(err => {
+                console.error("Error al copiar:", err);
+            });
         }
 
-        // Iniciar
+        // Iniciar validación
         validar();
     </script>
 </body>
