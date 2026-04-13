@@ -60,6 +60,7 @@
         .input-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #999; }
         .btn-main { width: 100%; max-width: 320px; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: transform 0.2s; display: flex; justify-content: center; align-items: center; gap: 10px;}
         .btn-main:active { transform: scale(0.98); }
+        .btn-main:disabled { opacity: 0.6; cursor: not-allowed; }
 
         /* UPLOAD & CROPPER */
         .upload-area { border: 2px dashed #ccc; padding: 30px; border-radius: 15px; background: white; margin-bottom: 20px; cursor: pointer; width: 100%; max-width: 320px; transition: 0.3s; }
@@ -171,7 +172,8 @@
         
         /* ACTIONS GRID & OTHERS */
         .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px; }
-        .action-card { background: white; padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-decoration: none; color: #333; cursor: pointer; }
+        .action-card { background: white; padding: 15px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-decoration: none; color: #333; cursor: pointer; transition: 0.2s; }
+        .action-card:active { transform: scale(0.98); }
         .action-icon { font-size: 24px; color: var(--primary); margin-bottom: 8px; display: block; }
         .action-title { font-size: 14px; font-weight: 700; }
         .footer-brand { margin-top: auto; text-align: center; padding: 20px; font-size: 11px; color: #999; }
@@ -179,6 +181,7 @@
         .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: none; margin: 0 auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .curso-card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid var(--primary); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .curso-card:active { transform: scale(0.98); }
 
         /* LEGAL MODAL */
         .legal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); z-index: 9999; display: flex; justify-content: center; align-items: flex-end; padding: 0; opacity: 0; pointer-events: none; transition: 0.3s; }
@@ -227,6 +230,14 @@
 
         /* GHOST CONTAINER */
         #ghost-container { position: absolute; top: 0; left: -9999px; z-index: -9999; pointer-events: none; }
+        
+        /* LOADING STATES */
+        .btn-loading { position: relative; pointer-events: none; opacity: 0.7; }
+        .btn-loading::after { content: ''; position: absolute; width: 16px; height: 16px; border: 2px solid white; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; margin-left: 8px; }
+        
+        /* UTILITIES */
+        .hidden { display: none !important; }
+        .text-center { text-align: center; }
     </style>
 </head>
 <body>
@@ -246,7 +257,7 @@
             <h1 class="login-title">Acceso Alumnos</h1>
             <p class="login-desc">Ingresa tu DNI para acceder.</p>
             <div class="input-group"><i class="fas fa-id-card input-icon"></i><input type="tel" id="input-dni" class="input-dni" placeholder="Número de DNI" autocomplete="off"></div>
-            <button class="btn-main" onclick="ingresar()"><span id="btn-text">INGRESAR</span><div id="loader" class="loader"></div></button>
+            <button class="btn-main" id="btn-ingresar" onclick="ingresar()">INGRESAR</button>
             <div id="msg-error"></div>
         </div>
         <div class="footer-brand">POWERED BY <strong>ASARI PLATFORM</strong></div>
@@ -299,7 +310,7 @@
         <div id="premium-section"></div>
 
         <div class="actions-grid">
-            <div class="action-card" onclick="descargarCarnetCompleto()"><span class="action-icon"><i class="fas fa-id-card"></i></span><span class="action-title">Descargar Carnet</span></div>
+            <div class="action-card" id="btn-download-carnet" onclick="descargarCarnetCompleto()"><span class="action-icon"><i class="fas fa-id-card"></i></span><span class="action-title">Descargar Carnet</span></div>
             <div class="action-card" id="btn-descargar-diploma" style="display:none;" onclick="descargarDiploma()"><span class="action-icon"><i class="fas fa-certificate"></i></span><span class="action-title">Descargar Diploma</span></div>
             
             <div class="action-card" id="btn-descargar-analitico" style="display:none;" onclick="descargarAnalitico()"><span class="action-icon"><i class="fas fa-file-invoice"></i></span><span class="action-title">Descargar Analítico</span></div>
@@ -307,7 +318,7 @@
             <div class="action-card" onclick="abrirSoporte()"><span class="action-icon"><i class="fab fa-whatsapp" style="color:#25D366;"></i></span><span class="action-title">Soporte Alumno</span></div>
             <div id="btn-install-app" class="action-card" onclick="instalarApp()"><span class="action-icon"><i class="fas fa-mobile-alt" style="color:#333;"></i></span><span class="action-title">Instalar App</span></div>
 
-            <div class="action-card" id="btn-cambiar-curso" style="display:none;" onclick="volverAlSelector()"><span class="action-icon" style="color:#666"><i class="fas fa-exchange-alt"></i></span><span class="action-title">Cambiar</span></div>
+            <div class="action-card" id="btn-cambiar-curso" style="display:none;" onclick="volverAlSelector()"><span class="action-icon" style="color:#666"><i class="fas fa-exchange-alt"></i></span><span class="action-title">Cambiar Curso</span></div>
             <div class="action-card" onclick="cerrarSesion()"><span class="action-icon"><i class="fas fa-sign-out-alt" style="color:#d32f2f;"></i></span><span class="action-title">Salir</span></div>
         </div>
         
@@ -339,13 +350,16 @@
             <div id="lista-notificaciones" style="max-height: 400px; overflow-y: auto;">
                 <div style="text-align:center; padding: 20px; color:#999;">Cargando novedades...</div>
             </div>
-            <button onclick="document.getElementById('notif-modal').classList.remove('active')" class="btn-main" style="margin-top:15px; width:100%;">ENTENDIDO</button>
+            <button onclick="cerrarNotificaciones()" class="btn-main" style="margin-top:15px; width:100%;">ENTENDIDO</button>
         </div>
     </div>
 
     <div id="ghost-container"></div>
 
     <script>
+        // ==========================================
+        // CONFIGURACIÓN Y CONSTANTES
+        // ==========================================
         const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
         const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const URL_WEB = 'https://asari-platform.vercel.app'; 
@@ -375,17 +389,20 @@
             'ruim': '#041130',
             'default': '#041130' 
         };
-
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                .then(reg => console.log("SW registrado correctamente"))
-                .catch(err => console.error("Error al registrar SW", err));
-            });
-        }
+        
+        // Constantes de UI
+        const LOADING_TEXTS = {
+            download: '⏳',
+            generate: 'Generando...',
+            saving: 'Guardando...'
+        };
+        
+        // Cache para consultas a Supabase
+        const queryCache = new Map();
+        const CACHE_TTL = 60000; // 1 minuto
 
         // ==========================================
-        // TEMPLATE ESTANDAR (TODOS LOS REGISTROS)
+        // TEMPLATES DE CARNET
         // ==========================================
         const CARNET_HTML = `
             <div class="card-base" id="card-base-el">
@@ -428,9 +445,6 @@
                 </div>
             </div>`;
 
-        // ==========================================
-        // TEMPLATE PREMIUM EXCLUSIVO PARA REUIM
-        // ==========================================
         const CARNET_REUIM_HTML = `
             <div class="card-reuim" id="card-base-el">
                 <div class="official-badge">
@@ -491,8 +505,10 @@
 
         const CARNET_BACK_HTML = `<img src="${URL_REVERSO}" class="carnet-back-img" id="carnet-back-img">`;
 
+        // ==========================================
+        // VARIABLES GLOBALES
+        // ==========================================
         let globalColorTema = COLOR_DEFAULT; 
-        let globalColorTexto = '#041130'; 
         let globalMatriculas = [];
         let alumnoActual = null; 
         let cursoActualData = null;
@@ -500,10 +516,240 @@
         let deferredPrompt; 
         let notificacionesCache = []; 
         let cropper = null; 
+        let currentView = 'front';
+
+        // ==========================================
+        // FUNCIONES DE UTILIDAD
+        // ==========================================
+        
+        // Función para validar URLs de imágenes
+        async function isValidImageUrl(url) {
+            if (!url || url === "./reverso.jpg" || url === "legal.jpg") return false;
+            try {
+                const response = await fetch(url, { method: 'HEAD' });
+                return response.ok && response.headers.get('content-type')?.startsWith('image/');
+            } catch {
+                return false;
+            }
+        }
+        
+        // Función de caché para consultas
+        async function cachedQuery(table, selectQuery, ttl = CACHE_TTL) {
+            const key = `${table}_${JSON.stringify(selectQuery)}`;
+            if (queryCache.has(key)) {
+                const { data, timestamp } = queryCache.get(key);
+                if (Date.now() - timestamp < ttl) {
+                    return { data, error: null };
+                }
+            }
+            const result = await db.from(table).select(selectQuery);
+            if (!result.error && result.data) {
+                queryCache.set(key, { data: result.data, timestamp: Date.now() });
+            }
+            return result;
+        }
+        
+        // Función para manejar errores de forma consistente
+        function handleError(error, context = '') {
+            console.error(`Error en ${context}:`, error);
+            const msg = error.message || 'Ocurrió un error inesperado';
+            alert(`❌ ${context}: ${msg}`);
+        }
+        
+        // Función para mostrar/ocultar loading en botones
+        function setButtonLoading(button, isLoading, originalText = null) {
+            if (!button) return;
+            if (isLoading) {
+                button.dataset.originalText = button.innerHTML;
+                button.innerHTML = '<span class="loader" style="display:inline-block; margin-right:8px;"></span> CARGANDO...';
+                button.disabled = true;
+                button.classList.add('btn-loading');
+            } else {
+                button.innerHTML = button.dataset.originalText || (originalText || 'INGRESAR');
+                button.disabled = false;
+                button.classList.remove('btn-loading');
+            }
+        }
+        
+        // Función mejorada para medir ancho de texto
+        function medirAnchoTextoCanvas(texto, fontSize, fontFamily = 'Roboto, sans-serif', fontWeight = '900') {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            let weightValue = 900;
+            if (fontWeight === 'bold') weightValue = 700;
+            else if (fontWeight === 'normal') weightValue = 400;
+            else if (typeof fontWeight === 'string' && !isNaN(parseInt(fontWeight))) weightValue = parseInt(fontWeight);
+            ctx.font = `${weightValue} ${fontSize}px ${fontFamily}`;
+            return ctx.measureText(texto).width;
+        }
+
+        // Función mejorada para ajustar texto (con limpieza de espacios)
+        function ajustarTextoInteligente(elemento, texto, maxWidth, minSize, maxSize, fontFamily = 'Roboto, sans-serif', fontWeight = '900') {
+            if (!elemento || !texto) return maxSize;
+            
+            // Limpiar espacios múltiples pero mantener uno entre palabras
+            texto = texto.replace(/\s+/g, ' ').trim();
+            
+            // Guardar estilo original temporalmente
+            const originalWhiteSpace = elemento.style.whiteSpace;
+            elemento.style.whiteSpace = 'nowrap';
+            elemento.style.display = 'inline-block';
+            elemento.innerText = texto;
+            
+            let mejorSize = maxSize;
+            let currentSize = maxSize;
+            
+            while (currentSize >= minSize) {
+                const anchoNecesario = medirAnchoTextoCanvas(texto, currentSize, fontFamily, fontWeight);
+                if (anchoNecesario <= maxWidth) {
+                    mejorSize = currentSize;
+                    break;
+                }
+                currentSize -= 1;
+            }
+            
+            if (mejorSize < minSize) mejorSize = minSize;
+            
+            elemento.style.fontSize = mejorSize + 'px';
+            elemento.style.whiteSpace = originalWhiteSpace || 'nowrap';
+            elemento.style.display = '';
+            
+            return mejorSize;
+        }
+
+        // Función CORREGIDA para dividir títulos (con conectores)
+        function dividirTituloInteligente(cursoText) {
+            let text = cursoText.trim().toUpperCase();
+            
+            // Patrones de conectores para quiebre natural (con espacios incluidos)
+            const conectores = [' DE ', ' EN ', ' PARA ', ' Y ', ' CON ', ' A ', ' POR ', ' DEL ', ' LA ', ' EL ', ' LOS ', ' LAS '];
+            
+            for (let conector of conectores) {
+                if (text.includes(conector)) {
+                    const partes = text.split(conector);
+                    if (partes.length >= 2) {
+                        // Mantener el conector CON sus espacios originales
+                        const primeraParte = partes[0] + conector;
+                        const segundaParte = partes.slice(1).join(conector);
+                        
+                        // Limpiar espacios extras al inicio/fin de cada parte
+                        const main = primeraParte.trim();
+                        const sub = segundaParte.trim();
+                        
+                        if (main.length > 0 && sub.length > 0) {
+                            return { main, sub };
+                        }
+                    }
+                }
+            }
+            
+            // Si no hay conector, dividir por la mitad buscando espacio
+            const palabras = text.split(' ');
+            if (palabras.length === 1) {
+                return { main: text, sub: '' };
+            }
+            
+            const mitad = Math.floor(palabras.length / 2);
+            const main = palabras.slice(0, mitad).join(' ');
+            const sub = palabras.slice(mitad).join(' ');
+            
+            return { main, sub };
+        }
+
+        // Función para aplicar títulos inteligentes
+        function aplicarTitulosInteligentes(container, alumno, esReuim = false) {
+            const cursoText = (alumno.curso || "CURSO PROFESIONAL").trim().toUpperCase();
+            const { main, sub } = dividirTituloInteligente(cursoText);
+            
+            const mainEl = container.querySelector('#txt-titulo-main');
+            const subEl = container.querySelector('#txt-titulo-sub');
+            
+            if (!mainEl) return;
+            
+            // Configurar dimensiones según tipo de carnet
+            let maxWidthMain, maxWidthSub, maxSizeMain, maxSizeSub, minSize, fontFamily, fontWeight;
+            
+            if (esReuim) {
+                maxWidthMain = 540;
+                maxWidthSub = 540;
+                maxSizeMain = 65;
+                maxSizeSub = 60;
+                minSize = 26;
+                fontFamily = "'Playfair Display', 'Roboto', serif";
+                fontWeight = '900';
+            } else {
+                maxWidthMain = 560;
+                maxWidthSub = 560;
+                maxSizeMain = 55;
+                maxSizeSub = 50;
+                minSize = 22;
+                fontFamily = "'Roboto', sans-serif";
+                fontWeight = '900';
+            }
+            
+            // Aplicar al título principal
+            ajustarTextoInteligente(mainEl, main, maxWidthMain, minSize, maxSizeMain, fontFamily, fontWeight);
+            
+            // Aplicar al subtítulo si existe
+            if (subEl && sub) {
+                ajustarTextoInteligente(subEl, sub, maxWidthSub, minSize, maxSizeSub, fontFamily, fontWeight);
+                subEl.style.display = 'block';
+            } else if (subEl) {
+                subEl.style.display = 'none';
+            }
+            
+            // Ajustar también el nombre del alumno
+            const nombreEl = container.querySelector('#txt-nombre');
+            if (nombreEl) {
+                const nombreCompleto = `${alumno.nombre} ${alumno.apellido}`.toUpperCase();
+                let maxWidthNombre, maxSizeNombre, minSizeNombre;
+                if (esReuim) {
+                    maxWidthNombre = 460;
+                    maxSizeNombre = 42;
+                    minSizeNombre = 20;
+                } else {
+                    maxWidthNombre = 520;
+                    maxSizeNombre = 52;
+                    minSizeNombre = 26;
+                }
+                ajustarTextoInteligente(nombreEl, nombreCompleto, maxWidthNombre, minSizeNombre, maxSizeNombre, fontFamily, fontWeight);
+            }
+        }
+
+        // ==========================================
+        // INICIALIZACIÓN Y SERVICE WORKER
+        // ==========================================
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log("SW registrado correctamente"))
+                .catch(err => console.error("Error al registrar SW", err));
+            });
+        }
 
         document.getElementById('app-logo').src = LOGO_ASARI_DEFAULT;
         document.documentElement.style.setProperty('--primary', COLOR_DEFAULT);
-        window.addEventListener('resize', ajustarCarnetResponsivo);
+        window.addEventListener('resize', () => setTimeout(ajustarCarnetResponsivo, 100));
+        
+        // Inicializar modales con cierre al tocar fuera
+        function initModals() {
+            const modals = document.querySelectorAll('.legal-overlay');
+            modals.forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.classList.remove('active');
+                    }
+                });
+            });
+        }
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            initModals();
+            const params = new URLSearchParams(window.location.search);
+            if(params.get('dni')) {
+                setTimeout(ingresar, 500); 
+            }
+        });
 
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
@@ -531,7 +777,14 @@
             const msg = `Hola, soy alumno (DNI: ${alumnoActual?.dni_alumno || ''}). Tengo una consulta sobre mi credencial.`;
             window.open(`https://wa.me/${WHATSAPP_NUMERO}?text=${encodeURIComponent(msg)}`, '_blank');
         }
+        
+        function cerrarNotificaciones() {
+            document.getElementById('notif-modal').classList.remove('active');
+        }
 
+        // ==========================================
+        // FUNCIONES DE LOGIN Y CONSENTIMIENTO
+        // ==========================================
         async function ingresar() {
             const params = new URLSearchParams(window.location.search);
             const dniUrl = params.get('dni');
@@ -542,17 +795,17 @@
                 if(inp) inp.value = dni;
             }
 
-            const btnText = document.getElementById('btn-text');
-            const loader = document.getElementById('loader');
+            const btnIngresar = document.getElementById('btn-ingresar');
             const errorMsg = document.getElementById('msg-error');
             
             if(!dni) return;
-            if(btnText) btnText.style.display = 'none'; 
-            if(loader) loader.style.display = 'block'; 
+            
+            setButtonLoading(btnIngresar, true);
             if(errorMsg) errorMsg.style.display = 'none';
             
             try {
                 const { data: matriculas, error } = await db.from('matriculas').select('*').eq('dni_alumno', dni);
+                if (error) throw error;
                 if (!matriculas || matriculas.length === 0) throw new Error("No encontrado o DNI incorrecto.");
                 
                 const fotoEncontrada = matriculas.find(m => m.foto_url && m.foto_url !== "null" && m.foto_url.trim().length > 10)?.foto_url;
@@ -563,11 +816,8 @@
 
                 if(alumno.institution_id) {
                     try {
-                        const { data: dataInst } = await db
-                            .from('instituciones')
-                            .select('logo_url, fondo_wallet_url, reverso_url, alcance_url, color_texto_diploma')
-                            .eq('id', alumno.institution_id)
-                            .maybeSingle();
+                        const { data: dataInst } = await cachedQuery('instituciones', 'logo_url, fondo_wallet_url, reverso_url, alcance_url, color_texto_diploma')
+                            .then(res => ({ data: res.data?.find(i => i.id === alumno.institution_id) }));
                         
                         if(dataInst) {
                             globalInstitucion = dataInst; 
@@ -587,17 +837,9 @@
                 }
                 if(dniUrl) window.history.replaceState({}, document.title, window.location.pathname);
             } finally {
-                if(btnText) btnText.style.display = 'flex'; 
-                if(loader) loader.style.display = 'none';
+                setButtonLoading(btnIngresar, false);
             }
         }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const params = new URLSearchParams(window.location.search);
-            if(params.get('dni')) {
-                setTimeout(ingresar, 500); 
-            }
-        });
 
         function actualizarManifiestoDinamico(logoUrl, nombreInstitucion) {
             const myDynamicManifest = {
@@ -702,6 +944,9 @@
             }
         }
 
+        // ==========================================
+        // FUNCIONES DE FOTO Y CROPPER
+        // ==========================================
         function previsualizarFoto() { 
             const file = document.getElementById('input-foto-alumno').files[0]; 
             if(file) { 
@@ -797,6 +1042,9 @@
             } 
         }
 
+        // ==========================================
+        // FUNCIONES DE UI Y NAVEGACIÓN
+        // ==========================================
         function cambiarIdentidadVisual(logo, color) { 
             const img = document.getElementById('app-logo'); 
             if(logo) img.src = logo; 
@@ -817,6 +1065,7 @@
         }
 
         function cambiarVistaCarnet(vista) {
+            currentView = vista;
             const container = document.getElementById('carnet-render');
             document.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
             document.getElementById(`btn-toggle-${vista}`).classList.add('active');
@@ -833,7 +1082,8 @@
             } else if (vista === 'back') {
                 const imgReverso = globalInstitucion?.reverso_url || URL_REVERSO;
                 container.innerHTML = `<img src="${imgReverso}" style="width:1011px; height:638px; object-fit:cover; border-radius:40px; border:5px solid var(--primary);">`;
-                container.querySelector('img').style.borderColor = globalColorTema || '#041130';
+                const imgElement = container.querySelector('img');
+                if (imgElement) imgElement.style.borderColor = globalColorTema || '#041130';
             } else if (vista === 'legal') {
                 const imgLegal = globalInstitucion?.alcance_url || URL_DOC_LEGAL;
                 const estiloLegal = "width:1011px; height:638px; object-fit:contain; background:white; border-radius:40px; border:5px solid #ccc;";
@@ -846,10 +1096,8 @@
 
             if(alumno.institution_id) {
                 try {
-                    const { data: dataInst } = await db.from('instituciones')
-                        .select('logo_url, fondo_wallet_url, reverso_url, alcance_url, color_texto_diploma')
-                        .eq('id', alumno.institution_id)
-                        .maybeSingle();
+                    const { data: dataInst } = await cachedQuery('instituciones', 'logo_url, fondo_wallet_url, reverso_url, alcance_url, color_texto_diploma')
+                        .then(res => ({ data: res.data?.find(i => i.id === alumno.institution_id) }));
 
                     if(dataInst) {
                         globalInstitucion = dataInst;
@@ -901,6 +1149,7 @@
 
             document.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
             document.getElementById('btn-toggle-front').classList.add('active');
+            currentView = 'front';
 
             registrarAcceso(alumno);
             renderPremiumSection(alumno);
@@ -910,12 +1159,372 @@
             const btnDiploma = document.getElementById('btn-descargar-diploma');
             const btnAnalitico = document.getElementById('btn-descargar-analitico');
 
-            btnDiploma.style.display = (cursoActualData && cursoActualData.diploma_bg_url) ? 'block' : 'none';
-            btnAnalitico.style.display = (cursoActualData && cursoActualData.analitico_bg_url) ? 'block' : 'none';
+            btnDiploma.style.display = (cursoActualData && cursoActualData.diploma_bg_url) ? 'flex' : 'none';
+            btnAnalitico.style.display = (cursoActualData && cursoActualData.analitico_bg_url) ? 'flex' : 'none';
 
             setTimeout(ajustarCarnetResponsivo, 100);
         }
 
+        // ==========================================
+        // FUNCIONES DE RENDERIZADO DE CARNET
+        // ==========================================
+        function llenarDatosCarnet(container, alumno, colorOverride) {
+            const el = (sel) => container.querySelector(sel);
+            
+            // Datos básicos
+            const nombreEl = el('#txt-nombre'); 
+            nombreEl.innerText = `${alumno.nombre} ${alumno.apellido}`;
+            el('#txt-dni').innerText = new Intl.NumberFormat('es-AR').format(alumno.dni_alumno);
+            el('#txt-matricula').innerText = generarHashMatricula(alumno.dni_alumno, alumno.curso, alumno.id);
+            const fechaInicio = new Date(alumno.fecha_inicio || new Date()); 
+            el('#txt-anio-header').innerText = `CARNET ${fechaInicio.getFullYear()}`;
+            let vence = alumno.fecha_vencimiento ? new Date(alumno.fecha_vencimiento) : new Date(fechaInicio.setFullYear(fechaInicio.getFullYear() + 1));
+            el('#txt-vence').innerText = vence.toLocaleDateString('es-AR');
+            
+            if(new Date() > vence) el('#vencido-overlay').style.display = 'flex';
+            if (alumno.estado === 'SUSPENDIDO') { 
+                el('#suspendido-overlay').style.display = 'flex'; 
+                el('#vencido-overlay').style.display = 'none'; 
+            }
+            
+            if (alumno.foto_url) { 
+                const img = el('#img-foto'); 
+                img.crossOrigin = "anonymous"; 
+                img.src = alumno.foto_url + "?t=" + Date.now(); 
+            }
+            
+            // Limpiar y regenerar QR
+            const qrContainer = el('#qr-container');
+            qrContainer.innerHTML = ""; 
+            new QRCode(qrContainer, { 
+                text: `${URL_WEB}/validador.html?id=${alumno.id}`, 
+                width: 144, 
+                height: 144 
+            });
+
+            if (cursoActualData && cursoActualData.marca_agua_url) { 
+                const wm = el('#watermark-container'); 
+                if(wm) wm.innerHTML = `<img src="${cursoActualData.marca_agua_url}">`; 
+            } else { 
+                const wm = el('#watermark-container'); 
+                if(wm) wm.innerHTML = ''; 
+            }
+
+            // Aplicar colores y estilos
+            const regId = (alumno.registro_id || 'default').toLowerCase(); 
+            const color = colorOverride || COLORES_REGISTRO[regId] || COLORES_REGISTRO['default']; 
+            globalColorTema = color;
+            const panel = el('#bg-panel'); 
+            panel.style.backgroundColor = color; 
+            if (globalInstitucion && globalInstitucion.fondo_wallet_url) { 
+                panel.style.backgroundImage = `url('${globalInstitucion.fondo_wallet_url}')`; 
+                panel.style.backgroundSize = "cover"; 
+                panel.style.backgroundPosition = "center"; 
+            }
+            el('#card-base-el').style.borderColor = color;
+            el('#banda-color').style.backgroundColor = color; 
+            el('#txt-sigla').innerText = (alumno.registro_id || 'OFICIAL').toUpperCase();
+            
+            // APLICAR LÓGICA INTELIGENTE DE TÍTULOS
+            aplicarTitulosInteligentes(container, alumno, false);
+        }
+
+        function llenarDatosCarnetReuim(container, alumno) {
+            const el = (sel) => container.querySelector(sel);
+            
+            // Datos básicos
+            const nombreEl = el('#txt-nombre'); 
+            nombreEl.innerText = `${alumno.nombre} ${alumno.apellido}`;
+            el('#txt-dni').innerText = new Intl.NumberFormat('es-AR').format(alumno.dni_alumno);
+            el('#txt-matricula').innerText = generarHashMatricula(alumno.dni_alumno, alumno.curso, alumno.id);
+            
+            const fechaInicio = new Date(alumno.fecha_inicio || new Date()); 
+            el('#txt-anio-header').innerText = fechaInicio.getFullYear();
+            
+            let vence = alumno.fecha_vencimiento ? new Date(alumno.fecha_vencimiento) : new Date(fechaInicio.setFullYear(fechaInicio.getFullYear() + 1));
+            el('#txt-vence').innerText = vence.toLocaleDateString('es-AR');
+            
+            if(new Date() > vence) el('#vencido-overlay').style.display = 'flex';
+            if (alumno.estado === 'SUSPENDIDO') { 
+                el('#suspendido-overlay').style.display = 'flex'; 
+                el('#vencido-overlay').style.display = 'none'; 
+            }
+            
+            if (alumno.foto_url) { 
+                const img = el('#img-foto'); 
+                img.crossOrigin = "anonymous"; 
+                img.src = alumno.foto_url + "?t=" + Date.now(); 
+            }
+            
+            const qrContainer = el('#qr-container');
+            qrContainer.innerHTML = ""; 
+            new QRCode(qrContainer, { 
+                text: `${URL_WEB}/validador.html?id=${alumno.id}`, 
+                width: 156, 
+                height: 156 
+            });
+
+            if (cursoActualData && cursoActualData.marca_agua_url) { 
+                const wm = el('#watermark-container'); 
+                if(wm) wm.innerHTML = `<img src="${cursoActualData.marca_agua_url}" style="height:100%; object-fit:contain;">`; 
+            }
+            
+            // APLICAR LÓGICA INTELIGENTE DE TÍTULOS PARA REUIM
+            aplicarTitulosInteligentes(container, alumno, true);
+            
+            // Ajustar valores de los pills para que no se desborden
+            const dniEl = el('#txt-dni');
+            const matEl = el('#txt-matricula');
+            const venceEl = el('#txt-vence');
+            
+            const ajustarPill = (el, maxWidth, defaultSize, minSize) => {
+                if (el && el.innerText) {
+                    let size = defaultSize;
+                    while (size > minSize && medirAnchoTextoCanvas(el.innerText, size, "'Roboto', sans-serif", '900') > maxWidth) {
+                        size -= 2;
+                    }
+                    if (size < minSize) size = minSize;
+                    el.style.fontSize = size + 'px';
+                }
+            };
+            
+            ajustarPill(dniEl, 200, 32, 18);
+            ajustarPill(matEl, 200, 32, 18);
+            ajustarPill(venceEl, 200, 32, 18);
+        }
+
+        // ==========================================
+        // FUNCIONES DE DESCARGA
+        // ==========================================
+        async function descargarCarnetCompleto() { 
+            if(!alumnoActual) return; 
+            const btn = document.getElementById('btn-download-carnet'); 
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = LOADING_TEXTS.generate;
+            btn.disabled = true;
+            
+            try { 
+                const ghost = document.getElementById('ghost-container'); 
+                ghost.innerHTML = ""; 
+                const wrapper = document.createElement('div'); 
+                wrapper.style.display = "flex"; 
+                wrapper.style.flexDirection = "column"; 
+                wrapper.style.gap = "20px"; 
+                wrapper.style.padding = "20px"; 
+                wrapper.style.backgroundColor = "white"; 
+                
+                const regId = (alumnoActual.registro_id || 'default').toLowerCase();
+                const esReuim = (regId === 'reuim' || regId === 'ruim');
+                
+                wrapper.insertAdjacentHTML('beforeend', esReuim ? CARNET_REUIM_HTML : CARNET_HTML); 
+                
+                const imgReverso = globalInstitucion?.reverso_url || URL_REVERSO; 
+                const reversoHtml = `<img src="${imgReverso}" class="carnet-back-img" id="carnet-back-img">`; 
+                wrapper.insertAdjacentHTML('beforeend', reversoHtml); 
+                
+                const shimmer = wrapper.querySelector('.live-shimmer');
+                if (shimmer) shimmer.style.display = 'none'; 
+                
+                ghost.appendChild(wrapper); 
+                
+                ghost.querySelectorAll(esReuim ? '.card-reuim' : '.card-base').forEach(c => { 
+                    c.style.width = "1011px"; c.style.height = "638px"; 
+                });
+                ghost.querySelectorAll('.carnet-back-img').forEach(c => { 
+                    c.style.width = "1011px"; c.style.height = "638px"; 
+                }); 
+                
+                const baseCard = ghost.querySelector(esReuim ? '.card-reuim' : '.card-base');
+                const backImg = ghost.querySelector('#carnet-back-img');
+                if (backImg && baseCard) backImg.style.borderColor = baseCard.style.borderColor; 
+                
+                if (esReuim) {
+                    llenarDatosCarnetReuim(ghost, alumnoActual);
+                } else {
+                    llenarDatosCarnet(ghost, alumnoActual, globalColorTema); 
+                }
+
+                const images = ghost.getElementsByTagName('img'); 
+                for(let img of images) { if(img.src && !img.complete) await new Promise(r => img.onload = r); } 
+                await new Promise(r => setTimeout(r, 500)); 
+                
+                const canvas = await html2canvas(wrapper, { scale: 1.5, useCORS: true }); 
+                const link = document.createElement('a'); 
+                link.download = `Carnet_${alumnoActual.dni_alumno}.png`; 
+                link.href = canvas.toDataURL("image/png"); 
+                link.click(); 
+                ghost.innerHTML = ''; 
+            } catch(e) { 
+                handleError(e, 'descargar carnet');
+            } finally { 
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            } 
+        }
+        
+        async function descargarDiploma() { 
+            if(!cursoActualData || !cursoActualData.diploma_bg_url) {
+                alert("Diploma no disponible.");
+                return;
+            }
+            const btn = document.getElementById('btn-descargar-diploma'); 
+            const originalText = btn.innerHTML; 
+            btn.innerHTML = LOADING_TEXTS.generate;
+            btn.disabled = true;
+            
+            try { 
+                const ghost = document.getElementById('ghost-container'); 
+                const colorTextoInteligente = globalInstitucion?.color_texto_diploma || globalColorTema || '#000000'; 
+                ghost.innerHTML = `<div class="diploma-layout" id="diploma-final"><img id="dip-bg-img" class="diploma-bg" src="" crossorigin="anonymous"><div class="diploma-overlay"><div class="dip-linea-unica-container" id="dip-texto-container"><span class="dip-texto-formal" id="dip-texto-completo" style="color: ${colorTextoInteligente};"></span></div><div class="dip-qr" id="dip-qr-code"></div><div class="dip-info-extra" id="dip-fecha-registro" style="color: ${colorTextoInteligente}; border-color: ${colorTextoInteligente}33;"></div><div class="dip-sello"></div></div></div>`; 
+                const bgImg = ghost.querySelector('#dip-bg-img'); 
+                let bgUrl = cursoActualData.diploma_bg_url; 
+                if (bgUrl.startsWith('["') || bgUrl.startsWith('[')) { 
+                    try { bgUrl = JSON.parse(bgUrl)[0]; } catch(e) {} 
+                } 
+                const response = await fetch(bgUrl); 
+                const blob = await response.blob(); 
+                const objectURL = URL.createObjectURL(blob); 
+                bgImg.src = objectURL; 
+                await new Promise((resolve, reject) => { 
+                    bgImg.onload = resolve; 
+                    bgImg.onerror = () => reject(new Error("Error carga diploma")); 
+                    setTimeout(() => reject(new Error("Timeout")), 10000); 
+                }); 
+                const txtElem = ghost.querySelector('#dip-texto-completo'); 
+                txtElem.innerHTML = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno)}`; 
+                new QRCode(ghost.querySelector('#dip-qr-code'), { 
+                    text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, 
+                    width: 223, 
+                    height: 223 
+                }); 
+                const f = new Date(alumnoActual.fecha_inicio || new Date()).toLocaleDateString('es-ES', {year:'numeric', month:'long', day:'numeric'}); 
+                ghost.querySelector('#dip-fecha-registro').innerHTML = `REGISTRO: <b>${(alumnoActual.registro_id||'OFICIAL').toUpperCase()}</b> • Fecha: ${f}`; 
+                await document.fonts.ready; 
+                txtElem.style.display = 'inline-block'; 
+                txtElem.style.whiteSpace = 'nowrap'; 
+                await new Promise(r => setTimeout(r, 100)); 
+                ajustarTextoInteligente(txtElem, txtElem.innerText, 1600, 40, 80, "'Roboto Slab', serif", '900'); 
+                await new Promise(r => setTimeout(r, 500)); 
+                const canvas = await html2canvas(ghost.querySelector('#diploma-final'), { scale: 1, useCORS: true }); 
+                const link = document.createElement('a'); 
+                link.download = `Diploma_${alumnoActual.dni_alumno}.png`; 
+                link.href = canvas.toDataURL("image/png"); 
+                link.click(); 
+                URL.revokeObjectURL(objectURL); 
+                ghost.innerHTML = ''; 
+            } catch(e) { 
+                handleError(e, 'descargar diploma');
+            } finally { 
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            } 
+        }
+        
+        async function descargarAnalitico() { 
+            if(!cursoActualData || !cursoActualData.analitico_bg_url) {
+                alert("Analítico no disponible."); 
+                return;
+            }
+            const btn = document.getElementById('btn-descargar-analitico'); 
+            const originalText = btn.innerHTML; 
+            btn.innerHTML = LOADING_TEXTS.generate;
+            btn.disabled = true;
+            
+            try { 
+                let urls = []; 
+                try { 
+                    if (cursoActualData.analitico_bg_url.trim().startsWith('[')) { urls = JSON.parse(cursoActualData.analitico_bg_url); } 
+                    else { urls = [cursoActualData.analitico_bg_url]; } 
+                } catch(e) { urls = [cursoActualData.analitico_bg_url]; } 
+                
+                const { jsPDF } = window.jspdf; 
+                const pdf = new jsPDF('p', 'mm', 'a4'); 
+                const pdfWidth = pdf.internal.pageSize.getWidth(); 
+                const pdfHeight = pdf.internal.pageSize.getHeight(); 
+                const ghost = document.getElementById('ghost-container'); 
+                const colorTextoInteligente = globalInstitucion?.color_texto_diploma || globalColorTema || '#000000'; 
+                
+                for (let i = 0; i < urls.length; i++) { 
+                    const url = urls[i]; 
+                    let overlayHTML = ''; 
+                    if (i === 0) { 
+                        overlayHTML = `
+                        <div class="diploma-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%; z-index:10;">
+                            <div style="position: absolute; top: 480px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; white-space: nowrap;">
+                                <span class="dip-texto-formal" id="ana-text-${i}" style="color: ${colorTextoInteligente} !important; font-size: 45px;"></span>
+                            </div>
+                            <div id="ana-info-${i}" style="position: absolute; top: 550px; left: 50%; transform: translateX(-50%); text-align: center; font-family: 'Roboto', sans-serif; font-size: 18px; font-weight: 700; color: ${colorTextoInteligente}; background: rgba(255,255,255,0.9); padding: 4px 25px; border-radius: 50px;"></div>
+                            <div id="ana-qr-${i}" style="position: absolute; top: 220px; right: 120px; width: 160px; height: 160px; background: white; padding: 10px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"></div>
+                        </div>`; 
+                    } else if (i === 2) {
+                        overlayHTML = `
+                        <div class="diploma-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%; z-index:10;">
+                            <div style="position: absolute; top: 480px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; white-space: nowrap;">
+                                <span class="dip-texto-formal" id="cert-text-${i}" style="color: ${colorTextoInteligente} !important; font-size: 45px;"></span>
+                            </div>
+                            <div id="cert-qr-${i}" style="position: absolute; top: 220px; right: 120px; width: 160px; height: 160px; background: white; padding: 10px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"></div>
+                        </div>`;
+                    }
+                    
+                    ghost.innerHTML = `
+                    <div class="diploma-layout" id="analitico-page-${i}" style="width: 1414px; height: 2000px; position: relative; background: white;">
+                        <img id="ana-bg-${i}" src="" crossorigin="anonymous" style="position: absolute; top:0; left:0; width: 100%; height: 100%; object-fit: cover; z-index:1;">
+                        ${overlayHTML}
+                    </div>`; 
+                    
+                    const bgImg = document.getElementById(`ana-bg-${i}`); 
+                    const response = await fetch(url); 
+                    const blob = await response.blob(); 
+                    const objectURL = URL.createObjectURL(blob); 
+                    bgImg.src = objectURL; 
+                    
+                    await new Promise((resolve, reject) => { 
+                        bgImg.onload = resolve; 
+                        bgImg.onerror = () => reject(new Error(`Error cargando página ${i+1}`)); 
+                        setTimeout(() => reject(new Error(`Timeout página ${i+1}`)), 15000); 
+                    }); 
+                    
+                    if (i === 0) { 
+                        const txtElem = ghost.querySelector(`#ana-text-${i}`); 
+                        txtElem.innerHTML = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno)}`; 
+                        new QRCode(ghost.querySelector(`#ana-qr-${i}`), { text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, width: 140, height: 140 }); 
+                        const f = new Date(alumnoActual.fecha_inicio || new Date()).toLocaleDateString('es-ES', {year:'numeric', month:'long', day:'numeric'}); 
+                        ghost.querySelector(`#ana-info-${i}`).innerHTML = `REGISTRO: <b>${(alumnoActual.registro_id||'OFICIAL').toUpperCase()}</b> • Fecha: ${f}`; 
+                        await document.fonts.ready; 
+                        txtElem.style.display = 'inline-block'; 
+                        await new Promise(r => setTimeout(r, 200)); 
+                        ajustarTextoInteligente(txtElem, txtElem.innerText, 1200, 25, 45, "'Roboto Slab', serif", '900'); 
+                        await new Promise(r => setTimeout(r, 500)); 
+                    } else if (i === 2) {
+                        const txtElemCert = ghost.querySelector(`#cert-text-${i}`); 
+                        txtElemCert.innerHTML = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno)}`; 
+                        new QRCode(ghost.querySelector(`#cert-qr-${i}`), { text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, width: 140, height: 140 }); 
+                        await document.fonts.ready; 
+                        txtElemCert.style.display = 'inline-block'; 
+                        await new Promise(r => setTimeout(r, 200)); 
+                        ajustarTextoInteligente(txtElemCert, txtElemCert.innerText, 1200, 25, 45, "'Roboto Slab', serif", '900'); 
+                        await new Promise(r => setTimeout(r, 500));
+                    }
+                    
+                    const canvas = await html2canvas(document.getElementById(`analitico-page-${i}`), { scale: 1, useCORS: true, backgroundColor: '#ffffff' }); 
+                    const imgData = canvas.toDataURL('image/jpeg', 0.90); 
+                    URL.revokeObjectURL(objectURL); 
+                    if (i > 0) pdf.addPage(); 
+                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight); 
+                } 
+                pdf.save(`Analitico_${alumnoActual.dni_alumno}.pdf`); 
+                ghost.innerHTML = ''; 
+            } catch(e) { 
+                handleError(e, 'generando analítico');
+            } finally { 
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            } 
+        }
+
+        // ==========================================
+        // FUNCIONES PREMIUM Y CONTENIDO EXTRA
+        // ==========================================
         function renderPremiumSection(alumno) {
             const container = document.getElementById('premium-section');
             if (alumno.premium) {
@@ -967,7 +1576,7 @@
             doc.setFont("helvetica", "bold"); doc.setFontSize(20);
             doc.text("CARTA DE RECOMENDACIÓN", 105, 30, null, null, "center");
             doc.setFontSize(12); doc.setFont("helvetica", "normal");
-            const texto = `A quien corresponda,\n\nPor medio de la presente, certificamos que ${nombre} (DNI: ${dni}) ha completado satisfactoriamente el curso de formación profesional en "${curso}".\n\nDurante su formación, ha demostrado compromiso, responsabilidad y aptitudes destacadas en el área. La validación de sus competencias se encuentra registrada mediante tecnología Blockchain, garantizando la autenticidad de su certificación.\n\nSe extiende la presente recomendación para los fines que el interesado considere oportunos.\n\nAtentamente,\n\nDirección Académica\n${cursoActualData?.institucion_id || 'ASARI Platform'}\nFecha: ${fecha}`;
+            const texto = `A quien corresponda,\n\nPor medio de la presente, certificamos que ${nombre} (DNI: ${dni}) ha completado satisfactoriamente el curso de formación profesional en "${curso}".\n\nDurante su formación, ha demostrado compromiso, responsabilidad y aptitudes destacadas en el área. La validación de sus competencias se encuentra registrada mediante tecnología Blockchain, garantizando la autenticidad de su certificación.\n\nSe extiende la presente recomendación para los fines que el interesado considere oportunos.\n\nAtentamente,\n\nDirección Académica\n${globalInstitucion?.nombre || 'ASARI Platform'}\nFecha: ${fecha}`;
             doc.text(texto, 20, 50, { maxWidth: 170, align: "justify" });
             doc.save(`Carta_Recomendacion_${dni}.pdf`);
         }
@@ -1055,9 +1664,14 @@
         }
 
         async function cargarContenidosExtra(alumno) {
-            document.getElementById('dynamic-content-area')?.remove();
-            const mainContainer = document.createElement('div'); mainContainer.id = 'dynamic-content-area';
-            const actionsGrid = document.querySelector('.actions-grid'); actionsGrid.parentNode.insertBefore(mainContainer, actionsGrid);
+            const existing = document.getElementById('dynamic-content-area');
+            if (existing) existing.remove();
+            
+            const mainContainer = document.createElement('div'); 
+            mainContainer.id = 'dynamic-content-area';
+            const actionsGrid = document.querySelector('.actions-grid'); 
+            actionsGrid.parentNode.insertBefore(mainContainer, actionsGrid);
+            
             try {
                 let { data: anuncios } = await db.from('rutas_carrera').select('*').eq('activo', true);
                 let { data: seminarios } = await db.from('seminarios').select('*').limit(5);
@@ -1066,18 +1680,28 @@
                 const eventos = anunciosRelevantes.filter(a => a.tipo && a.tipo.includes('Evento'));
 
                 if (cursos.length > 0) {
-                    const wrapper = document.createElement('div'); wrapper.innerHTML = `<div class="section-header"><span>🚀 Recomendado para vos</span></div>`;
-                    const carousel = document.createElement('div'); carousel.className = 'carousel-container';
-                    cursos.forEach(oferta => { carousel.innerHTML += `<div class="promo-banner carousel-item" onclick="window.open('${oferta.link_destino}', '_blank')"><div class="shine-effect"></div><div class="promo-badge"><i class="fas fa-star"></i> OFERTA</div><div class="promo-content"><div style="flex: 1; padding-right: 10px;"><div class="promo-title">${oferta.titulo_oferta}</div><div class="promo-desc">${oferta.beneficio_txt}</div></div><div class="promo-icon"><i class="fas fa-chevron-right"></i></div></div></div>`; });
-                    wrapper.appendChild(carousel); mainContainer.appendChild(wrapper);
+                    const wrapper = document.createElement('div'); 
+                    wrapper.innerHTML = `<div class="section-header"><span>🚀 Recomendado para vos</span></div>`;
+                    const carousel = document.createElement('div'); 
+                    carousel.className = 'carousel-container';
+                    cursos.forEach(oferta => { 
+                        carousel.innerHTML += `<div class="promo-banner carousel-item" onclick="window.open('${oferta.link_destino}', '_blank')"><div class="shine-effect"></div><div class="promo-badge"><i class="fas fa-star"></i> OFERTA</div><div class="promo-content"><div style="flex: 1; padding-right: 10px;"><div class="promo-title">${oferta.titulo_oferta}</div><div class="promo-desc">${oferta.beneficio_txt}</div></div><div class="promo-icon"><i class="fas fa-chevron-right"></i></div></div></div>`; 
+                    });
+                    wrapper.appendChild(carousel); 
+                    mainContainer.appendChild(wrapper);
                 }
                 if (eventos.length > 0) {
-                    const wrapper = document.createElement('div'); wrapper.innerHTML = `<div class="section-header"><span>📅 Agenda & Eventos</span></div>`;
-                    eventos.forEach(ev => { const fechaTexto = ev.fecha ? new Date(ev.fecha).toLocaleDateString() : "INFO"; wrapper.innerHTML += `<div class="event-card" onclick="window.open('${ev.link_destino}', '_blank')"><div class="event-date">${fechaTexto.split('/')[0] || '★'}</div><div class="event-info"><div class="event-title">${ev.titulo_oferta}</div><div class="event-desc">${ev.beneficio_txt}</div></div><div style="color:#ccc"><i class="fas fa-external-link-alt"></i></div></div>`; });
+                    const wrapper = document.createElement('div'); 
+                    wrapper.innerHTML = `<div class="section-header"><span>📅 Agenda & Eventos</span></div>`;
+                    eventos.forEach(ev => { 
+                        const fechaTexto = ev.fecha ? new Date(ev.fecha).toLocaleDateString() : "INFO"; 
+                        wrapper.innerHTML += `<div class="event-card" onclick="window.open('${ev.link_destino}', '_blank')"><div class="event-date">${fechaTexto.split('/')[0] || '★'}</div><div class="event-info"><div class="event-title">${ev.titulo_oferta}</div><div class="event-desc">${ev.beneficio_txt}</div></div><div style="color:#ccc"><i class="fas fa-external-link-alt"></i></div></div>`; 
+                    });
                     mainContainer.appendChild(wrapper);
                 }
                 if (seminarios && seminarios.length > 0) {
-                    const wrapper = document.createElement('div'); wrapper.innerHTML = `<div class="section-header"><span>🎓 Seminarios On-Demand</span></div>`;
+                    const wrapper = document.createElement('div'); 
+                    wrapper.innerHTML = `<div class="section-header"><span>🎓 Seminarios On-Demand</span></div>`;
                     seminarios.forEach(sem => {
                         let bgStyle = sem.imagen_url ? `background: url('${sem.imagen_url}') center/cover no-repeat;` : `background: url('https://img.youtube.com/vi/${sem.id_video}/hqdefault.jpg') center/cover no-repeat;`;
                         wrapper.innerHTML += `<div class="seminario-card"><div style="height: 140px; ${bgStyle} position: relative;"><div class="sem-badge">ONLINE</div></div><div class="seminario-content"><div class="sem-title">${sem.titulo}</div><div style="font-size:11px; opacity:0.8;">${sem.descripcion}</div><div class="sem-price">$${sem.precio || '0'}</div><button class="btn-sem" onclick="comprarSeminario('${sem.id}', '${sem.link_pago}')">VER AHORA</button></div></div>`;
@@ -1087,433 +1711,75 @@
             } catch (err) { console.log(err); }
         }
 
-        function comprarSeminario(id, link) { if(link && link !== '#') window.open(link, '_blank'); else alert("Inscripción abierta."); }
-        function iniciarPago() { if (!LINK_MERCADO_PAGO || LINK_MERCADO_PAGO.includes("AQUI_TU_LINK")) { alert("Error de Configuración"); return; } window.location.href = LINK_MERCADO_PAGO; }
+        function comprarSeminario(id, link) { 
+            if(link && link !== '#') window.open(link, '_blank'); 
+            else alert("Inscripción abierta."); 
+        }
+        
+        function iniciarPago() { 
+            if (!LINK_MERCADO_PAGO || LINK_MERCADO_PAGO.includes("AQUI_TU_LINK")) { 
+                alert("Error de Configuración"); 
+                return; 
+            } 
+            window.location.href = LINK_MERCADO_PAGO; 
+        }
         
         async function checkPaymentReturn(alumnoId) { 
             const params = new URLSearchParams(window.location.search); 
             if (params.get('status') === 'approved') { 
-                alumnoActual.premium = true; 
-                renderPremiumSection(alumnoActual); 
+                const alumnoEncontrado = globalMatriculas.find(a => a.id === alumnoId);
+                if (alumnoEncontrado) {
+                    alumnoEncontrado.premium = true;
+                    alumnoActual = alumnoEncontrado;
+                    renderPremiumSection(alumnoActual);
+                }
                 window.history.replaceState({}, document.title, window.location.pathname);
                 alert("¡Pago Registrado! Si en un rato no ves las herramientas activadas, escríbenos al WhatsApp."); 
             } 
         }
 
-        function generarTextoIA(tipo) { const t = tipo === 'linkedin' ? `🚀 ¡Meta Cumplida!\nCertificado como ${alumnoActual.curso}.` : `PERFIL PROFESIONAL:\nCertificado como ${alumnoActual.curso}.`; navigator.clipboard.writeText(t).then(() => alert("Copiado!")); }
-        function registrarAcceso(alumno) { try { db.from('logs_accesos').insert({ alumno_id: alumno.id, curso: alumno.curso, fecha: new Date().toISOString() }).then(); } catch(e) { } }
+        function generarTextoIA(tipo) { 
+            const t = tipo === 'linkedin' ? `🚀 ¡Meta Cumplida!\nCertificado como ${alumnoActual.curso}.` : `PERFIL PROFESIONAL:\nCertificado como ${alumnoActual.curso}.`; 
+            navigator.clipboard.writeText(t).then(() => alert("Copiado!")); 
+        }
         
-        // =========================================================
-        // FUNCIÓN INTELIGENTE DE MEDICIÓN Y AJUSTE DE TEXTO (CORREGIDA)
-        // =========================================================
-        function medirAnchoTextoCanvas(texto, fontSize, fontFamily = 'Roboto, sans-serif', fontWeight = '900') {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
-            return ctx.measureText(texto).width;
-        }
-
-        function ajustarTextoInteligente(elemento, texto, maxWidth, minSize, maxSize, fontFamily = 'Roboto, sans-serif', fontWeight = '900') {
-            if (!elemento || !texto) return maxSize;
-            
-            // Guardar estilo original temporalmente
-            const originalWhiteSpace = elemento.style.whiteSpace;
-            elemento.style.whiteSpace = 'nowrap';
-            elemento.style.display = 'inline-block';
-            elemento.innerText = texto;
-            
-            let mejorSize = maxSize;
-            let currentSize = maxSize;
-            
-            while (currentSize >= minSize) {
-                const anchoNecesario = medirAnchoTextoCanvas(texto, currentSize, fontFamily, fontWeight);
-                if (anchoNecesario <= maxWidth) {
-                    mejorSize = currentSize;
-                    break;
-                }
-                currentSize -= 1;
-            }
-            
-            if (mejorSize < minSize) mejorSize = minSize;
-            
-            elemento.style.fontSize = mejorSize + 'px';
-            elemento.style.whiteSpace = originalWhiteSpace || 'nowrap';
-            elemento.style.display = '';
-            
-            return mejorSize;
-        }
-
-        function dividirTituloInteligente(cursoText) {
-            let text = cursoText.trim().toUpperCase();
-            
-            // Patrones de conectores para quiebre natural
-            const conectores = [' DE ', ' EN ', ' PARA ', ' Y ', ' CON ', ' A ', ' POR ', ' DEL ', ' LA ', ' EL ', ' LOS ', ' LAS '];
-            
-            for (let conector of conectores) {
-                if (text.includes(conector)) {
-                    const partes = text.split(conector);
-                    if (partes.length >= 2) {
-                        const primeraParte = partes[0] + conector.trim();
-                        const segundaParte = partes.slice(1).join(conector.trim());
-                        if (primeraParte.length > 0 && segundaParte.length > 0) {
-                            return { main: primeraParte, sub: segundaParte };
-                        }
-                    }
-                }
-            }
-            
-            // Si no hay conector, dividir por la mitad buscando espacio
-            const palabras = text.split(' ');
-            if (palabras.length === 1) {
-                return { main: text, sub: '' };
-            }
-            
-            const mitad = Math.floor(palabras.length / 2);
-            const main = palabras.slice(0, mitad).join(' ');
-            const sub = palabras.slice(mitad).join(' ');
-            
-            return { main, sub };
-        }
-
-        function aplicarTitulosInteligentes(container, alumno, esReuim = false) {
-            const cursoText = (alumno.curso || "CURSO PROFESIONAL").trim().toUpperCase();
-            const { main, sub } = dividirTituloInteligente(cursoText);
-            
-            const mainEl = container.querySelector('#txt-titulo-main');
-            const subEl = container.querySelector('#txt-titulo-sub');
-            
-            if (!mainEl) return;
-            
-            // Configurar dimensiones según tipo de carnet - VALORES CORREGIDOS
-            let maxWidthMain, maxWidthSub, maxSizeMain, maxSizeSub, minSize, fontFamily, fontWeight;
-            
-            if (esReuim) {
-                // Espacio real en REUIM: contenedor .reuim-title-box tiene padding 20px 0, ancho ~570px
-                maxWidthMain = 540;  // Reducido de 560 a 540
-                maxWidthSub = 540;
-                maxSizeMain = 65;
-                maxSizeSub = 60;
-                minSize = 26;
-                fontFamily = "'Playfair Display', 'Roboto', serif";
-                fontWeight = '900';
-            } else {
-                // Espacio real en carnet estándar: .course-container tiene padding 0 20px, ancho ~580px
-                maxWidthMain = 560;  // Reducido de 620 a 560
-                maxWidthSub = 560;
-                maxSizeMain = 55;
-                maxSizeSub = 50;
-                minSize = 22;
-                fontFamily = "'Roboto', sans-serif";
-                fontWeight = '900';
-            }
-            
-            // Aplicar al título principal
-            ajustarTextoInteligente(mainEl, main, maxWidthMain, minSize, maxSizeMain, fontFamily, fontWeight);
-            
-            // Aplicar al subtítulo si existe
-            if (subEl && sub) {
-                ajustarTextoInteligente(subEl, sub, maxWidthSub, minSize, maxSizeSub, fontFamily, fontWeight);
-                subEl.style.display = 'block';
-            } else if (subEl) {
-                subEl.style.display = 'none';
-            }
-            
-            // Ajustar también el nombre del alumno
-            const nombreEl = container.querySelector('#txt-nombre');
-            if (nombreEl) {
-                const nombreCompleto = `${alumno.nombre} ${alumno.apellido}`.toUpperCase();
-                let maxWidthNombre, maxSizeNombre, minSizeNombre;
-                if (esReuim) {
-                    maxWidthNombre = 460;
-                    maxSizeNombre = 42;
-                    minSizeNombre = 20;
-                } else {
-                    maxWidthNombre = 520;
-                    maxSizeNombre = 52;
-                    minSizeNombre = 26;
-                }
-                ajustarTextoInteligente(nombreEl, nombreCompleto, maxWidthNombre, minSizeNombre, maxSizeNombre, fontFamily, fontWeight);
-            }
-        }
-
-        function llenarDatosCarnet(container, alumno, colorOverride) {
-            const el = (sel) => container.querySelector(sel);
-            
-            // Datos básicos
-            const nombreEl = el('#txt-nombre'); 
-            nombreEl.innerText = `${alumno.nombre} ${alumno.apellido}`;
-            el('#txt-dni').innerText = new Intl.NumberFormat('es-AR').format(alumno.dni_alumno);
-            el('#txt-matricula').innerText = generarHashMatricula(alumno.dni_alumno, alumno.curso, alumno.id);
-            const fechaInicio = new Date(alumno.fecha_inicio || new Date()); 
-            el('#txt-anio-header').innerText = `CARNET ${fechaInicio.getFullYear()}`;
-            let vence = alumno.fecha_vencimiento ? new Date(alumno.fecha_vencimiento) : new Date(fechaInicio.setFullYear(fechaInicio.getFullYear() + 1));
-            el('#txt-vence').innerText = vence.toLocaleDateString('es-AR');
-            
-            if(new Date() > vence) el('#vencido-overlay').style.display = 'flex';
-            if (alumno.estado === 'SUSPENDIDO') { 
-                el('#suspendido-overlay').style.display = 'flex'; 
-                el('#vencido-overlay').style.display = 'none'; 
-            }
-            
-            if (alumno.foto_url) { 
-                const img = el('#img-foto'); 
-                img.crossOrigin = "anonymous"; 
-                img.src = alumno.foto_url + "?t=" + Date.now(); 
-            }
-            
-            el('#qr-container').innerHTML = ""; 
-            new QRCode(el('#qr-container'), { 
-                text: `${URL_WEB}/validador.html?id=${alumno.id}`, 
-                width: 144, 
-                height: 144 
-            });
-
-            if (cursoActualData && cursoActualData.marca_agua_url) { 
-                const wm = el('#watermark-container'); 
-                if(wm) wm.innerHTML = `<img src="${cursoActualData.marca_agua_url}">`; 
-            } else { 
-                const wm = el('#watermark-container'); 
-                if(wm) wm.innerHTML = ''; 
-            }
-
-            // Aplicar colores y estilos
-            const regId = (alumno.registro_id || 'default').toLowerCase(); 
-            const color = colorOverride || COLORES_REGISTRO[regId] || COLORES_REGISTRO['default']; 
-            globalColorTema = color;
-            const panel = el('#bg-panel'); 
-            panel.style.backgroundColor = color; 
-            if (globalInstitucion && globalInstitucion.fondo_wallet_url) { 
-                panel.style.backgroundImage = `url('${globalInstitucion.fondo_wallet_url}')`; 
-                panel.style.backgroundSize = "cover"; 
-                panel.style.backgroundPosition = "center"; 
-            }
-            el('#card-base-el').style.borderColor = color;
-            el('#banda-color').style.backgroundColor = color; 
-            el('#txt-sigla').innerText = (alumno.registro_id || 'OFICIAL').toUpperCase();
-            
-            // APLICAR LÓGICA INTELIGENTE DE TÍTULOS
-            aplicarTitulosInteligentes(container, alumno, false);
-        }
-
-        // LLENADO PREMIUM EXCLUSIVO PARA REUIM CON TAMAÑOS MEJORADOS
-        function llenarDatosCarnetReuim(container, alumno) {
-            const el = (sel) => container.querySelector(sel);
-            
-            // Datos básicos
-            const nombreEl = el('#txt-nombre'); 
-            nombreEl.innerText = `${alumno.nombre} ${alumno.apellido}`;
-            el('#txt-dni').innerText = new Intl.NumberFormat('es-AR').format(alumno.dni_alumno);
-            el('#txt-matricula').innerText = generarHashMatricula(alumno.dni_alumno, alumno.curso, alumno.id);
-            
-            const fechaInicio = new Date(alumno.fecha_inicio || new Date()); 
-            el('#txt-anio-header').innerText = fechaInicio.getFullYear();
-            
-            let vence = alumno.fecha_vencimiento ? new Date(alumno.fecha_vencimiento) : new Date(fechaInicio.setFullYear(fechaInicio.getFullYear() + 1));
-            el('#txt-vence').innerText = vence.toLocaleDateString('es-AR');
-            
-            if(new Date() > vence) el('#vencido-overlay').style.display = 'flex';
-            if (alumno.estado === 'SUSPENDIDO') { 
-                el('#suspendido-overlay').style.display = 'flex'; 
-                el('#vencido-overlay').style.display = 'none'; 
-            }
-            
-            if (alumno.foto_url) { 
-                const img = el('#img-foto'); 
-                img.crossOrigin = "anonymous"; 
-                img.src = alumno.foto_url + "?t=" + Date.now(); 
-            }
-            
-            el('#qr-container').innerHTML = ""; 
-            new QRCode(el('#qr-container'), { 
-                text: `${URL_WEB}/validador.html?id=${alumno.id}`, 
-                width: 156, 
-                height: 156 
-            });
-
-            if (cursoActualData && cursoActualData.marca_agua_url) { 
-                const wm = el('#watermark-container'); 
-                if(wm) wm.innerHTML = `<img src="${cursoActualData.marca_agua_url}" style="height:100%; object-fit:contain;">`; 
-            }
-            
-            // APLICAR LÓGICA INTELIGENTE DE TÍTULOS PARA REUIM
-            aplicarTitulosInteligentes(container, alumno, true);
-            
-            // Ajustar valores de los pills para que no se desborden
-            const dniEl = el('#txt-dni');
-            const matEl = el('#txt-matricula');
-            const venceEl = el('#txt-vence');
-            
-            const ajustarPill = (el, maxWidth, defaultSize, minSize) => {
-                if (el && el.innerText) {
-                    let size = defaultSize;
-                    while (size > minSize && medirAnchoTextoCanvas(el.innerText, size, "'Roboto', sans-serif", '900') > maxWidth) {
-                        size -= 2;
-                    }
-                    if (size < minSize) size = minSize;
-                    el.style.fontSize = size + 'px';
-                }
-            };
-            
-            ajustarPill(dniEl, 200, 32, 18);
-            ajustarPill(matEl, 200, 32, 18);
-            ajustarPill(venceEl, 200, 32, 18);
-        }
-
-        async function descargarCarnetCompleto() { 
-            if(!alumnoActual) return; 
-            const btn = document.querySelector('.action-card'); 
-            const txt = btn.innerHTML; 
-            btn.innerHTML = '⏳'; 
+        function registrarAcceso(alumno) { 
             try { 
-                const ghost = document.getElementById('ghost-container'); 
-                ghost.innerHTML = ""; 
-                const wrapper = document.createElement('div'); 
-                wrapper.style.display = "flex"; 
-                wrapper.style.flexDirection = "column"; 
-                wrapper.style.gap = "20px"; 
-                wrapper.style.padding = "20px"; 
-                wrapper.style.backgroundColor = "white"; 
-                
-                const regId = (alumnoActual.registro_id || 'default').toLowerCase();
-                const esReuim = (regId === 'reuim' || regId === 'ruim');
-                
-                wrapper.insertAdjacentHTML('beforeend', esReuim ? CARNET_REUIM_HTML : CARNET_HTML); 
-                
-                const imgReverso = globalInstitucion?.reverso_url || URL_REVERSO; 
-                const reversoHtml = `<img src="${imgReverso}" class="carnet-back-img" id="carnet-back-img">`; 
-                wrapper.insertAdjacentHTML('beforeend', reversoHtml); 
-                
-                const shimmer = wrapper.querySelector('.live-shimmer');
-                if (shimmer) shimmer.style.display = 'none'; 
-                
-                ghost.appendChild(wrapper); 
-                
-                ghost.querySelectorAll(esReuim ? '.card-reuim' : '.card-base').forEach(c => { 
-                    c.style.width = "1011px"; c.style.height = "638px"; 
-                });
-                ghost.querySelectorAll('.carnet-back-img').forEach(c => { 
-                    c.style.width = "1011px"; c.style.height = "638px"; 
-                }); 
-                
-                const baseCard = ghost.querySelector(esReuim ? '.card-reuim' : '.card-base');
-                ghost.querySelector('#carnet-back-img').style.borderColor = baseCard.style.borderColor; 
-                
-                if (esReuim) {
-                    llenarDatosCarnetReuim(ghost, alumnoActual);
-                } else {
-                    llenarDatosCarnet(ghost, alumnoActual, globalColorTema); 
-                }
+                db.from('logs_accesos').insert({ alumno_id: alumno.id, curso: alumno.curso, fecha: new Date().toISOString() }).then(); 
+            } catch(e) { } 
+        }
 
-                const images = ghost.getElementsByTagName('img'); 
-                for(let img of images) { if(img.src && !img.complete) await new Promise(r => img.onload = r); } 
-                await new Promise(r => setTimeout(r, 500)); 
-                
-                const canvas = await html2canvas(wrapper, { scale: 1.5, useCORS: true }); 
-                const link = document.createElement('a'); 
-                link.download = `Carnet_${alumnoActual.dni_alumno}.png`; 
-                link.href = canvas.toDataURL("image/png"); 
-                link.click(); 
-                ghost.innerHTML = ''; 
-            } catch(e) { 
-                alert("Error: " + e.message); 
-            } finally { 
-                btn.innerHTML = txt; 
+        // ==========================================
+        // FUNCIONES DE UTILIDAD GENERAL
+        // ==========================================
+        function mostrarPantalla(id) { 
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); 
+            document.getElementById(id).classList.add('active');
+            if (id === 'screen-wallet') {
+                document.getElementById('wallet-header-actions').style.display = 'block';
+                actualizarCampana(notificacionesCache);
+            } else {
+                document.getElementById('wallet-header-actions').style.display = 'none';
+            }
+        }
+        
+        function volverAlSelector() { 
+            mostrarPantalla('screen-selector'); 
+        }
+        
+        function cerrarSesion() { 
+            location.reload(); 
+        }
+        
+        function ajustarCarnetResponsivo() { 
+            const v = document.getElementById('card-viewport'); 
+            const c = document.getElementById('carnet-render'); 
+            if(v && c) { 
+                const s = v.offsetWidth / 1011; 
+                c.style.transform = `scale(${s})`; 
+                v.style.height = `${638 * s}px`; 
             } 
         }
-        
-        async function descargarDiploma() { if(!cursoActualData || !cursoActualData.diploma_bg_url) return alert("Diploma no disponible."); const btn = document.getElementById('btn-descargar-diploma'); const originalText = btn.innerHTML; btn.innerHTML = '⏳'; try { const ghost = document.getElementById('ghost-container'); const colorTextoInteligente = globalInstitucion?.color_texto_diploma || globalColorTema || '#000000'; ghost.innerHTML = `<div class="diploma-layout" id="diploma-final"><img id="dip-bg-img" class="diploma-bg" src="" crossorigin="anonymous"><div class="diploma-overlay"><div class="dip-linea-unica-container" id="dip-texto-container"><span class="dip-texto-formal" id="dip-texto-completo" style="color: ${colorTextoInteligente};"></span></div><div class="dip-qr" id="dip-qr-code"></div><div class="dip-info-extra" id="dip-fecha-registro" style="color: ${colorTextoInteligente}; border-color: ${colorTextoInteligente}33;"></div><div class="dip-sello"></div></div></div>`; const bgImg = ghost.querySelector('#dip-bg-img'); let bgUrl = cursoActualData.diploma_bg_url; if (bgUrl.startsWith('["') || bgUrl.startsWith('[')) { try { bgUrl = JSON.parse(bgUrl)[0]; } catch(e) {} } const response = await fetch(bgUrl); const blob = await response.blob(); const objectURL = URL.createObjectURL(blob); bgImg.src = objectURL; await new Promise((resolve, reject) => { bgImg.onload = resolve; bgImg.onerror = () => reject(new Error("Error carga diploma")); setTimeout(() => reject(new Error("Timeout")), 10000); }); const txtElem = ghost.querySelector('#dip-texto-completo'); txtElem.innerHTML = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno)}`; new QRCode(ghost.querySelector('#dip-qr-code'), { text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, width: 223, height: 223 }); const f = new Date(alumnoActual.fecha_inicio || new Date()).toLocaleDateString('es-ES', {year:'numeric', month:'long', day:'numeric'}); ghost.querySelector('#dip-fecha-registro').innerHTML = `REGISTRO: <b>${(alumnoActual.registro_id||'OFICIAL').toUpperCase()}</b> • Fecha: ${f}`; await document.fonts.ready; txtElem.style.display = 'inline-block'; txtElem.style.whiteSpace = 'nowrap'; await new Promise(r => setTimeout(r, 100)); ajustarTextoInteligente(txtElem, txtElem.innerText, 1600, 40, 80, "'Roboto Slab', serif", '900'); await new Promise(r => setTimeout(r, 500)); const canvas = await html2canvas(ghost.querySelector('#diploma-final'), { scale: 1, useCORS: true }); const link = document.createElement('a'); link.download = `Diploma_${alumnoActual.dni_alumno}.png`; link.href = canvas.toDataURL("image/png"); link.click(); URL.revokeObjectURL(objectURL); ghost.innerHTML = ''; } catch(e) { alert("Error diploma: " + e.message); } finally { btn.innerHTML = originalText; } }
-        
-        async function descargarAnalitico() { 
-            if(!cursoActualData || !cursoActualData.analitico_bg_url) return alert("Analítico no disponible."); 
-            const btn = document.getElementById('btn-descargar-analitico'); 
-            const originalText = btn.innerHTML; btn.innerHTML = 'Generando PDF ⏳'; 
-            try { 
-                let urls = []; 
-                try { 
-                    if (cursoActualData.analitico_bg_url.trim().startsWith('[')) { urls = JSON.parse(cursoActualData.analitico_bg_url); } 
-                    else { urls = [cursoActualData.analitico_bg_url]; } 
-                } catch(e) { urls = [cursoActualData.analitico_bg_url]; } 
-                
-                const { jsPDF } = window.jspdf; 
-                const pdf = new jsPDF('p', 'mm', 'a4'); 
-                const pdfWidth = pdf.internal.pageSize.getWidth(); const pdfHeight = pdf.internal.pageSize.getHeight(); 
-                const ghost = document.getElementById('ghost-container'); 
-                const colorTextoInteligente = globalInstitucion?.color_texto_diploma || globalColorTema || '#000000'; 
-                
-                for (let i = 0; i < urls.length; i++) { 
-                    const url = urls[i]; 
-                    let overlayHTML = ''; 
-                    if (i === 0) { 
-                        overlayHTML = `
-                        <div class="diploma-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%; z-index:10;">
-                            <div style="position: absolute; top: 480px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; white-space: nowrap;">
-                                <span class="dip-texto-formal" id="ana-text-${i}" style="color: ${colorTextoInteligente} !important; font-size: 45px;"></span>
-                            </div>
-                            <div id="ana-info-${i}" style="position: absolute; top: 550px; left: 50%; transform: translateX(-50%); text-align: center; font-family: 'Roboto', sans-serif; font-size: 18px; font-weight: 700; color: ${colorTextoInteligente}; background: rgba(255,255,255,0.9); padding: 4px 25px; border-radius: 50px;"></div>
-                            <div id="ana-qr-${i}" style="position: absolute; top: 220px; right: 120px; width: 160px; height: 160px; background: white; padding: 10px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"></div>
-                        </div>`; 
-                    } else if (i === 2) {
-                        overlayHTML = `
-                        <div class="diploma-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%; z-index:10;">
-                            <div style="position: absolute; top: 480px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; white-space: nowrap;">
-                                <span class="dip-texto-formal" id="cert-text-${i}" style="color: ${colorTextoInteligente} !important; font-size: 45px;"></span>
-                            </div>
-                            <div id="cert-qr-${i}" style="position: absolute; top: 220px; right: 120px; width: 160px; height: 160px; background: white; padding: 10px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"></div>
-                        </div>`;
-                    }
-                    
-                    ghost.innerHTML = `
-                    <div class="diploma-layout" id="analitico-page-${i}" style="width: 1414px; height: 2000px; position: relative; background: white;">
-                        <img id="ana-bg-${i}" src="" crossorigin="anonymous" style="position: absolute; top:0; left:0; width: 100%; height: 100%; object-fit: cover; z-index:1;">
-                        ${overlayHTML}
-                    </div>`; 
-                    
-                    const bgImg = document.getElementById(`ana-bg-${i}`); 
-                    const response = await fetch(url); const blob = await response.blob(); const objectURL = URL.createObjectURL(blob); 
-                    bgImg.src = objectURL; 
-                    
-                    await new Promise((resolve, reject) => { 
-                        bgImg.onload = resolve; bgImg.onerror = () => reject(new Error(`Error cargando página ${i+1}`)); 
-                        setTimeout(() => reject(new Error(`Timeout página ${i+1}`)), 15000); 
-                    }); 
-                    
-                    if (i === 0) { 
-                        const txtElem = ghost.querySelector(`#ana-text-${i}`); 
-                        txtElem.innerHTML = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno)}`; 
-                        new QRCode(ghost.querySelector(`#ana-qr-${i}`), { text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, width: 140, height: 140 }); 
-                        const f = new Date(alumnoActual.fecha_inicio || new Date()).toLocaleDateString('es-ES', {year:'numeric', month:'long', day:'numeric'}); 
-                        ghost.querySelector(`#ana-info-${i}`).innerHTML = `REGISTRO: <b>${(alumnoActual.registro_id||'OFICIAL').toUpperCase()}</b> • Fecha: ${f}`; 
-                        await document.fonts.ready; 
-                        txtElem.style.display = 'inline-block'; 
-                        await new Promise(r => setTimeout(r, 200)); 
-                        ajustarTextoInteligente(txtElem, txtElem.innerText, 1200, 25, 45, "'Roboto Slab', serif", '900'); 
-                        await new Promise(r => setTimeout(r, 500)); 
-                    } else if (i === 2) {
-                        const txtElemCert = ghost.querySelector(`#cert-text-${i}`); 
-                        txtElemCert.innerHTML = `${alumnoActual.nombre} ${alumnoActual.apellido} - DNI ${new Intl.NumberFormat('es-AR').format(alumnoActual.dni_alumno)}`; 
-                        new QRCode(ghost.querySelector(`#cert-qr-${i}`), { text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`, width: 140, height: 140 }); 
-                        await document.fonts.ready; 
-                        txtElemCert.style.display = 'inline-block'; 
-                        await new Promise(r => setTimeout(r, 200)); 
-                        ajustarTextoInteligente(txtElemCert, txtElemCert.innerText, 1200, 25, 45, "'Roboto Slab', serif", '900'); 
-                        await new Promise(r => setTimeout(r, 500));
-                    }
-                    
-                    const canvas = await html2canvas(document.getElementById(`analitico-page-${i}`), { scale: 1, useCORS: true, backgroundColor: '#ffffff' }); 
-                    const imgData = canvas.toDataURL('image/jpeg', 0.90); 
-                    URL.revokeObjectURL(objectURL); 
-                    if (i > 0) pdf.addPage(); 
-                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight); 
-                } 
-                pdf.save(`Analitico_${alumnoActual.dni_alumno}.pdf`); 
-                ghost.innerHTML = ''; 
-            } catch(e) { console.error(e); alert("Error generando PDF: " + e.message); } finally { btn.innerHTML = originalText; } 
-        }
-        
-        function mostrarPantalla(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
-        function volverAlSelector() { mostrarPantalla('screen-selector'); }
-        function cerrarSesion() { location.reload(); }
-        function ajustarCarnetResponsivo() { const v = document.getElementById('card-viewport'); const c = document.getElementById('carnet-render'); if(v && c) { const s = v.offsetWidth / 1011; c.style.transform = `scale(${s})`; v.style.height = `${638 * s}px`; } }
         
         function generarHashMatricula(dni, curso, id) { 
             const str = String(dni) + String(curso).trim().toLowerCase() + String(id);
