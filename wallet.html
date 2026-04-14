@@ -97,6 +97,14 @@
         .btn-doc i { font-size: 20px; color: var(--gold); }
         .btn-pay { background: var(--gold); color: black; border: none; width: 100%; padding: 12px; border-radius: 8px; font-weight: 900; cursor: pointer; text-transform: uppercase; font-size: 12px; display: flex; justify-content: center; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3); }
 
+        /* SECCIÓN DIPLOMAS DIRECTOS */
+        .diplomas-section { background: linear-gradient(135deg, #eef2ff 0%, #f3e8ff 100%); border-radius: 16px; padding: 16px; margin-bottom: 20px; border: 1px solid #c7d2fe; }
+        .diploma-item { background: white; border-radius: 12px; padding: 12px; margin-bottom: 10px; transition: all 0.2s; border-left: 4px solid #6366f1; }
+        .diploma-item:last-child { margin-bottom: 0; }
+        .diploma-item:hover { transform: translateX(4px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .btn-diploma-download { background: #6366f1; color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .btn-diploma-download:hover { background: #4f46e5; transform: scale(1.02); }
+
         /* CARNET STYLES (ESTANDAR) */
         .card-base { width: 100%; height: 100%; display: flex; position: relative; border: 5px solid; border-radius: 40px; overflow: hidden; background: white; transition: border-color 0.3s; }
         .front-left { width: 380px; height: 100%; position: relative; background: #d4d4d4; z-index: 1; border-top-left-radius: 35px; border-bottom-left-radius: 35px; overflow: hidden; flex-shrink: 0; }
@@ -147,9 +155,9 @@
 
         .official-badge { position: absolute; top: 20px; left: 20px; color: #D4AF37; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 3px; border: 1px solid #D4AF37; padding: 4px 12px; border-radius: 20px; background: rgba(4,17,48,0.8); z-index: 20; }
 
-        .reuim-header-box { text-align: right; color: white; margin-bottom: 5px; position: relative; z-index: 10; border-bottom: 8px solid #D4AF37; padding-bottom: 8px; }
-        .reuim-header-box span.underline { font-size: 75px; font-weight: 900; text-shadow: 3px 3px 6px rgba(0,0,0,0.8); display: inline; }
-        .reuim-header-box span.year { font-size: 75px; font-weight: 900; text-shadow: 3px 3px 6px rgba(0,0,0,0.8); margin-left: 15px; }
+        .reuim-header-box { text-align: center; color: white; margin-bottom: 5px; position: relative; z-index: 10; border-bottom: 8px solid #D4AF37; padding-bottom: 8px; }
+        .reuim-header-box span.underline { font-size: 75px; font-weight: 900; text-shadow: 3px 3px 6px rgba(0,0,0,0.8); display: inline-block; }
+        .reuim-header-box span.year { font-size: 75px; font-weight: 900; text-shadow: 3px 3px 6px rgba(0,0,0,0.8); margin-left: 15px; display: inline-block; }
 
         .reuim-title-box { text-align: center; color: white; margin: 20px 0; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; position: relative; z-index: 10; background: linear-gradient(90deg, transparent, rgba(212,175,55,0.15), transparent); border-top: 1px solid rgba(212,175,55,0.4); border-bottom: 1px solid rgba(212,175,55,0.4); padding: 20px 0; overflow: visible; min-height: 0; }
         .reuim-title-main, .reuim-title-sub { font-weight: 900; text-transform: uppercase; text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000, 5px 5px 8px rgba(0,0,0,0.8); white-space: nowrap; line-height: 1.2; text-align: center; display: inline-block; max-width: 100%; }
@@ -307,6 +315,24 @@
         </div>
 
         <div id="premium-section"></div>
+
+        <!-- SECCIÓN DIPLOMAS DIRECTOS -->
+        <div id="diplomas-section" class="diplomas-section" style="display: none;">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-award text-indigo-600 text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="font-black text-slate-800 text-base">Mis Diplomas</h3>
+                    <p class="text-xs text-slate-500">Certificaciones adicionales emitidas</p>
+                </div>
+            </div>
+            <div id="lista-diplomas-usuario">
+                <div class="text-center py-4 text-slate-400 text-sm">
+                    <i class="fas fa-spinner fa-spin mr-2"></i> Cargando diplomas...
+                </div>
+            </div>
+        </div>
 
         <div class="actions-grid">
             <div class="action-card" id="btn-download-carnet" onclick="descargarCarnetCompleto()"><span class="action-icon"><i class="fas fa-id-card"></i></span><span class="action-title">Descargar Carnet</span></div>
@@ -519,6 +545,13 @@
         // FUNCIONES DE UTILIDAD
         // ==========================================
         
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         function medirAnchoTextoCanvas(texto, fontSize, fontFamily = 'Roboto, sans-serif', fontWeight = '900') {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
@@ -607,10 +640,10 @@
             let maxWidthMain, maxWidthSub, maxSizeMain, maxSizeSub, minSize, fontFamily, fontWeight;
             
             if (esReuim) {
-                maxWidthMain = 520;
-                maxWidthSub = 520;
-                maxSizeMain = 58;
-                maxSizeSub = 52;
+                maxWidthMain = 540;
+                maxWidthSub = 540;
+                maxSizeMain = 62;
+                maxSizeSub = 55;
                 minSize = 24;
                 fontFamily = "'Playfair Display', 'Roboto', serif";
                 fontWeight = '900';
@@ -647,6 +680,111 @@
                     minSizeNombre = 26;
                 }
                 ajustarTextoInteligente(nombreEl, nombreCompleto, maxWidthNombre, minSizeNombre, maxSizeNombre, fontFamily, fontWeight);
+            }
+        }
+
+        // ==========================================
+        // FUNCIÓN PARA CARGAR DIPLOMAS DEL USUARIO
+        // ==========================================
+        async function cargarDiplomasUsuario(dni_alumno) {
+            const container = document.getElementById('lista-diplomas-usuario');
+            const section = document.getElementById('diplomas-section');
+            
+            if (!container) return;
+            
+            try {
+                const { data: diplomas, error } = await db
+                    .from('diplomas_directos')
+                    .select('*')
+                    .eq('dni_alumno', String(dni_alumno))
+                    .order('emitido_en', { ascending: false });
+                
+                if (error) throw error;
+                
+                if (diplomas && diplomas.length > 0) {
+                    section.style.display = 'block';
+                    container.innerHTML = '';
+                    
+                    diplomas.forEach(diploma => {
+                        const fechaEmision = new Date(diploma.emitido_en).toLocaleDateString('es-AR');
+                        container.innerHTML += `
+                            <div class="diploma-item flex items-center justify-between">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-certificate text-indigo-600"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-bold text-slate-800 text-sm">${escapeHtml(diploma.diploma_nombre)}</p>
+                                        <p class="text-xs text-slate-500">Emitido: ${fechaEmision}</p>
+                                    </div>
+                                </div>
+                                <button onclick="descargarDiplomaDirecto('${diploma.id}')" 
+                                        class="btn-diploma-download flex items-center gap-1">
+                                    <i class="fas fa-download text-xs"></i> DESCARGAR
+                                </button>
+                            </div>
+                        `;
+                    });
+                } else {
+                    section.style.display = 'none';
+                }
+            } catch (error) {
+                console.error("Error cargando diplomas:", error);
+                section.style.display = 'none';
+            }
+        }
+
+        // Función para descargar diploma directo
+        async function descargarDiplomaDirecto(diplomaId) {
+            try {
+                const { data: diploma, error } = await db
+                    .from('diplomas_directos')
+                    .select('*')
+                    .eq('id', diplomaId)
+                    .single();
+                
+                if (error) throw error;
+                
+                // Buscar plantilla de diploma para este registro
+                const { data: plantillaCurso } = await db
+                    .from('cursos_oficiales')
+                    .select('diploma_bg_url')
+                    .eq('registro_id', diploma.registro_id)
+                    .maybeFirst();
+                
+                const fondoDiploma = plantillaCurso?.diploma_bg_url || 'https://via.placeholder.com/2000x1414?text=Diploma';
+                
+                const ghost = document.getElementById('ghost-container');
+                ghost.innerHTML = `
+                    <div class="diploma-layout" id="diploma-directo" style="width: 2000px; height: 1414px; position: relative; background: white;">
+                        <img src="${fondoDiploma}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1;">
+                        <div style="position: absolute; top: 595px; left: 50%; transform: translateX(-50%); width: 90%; text-align: center; white-space: nowrap; z-index: 10;">
+                            <span class="dip-texto-formal" id="dip-texto" style="font-size: 80px;">${diploma.nombre} ${diploma.apellido}</span>
+                        </div>
+                        <div style="position: absolute; top: 284px; right: 176px; width: 233px; height: 233px; background: white; padding: 5px; z-index: 10;" id="qr-dip"></div>
+                        <div style="position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); text-align: center; font-size: 18px; font-weight: 700; z-index: 10; background: rgba(255,255,255,0.9); padding: 8px 20px; border-radius: 40px;">
+                            DIPLOMA DE ${diploma.diploma_nombre} • EMITIDO: ${new Date(diploma.emitido_en).toLocaleDateString()}
+                        </div>
+                    </div>
+                `;
+                
+                new QRCode(document.getElementById('qr-dip'), {
+                    text: `${URL_WEB}/validador.html?dni=${diploma.dni_alumno}`,
+                    width: 223,
+                    height: 223
+                });
+                
+                await new Promise(r => setTimeout(r, 500));
+                const canvas = await html2canvas(ghost.querySelector('#diploma-directo'), { scale: 1.5, useCORS: true });
+                const link = document.createElement('a');
+                link.download = `Diploma_${diploma.dni_alumno}_${diploma.diploma_nombre.replace(/\s/g, '_')}.png`;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+                ghost.innerHTML = '';
+                
+            } catch (error) {
+                console.error("Error descargando diploma:", error);
+                alert("Error al descargar el diploma: " + error.message);
             }
         }
 
@@ -1093,6 +1231,7 @@
             registrarAcceso(alumno);
             renderPremiumSection(alumno);
             cargarContenidosExtra(alumno);
+            await cargarDiplomasUsuario(alumno.dni_alumno);
             cargarNotificacionesSistema(); 
 
             const btnDiploma = document.getElementById('btn-descargar-diploma');
