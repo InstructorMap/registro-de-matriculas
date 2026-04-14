@@ -1,403 +1,5 @@
-        // ============================================
-        // SECCIÓN DIPLOMAS (CRUD COMPLETO)
-        // ============================================
-        async function renderDiplomas(container) {
-            // Cargar catálogo de diplomas
-            let query = db.from('diplomas_catalogo').select('*').order('created_at', { ascending: false });
-            if (currentProfile?.rol !== 'superadmin') {
-                query = query.eq('institution_id', currentProfile?.institucion_id);
-            }
-            const { data: diplomas } = await query;
-            diplomasCatalogo = diplomas || [];
-            
-            container.innerHTML = `
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <!-- Formulario -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-indigo-100 p-6">
-                        <h3 class="text-xl font-black mb-4 flex items-center gap-2">
-                            <i data-lucide="award" class="text-indigo-500"></i> ${document.getElementById('diploma-id-edit')?.value ? 'Editar' : 'Nuevo'} Diploma
-                        </h3>
-                        <input type="hidden" id="diploma-id-edit">
-                        <div class="space-y-4">
-                            <div><label class="label-form">Nombre</label><input type="text" id="diploma-nombre" class="input-form" placeholder="Ej: Especialista en RCP"></div>
-                            <div><label class="label-form">Registro</label>
-                                <select id="diploma-registro" class="input-form">
-                                    <option value="reuim">REUIM</option>
-                                    <option value="remaep">REMAEP</option>
-                                    <option value="isf">ISF</option>
-                                </select>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div><label class="label-form">Costo (ARS)</label><input type="number" id="diploma-costo" class="input-form" value="0"></div>
-                                <div><label class="label-form">Duración</label><input type="text" id="diploma-duracion" class="input-form" placeholder="40 hs"></div>
-                            </div>
-                            <div><label class="label-form">Descripción</label><textarea id="diploma-descripcion" class="input-form h-24 resize-none"></textarea></div>
-                            <button onclick="window.guardarDiploma()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition">💾 GUARDAR</button>
-                            <button onclick="window.limpiarFormDiploma()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 rounded-xl transition">🗑️ LIMPIAR</button>
-                        </div>
-                    </div>
-                    
-                    <!-- Listado -->
-                    <div class="bg-white rounded-2xl shadow-sm border p-6">
-                        <h3 class="text-xl font-black mb-4">📋 Catálogo de Diplomas</h3>
-                        <div id="lista-diplomas" class="space-y-3 max-h-[500px] overflow-y-auto">
-                            ${diplomasCatalogo.length === 0 ? '<p class="text-slate-400 text-center py-8">No hay diplomas creados</p>' : 
-                                diplomasCatalogo.map(d => `
-                                <div class="flex justify-between items-center p-3 border rounded-lg hover:bg-slate-50">
-                                    <div>
-                                        <p class="font-bold text-sm">${d.nombre}</p>
-                                        <p class="text-xs text-slate-500">${d.registro_id || 'GENERAL'} - $${d.costo || 0} ${d.duracion ? `• ${d.duracion}` : ''}</p>
-                                        ${d.descripcion ? `<p class="text-xs text-slate-400 mt-1 line-clamp-1">${d.descripcion}</p>` : ''}
-                                    </div>
-                                    <div class="flex gap-2">
-                                        <button onclick="window.editarDiploma('${d.id}')" class="text-blue-500 hover:text-blue-700 p-1">✏️</button>
-                                        <button onclick="window.eliminarDiploma('${d.id}')" class="text-red-500 hover:text-red-700 p-1">🗑️</button>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                </div>
-            `;
-            if(window.lucide) lucide.createIcons();
-        }
-        
-        window.guardarDiploma = async function() {
-            const idEdit = document.getElementById('diploma-id-edit')?.value;
-            const nombre = document.getElementById('diploma-nombre')?.value.trim();
-            if (!nombre) {
-                window.toast("El nombre es obligatorio", 'error');
-                return;
-            }
-            
-            const data = {
-                nombre: nombre.toUpperCase(),
-                registro_id: document.getElementById('diploma-registro')?.value,
-                costo: parseInt(document.getElementById('diploma-costo')?.value) || 0,
-                duracion: document.getElementById('diploma-duracion')?.value,
-                descripcion: document.getElementById('diploma-descripcion')?.value,
-                institution_id: currentProfile?.rol === 'superadmin' ? null : currentProfile?.institucion_id
-            };
-            
-            let error;
-            if (idEdit) {
-                const res = await db.from('diplomas_catalogo').update(data).eq('id', idEdit);
-                error = res.error;
-                if (!error) window.toast("Diploma actualizado");
-            } else {
-                const res = await db.from('diplomas_catalogo').insert([data]);
-                error = res.error;
-                if (!error) window.toast("Diploma creado");
-            }
-            
-            if (error) {
-                window.toast("Error: " + error.message, 'error');
-            } else {
-                window.limpiarFormDiploma();
-                cargarContenidoSeccion('diplomas');
-            }
-        };
-        
-        window.editarDiploma = function(id) {
-            const diploma = diplomasCatalogo.find(d => d.id === id);
-            if (!diploma) return;
-            document.getElementById('diploma-id-edit').value = diploma.id;
-            document.getElementById('diploma-nombre').value = diploma.nombre;
-            document.getElementById('diploma-registro').value = diploma.registro_id || 'reuim';
-            document.getElementById('diploma-costo').value = diploma.costo || 0;
-            document.getElementById('diploma-duracion').value = diploma.duracion || '';
-            document.getElementById('diploma-descripcion').value = diploma.descripcion || '';
-            window.toast("Editando: " + diploma.nombre);
-            document.getElementById('contenido-principal').scrollIntoView({ behavior: 'smooth' });
-        };
-        
-        window.eliminarDiploma = async function(id) {
-            if (!confirm("¿Eliminar este diploma permanentemente?")) return;
-            const { error } = await db.from('diplomas_catalogo').delete().eq('id', id);
-            if (error) {
-                window.toast("Error: " + error.message, 'error');
-            } else {
-                window.toast("Diploma eliminado");
-                cargarContenidoSeccion('diplomas');
-            }
-        };
-        
-        window.limpiarFormDiploma = function() {
-            document.getElementById('diploma-id-edit').value = '';
-            document.getElementById('diploma-nombre').value = '';
-            document.getElementById('diploma-registro').value = 'reuim';
-            document.getElementById('diploma-costo').value = '0';
-            document.getElementById('diploma-duracion').value = '';
-            document.getElementById('diploma-descripcion').value = '';
-        };
-        
-        // ============================================
-        // SECCIÓN ALUMNOS (simplificada pero funcional)
-        // ============================================
-        async function renderAlumnos(container) {
-            let query = db.from('matriculas').select('*, instituciones(nombre)').order('created_at', { ascending: false }).limit(100);
-            if (currentProfile?.rol !== 'superadmin') {
-                query = query.eq('institution_id', currentProfile?.institucion_id);
-            }
-            const { data: alumnos } = await query;
-            
-            container.innerHTML = `
-                <div class="bg-white rounded-2xl shadow-sm border p-6">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-xl font-black">📚 Directorio de Alumnos</h3>
-                        <button onclick="window.toast('Función en desarrollo')" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold">+ Nuevo Alumno</button>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead class="bg-slate-100">
-                                <tr><th class="p-3 text-left">DNI</th><th class="p-3 text-left">Nombre</th><th class="p-3 text-left">Curso</th><th class="p-3 text-left">Institución</th><th class="p-3 text-left">Estado</th></tr>
-                            </thead>
-                            <tbody>
-                                ${alumnos && alumnos.length > 0 ? alumnos.map(a => `
-                                    <tr class="border-b hover:bg-slate-50">
-                                        <td class="p-3">${a.dni_alumno || '-'}</td>
-                                        <td class="p-3 font-bold">${a.nombre} ${a.apellido || ''}</td>
-                                        <td class="p-3">${a.curso || '-'}</td>
-                                        <td class="p-3">${a.instituciones?.nombre || '-'}</td>
-                                        <td class="p-3"><span class="status-badge status-active">ACTIVO</span></td>
-                                    </tr>
-                                `).join('') : '<tr><td colspan="5" class="p-8 text-center text-slate-400">No hay alumnos registrados</td></tr>'}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            `;
-        }
-        
-        // ============================================
-        // SECCIÓN CURSOS
-        // ============================================
-        async function renderCursos(container) {
-            const { data: cursos } = await db.from('cursos_oficiales').select('*').order('nombre');
-            cursosCache = cursos || [];
-            
-            container.innerHTML = `
-                <div class="bg-white rounded-2xl shadow-sm border p-6">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-xl font-black">🎓 Cursos Oficiales</h3>
-                        <button onclick="window.toast('Función en desarrollo')" class="bg-slate-800 text-white px-4 py-2 rounded-xl text-sm font-bold">+ Nuevo Curso</button>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        ${cursosCache.length > 0 ? cursosCache.map(c => `
-                            <div class="p-4 border rounded-xl hover:shadow-md">
-                                <p class="font-bold text-slate-800">${c.nombre}</p>
-                                <p class="text-xs text-slate-500 mt-1">Registro: ${c.registro_id || 'GENERAL'}</p>
-                            </div>
-                        `).join('') : '<p class="col-span-3 text-center text-slate-400 py-8">No hay cursos cargados</p>'}
-                    </div>
-                </div>
-            `;
-        }
-        
-        // ============================================
-        // SECCIÓN SEMINARIOS
-        // ============================================
-        async function renderSeminarios(container) {
-            let query = db.from('seminarios').select('*').order('created_at', { ascending: false });
-            if (currentProfile?.rol !== 'superadmin') {
-                query = query.eq('institution_id', currentProfile?.institucion_id);
-            }
-            const { data: seminarios } = await query;
-            seminariosCache = seminarios || [];
-            
-            container.innerHTML = `
-                <div class="bg-white rounded-2xl shadow-sm border p-6">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-xl font-black">📺 Seminarios</h3>
-                        <button onclick="window.toast('Función en desarrollo')" class="bg-rose-600 text-white px-4 py-2 rounded-xl text-sm font-bold">+ Nuevo Seminario</button>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        ${seminariosCache.length > 0 ? seminariosCache.map(s => `
-                            <div class="flex gap-4 p-3 border rounded-xl">
-                                <div class="w-24 h-16 bg-slate-800 rounded flex items-center justify-center">
-                                    <i data-lucide="play-circle" class="text-white w-6 h-6"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <p class="font-bold text-sm">${s.titulo}</p>
-                                    <p class="text-xs text-green-600 font-bold">$${s.precio || 0}</p>
-                                </div>
-                            </div>
-                        `).join('') : '<p class="col-span-2 text-center text-slate-400 py-8">No hay seminarios</p>'}
-                    </div>
-                </div>
-            `;
-            if(window.lucide) lucide.createIcons();
-        }
-        
-        // ============================================
-        // SECCIÓN CARGA MASIVA
-        // ============================================
-        function renderCargaMasiva(container) {
-            container.innerHTML = `
-                <div class="bg-white rounded-2xl shadow-sm border p-8 text-center max-w-2xl mx-auto">
-                    <h3 class="text-2xl font-black mb-4">📤 Carga Masiva de Alumnos</h3>
-                    <p class="text-slate-500 mb-6">Excel: DNI, NOMBRE, APELLIDO, CURSO</p>
-                    <input type="file" id="excel-input" accept=".xlsx, .xls" class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-blue-50 file:text-blue-700">
-                    <div id="preview-carga" class="hidden mt-6"></div>
-                </div>
-            `;
-            
-            document.getElementById('excel-input')?.addEventListener('change', async (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (evt) => {
-                    const data = new Uint8Array(evt.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const rows = XLSX.utils.sheet_to_json(sheet);
-                    window.toast(`${rows.length} registros encontrados`);
-                };
-                reader.readAsArrayBuffer(file);
-            });
-        }
-        
-        // ============================================
-        // SECCIÓN MARKETING
-        // ============================================
-        async function renderMarketing(container) {
-            let query = db.from('rutas_carrera').select('*').order('created_at', { ascending: false }).limit(10);
-            if (currentProfile?.rol !== 'superadmin') {
-                query = query.eq('institution_id', currentProfile?.institucion_id);
-            }
-            const { data: anuncios } = await query;
-            anunciosCache = anuncios || [];
-            
-            container.innerHTML = `
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div class="bg-white rounded-2xl shadow-sm border p-6">
-                        <h3 class="text-xl font-black mb-4">📢 Nuevo Anuncio</h3>
-                        <input type="text" id="anuncio-titulo" class="input-form mb-3" placeholder="Título">
-                        <textarea id="anuncio-desc" class="input-form h-24 mb-3" placeholder="Descripción"></textarea>
-                        <input type="text" id="anuncio-link" class="input-form mb-3" placeholder="Link">
-                        <button onclick="window.toast('Función en desarrollo')" class="w-full bg-purple-600 text-white font-bold py-3 rounded-xl">PUBLICAR</button>
-                    </div>
-                    <div class="bg-white rounded-2xl shadow-sm border p-6">
-                        <h3 class="text-xl font-black mb-4">📋 Anuncios Activos</h3>
-                        ${anunciosCache.length > 0 ? anunciosCache.map(a => `
-                            <div class="p-3 border rounded mb-2">
-                                <p class="font-bold text-sm">${a.titulo_oferta || 'Sin título'}</p>
-                            </div>
-                        `).join('') : '<p class="text-slate-400 text-center py-8">Sin anuncios</p>'}
-                    </div>
-                </div>
-            `;
-        }
-        
-        // ============================================
-        // SECCIÓN REPORTES
-        // ============================================
-        function renderReportes(container) {
-            container.innerHTML = `
-                <div class="bg-white rounded-2xl shadow-sm border p-8">
-                    <h3 class="text-2xl font-black mb-6">📊 Reportes Financieros</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                        <div class="bg-green-50 p-6 rounded-xl border border-green-200">
-                            <p class="text-green-600 text-xs font-bold uppercase">Ingresos Totales</p>
-                            <p class="text-3xl font-black text-slate-800">$0</p>
-                        </div>
-                        <div class="bg-blue-50 p-6 rounded-xl border border-blue-200">
-                            <p class="text-blue-600 text-xs font-bold uppercase">Diplomas Emitidos</p>
-                            <p class="text-3xl font-black text-slate-800">0</p>
-                        </div>
-                    </div>
-                    <button onclick="window.toast('Exportando...')" class="bg-slate-800 text-white px-6 py-3 rounded-xl font-bold">📥 DESCARGAR EXCEL</button>
-                </div>
-            `;
-        }
-        
-        // ============================================
-        // SECCIÓN AUDITORÍA
-        // ============================================
-        function renderAuditoria(container) {
-            container.innerHTML = `
-                <div class="bg-white rounded-2xl shadow-sm border p-8">
-                    <h3 class="text-2xl font-black mb-6">🔗 Auditoría Blockchain</h3>
-                    <div class="flex gap-4 mb-6">
-                        <input type="text" id="hash-buscar" class="input-form font-mono" placeholder="Hash o DNI">
-                        <button onclick="window.toast('Buscando...')" class="bg-emerald-600 text-white px-6 py-2 rounded-xl font-bold">BUSCAR</button>
-                    </div>
-                    <div class="text-center text-slate-400 py-8">Ingrese un término para buscar en el ledger</div>
-                </div>
-            `;
-        }
-        
-        // ============================================
-        // SECCIÓN ENTIDADES (SuperAdmin)
-        // ============================================
-        async function renderEntidades(container) {
-            if (currentProfile?.rol !== 'superadmin') {
-                container.innerHTML = '<div class="bg-red-50 p-8 rounded-2xl text-center text-red-600">Acceso restringido</div>';
-                return;
-            }
-            
-            const { data: instituciones } = await db.from('instituciones').select('*').order('created_at');
-            
-            container.innerHTML = `
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div class="bg-white rounded-2xl shadow-sm border p-6">
-                        <h3 class="text-xl font-black mb-4">🏢 Nueva Institución</h3>
-                        <input type="text" id="nueva-inst-nombre" class="input-form mb-3" placeholder="Nombre">
-                        <input type="text" id="nueva-inst-sigla" class="input-form mb-3" placeholder="Sigla (ej: reuim)">
-                        <input type="color" id="nueva-inst-color" class="w-full h-12 rounded-lg mb-3" value="#0033cc">
-                        <button onclick="window.toast('Función en desarrollo')" class="w-full bg-slate-800 text-white font-bold py-3 rounded-xl">CREAR</button>
-                    </div>
-                    <div class="bg-white rounded-2xl shadow-sm border p-6">
-                        <h3 class="text-xl font-black mb-4">📋 Instituciones</h3>
-                        ${instituciones && instituciones.length > 0 ? instituciones.map(i => `
-                            <div class="flex justify-between items-center p-3 border rounded mb-2">
-                                <span class="font-bold">${i.nombre}</span>
-                                <span class="text-xs text-slate-500">${i.sigla || 'INSTITUTO'}</span>
-                            </div>
-                        `).join('') : '<p class="text-slate-400 text-center py-4">Sin instituciones</p>'}
-                    </div>
-                </div>
-            `;
-        }
-        
-        // ============================================
-        // LOGOUT
-        // ============================================
-        window.logout = async function() {
-            await db.auth.signOut();
-            window.location.href = 'index.html';
-        };
-        
-        // ============================================
-        // INICIALIZACIÓN
-        // ============================================
-        document.addEventListener('DOMContentLoaded', async () => {
-            const { data: { session } } = await db.auth.getSession();
-            if (!session) {
-                window.location.href = 'index.html';
-                return;
-            }
-            
-            currentUser = session.user;
-            document.getElementById('user-email').innerText = currentUser.email;
-            
-            const { data: perfil } = await db.from('perfiles').select('*, instituciones(*)').eq('id', currentUser.id).single();
-            currentProfile = perfil;
-            
-            if (perfil?.rol === 'superadmin') {
-                document.getElementById('menu-superadmin').classList.remove('hidden');
-                document.getElementById('super-indicator').classList.remove('hidden');
-            }
-            
-            if (perfil?.instituciones?.nombre) {
-                document.getElementById('sidebar-inst-name').innerText = perfil.instituciones.nombre;
-            }
-            
-            if (window.lucide) lucide.createIcons();
-            
-            // Cargar inicio por defecto
-            await renderInicio(document.getElementById('contenido-principal'));
-        });
+<!DOCTYPE html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -437,9 +39,6 @@
         .status-active { background: #d1fae5; color: #065f46; }
         .status-suspended { background: #fee2e2; color: #991b1b; }
         .status-diploma { background: #dbeafe; color: #1e40af; }
-        
-        /* Line clamp */
-        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden text-slate-800">
@@ -469,6 +68,7 @@
                 <i data-lucide="monitor-play" size="18"></i> Seminarios TV
             </button>
             
+            <!-- NUEVA SECCIÓN DIPLOMAS -->
             <button onclick="mostrarSeccion('panel-diplomas')" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-indigo-300 bg-indigo-900/20 hover:bg-indigo-900/40 border border-indigo-500/20 transition-all">
                 <i data-lucide="award" size="18"></i> Diplomas Directos
             </button>
@@ -548,101 +148,14 @@
                 </div>
             </div>
 
-            <!-- SECCIÓN DIPLOMAS DIRECTOS COMPLETA -->
+            <!-- NUEVA SECCIÓN: DIPLOMAS DIRECTOS -->
             <div id="panel-diplomas" class="hidden animate-fade-in">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <!-- Columna Izquierda: Crear Diploma -->
                     <div class="bg-white rounded-2xl shadow-sm border border-indigo-100 p-6">
                         <h3 class="text-xl font-black text-slate-800 mb-4 flex items-center gap-2">
-                            <i data-lucide="award" class="text-indigo-500"></i> Crear Diploma Directo
+                            <i data-lucide="upload" class="text-indigo-500"></i> Carga Masiva de Diplomas
                         </h3>
-                        
-                        <div class="space-y-4">
-                            <input type="hidden" id="diploma-id-edit">
-                            
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="label-form">Nombre del Diploma</label>
-                                    <input type="text" id="diploma-nombre" class="input-form" placeholder="Ej: Especialista en RCP">
-                                </div>
-                                <div>
-                                    <label class="label-form">Sigla del Registro</label>
-                                    <select id="diploma-registro" class="input-form font-bold">
-                                        <option value="reuim">REUIM</option>
-                                        <option value="remaep">REMAEP</option>
-                                        <option value="isf">ISF</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="label-form">Costo (AR$)</label>
-                                    <input type="number" id="diploma-costo" class="input-form" placeholder="0" value="0">
-                                </div>
-                                <div>
-                                    <label class="label-form">Duración (Horas)</label>
-                                    <input type="text" id="diploma-duracion" class="input-form" placeholder="Ej: 40 hs">
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="label-form">Descripción del Diploma</label>
-                                <textarea id="diploma-descripcion" class="input-form h-24 resize-none" placeholder="Contenido, requisitos, etc..."></textarea>
-                            </div>
-
-                            <div class="bg-slate-50 p-3 rounded border border-slate-200">
-                                <label class="label-form">Plantilla del Diploma (Imagen)</label>
-                                <input type="file" id="diploma-plantilla" accept="image/*" class="w-full text-xs text-slate-500">
-                                <img id="diploma-preview-img" class="h-20 mt-2 object-cover rounded hidden border">
-                            </div>
-
-                            <div class="bg-slate-50 p-3 rounded border border-slate-200">
-                                <label class="label-form">Marca de Agua (Opcional)</label>
-                                <input type="file" id="diploma-watermark" accept="image/*" class="w-full text-xs text-slate-500">
-                                <img id="diploma-preview-watermark" class="h-12 mt-2 object-contain hidden opacity-50">
-                            </div>
-
-                            <div class="flex gap-3 pt-4">
-                                <button onclick="guardarDiplomaDirecto()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition shadow-lg flex items-center justify-center gap-2">
-                                    <i data-lucide="save" size="18"></i> GUARDAR DIPLOMA
-                                </button>
-                                <button onclick="limpiarFormDiploma()" class="px-4 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3 rounded-xl transition">
-                                    LIMPIAR
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Columna Derecha: Lista de Diplomas -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-xl font-black text-slate-800 flex items-center gap-2">
-                                <i data-lucide="list" class="text-indigo-500"></i> Catálogo de Diplomas
-                            </h3>
-                            <button onclick="cargarDiplomasCatalogo()" class="text-indigo-500 hover:text-indigo-700">
-                                <i data-lucide="refresh-cw" size="16"></i>
-                            </button>
-                        </div>
-                        
-                        <div id="lista-diplomas-catalogo" class="space-y-3 max-h-[600px] overflow-y-auto">
-                            <p class="text-slate-400 text-sm text-center py-8">Cargando diplomas...</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Sección de Emisión Masiva -->
-                <div class="mt-8 bg-white rounded-2xl shadow-sm border border-indigo-100 p-6">
-                    <button onclick="toggleEmisionMasiva()" class="w-full flex justify-between items-center">
-                        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                            <i data-lucide="users" class="text-indigo-500"></i> Emisión Masiva de Diplomas
-                            <span class="text-xs text-slate-400 ml-2">(Clic para expandir)</span>
-                        </h3>
-                        <i data-lucide="chevron-down" id="icon-emision-masiva" size="20"></i>
-                    </button>
-                    
-                    <div id="emision-masiva-content" class="hidden mt-4 pt-4 border-t border-slate-100">
-                        <p class="text-sm text-slate-500 mb-4">Sube un Excel con los datos de los alumnos que recibirán diploma directo.</p>
+                        <p class="text-sm text-slate-500 mb-4">Sube un Excel con los datos de los alumnos que recibirán diploma directo (sin curso regular).</p>
                         
                         <div class="bg-amber-50 p-4 rounded-xl border border-amber-200 mb-6">
                             <p class="text-xs font-bold text-amber-700 mb-2">📋 Formato del Excel:</p>
@@ -650,19 +163,14 @@
                                 <li>• <strong>DNI</strong> - Número de documento</li>
                                 <li>• <strong>NOMBRE</strong> - Nombre del alumno</li>
                                 <li>• <strong>APELLIDO</strong> - Apellido del alumno</li>
+                                <li>• <strong>DIPLOMA</strong> - Nombre del diploma (ej: "Especialista en RCP")</li>
+                                <li>• <strong>REGISTRO</strong> - Sigla del registro (opcional, default: "reuim")</li>
                             </ul>
                         </div>
                         
                         <div id="div-carga-diploma-inst" class="hidden mb-4">
                             <label class="label-form">Instituto al que pertenecen</label>
                             <select id="carga-diploma-instituto" class="input-form"></select>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label class="label-form">Seleccionar Diploma Base</label>
-                            <select id="carga-diploma-select" class="input-form font-bold">
-                                <option value="">-- Seleccionar Diploma --</option>
-                            </select>
                         </div>
                         
                         <input type="file" id="input-diploma-excel" accept=".xlsx, .xls" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" onchange="procesarExcelDiplomas()">
@@ -676,126 +184,53 @@
                             </div>
                             <div class="max-h-40 overflow-y-auto border rounded-lg bg-white">
                                 <table class="w-full text-xs">
-                                    <thead class="bg-slate-50">
-                                        <tr><th class="p-2">DNI</th><th>Nombre</th><th>Diploma</th></tr>
-                                    </thead>
+                                    <thead class="bg-slate-50"><tr><th class="p-2">DNI</th><th>Nombre</th><th>Diploma</th></tr></thead>
                                     <tbody id="tabla-preview-diplomas"></tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
+                    
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                        <h3 class="text-xl font-black text-slate-800 mb-4 flex items-center gap-2">
+                            <i data-lucide="list" class="text-indigo-500"></i> Diplomas Emitidos
+                        </h3>
+                        <div id="lista-diplomas" class="space-y-2 max-h-[500px] overflow-y-auto">
+                            <p class="text-slate-400 text-sm text-center py-8">Cargando diplomas...</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- PANEL ALUMNOS -->
-            <div id="panel-alumnos" class="hidden animate-fade-in">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 min-h-[500px] flex flex-col">
-                    <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
-                        <h3 class="text-lg font-bold text-slate-700">Directorio de Alumnos</h3>
-                        <button onclick="abrirModalAlumno()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg transition">
-                            <i data-lucide="user-plus" size="18"></i> Nuevo Alumno
+            <div id="panel-reportes" class="hidden animate-fade-in">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-green-100 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-4 opacity-10"><i data-lucide="dollar-sign" size="64" class="text-green-600"></i></div>
+                        <p class="text-green-600 text-xs font-bold uppercase tracking-wider mb-2">Ingresos por Seminarios</p>
+                        <h3 class="text-3xl font-black text-slate-800" id="repo-ingresos">$0</h3>
+                        <p class="text-sm text-slate-400 mt-1" id="repo-ventas-count">0 ventas registradas</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-blue-100 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-4 opacity-10"><i data-lucide="award" size="64" class="text-blue-600"></i></div>
+                        <p class="text-blue-600 text-xs font-bold uppercase tracking-wider mb-2">Diplomas Emitidos</p>
+                        <h3 class="text-3xl font-black text-slate-800" id="repo-diplomas">0</h3>
+                        <p class="text-sm text-slate-400 mt-1">Emisiones directas</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+                    <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-800">Exportación de Datos</h3>
+                            <p class="text-slate-500 text-sm">Descarga el balance completo para rendición de cuentas.</p>
+                        </div>
+                        <button onclick="descargarReporteExcel()" class="bg-slate-800 hover:bg-black text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg transition">
+                            <i data-lucide="download"></i> DESCARGAR EXCEL RENDICIÓN
                         </button>
                     </div>
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4 grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div class="relative">
-                            <i data-lucide="search" class="absolute left-3 top-2.5 text-slate-400" size="16"></i>
-                            <input type="text" id="filtro-busqueda" placeholder="Buscar DNI o Apellido..." class="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500" onkeyup="if(event.key === 'Enter') filtrarAlumnos()">
-                        </div>
-                        <div id="container-filtro-inst" class="hidden">
-                            <select id="filtro-instituto" class="select-filter" onchange="filtrarAlumnos()">
-                                <option value="">🏢 Todos los Institutos</option>
-                            </select>
-                        </div>
-                        <div>
-                            <select id="filtro-curso" class="select-filter" onchange="filtrarAlumnos()">
-                                <option value="">🎓 Todos los Cursos</option>
-                            </select>
-                        </div>
-                        <div>
-                            <select id="filtro-registro" class="select-filter" onchange="filtrarAlumnos()">
-                                <option value="">⚖️ Todos los Registros</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto flex-1">
-                        <table class="w-full text-sm text-left">
-                            <thead class="bg-slate-100 sticky top-0"><tr><th class="p-3">DNI</th><th>Nombre</th><th>Institución</th><th>Curso/Diploma</th><th>Tipo</th><th>Estado</th><th>Acciones</th></tr></thead>
-                            <tbody id="tabla-alumnos" class="divide-y divide-slate-100"></tbody>
-                        </table>
-                    </div>
-                    <div class="mt-4 text-xs text-slate-400 text-center" id="contador-resultados">Mostrando resultados...</div>
                 </div>
             </div>
 
-            <!-- PANEL SEMINARIOS -->
-            <div id="panel-seminarios" class="hidden animate-fade-in">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div class="lg:col-span-1">
-                        <div class="bg-white rounded-2xl shadow-sm border border-rose-100 p-6">
-                            <h3 class="text-xl font-black text-slate-800 mb-4 flex items-center gap-2">
-                                <i data-lucide="upload" class="text-rose-500"></i> Nuevo Seminario
-                            </h3>
-                            <div class="space-y-4">
-                                <input type="hidden" id="sem-id-edit">
-                                <div><label class="label-form">Título del Seminario</label><input type="text" id="sem-titulo" class="input-form" placeholder="Ej: RCP Avanzado 2026"></div>
-                                <div><label class="label-form">ID Video YouTube (Oculto)</label><input type="text" id="sem-video-id" class="input-form font-mono text-xs" placeholder="Ej: dQw4w9WgXcQ"></div>
-                                <div><label class="label-form">Precio (AR$)</label><input type="number" id="sem-precio" class="input-form" placeholder="5000"></div>
-                                <div><label class="label-form">Descripción Corta</label><textarea id="sem-desc" class="input-form h-20 resize-none"></textarea></div>
-                                
-                                <div class="bg-slate-50 p-3 rounded border border-slate-200">
-                                    <label class="label-form">Plantilla Diploma (Sin Nombres)</label>
-                                    <input type="file" id="sem-diploma" accept="image/*" class="w-full text-xs text-slate-500">
-                                    <img id="sem-preview-img" class="h-20 mt-2 object-cover rounded hidden border">
-                                </div>
-
-                                <div id="status-sem" class="text-center text-xs font-bold h-4 text-rose-600"></div>
-                                <button onclick="guardarSeminario()" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-black transition shadow-lg mt-2">PUBLICAR CONTENIDO</button>
-                                <button onclick="limpiarFormSeminario()" class="w-full bg-white text-slate-500 font-bold py-2 rounded-xl hover:bg-slate-100 transition mt-2 text-xs">CANCELAR / LIMPIAR</button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="lg:col-span-2">
-                        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col h-full">
-                            <h3 class="font-bold text-slate-700 mb-4">Catálogo Activo (Netflix Mode)</h3>
-                            <div id="lista-seminarios" class="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto pr-2 max-h-[600px]"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- PANEL CURSOS -->
-            <div id="panel-cursos" class="hidden animate-fade-in">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
-                    <div class="flex justify-between items-center mb-8">
-                        <h3 class="text-2xl font-black text-slate-800">Cursos Oficiales</h3>
-                        <button onclick="abrirModalCurso()" class="bg-slate-900 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2"><i data-lucide="plus-circle" size="18"></i> Nuevo Curso</button>
-                    </div>
-                    <div id="lista-cursos-config" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
-                </div>
-            </div>
-
-            <!-- PANEL CARGA MASIVA -->
-            <div id="panel-carga" class="hidden animate-fade-in">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-10 text-center max-w-2xl mx-auto">
-                    <h3 class="text-2xl font-black text-slate-800">Carga Masiva de Alumnos</h3>
-                    <p class="text-slate-500 mt-2 mb-6">Excel (.xlsx): <b>DNI, NOMBRE, APELLIDO, CURSO</b></p>
-                    <div id="div-carga-inst-select" class="hidden mb-6 text-left bg-yellow-50 p-4 rounded-xl border border-yellow-200">
-                        <label class="label-form text-yellow-700">¿A qué instituto cargar estos alumnos?</label>
-                        <select id="carga-instituto-select" class="input-form font-bold border-yellow-300"></select>
-                    </div>
-                    <input type="file" id="input-excel" accept=".xlsx, .xls" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" onchange="procesarExcel()">
-                    <div id="preview-area" class="hidden mt-6 text-left">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="font-bold">Vista Previa (<span id="count-preview">0</span>)</span>
-                            <button onclick="confirmarCarga()" class="bg-green-600 text-white px-4 py-1 rounded font-bold text-xs">SUBIR</button>
-                        </div>
-                        <div class="max-h-40 overflow-y-auto border rounded bg-white"><table class="w-full text-xs"><tbody id="tabla-preview"></tbody></table></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- PANEL MARKETING -->
             <div id="panel-marketing" class="hidden animate-fade-in">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div class="lg:col-span-1">
@@ -835,37 +270,81 @@
                 </div>
             </div>
 
-            <!-- PANEL REPORTES -->
-            <div id="panel-reportes" class="hidden animate-fade-in">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-green-100 relative overflow-hidden">
-                        <div class="absolute top-0 right-0 p-4 opacity-10"><i data-lucide="dollar-sign" size="64" class="text-green-600"></i></div>
-                        <p class="text-green-600 text-xs font-bold uppercase tracking-wider mb-2">Ingresos por Seminarios</p>
-                        <h3 class="text-3xl font-black text-slate-800" id="repo-ingresos">$0</h3>
-                        <p class="text-sm text-slate-400 mt-1" id="repo-ventas-count">0 ventas registradas</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-blue-100 relative overflow-hidden">
-                        <div class="absolute top-0 right-0 p-4 opacity-10"><i data-lucide="award" size="64" class="text-blue-600"></i></div>
-                        <p class="text-blue-600 text-xs font-bold uppercase tracking-wider mb-2">Diplomas Emitidos</p>
-                        <h3 class="text-3xl font-black text-slate-800" id="repo-diplomas">0</h3>
-                        <p class="text-sm text-slate-400 mt-1">Emisiones directas</p>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
-                    <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-                        <div>
-                            <h3 class="text-xl font-bold text-slate-800">Exportación de Datos</h3>
-                            <p class="text-slate-500 text-sm">Descarga el balance completo para rendición de cuentas.</p>
-                        </div>
-                        <button onclick="descargarReporteExcel()" class="bg-slate-800 hover:bg-black text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg transition">
-                            <i data-lucide="download"></i> DESCARGAR EXCEL RENDICIÓN
+            <div id="panel-alumnos" class="hidden animate-fade-in">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 min-h-[500px] flex flex-col">
+                    <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
+                        <h3 class="text-lg font-bold text-slate-700">Directorio de Alumnos</h3>
+                        <button onclick="abrirModalAlumno()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg transition">
+                            <i data-lucide="user-plus" size="18"></i> Nuevo Alumno
                         </button>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="relative">
+                            <i data-lucide="search" class="absolute left-3 top-2.5 text-slate-400" size="16"></i>
+                            <input type="text" id="filtro-busqueda" placeholder="Buscar DNI o Apellido..." class="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500" onkeyup="if(event.key === 'Enter') filtrarAlumnos()">
+                        </div>
+                        <div id="container-filtro-inst" class="hidden">
+                            <select id="filtro-instituto" class="select-filter" onchange="filtrarAlumnos()">
+                                <option value="">🏢 Todos los Institutos</option>
+                            </select>
+                        </div>
+                        <div>
+                            <select id="filtro-curso" class="select-filter" onchange="filtrarAlumnos()">
+                                <option value="">🎓 Todos los Cursos</option>
+                            </select>
+                        </div>
+                        <div>
+                            <select id="filtro-registro" class="select-filter" onchange="filtrarAlumnos()">
+                                <option value="">⚖️ Todos los Registros</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto flex-1">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-slate-100 sticky top-0"><tr><th class="p-3">DNI</th><th>Nombre</th><th>Institución</th><th>Curso/Diploma</th><th>Tipo</th><th>Estado</th><th>Acciones</th></tr></thead>
+                            <tbody id="tabla-alumnos" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                    <div class="mt-4 text-xs text-slate-400 text-center" id="contador-resultados">Mostrando resultados...</div>
+                </div>
+            </div>
+
+            <div id="panel-seminarios" class="hidden animate-fade-in">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-1">
+                        <div class="bg-white rounded-2xl shadow-sm border border-rose-100 p-6">
+                            <h3 class="text-xl font-black text-slate-800 mb-4 flex items-center gap-2">
+                                <i data-lucide="upload" class="text-rose-500"></i> Nuevo Seminario
+                            </h3>
+                            <div class="space-y-4">
+                                <input type="hidden" id="sem-id-edit">
+                                <div><label class="label-form">Título del Seminario</label><input type="text" id="sem-titulo" class="input-form" placeholder="Ej: RCP Avanzado 2026"></div>
+                                <div><label class="label-form">ID Video YouTube (Oculto)</label><input type="text" id="sem-video-id" class="input-form font-mono text-xs" placeholder="Ej: dQw4w9WgXcQ"></div>
+                                <div><label class="label-form">Precio (AR$)</label><input type="number" id="sem-precio" class="input-form" placeholder="5000"></div>
+                                <div><label class="label-form">Descripción Corta</label><textarea id="sem-desc" class="input-form h-20 resize-none"></textarea></div>
+                                
+                                <div class="bg-slate-50 p-3 rounded border border-slate-200">
+                                    <label class="label-form">Plantilla Diploma (Sin Nombres)</label>
+                                    <input type="file" id="sem-diploma" accept="image/*" class="w-full text-xs text-slate-500">
+                                    <img id="sem-preview-img" class="h-20 mt-2 object-cover rounded hidden border">
+                                </div>
+
+                                <div id="status-sem" class="text-center text-xs font-bold h-4 text-rose-600"></div>
+                                <button onclick="guardarSeminario()" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-black transition shadow-lg mt-2">PUBLICAR CONTENIDO</button>
+                                <button onclick="limpiarFormSeminario()" class="w-full bg-white text-slate-500 font-bold py-2 rounded-xl hover:bg-slate-100 transition mt-2 text-xs">CANCELAR / LIMPIAR</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="lg:col-span-2">
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col h-full">
+                            <h3 class="font-bold text-slate-700 mb-4">Catálogo Activo (Netflix Mode)</h3>
+                            <div id="lista-seminarios" class="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto pr-2 max-h-[600px]"></div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- PANEL AUDITORIA -->
             <div id="panel-auditoria" class="hidden animate-fade-in">
                 <div class="bg-white rounded-2xl shadow-sm border border-emerald-200 p-8">
                     <div class="flex items-center gap-3 mb-6">
@@ -898,7 +377,35 @@
                 </div>
             </div>
 
-            <!-- PANEL ENTIDADES (SUPERADMIN) -->
+            <div id="panel-cursos" class="hidden animate-fade-in">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+                    <div class="flex justify-between items-center mb-8">
+                        <h3 class="text-2xl font-black text-slate-800">Cursos Oficiales</h3>
+                        <button onclick="abrirModalCurso()" class="bg-slate-900 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2"><i data-lucide="plus-circle" size="18"></i> Nuevo Curso</button>
+                    </div>
+                    <div id="lista-cursos-config" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+                </div>
+            </div>
+
+            <div id="panel-carga" class="hidden animate-fade-in">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-10 text-center max-w-2xl mx-auto">
+                    <h3 class="text-2xl font-black text-slate-800">Carga Masiva de Alumnos</h3>
+                    <p class="text-slate-500 mt-2 mb-6">Excel (.xlsx): <b>DNI, NOMBRE, APELLIDO, CURSO</b></p>
+                    <div id="div-carga-inst-select" class="hidden mb-6 text-left bg-yellow-50 p-4 rounded-xl border border-yellow-200">
+                        <label class="label-form text-yellow-700">¿A qué instituto cargar estos alumnos?</label>
+                        <select id="carga-instituto-select" class="input-form font-bold border-yellow-300"></select>
+                    </div>
+                    <input type="file" id="input-excel" accept=".xlsx, .xls" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" onchange="procesarExcel()">
+                    <div id="preview-area" class="hidden mt-6 text-left">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-bold">Vista Previa (<span id="count-preview">0</span>)</span>
+                            <button onclick="confirmarCarga()" class="bg-green-600 text-white px-4 py-1 rounded font-bold text-xs">SUBIR</button>
+                        </div>
+                        <div class="max-h-40 overflow-y-auto border rounded bg-white"><table class="w-full text-xs"><tbody id="tabla-preview"></tbody></table></div>
+                    </div>
+                </div>
+            </div>
+
             <div id="panel-entidades" class="hidden animate-fade-in">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <div class="bg-white rounded-2xl shadow-sm border border-yellow-200 p-8 relative overflow-hidden">
@@ -929,7 +436,7 @@
         </div>
     </main>
 
-    <!-- MODALES -->
+    <!-- MODALES EXISTENTES (sin cambios) -->
     <div id="modal-alumno" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 relative">
             <button onclick="cerrarModalAlumno()" class="absolute top-4 right-4 text-slate-300 hover:text-slate-600"><i data-lucide="x"></i></button>
@@ -1092,18 +599,14 @@
     </div>
 
     <script>
-        // ============================================
-        // CONFIGURACIÓN SUPABASE
-        // ============================================
         const PROJECT_URL = 'https://vxggatcfrywyodovjwxj.supabase.co';
-        const PUBLIC_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
+        const PUBLIC_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z2dhdGNmcnl3eW9kb3Zqd3hqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMzM5MjgsImV4cCI6MjA4MzgwOTkyOH0.RZ9jhEASO6nCV8EnzrHQBhglP4G1nik9Z5osPXysGNg';
         const db = supabase.createClient(PROJECT_URL, PUBLIC_KEY);
         
         let currentUser, currentProfile, cursosCache = [], seminariosCache = [], anunciosCache = [], datosExcelCargados = [], datosDiplomasCargados = [];
         let registroColors = {}; 
         let analiticoPaginas = []; 
         let diplomasList = [];
-        let diplomasCatalogo = [];
 
         // ============================================
         // FUNCIONES DE UTILIDAD
@@ -1123,11 +626,13 @@
             if (!btn) return;
             if (isLoading) {
                 btn.dataset.originalText = btn.innerHTML;
-                btn.innerHTML = '<span class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2 animate-spin"></span> CARGANDO...';
+                btn.innerHTML = '<span class="loader-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span> CARGANDO...';
                 btn.disabled = true;
+                btn.classList.add('btn-loading');
             } else {
                 btn.innerHTML = btn.dataset.originalText || (originalText || btn.innerHTML);
                 btn.disabled = false;
+                btn.classList.remove('btn-loading');
             }
         }
 
@@ -1168,7 +673,7 @@
             await cargarCursos(); 
             await cargarSeminarios(); 
             await cargarAnuncios();
-            await cargarDiplomasCatalogo();
+            await cargarDiplomasEmitidos();
             await llenarFiltros(); 
             await filtrarAlumnos(); 
             await actualizarEstadisticas();
@@ -1240,237 +745,9 @@
         }
 
         // ============================================
-        // CATÁLOGO DE DIPLOMAS DIRECTOS (CRUD)
+        // NUEVA FUNCIÓN: DIPLOMAS DIRECTOS
         // ============================================
         
-        async function cargarDiplomasCatalogo() {
-            const container = document.getElementById('lista-diplomas-catalogo');
-            if (!container) return;
-            
-            container.innerHTML = '<p class="text-slate-400 text-sm text-center py-8">Cargando diplomas...</p>';
-            
-            let query = db.from('diplomas_catalogo').select('*').order('created_at', { ascending: false });
-            if (currentProfile.rol !== 'superadmin') {
-                query = query.eq('institution_id', currentProfile.institucion_id);
-            }
-            
-            const { data, error } = await query;
-            
-            if (error) {
-                container.innerHTML = '<p class="text-red-400 text-sm text-center py-8">Error cargando diplomas</p>';
-                return;
-            }
-            
-            diplomasCatalogo = data || [];
-            
-            // Actualizar select para emisión masiva
-            const selectEmision = document.getElementById('carga-diploma-select');
-            if (selectEmision) {
-                selectEmision.innerHTML = '<option value="">-- Seleccionar Diploma --</option>';
-                diplomasCatalogo.forEach(d => {
-                    selectEmision.innerHTML += `<option value="${d.id}">${d.nombre}</option>`;
-                });
-            }
-            
-            if (!diplomasCatalogo.length) {
-                container.innerHTML = `
-                    <div class="text-center py-8">
-                        <i data-lucide="award" class="text-slate-300 mx-auto mb-3" size="40"></i>
-                        <p class="text-slate-400 text-sm">No hay diplomas creados.</p>
-                        <p class="text-slate-400 text-xs mt-1">Crea tu primer diploma en el panel izquierdo.</p>
-                    </div>`;
-                if (typeof lucide !== 'undefined') lucide.createIcons();
-                return;
-            }
-            
-            container.innerHTML = '';
-            
-            diplomasCatalogo.forEach(d => {
-                const bgColor = registroColors[d.registro_id?.toLowerCase()] || '#94a3b8';
-                container.innerHTML += `
-                    <div class="flex justify-between items-center p-4 border rounded-xl hover:shadow-md transition bg-white group">
-                        <div class="flex-1">
-                            <div class="flex items-center gap-2 mb-2">
-                                <span class="text-[10px] text-white px-2 py-1 rounded font-bold uppercase" style="background-color: ${bgColor}">
-                                    ${d.registro_id || 'GENERAL'}
-                                </span>
-                                <span class="text-xs font-bold text-green-600">$${d.costo || 0}</span>
-                                ${d.duracion ? `<span class="text-xs text-slate-400">• ${d.duracion}</span>` : ''}
-                            </div>
-                            <p class="font-bold text-slate-800">${d.nombre}</p>
-                            <p class="text-xs text-slate-500 mt-1 line-clamp-2">${d.descripcion || 'Sin descripción'}</p>
-                        </div>
-                        <div class="flex gap-2 ml-4">
-                            <button onclick="editarDiplomaCatalogo('${d.id}')" class="text-blue-400 hover:text-blue-600 p-1">
-                                <i data-lucide="pencil" size="16"></i>
-                            </button>
-                            <button onclick="borrarDiplomaCatalogo('${d.id}')" class="text-slate-300 hover:text-red-500 p-1">
-                                <i data-lucide="trash-2" size="16"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            if (typeof lucide !== 'undefined') lucide.createIcons();
-        }
-
-        async function guardarDiplomaDirecto() {
-            const idEdit = document.getElementById('diploma-id-edit')?.value;
-            const nombre = document.getElementById('diploma-nombre')?.value.trim();
-            const registroId = document.getElementById('diploma-registro')?.value;
-            const costo = parseInt(document.getElementById('diploma-costo')?.value) || 0;
-            const duracion = document.getElementById('diploma-duracion')?.value.trim();
-            const descripcion = document.getElementById('diploma-descripcion')?.value.trim();
-            
-            if (!nombre) {
-                toast("El nombre del diploma es obligatorio", 'error');
-                return;
-            }
-            
-            let plantillaUrl = null;
-            let watermarkUrl = null;
-            
-            try {
-                // Subir plantilla si hay archivo
-                const inputPlantilla = document.getElementById('diploma-plantilla');
-                if (inputPlantilla && inputPlantilla.files.length > 0) {
-                    const file = inputPlantilla.files[0];
-                    const fileName = `diploma_plantilla_${Date.now()}`;
-                    const { error } = await db.storage.from('plantillas-diplomas').upload(fileName, file);
-                    if (error) throw error;
-                    const { data } = db.storage.from('plantillas-diplomas').getPublicUrl(fileName);
-                    plantillaUrl = data.publicUrl;
-                    document.getElementById('diploma-preview-img').src = plantillaUrl;
-                    document.getElementById('diploma-preview-img').classList.remove('hidden');
-                }
-                
-                // Subir watermark si hay archivo
-                const inputWatermark = document.getElementById('diploma-watermark');
-                if (inputWatermark && inputWatermark.files.length > 0) {
-                    const file = inputWatermark.files[0];
-                    const fileName = `diploma_watermark_${Date.now()}`;
-                    const { error } = await db.storage.from('plantillas-diplomas').upload(fileName, file);
-                    if (error) throw error;
-                    const { data } = db.storage.from('plantillas-diplomas').getPublicUrl(fileName);
-                    watermarkUrl = data.publicUrl;
-                    document.getElementById('diploma-preview-watermark').src = watermarkUrl;
-                    document.getElementById('diploma-preview-watermark').classList.remove('hidden');
-                }
-                
-                const diplomaData = {
-                    nombre: nombre.toUpperCase(),
-                    registro_id: registroId,
-                    costo: costo,
-                    duracion: duracion,
-                    descripcion: descripcion,
-                    institution_id: currentProfile.rol === 'superadmin' ? null : currentProfile.institucion_id
-                };
-                
-                if (plantillaUrl) diplomaData.plantilla_url = plantillaUrl;
-                if (watermarkUrl) diplomaData.watermark_url = watermarkUrl;
-                
-                let error;
-                if (idEdit) {
-                    const result = await db.from('diplomas_catalogo').update(diplomaData).eq('id', idEdit);
-                    error = result.error;
-                    if (!error) toast("Diploma actualizado correctamente");
-                } else {
-                    const result = await db.from('diplomas_catalogo').insert([diplomaData]);
-                    error = result.error;
-                    if (!error) toast("Diploma creado correctamente");
-                }
-                
-                if (error) throw error;
-                
-                limpiarFormDiploma();
-                await cargarDiplomasCatalogo();
-                
-            } catch (e) {
-                toast("Error al guardar: " + e.message, 'error');
-            }
-        }
-
-        function editarDiplomaCatalogo(id) {
-            const diploma = diplomasCatalogo.find(d => d.id === id);
-            if (!diploma) return;
-            
-            document.getElementById('diploma-id-edit').value = diploma.id;
-            document.getElementById('diploma-nombre').value = diploma.nombre;
-            document.getElementById('diploma-registro').value = diploma.registro_id || 'reuim';
-            document.getElementById('diploma-costo').value = diploma.costo || 0;
-            document.getElementById('diploma-duracion').value = diploma.duracion || '';
-            document.getElementById('diploma-descripcion').value = diploma.descripcion || '';
-            
-            if (diploma.plantilla_url) {
-                const preview = document.getElementById('diploma-preview-img');
-                if (preview) {
-                    preview.src = diploma.plantilla_url;
-                    preview.classList.remove('hidden');
-                }
-            }
-            
-            if (diploma.watermark_url) {
-                const preview = document.getElementById('diploma-preview-watermark');
-                if (preview) {
-                    preview.src = diploma.watermark_url;
-                    preview.classList.remove('hidden');
-                }
-            }
-            
-            toast("Editando: " + diploma.nombre);
-            document.getElementById('panel-diplomas').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        async function borrarDiplomaCatalogo(id) {
-            if (!confirm("¿Eliminar este diploma? Se eliminarán también todas las emisiones asociadas.")) return;
-            
-            const { error } = await db.from('diplomas_catalogo').delete().eq('id', id);
-            if (error) {
-                toast("Error: " + error.message, 'error');
-            } else {
-                toast("Diploma eliminado");
-                await cargarDiplomasCatalogo();
-                await cargarDiplomasEmitidos();
-                await actualizarEstadisticas();
-            }
-        }
-
-        function limpiarFormDiploma() {
-            document.getElementById('diploma-id-edit').value = '';
-            document.getElementById('diploma-nombre').value = '';
-            document.getElementById('diploma-registro').value = 'reuim';
-            document.getElementById('diploma-costo').value = '0';
-            document.getElementById('diploma-duracion').value = '';
-            document.getElementById('diploma-descripcion').value = '';
-            
-            const plantillaInput = document.getElementById('diploma-plantilla');
-            if (plantillaInput) plantillaInput.value = '';
-            
-            const watermarkInput = document.getElementById('diploma-watermark');
-            if (watermarkInput) watermarkInput.value = '';
-            
-            const previewPlantilla = document.getElementById('diploma-preview-img');
-            if (previewPlantilla) previewPlantilla.classList.add('hidden');
-            
-            const previewWatermark = document.getElementById('diploma-preview-watermark');
-            if (previewWatermark) previewWatermark.classList.add('hidden');
-        }
-
-        function toggleEmisionMasiva() {
-            const content = document.getElementById('emision-masiva-content');
-            const icon = document.getElementById('icon-emision-masiva');
-            
-            if (content.classList.contains('hidden')) {
-                content.classList.remove('hidden');
-                if (icon) icon.setAttribute('data-lucide', 'chevron-up');
-            } else {
-                content.classList.add('hidden');
-                if (icon) icon.setAttribute('data-lucide', 'chevron-down');
-            }
-            if (typeof lucide !== 'undefined') lucide.createIcons();
-        }
-
         async function procesarExcelDiplomas() {
             const input = document.getElementById('input-diploma-excel');
             if(!input.files.length) return;
@@ -1482,14 +759,6 @@
                     toast("Selecciona un instituto para cargar los diplomas", 'error');
                     return;
                 }
-            }
-            
-            const diplomaId = document.getElementById('carga-diploma-select')?.value;
-            const diplomaSeleccionado = diplomasCatalogo.find(d => d.id === diplomaId);
-            
-            if (!diplomaSeleccionado) {
-                toast("Selecciona un diploma base del catálogo", 'error');
-                return;
             }
             
             const file = input.files[0];
@@ -1507,8 +776,10 @@
                     const dni = row['DNI'] || row['dni'];
                     const nombre = row['NOMBRE'] || row['nombre'];
                     const apellido = row['APELLIDO'] || row['apellido'];
+                    const diplomaNombre = row['DIPLOMA'] || row['diploma'] || row['CURSO'] || row['curso'];
+                    const registroId = (row['REGISTRO'] || row['registro'] || 'reuim').toLowerCase();
                     
-                    if (!dni || !nombre || !apellido) {
+                    if (!dni || !nombre || !apellido || !diplomaNombre) {
                         console.warn("Fila incompleta:", row);
                         continue;
                     }
@@ -1517,12 +788,10 @@
                         dni_alumno: String(dni),
                         nombre: String(nombre).toUpperCase(),
                         apellido: String(apellido).toUpperCase(),
-                        diploma_id: diplomaSeleccionado.id,
-                        diploma_nombre: diplomaSeleccionado.nombre,
-                        registro_id: diplomaSeleccionado.registro_id,
+                        diploma_nombre: String(diplomaNombre).toUpperCase(),
+                        registro_id: registroId,
                         institution_id: instId,
-                        emitido_en: new Date().toISOString(),
-                        costo: diplomaSeleccionado.costo || 0
+                        emitido_en: new Date().toISOString()
                     });
                 }
                 
@@ -1544,7 +813,7 @@
             
             reader.readAsArrayBuffer(file);
         }
-
+        
         async function confirmarCargaDiplomas() {
             if (!datosDiplomasCargados.length) {
                 toast("No hay datos para cargar", 'error');
@@ -1560,7 +829,7 @@
             
             for (const diploma of datosDiplomasCargados) {
                 try {
-                    // Verificar si ya existe un diploma para este DNI y nombre de diploma
+                    // Verificar si ya existe un diploma para este DNI y nombre
                     const { data: existing } = await db
                         .from('diplomas_directos')
                         .select('id')
@@ -1584,11 +853,7 @@
                         matricula_id: `DIPLOMA_${diploma.dni_alumno}`,
                         matricula_dni: diploma.dni_alumno,
                         alumno_dni: diploma.dni_alumno,
-                        metadata: { 
-                            tipo: 'DIPLOMA_DIRECTO', 
-                            nombre: diploma.diploma_nombre,
-                            diploma_id: diploma.diploma_id
-                        }
+                        metadata: { tipo: 'DIPLOMA_DIRECTO', nombre: diploma.diploma_nombre }
                     }]);
                     
                 } catch (err) {
@@ -1607,21 +872,19 @@
             await cargarDiplomasEmitidos();
             await actualizarEstadisticas();
         }
-
+        
         async function cargarDiplomasEmitidos() {
             const container = document.getElementById('lista-diplomas');
-            if (!container) return;
+            container.innerHTML = '<p class="text-slate-400 text-sm text-center py-8">Cargando diplomas...</p>';
             
-            container.innerHTML = '<p class="text-slate-400 text-sm text-center py-8">Cargando diplomas emitidos...</p>';
-            
-            let query = db.from('diplomas_directos').select('*, diplomas_catalogo(nombre as catalogo_nombre)').order('emitido_en', { ascending: false }).limit(50);
+            let query = db.from('diplomas_directos').select('*').order('emitido_en', { ascending: false }).limit(50);
             if (currentProfile.rol !== 'superadmin') {
                 query = query.eq('institution_id', currentProfile.institucion_id);
             }
             
             const { data, error } = await query;
             if (error) {
-                container.innerHTML = '<p class="text-red-400 text-sm text-center py-8">Error cargando diplomas emitidos</p>';
+                container.innerHTML = '<p class="text-red-400 text-sm text-center py-8">Error cargando diplomas</p>';
                 return;
             }
             
@@ -1634,26 +897,22 @@
             container.innerHTML = '';
             
             data.forEach(d => {
-                const diplomaNombre = d.diplomas_catalogo?.catalogo_nombre || d.diploma_nombre;
                 container.innerHTML += `
-                    <div class="flex justify-between items-center p-3 border rounded-lg hover:bg-slate-50">
-                        <div>
-                            <p class="font-bold text-sm text-slate-800">${d.nombre} ${d.apellido}</p>
-                            <p class="text-xs text-slate-500">${diplomaNombre}</p>
-                            <p class="text-[10px] text-slate-400 font-mono">DNI: ${d.dni_alumno}</p>
-                            ${d.costo ? `<p class="text-[10px] text-green-600 font-bold">$${d.costo}</p>` : ''}
-                        </div>
-                        <div class="flex gap-2">
-                            <span class="status-badge status-diploma">DIPLOMA</span>
-                            <button onclick="borrarDiploma('${d.id}')" class="text-slate-300 hover:text-red-500">
-                                <i data-lucide="trash-2" size="14"></i>
-                            </button>
-                        </div>
-                    </div>`;
+                <div class="flex justify-between items-center p-3 border rounded-lg hover:bg-slate-50">
+                    <div>
+                        <p class="font-bold text-sm text-slate-800">${d.nombre} ${d.apellido}</p>
+                        <p class="text-xs text-slate-500">${d.diploma_nombre}</p>
+                        <p class="text-[10px] text-slate-400 font-mono">DNI: ${d.dni_alumno}</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <span class="status-badge status-diploma">DIPLOMA</span>
+                        <button onclick="borrarDiploma('${d.id}')" class="text-slate-300 hover:text-red-500"><i data-lucide="trash-2" size="14"></i></button>
+                    </div>
+                </div>`;
             });
-            if (typeof lucide !== 'undefined') lucide.createIcons();
+            lucide.createIcons();
         }
-
+        
         async function borrarDiploma(id) {
             if (!confirm("¿Eliminar este diploma? Esta acción es irreversible.")) return;
             const { error } = await db.from('diplomas_directos').delete().eq('id', id);
@@ -1666,7 +925,7 @@
         }
 
         // ============================================
-        // FUNCIONES DE NAVEGACIÓN
+        // FUNCIONES EXISTENTES (CORREGIDAS)
         // ============================================
         
         function mostrarSeccion(id) {
@@ -1677,17 +936,8 @@
             });
             document.getElementById(id).classList.remove('hidden');
             document.getElementById('titulo-seccion').innerText = document.querySelector(`[onclick="mostrarSeccion('${id}')"]`)?.innerText || 'Panel';
-            
-            // Cargar diplomas emitidos cuando se abre la sección
-            if(id === 'panel-diplomas') {
-                cargarDiplomasEmitidos();
-            }
         }
 
-        // ============================================
-        // FUNCIONES DE INSTITUCIONES Y SELECTS
-        // ============================================
-        
         async function cargarListaInstitutosEnSelects() {
             const { data } = await db.from('instituciones').select('id, nombre').eq('activo', true);
             const selModal = document.getElementById('modal-instituto-select');
@@ -1713,10 +963,6 @@
             });
         }
 
-        // ============================================
-        // FUNCIONES DE CURSOS
-        // ============================================
-        
         async function cargarCursos() {
             const { data } = await db.from('cursos_oficiales').select('*').order('nombre');
             const div = document.getElementById('lista-cursos-config');
@@ -1838,6 +1084,7 @@
         function abrirModalCurso(idEdicion = null) {
             const modal = document.getElementById('modal-curso');
             if (modal) modal.classList.remove('hidden');
+            if (statusCurso) document.getElementById('status-curso').innerText = "";
             analiticoPaginas = [];
             
             if (idEdicion) {
@@ -1900,9 +1147,8 @@
         }
 
         // ============================================
-        // FUNCIONES DE SEMINARIOS
+        // SEMINARIOS (CORREGIDO)
         // ============================================
-        
         async function cargarSeminarios() {
             const div = document.getElementById('lista-seminarios');
             if (!div) return;
@@ -1932,7 +1178,7 @@
                     div.innerHTML += `
                     <div class="flex gap-4 p-3 border rounded-xl hover:bg-slate-50 transition group bg-white shadow-sm">
                         <div class="w-32 h-20 rounded-lg bg-black overflow-hidden relative shrink-0">
-                            <img src="${thumb}" class="w-full h-full object-cover opacity-80" onerror="this.src='https://via.placeholder.com/150'">
+                            <img src="${thumb}" class="w-full h-full object-cover opacity-80">
                             <div class="absolute inset-0 flex items-center justify-center"><i data-lucide="play-circle" class="text-white w-6 h-6"></i></div>
                         </div>
                         <div class="flex-1 min-w-0">
@@ -2049,9 +1295,8 @@
         }
 
         // ============================================
-        // FUNCIONES DE MARKETING
+        // MARKETING
         // ============================================
-        
         async function cargarAnuncios() {
             const div = document.getElementById('lista-anuncios');
             if (!div) return;
@@ -2079,7 +1324,7 @@
 
                     div.innerHTML += `
                     <div class="flex gap-4 p-4 border rounded-xl bg-white items-center">
-                        <img src="${a.imagen_url || 'https://via.placeholder.com/100'}" class="w-20 h-12 object-cover rounded bg-slate-200" onerror="this.src='https://via.placeholder.com/100'">
+                        <img src="${a.imagen_url || 'https://via.placeholder.com/100'}" class="w-20 h-12 object-cover rounded bg-slate-200">
                         <div class="flex-1">
                             <div class="flex items-center gap-2 mb-1">
                                 <span class="text-[10px] font-bold px-2 py-0.5 rounded ${colorTipo}">${tipoRaw}</span>
@@ -2151,9 +1396,8 @@
         }
 
         // ============================================
-        // FUNCIONES DE ALUMNOS Y FILTROS
+        // ALUMNOS Y FILTROS
         // ============================================
-        
         async function llenarFiltros() {
             const { data: cursos } = await db.from('cursos_oficiales').select('nombre').order('nombre');
             const selCur = document.getElementById('filtro-curso');
@@ -2204,7 +1448,7 @@
             if (data && data.length > 0) {
                 document.getElementById('contador-resultados').innerText = `${data.length} resultados`;
                 data.forEach(a => {
-                    const logoInst = a.instituciones?.logo_url ? `<img src="${a.instituciones.logo_url}" class="w-5 h-5 object-contain rounded-full border" onerror="this.style.display='none'">` : '';
+                    const logoInst = a.instituciones?.logo_url ? `<img src="${a.instituciones.logo_url}" class="w-5 h-5 object-contain rounded-full border">` : '';
                     const nombreInst = a.instituciones?.nombre || 'Desconocido';
                     const esSuspendido = a.estado === 'SUSPENDIDO';
                     const filaClase = esSuspendido ? 'bg-red-50 hover:bg-red-100 opacity-75' : 'border-b hover:bg-slate-50 transition';
@@ -2340,7 +1584,6 @@
         // ============================================
         // CARGA MASIVA EXCEL
         // ============================================
-        
         function procesarExcel() {
             const input = document.getElementById('input-excel');
             if (!input || !input.files.length) return;
@@ -2405,7 +1648,6 @@
         // ============================================
         // REPORTES Y EXCEL
         // ============================================
-        
         async function descargarReporteExcel() {
             toast("Generando reporte completo...");
             try {
@@ -2449,7 +1691,8 @@
                 const wsAlumnos = XLSX.utils.json_to_sheet(datosAlumnos);
                 XLSX.utils.book_append_sheet(wb, wsAlumnos, "Padrón Carnets");
                 
-                let qDiplomas = db.from('diplomas_directos').select('dni_alumno, nombre, apellido, diploma_nombre, registro_id, emitido_en, institution_id, costo');
+                // Nueva hoja: Diplomas Directos
+                let qDiplomas = db.from('diplomas_directos').select('dni_alumno, nombre, apellido, diploma_nombre, registro_id, emitido_en, institution_id');
                 if (instId) qDiplomas = qDiplomas.eq('institution_id', instId);
                 const { data: diplomas } = await qDiplomas;
                 const datosDiplomas = diplomas.map(d => ({
@@ -2458,7 +1701,6 @@
                     "Apellido": d.apellido,
                     "Diploma": d.diploma_nombre,
                     "Registro": d.registro_id,
-                    "Costo": d.costo || 0,
                     "Fecha Emisión": new Date(d.emitido_en).toLocaleDateString()
                 }));
                 const wsDiplomas = XLSX.utils.json_to_sheet(datosDiplomas);
@@ -2474,7 +1716,6 @@
         // ============================================
         // AUDITORÍA LEDGER
         // ============================================
-        
         async function buscarEnLedger() {
             const input = document.getElementById('input-audit-search')?.value.trim();
             const tbody = document.getElementById('tabla-ledger');
@@ -2519,7 +1760,6 @@
         // ============================================
         // ENTIDADES (SUPERADMIN)
         // ============================================
-        
         async function cargarEntidadesTabla() {
             const div = document.getElementById('lista-instituciones');
             if (!div) return;
@@ -2541,7 +1781,7 @@
                 div.innerHTML += `
                 <div class="flex justify-between items-center p-3 border rounded mb-2 hover:bg-slate-50 ${opacidad}">
                     <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded bg-slate-200 overflow-hidden"><img src="${i.logo_url || ''}" class="w-full h-full object-cover" onerror="this.style.display='none'"></div>
+                        <div class="w-8 h-8 rounded bg-slate-200 overflow-hidden"><img src="${i.logo_url || ''}" class="w-full h-full object-cover"></div>
                         <div><p class="font-bold text-sm text-slate-700">${i.nombre} ${estadoTexto}</p><span class="text-[10px] px-1.5 py-0.5 rounded ${colorBadge} font-bold">${tipo}</span></div>
                     </div>
                     <div class="flex gap-2">
@@ -2627,7 +1867,6 @@
         // ============================================
         // EDICIÓN INSTITUCIÓN
         // ============================================
-        
         async function abrirModalEditarInstitucion(id) {
             try {
                 const modal = document.getElementById('modal-editar-institucion');
@@ -2809,7 +2048,6 @@
         // ============================================
         // LOGOUT
         // ============================================
-        
         async function logout() { 
             await db.auth.signOut(); 
             window.location.href = 'index.html'; 
