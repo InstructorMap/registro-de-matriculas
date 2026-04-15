@@ -169,7 +169,7 @@
                                     <label class="label-form">Sigla del Registro</label>
                                     <select id="diploma-registro" class="input-form font-bold">
                                         <option value="reuim">REUIM</option>
-                                        <option value="remaep">REMAEP</option>
+                                        <option value="remtyo">REMTYO</option>
                                         <option value="isf">ISF</option>
                                     </select>
                                 </div>
@@ -231,6 +231,39 @@
                 </div>
 
                 <div class="mt-8 bg-white rounded-2xl shadow-sm border border-indigo-100 p-6">
+                    <!-- EMISIÓN INDIVIDUAL DE DIPLOMAS DIRECTOS -->
+                    <div class="mb-8 border-b border-indigo-100 pb-6">
+                        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2 mb-4">
+                            <i data-lucide="user-plus" class="text-indigo-500"></i> Emisión Individual
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="label-form">DNI</label>
+                                <input type="text" id="individual-dni" class="input-form" placeholder="Ej: 12345678" oninput="this.value = this.value.replace(/\./g, '').replace(/\s/g, '')">
+                            </div>
+                            <div>
+                                <label class="label-form">Nombre</label>
+                                <input type="text" id="individual-nombre" class="input-form" placeholder="Nombre del alumno">
+                            </div>
+                            <div>
+                                <label class="label-form">Apellido</label>
+                                <input type="text" id="individual-apellido" class="input-form" placeholder="Apellido del alumno">
+                            </div>
+                            <div>
+                                <label class="label-form">Seleccionar Diploma</label>
+                                <select id="individual-diploma-select" class="input-form font-bold">
+                                    <option value="">-- Seleccionar Diploma --</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <button onclick="emitirDiplomaIndividual()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-xl transition shadow-lg flex items-center gap-2">
+                                <i data-lucide="award" size="18"></i> EMITIR DIPLOMA INDIVIDUAL
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- EMISIÓN MASIVA -->
                     <button onclick="toggleEmisionMasiva()" class="w-full flex justify-between items-center">
                         <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
                             <i data-lucide="users" class="text-indigo-500"></i> Emisión Masiva de Diplomas
@@ -281,6 +314,28 @@
                                 </table>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- LISTA DE DIPLOMAS EMITIDOS CON BUSCADOR -->
+                <div class="mt-8 bg-white rounded-2xl shadow-sm border border-indigo-100 p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                            <i data-lucide="list" class="text-indigo-500"></i> Diplomas Emitidos
+                        </h3>
+                        <button onclick="cargarDiplomasEmitidos()" class="text-indigo-500 hover:text-indigo-700">
+                            <i data-lucide="refresh-cw" size="16"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Buscador de diplomas -->
+                    <div class="mb-4 relative">
+                        <i data-lucide="search" class="absolute left-3 top-2.5 text-slate-400" size="18"></i>
+                        <input type="text" id="buscador-diplomas" placeholder="Buscar diploma por DNI..." class="w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-500" onkeyup="filtrarDiplomasEmitidos()">
+                    </div>
+                    
+                    <div id="lista-diplomas" class="space-y-3 max-h-[400px] overflow-y-auto">
+                        <p class="text-slate-400 text-sm text-center py-8">Cargando diplomas emitidos...</p>
                     </div>
                 </div>
             </div>
@@ -498,7 +553,7 @@
                             <div><label class="label-form">Tipo</label><select id="new-ent-tipo" class="input-form font-bold"><option value="instituto">INSTITUTO</option><option value="registro">REGISTRO</option></select></div>
                             <div><label class="label-form">Nombre Comercial</label><input type="text" id="new-inst-name" class="input-form"></div>
                             <div class="grid grid-cols-2 gap-4">
-                                <div><label class="label-form">Sigla / ID</label><input type="text" id="new-inst-sigla" class="input-form" placeholder="Ej: isf o remaep"></div>
+                                <div><label class="label-form">Sigla / ID</label><input type="text" id="new-inst-sigla" class="input-form" placeholder="Ej: isf o remtyo"></div>
                                 <div><label class="label-form">Color Marca</label><input type="color" id="new-inst-color" class="w-full h-[46px] p-1 rounded-lg cursor-pointer bg-white border border-slate-200" value="#0033cc"></div>
                             </div>
                             <div><label class="label-form">Logo</label><input type="file" id="new-inst-logo" accept="image/*" class="block w-full text-xs text-slate-500"></div>
@@ -529,7 +584,7 @@
                     <label class="label-form text-yellow-700">Asignar a Instituto:</label>
                     <select id="modal-instituto-select" class="input-form font-bold border-yellow-300 bg-white"><option value="">Cargando...</option></select>
                 </div>
-                <div><label class="label-form">DNI</label><input type="text" id="m-dni" class="input-form font-mono"></div>
+                <div><label class="label-form">DNI</label><input type="text" id="m-dni" class="input-form font-mono" oninput="this.value = this.value.replace(/\./g, '').replace(/\s/g, '')"></div>
                 <div class="grid grid-cols-2 gap-4">
                     <div><label class="label-form">Nombre</label><input type="text" id="m-nombre" class="input-form"></div>
                     <div><label class="label-form">Apellido</label><input type="text" id="m-apellido" class="input-form"></div>
@@ -595,7 +650,7 @@
                     </div>
                     <div>
                         <label class="label-form">Sigla / ID</label>
-                        <input type="text" id="edit-inst-sigla" class="input-form" placeholder="Ej: isf o remaep">
+                        <input type="text" id="edit-inst-sigla" class="input-form" placeholder="Ej: isf o remtyo">
                     </div>
                 </div>
 
@@ -858,6 +913,15 @@
                 });
             }
             
+            // Actualizar select para emisión individual
+            const selectIndividual = document.getElementById('individual-diploma-select');
+            if (selectIndividual) {
+                selectIndividual.innerHTML = '<option value="">-- Seleccionar Diploma --</option>';
+                diplomasCatalogo.forEach(d => {
+                    selectIndividual.innerHTML += `<option value="${d.id}">${d.nombre}</option>`;
+                });
+            }
+            
             if (!diplomasCatalogo.length) {
                 container.innerHTML = `
                     <div class="text-center py-8">
@@ -1039,6 +1103,103 @@
             if (previewWatermark) previewWatermark.classList.add('hidden');
         }
 
+        // ============================================
+        // EMISIÓN INDIVIDUAL DE DIPLOMAS
+        // ============================================
+        
+        async function emitirDiplomaIndividual() {
+            const dniInput = document.getElementById('individual-dni');
+            const nombreInput = document.getElementById('individual-nombre');
+            const apellidoInput = document.getElementById('individual-apellido');
+            const diplomaSelect = document.getElementById('individual-diploma-select');
+            
+            // Sanitizar DNI (remover puntos y espacios)
+            let dni = dniInput.value.replace(/\./g, '').replace(/\s/g, '').trim();
+            const nombre = nombreInput.value.trim().toUpperCase();
+            const apellido = apellidoInput.value.trim().toUpperCase();
+            const diplomaId = diplomaSelect.value;
+            
+            if (!dni || !nombre || !apellido || !diplomaId) {
+                toast("Complete todos los campos", 'error');
+                return;
+            }
+            
+            const diplomaSeleccionado = diplomasCatalogo.find(d => d.id === diplomaId);
+            if (!diplomaSeleccionado) {
+                toast("Diploma no encontrado", 'error');
+                return;
+            }
+            
+            let instId = currentProfile.institucion_id;
+            if (currentProfile.rol === 'superadmin') {
+                instId = document.getElementById('carga-diploma-instituto')?.value || instId;
+                if (!instId) {
+                    toast("Superadmin: Debes seleccionar un instituto", 'error');
+                    return;
+                }
+            }
+            
+            try {
+                // Verificar si ya existe un diploma para este DNI con el mismo nombre
+                const { data: existing } = await db
+                    .from('diplomas_directos')
+                    .select('id')
+                    .eq('dni_alumno', dni)
+                    .eq('diploma_nombre', diplomaSeleccionado.nombre)
+                    .maybeSingle();
+                
+                if (existing) {
+                    toast("Ya existe un diploma con este DNI y nombre de diploma", 'error');
+                    return;
+                }
+                
+                const diplomaData = {
+                    dni_alumno: dni,
+                    nombre: nombre,
+                    apellido: apellido,
+                    diploma_id: diplomaSeleccionado.id,
+                    diploma_nombre: diplomaSeleccionado.nombre,
+                    registro_id: diplomaSeleccionado.registro_id,
+                    institution_id: instId,
+                    emitido_en: new Date().toISOString(),
+                    costo: diplomaSeleccionado.costo || 0
+                };
+                
+                const { error } = await db.from('diplomas_directos').insert([diplomaData]);
+                if (error) throw error;
+                
+                // Registrar en ledger
+                const hashId = `DIP_${Date.now()}_${dni}_${Math.random().toString(36).substr(2, 8)}`;
+                await db.from('ledger_transacciones').insert([{
+                    id: hashId,
+                    matricula_id: `DIPLOMA_${dni}`,
+                    matricula_dni: dni,
+                    alumno_dni: dni,
+                    metadata: { 
+                        tipo: 'DIPLOMA_DIRECTO', 
+                        nombre: diplomaSeleccionado.nombre,
+                        diploma_id: diplomaSeleccionado.id
+                    }
+                }]);
+                
+                toast("Diploma emitido correctamente");
+                
+                // Limpiar inputs
+                dniInput.value = '';
+                nombreInput.value = '';
+                apellidoInput.value = '';
+                diplomaSelect.value = '';
+                
+                // Recargar la tabla de diplomas emitidos
+                await cargarDiplomasEmitidos();
+                await actualizarEstadisticas();
+                
+            } catch (err) {
+                console.error("Error emitiendo diploma:", err);
+                toast("Error al emitir diploma: " + err.message, 'error');
+            }
+        }
+
         function toggleEmisionMasiva() {
             const content = document.getElementById('emision-masiva-content');
             const icon = document.getElementById('icon-emision-masiva');
@@ -1086,7 +1247,7 @@
                 datosDiplomasCargados = [];
                 
                 for (const row of rows) {
-                    const dni = row['DNI'] || row['dni'];
+                    let dni = row['DNI'] || row['dni'];
                     const nombre = row['NOMBRE'] || row['nombre'];
                     const apellido = row['APELLIDO'] || row['apellido'];
                     
@@ -1095,8 +1256,11 @@
                         continue;
                     }
                     
+                    // Sanitizar DNI
+                    dni = String(dni).replace(/\./g, '').replace(/\s/g, '').trim();
+                    
                     datosDiplomasCargados.push({
-                        dni_alumno: String(dni),
+                        dni_alumno: dni,
                         nombre: String(nombre).toUpperCase(),
                         apellido: String(apellido).toUpperCase(),
                         diploma_id: diplomaSeleccionado.id,
@@ -1178,7 +1342,7 @@
             }
             
             setButtonLoading(btn, false, originalText);
-            toast(`✅ ${successCount} diplomas emitidos. ❌ ${errorCount} errores (duplicados o inválidos)`);
+            toast(`Carga finalizada: ${successCount} exitosos, ${errorCount} omitidos/duplicados`);
             
             document.getElementById('input-diploma-excel').value = '';
             document.getElementById('preview-diploma-area').classList.add('hidden');
@@ -1188,6 +1352,10 @@
             await actualizarEstadisticas();
         }
 
+        // ============================================
+        // DIPLOMAS EMITIDOS CON BUSCADOR
+        // ============================================
+        
         async function cargarDiplomasEmitidos() {
             const container = document.getElementById('lista-diplomas');
             if (!container) return;
@@ -1211,6 +1379,18 @@
             }
             
             diplomasList = data;
+            renderizarListaDiplomas(data);
+        }
+        
+        function renderizarListaDiplomas(data) {
+            const container = document.getElementById('lista-diplomas');
+            if (!container) return;
+            
+            if (!data || data.length === 0) {
+                container.innerHTML = '<p class="text-slate-400 text-sm text-center py-8">No se encontraron diplomas para este DNI.</p>';
+                return;
+            }
+            
             container.innerHTML = '';
             
             data.forEach(d => {
@@ -1233,6 +1413,37 @@
             });
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
+        
+        async function filtrarDiplomasEmitidos() {
+            const busqueda = document.getElementById('buscador-diplomas')?.value.trim();
+            const container = document.getElementById('lista-diplomas');
+            
+            if (!busqueda) {
+                // Si no hay búsqueda, recargar todos
+                await cargarDiplomasEmitidos();
+                return;
+            }
+            
+            container.innerHTML = '<p class="text-slate-400 text-sm text-center py-8">Buscando...</p>';
+            
+            let query = db.from('diplomas_directos').select('*, diplomas_catalogo(nombre as catalogo_nombre)').order('emitido_en', { ascending: false });
+            
+            if (currentProfile.rol !== 'superadmin') {
+                query = query.eq('institution_id', currentProfile.institucion_id);
+            }
+            
+            // Buscar por DNI específico
+            query = query.eq('dni_alumno', busqueda);
+            
+            const { data, error } = await query;
+            
+            if (error) {
+                container.innerHTML = '<p class="text-red-400 text-sm text-center py-8">Error en la búsqueda</p>';
+                return;
+            }
+            
+            renderizarListaDiplomas(data || []);
+        }
 
         async function borrarDiploma(id) {
             if (!confirm("¿Eliminar este diploma? Esta acción es irreversible.")) return;
@@ -1246,7 +1457,119 @@
         }
 
         // ============================================
-        // FUNCIONES EXISTENTES (CORREGIDAS)
+        // CARGA MASIVA DE ALUMNOS (CORREGIDA)
+        // ============================================
+        
+        function procesarExcel() {
+            const input = document.getElementById('input-excel');
+            if (!input || !input.files.length) return;
+            
+            let instIdExcel = currentProfile.institucion_id;
+            if (currentProfile.rol === 'superadmin') {
+                instIdExcel = document.getElementById('carga-instituto-select')?.value;
+                if (!instIdExcel) {
+                    toast("Selecciona un instituto para cargar.", 'error');
+                    return;
+                }
+            }
+            
+            const reader = new FileReader();
+            reader.onload = e => {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(sheet);
+                
+                datosExcelCargados = rows.map(row => {
+                    let dni = row['DNI'] || row['dni'];
+                    const nombreCursoExcel = (row['CURSO'] || row['curso'] || '').trim();
+                    const cursoObj = cursosCache.find(c => c.nombre.toUpperCase() === nombreCursoExcel.toUpperCase());
+                    const regId = cursoObj ? cursoObj.registro_id : 'reuim';
+                    if (!cursoObj) console.warn("Curso no encontrado:", nombreCursoExcel);
+                    
+                    // Sanitizar DNI
+                    if (dni) {
+                        dni = String(dni).replace(/\./g, '').replace(/\s/g, '').trim();
+                    }
+                    
+                    return {
+                        dni_alumno: dni, 
+                        nombre: (row['NOMBRE'] || row['nombre'] || '').toUpperCase(),
+                        apellido: (row['APELLIDO'] || row['apellido'] || '').toUpperCase(), 
+                        curso: nombreCursoExcel,
+                        registro_id: regId, 
+                        institution_id: instIdExcel, 
+                        fecha_inicio: new Date().toISOString(),
+                        estado: 'ACTIVO'
+                    };
+                }).filter(x => x.dni_alumno && x.nombre && x.curso);
+                
+                document.getElementById('count-preview').innerText = datosExcelCargados.length;
+                document.getElementById('preview-area').classList.remove('hidden');
+                const tb = document.getElementById('tabla-preview');
+                if (tb) {
+                    tb.innerHTML = "";
+                    datosExcelCargados.slice(0, 5).forEach(d => tb.innerHTML += `<tr><td class="p-1">${d.dni_alumno}</td><td class="p-1">${d.nombre}</td><td class="p-1">${d.curso}</td></tr>`);
+                }
+            };
+            reader.readAsArrayBuffer(input.files[0]);
+        }
+
+        async function confirmarCarga() {
+            if (!datosExcelCargados.length) {
+                toast("No hay datos para cargar", 'error');
+                return;
+            }
+            
+            const btn = document.querySelector('#preview-area button');
+            const originalText = btn.innerHTML;
+            setButtonLoading(btn, true);
+            
+            let successCount = 0;
+            let errorCount = 0;
+            let duplicateCount = 0;
+            
+            for (const alumno of datosExcelCargados) {
+                try {
+                    // Verificar si ya existe un registro con el mismo DNI y Curso
+                    const { data: existing } = await db
+                        .from('matriculas')
+                        .select('id')
+                        .eq('dni_alumno', alumno.dni_alumno)
+                        .eq('curso', alumno.curso)
+                        .maybeSingle();
+                    
+                    if (existing) {
+                        duplicateCount++;
+                        continue;
+                    }
+                    
+                    const { error } = await db.from('matriculas').insert([alumno]);
+                    if (error) throw error;
+                    successCount++;
+                    
+                } catch (err) {
+                    console.error("Error insertando alumno:", err);
+                    errorCount++;
+                }
+            }
+            
+            setButtonLoading(btn, false, originalText);
+            
+            const totalErrors = duplicateCount + errorCount;
+            toast(`Carga finalizada: ${successCount} exitosos, ${totalErrors} omitidos/duplicados`);
+            
+            if (successCount > 0) {
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                document.getElementById('preview-area').classList.add('hidden');
+                document.getElementById('input-excel').value = '';
+                datosExcelCargados = [];
+            }
+        }
+
+        // ============================================
+        // FUNCIONES EXISTENTES (MANTENIDAS)
         // ============================================
 
         function mostrarSeccion(id) {
@@ -1334,7 +1657,7 @@
 
         async function guardarCurso() {
             const idEdit = document.getElementById('c-id-edit')?.value;
-            const nombre = document.getElementById('c-nombre')?.value.toUpperCase();
+            let nombre = document.getElementById('c-nombre')?.value;
             const registro = document.getElementById('c-registro')?.value;
             const status = document.getElementById('status-curso');
             
@@ -1342,6 +1665,8 @@
                 toast("Complete nombre y registro", 'error');
                 return;
             }
+            
+            nombre = nombre.toUpperCase();
             
             if (status) status.innerText = "Procesando...";
             
@@ -1786,8 +2111,8 @@
                             <button onclick="editarAlumno('${a.id}')" class="text-blue-400 hover:text-blue-600"><i data-lucide="pencil" size="14"></i></button>
                             <button onclick="toggleSuspensionAlumno('${a.id}', '${a.estado || 'ACTIVO'}')" class="${esSuspendido ? 'text-green-500' : 'text-orange-400'}"><i data-lucide="${esSuspendido ? 'user-check' : 'ban'}" size="14"></i></button>
                             <button onclick="borrarAlumno('${a.id}')" class="text-slate-300 hover:text-red-500"><i data-lucide="trash-2" size="14"></i></button>
-                        </td>
-                     </tr>`;
+                                                </td>
+                      </tr>`;
                 });
                 if (typeof lucide !== 'undefined') lucide.createIcons();
             } else {
@@ -1831,10 +2156,19 @@
 
         async function guardarAlumnoManual() {
             const idEdit = document.getElementById('m-id-edit')?.value;
-            const dni = document.getElementById('m-dni')?.value;
-            const nombre = document.getElementById('m-nombre')?.value;
-            const apellido = document.getElementById('m-apellido')?.value;
+            let dni = document.getElementById('m-dni')?.value;
+            let nombre = document.getElementById('m-nombre')?.value;
+            let apellido = document.getElementById('m-apellido')?.value;
             const cursoId = document.getElementById('m-curso-select')?.value;
+            
+            // Sanitizar DNI
+            if (dni) {
+                dni = dni.replace(/\./g, '').replace(/\s/g, '').trim();
+            }
+            
+            // Convertir nombre y apellido a mayúsculas
+            if (nombre) nombre = nombre.toUpperCase();
+            if (apellido) apellido = apellido.toUpperCase();
             
             let instId = currentProfile.institucion_id;
             if (currentProfile.rol === 'superadmin') {
@@ -1899,70 +2233,6 @@
             const modal = document.getElementById('modal-alumno');
             if (modal) modal.classList.add('hidden');
             document.getElementById('m-id-edit').value = "";
-        }
-
-        // ============================================
-        // CARGA MASIVA EXCEL
-        // ============================================
-        function procesarExcel() {
-            const input = document.getElementById('input-excel');
-            if (!input || !input.files.length) return;
-            
-            let instIdExcel = currentProfile.institucion_id;
-            if (currentProfile.rol === 'superadmin') {
-                instIdExcel = document.getElementById('carga-instituto-select')?.value;
-                if (!instIdExcel) {
-                    toast("Selecciona un instituto para cargar.", 'error');
-                    return;
-                }
-            }
-            
-            const reader = new FileReader();
-            reader.onload = e => {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                const rows = XLSX.utils.sheet_to_json(sheet);
-                
-                datosExcelCargados = rows.map(row => {
-                    const nombreCursoExcel = (row['CURSO'] || row['curso'] || '').trim();
-                    const cursoObj = cursosCache.find(c => c.nombre.toUpperCase() === nombreCursoExcel.toUpperCase());
-                    const regId = cursoObj ? cursoObj.registro_id : 'reuim';
-                    if (!cursoObj) console.warn("Curso no encontrado:", nombreCursoExcel);
-                    return {
-                        dni_alumno: row['DNI'] || row['dni'], 
-                        nombre: row['NOMBRE'] || row['nombre'],
-                        apellido: row['APELLIDO'] || row['apellido'], 
-                        curso: nombreCursoExcel,
-                        registro_id: regId, 
-                        institution_id: instIdExcel, 
-                        fecha_inicio: new Date().toISOString(),
-                        estado: 'ACTIVO'
-                    };
-                }).filter(x => x.dni_alumno && x.nombre && x.curso);
-                
-                document.getElementById('count-preview').innerText = datosExcelCargados.length;
-                document.getElementById('preview-area').classList.remove('hidden');
-                const tb = document.getElementById('tabla-preview');
-                if (tb) {
-                    tb.innerHTML = "";
-                    datosExcelCargados.slice(0, 5).forEach(d => tb.innerHTML += `<tr><td class="p-1">${d.dni_alumno}</td><td class="p-1">${d.nombre}</td><td class="p-1">${d.curso}</td></tr>`);
-                }
-            };
-            reader.readAsArrayBuffer(input.files[0]);
-        }
-
-        async function confirmarCarga() {
-            if (!datosExcelCargados.length) {
-                toast("No hay datos para cargar", 'error');
-                return;
-            }
-            const { error } = await db.from('matriculas').insert(datosExcelCargados);
-            if (error) toast(error.message, 'error');
-            else { 
-                toast(`✅ ${datosExcelCargados.length} alumnos cargados`); 
-                setTimeout(() => location.reload(), 1500);
-            }
         }
 
         // ============================================
@@ -2131,7 +2401,7 @@
 
         async function crearEntidadCompleta() {
             const nombre = document.getElementById('new-inst-name')?.value;
-            const sigla = document.getElementById('new-inst-sigla')?.value;
+            let sigla = document.getElementById('new-inst-sigla')?.value;
             const color = document.getElementById('new-inst-color')?.value;
             const email = document.getElementById('new-admin-email')?.value;
             const pass = document.getElementById('new-admin-pass')?.value || Math.random().toString(36).substring(2, 10);
@@ -2140,6 +2410,11 @@
             if (!nombre) {
                 toast("Falta nombre de la institución", 'error');
                 return;
+            }
+            
+            // Actualizar sigla remaep a remtyo
+            if (sigla && sigla.toLowerCase() === 'remaep') {
+                sigla = 'remtyo';
             }
             
             try {
@@ -2280,9 +2555,14 @@
                 toast("Guardando cambios...");
                 
                 const nombre = document.getElementById('edit-inst-name')?.value.trim();
-                const sigla = document.getElementById('edit-inst-sigla')?.value.trim().toLowerCase() || null;
+                let sigla = document.getElementById('edit-inst-sigla')?.value.trim().toLowerCase() || null;
                 const color = document.getElementById('edit-inst-color')?.value;
                 const colorTexto = document.getElementById('edit-inst-text-color')?.value;
+                
+                // Actualizar sigla remaep a remtyo
+                if (sigla === 'remaep') {
+                    sigla = 'remtyo';
+                }
                 
                 if (!nombre) {
                     toast("El nombre de la institución es obligatorio", 'error');
@@ -2343,9 +2623,6 @@
                     try {
                         const { data: perfil } = await db.from('perfiles').select('id').eq('institucion_id', id).eq('rol', 'admin').maybeSingle();
                         if (perfil) {
-                            // ⚠️ ATENCIÓN: db.auth.admin.updateUserById requiere que la clave pública (PUBLIC_KEY) sea
-                            // de un rol de servicio (Service Role Key). Si usas la Anon Key desde el frontend
-                            // esta operación de actualizar contraseñas de otros usuarios fallará por seguridad.
                             const { error: passError } = await db.auth.admin.updateUserById(perfil.id, { password: newPass });
                             if (passError) console.warn("No se pudo actualizar la contraseña (posible falta de permisos Admin):", passError);
                         }
