@@ -361,7 +361,6 @@
             
             <div class="action-card" id="btn-descargar-analitico" style="display:none;" onclick="descargarAnalitico()"><span class="action-icon"><i class="fas fa-file-invoice"></i></span><span class="action-title">Descargar Analítico</span></div>
 
-            <!-- Botón soporte eliminado de aquí, ahora es flotante -->
             <div id="btn-install-app" class="action-card" onclick="instalarApp()"><span class="action-icon"><i class="fas fa-mobile-alt" style="color:#333;"></i></span><span class="action-title">Instalar App</span></div>
 
             <div class="action-card" id="btn-cambiar-curso" style="display:none;" onclick="volverAlSelector()"><span class="action-icon" style="color:#666"><i class="fas fa-exchange-alt"></i></span><span class="action-title">Cambiar Curso</span></div>
@@ -451,6 +450,108 @@
         // Cache para consultas a Supabase
         const queryCache = new Map();
         const CACHE_TTL = 60000;
+
+        // ==========================================
+        // TEMPLATES DE CARNET
+        // ==========================================
+        const CARNET_HTML = `
+            <div class="card-base" id="card-base-el">
+                <div class="front-left" id="panel-izq-bg">
+                    <img id="img-foto" class="student-photo" src="">
+                    <div class="rect-banda" id="banda-color"></div>
+                    <div class="qr-container" id="qr-container"></div>
+                    <div class="reg-sigla" id="txt-sigla">REGISTRO</div>
+                </div>
+                <div class="front-right" id="bg-panel">
+                    <div class="holo-layer"></div>
+                    <div class="live-shimmer"></div>
+                    
+                    <div id="vencido-overlay" class="overlay-vencido" style="display:none;">
+                        <div class="texto-vencido">VENCIDO</div>
+                        <div style="font-size: 20px; font-weight: bold; margin-top: 10px;">EXPIRÓ SU VIGENCIA</div>
+                    </div>
+
+                    <div id="suspendido-overlay" class="overlay-vencido" style="display:none; background: rgba(50, 0, 0, 0.9);">
+                        <div class="texto-vencido" style="font-size: 55px; border-color: #ef4444; color: #ef4444;">SUSPENDIDO</div>
+                        <div style="font-size: 14px; font-weight: bold; margin-top: 10px; color: white;">MATRÍCULA INACTIVA</div>
+                    </div>
+
+                    <div class="front-content">
+                        <div class="header"><span class="header-text" id="txt-anio-header">CARNET</span></div>
+                        
+                        <div class="course-container">
+                            <div class="watermark-layer" id="watermark-container"></div>
+                            <div class="course-title-main" id="txt-titulo-main">CURSO</div>
+                            <div class="course-title-sub" id="txt-titulo-sub">PROFESIONAL</div>
+                        </div>
+
+                        <div class="student-name" id="txt-nombre" style="white-space: nowrap;">---</div>
+                        <div class="data-grid">
+                            <div class="icon-box">✱</div><div class="data-box"><span class="label-text">DNI:</span><span class="value-text" id="txt-dni">---</span></div>
+                            <div class="icon-box">#</div><div class="data-box"><span class="label-text">MATRÍCULA:</span><span class="value-text" id="txt-matricula">---</span></div>
+                            <div class="icon-box">🚨</div><div class="data-box"><span class="label-text">VENCE:</span><span class="value-text" id="txt-vence">---</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+
+        const CARNET_REUIM_HTML = `
+            <div class="card-reuim" id="card-base-el">
+                <div class="official-badge">
+                    <i class="fas fa-certificate" style="margin-right: 5px;"></i> DOCUMENTO OFICIAL
+                </div>
+                <div class="reuim-left">
+                    <div class="reuim-photo-container">
+                        <img id="img-foto" class="reuim-photo" src="" crossorigin="anonymous">
+                    </div>
+                    <div class="reuim-bottom-left">
+                        <div class="reuim-qr-box" id="qr-container"></div>
+                        <div class="reuim-brand-text">REUIM</div>
+                        <div style="color: #D4AF37; font-size: 10px; margin-top: 5px; letter-spacing: 2px;">REGISTRO ÚNICO</div>
+                    </div>
+                </div>
+                <div class="reuim-right" id="bg-panel">
+                    <div id="vencido-overlay" class="overlay-vencido" style="display:none; z-index:100;">
+                        <div class="texto-vencido">VENCIDO</div>
+                        <div style="font-size: 20px; font-weight: bold; margin-top: 10px;">EXPIRÓ SU VIGENCIA</div>
+                    </div>
+                    <div id="suspendido-overlay" class="overlay-vencido" style="display:none; background: rgba(50, 0, 0, 0.9); z-index:100;">
+                        <div class="texto-vencido" style="font-size: 55px; border-color: #ef4444; color: #ef4444;">SUSPENDIDO</div>
+                        <div style="font-size: 14px; font-weight: bold; margin-top: 10px; color: white;">MATRÍCULA INACTIVA</div>
+                    </div>
+
+                    <div class="reuim-header-box">
+                        <span class="underline">CARNET</span>
+                        <span class="year" id="txt-anio-header">2026</span>
+                    </div>
+                    
+                    <div class="reuim-title-box">
+                        <div class="reuim-title-main" id="txt-titulo-main"></div>
+                        <div class="reuim-title-sub" id="txt-titulo-sub"></div>
+                    </div>
+
+                    <div class="reuim-data-box">
+                        <div class="reuim-pill name-pill">
+                            <span id="txt-nombre">---</span>
+                        </div>
+                        <div class="reuim-pill">
+                            <div class="reuim-pill-label"><span style="font-size:35px; line-height:0;">✱</span> DNI:</div>
+                            <div class="reuim-pill-value" id="txt-dni">---</div>
+                        </div>
+                        <div class="reuim-pill">
+                            <div class="reuim-pill-label"><span style="font-size:30px; line-height:0;">#</span> MATRÍCULA:</div>
+                            <div class="reuim-pill-value" id="txt-matricula">---</div>
+                        </div>
+                        <div class="reuim-pill" style="position:relative;">
+                            <div class="reuim-pill-label"><span style="font-size:25px; line-height:0;">🚨</span> VENCE:</div>
+                            <div class="reuim-pill-value" id="txt-vence">---</div>
+                            <div id="watermark-container" class="reuim-watermark"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="laurel-bottom">⚜ ⚜ ⚜</div>
+                </div>
+            </div>`;
 
         // ==========================================
         // VARIABLES GLOBALES
@@ -1093,55 +1194,69 @@
         }
         
         // ==========================================
-        // CARGA DE WALLET CON BIFURCACIÓN DE MODO DIPLOMA ÚNICO
+        // CARGA DE WALLET CON BIFURCACIÓN DE MODO DIPLOMA ÚNICO (CORREGIDA)
         // ==========================================
         async function cargarWallet(alumno) {
             alumnoActual = alumno; 
-            modoDiplomaUnico = false;
-            diplomaUnicoData = null;
-
-            // Verificar si el curso del alumno existe en diplomas_catalogo
+            
+            // --- 1. CONSULTA AISLADA A diplomas_catalogo ---
+            let diplomaEncontrado = null;
             try {
                 const { data: diplomaCatalogo, error: diplomaError } = await db
                     .from('diplomas_catalogo')
                     .select('id, nombre, plantilla_url, watermark_url, registro_id, costo, duracion, descripcion')
                     .ilike('nombre', alumno.curso)
-                    .maybeSingle();
+                    .maybeSingle();  // maybeSingle evita error si no existe
 
                 if (!diplomaError && diplomaCatalogo && diplomaCatalogo.plantilla_url) {
-                    modoDiplomaUnico = true;
-                    diplomaUnicoData = diplomaCatalogo;
+                    diplomaEncontrado = diplomaCatalogo;
                     console.log("[MODO DIPLOMA] Curso encontrado en diplomas_catalogo:", diplomaCatalogo.nombre);
+                } else {
+                    console.log("[MODO NORMAL] Curso no está en diplomas_catalogo, modo carnet normal");
                 }
             } catch (err) {
-                console.warn("Error consultando diplomas_catalogo:", err);
+                console.warn("[MODO NORMAL] Error consultando diplomas_catalogo (se ignora):", err);
+                // No hacemos nada, simplemente no hay diploma
             }
-
-            // Aplicar UI según modo
+            
+            // --- 2. DEFINIR MODO Y APLICAR UI SEGÚN RESULTADO ---
             const cardViewport = document.getElementById('card-viewport');
             const viewToggles = document.querySelector('.view-toggles');
             const btnDownloadCarnet = document.getElementById('btn-download-carnet');
             const btnDescargarDiploma = document.getElementById('btn-descargar-diploma');
             const diplomaPreview = document.getElementById('diploma-preview-container');
 
-            if (modoDiplomaUnico) {
+            if (diplomaEncontrado && diplomaEncontrado.plantilla_url) {
+                // === MODO DIPLOMA ÚNICO ===
+                modoDiplomaUnico = true;
+                diplomaUnicoData = diplomaEncontrado;
+                
                 // Ocultar elementos del carnet plástico
                 if (cardViewport) cardViewport.style.display = 'none';
                 if (viewToggles) viewToggles.style.display = 'none';
                 if (btnDownloadCarnet) btnDownloadCarnet.style.display = 'none';
+                
                 // Mostrar preview premium del diploma
                 if (diplomaPreview) diplomaPreview.style.display = 'block';
                 // Mostrar botón descargar diploma (usando la lógica modificada)
                 if (btnDescargarDiploma) btnDescargarDiploma.style.display = 'flex';
             } else {
-                // Modo normal: mostrar carnet
+                // === MODO CARNET NORMAL (RESTAURACIÓN EXPLÍCITA) ===
+                modoDiplomaUnico = false;
+                diplomaUnicoData = null;
+                
+                // Restaurar elementos del carnet plástico
                 if (cardViewport) cardViewport.style.display = 'block';
                 if (viewToggles) viewToggles.style.display = 'flex';
                 if (btnDownloadCarnet) btnDownloadCarnet.style.display = 'flex';
                 if (diplomaPreview) diplomaPreview.style.display = 'none';
+                
+                // El botón de diploma normal se mostrará más abajo si existe diploma_bg_url
+                // Por ahora lo ocultamos hasta saber si hay diploma disponible
+                if (btnDescargarDiploma) btnDescargarDiploma.style.display = 'none';
             }
 
-            // Resto de la carga normal (instituciones, cursos, etc)
+            // --- 3. CARGA DE DATOS DE INSTITUCIÓN ---
             if(alumno.institution_id) {
                 try {
                     const { data: dataInst } = await db.from('instituciones')
@@ -1158,14 +1273,14 @@
                 } catch(e) { console.warn("Error al cargar instituto:", e); }
             }
 
+            // --- 4. ACTUALIZAR UI GENERAL ---
             document.getElementById('user-name').innerText = alumno.nombre.split(' ')[0];
             const av = document.getElementById('user-avatar-wallet');
             if(alumno.foto_url) { av.src = alumno.foto_url; av.style.display = 'block'; }
             document.getElementById('btn-cambiar-curso').style.display = globalMatriculas.length > 1 ? 'flex' : 'none';
 
+            // --- 5. CONSULTA A cursos_oficiales (siempre se ejecuta para tener cursoActualData) ---
             cursoActualData = null; 
-            checkPaymentReturn(alumno.id);
-
             let colorDinamico = null;
             if(alumno.registro_id) {
                 try {
@@ -1186,7 +1301,7 @@
                 cursoActualData = candidato;
             } 
 
-            // Solo renderizar carnet si NO estamos en modo diploma único
+            // --- 6. RENDERIZAR CARNET SOLO EN MODO NORMAL ---
             if (!modoDiplomaUnico) {
                 const container = document.getElementById('carnet-render');
                 const regId = (alumno.registro_id || 'default').toLowerCase();
@@ -1204,26 +1319,36 @@
                 currentView = 'front';
             }
 
+            // --- 7. VERIFICAR PAGO PREMIUM ---
+            checkPaymentReturn(alumno.id);
+
+            // --- 8. CARGAR SECCIONES ADICIONALES ---
             registrarAcceso(alumno);
             renderPremiumSection(alumno);
             cargarContenidosExtra(alumno);
             await cargarDiplomasUsuario(alumno.dni_alumno);
             cargarNotificacionesSistema(); 
 
-            // Ajustar visibilidad de botones de diploma/analítico (solo si no estamos en modo diploma único, porque ya tenemos el botón dedicado)
+            // --- 9. AJUSTAR BOTONES DE DIPLOMA Y ANALÍTICO (SOLO MODO NORMAL) ---
             const btnAnalitico = document.getElementById('btn-descargar-analitico');
             if (!modoDiplomaUnico) {
-                if (btnDescargarDiploma) btnDescargarDiploma.style.display = (cursoActualData && cursoActualData.diploma_bg_url) ? 'flex' : 'none';
-                if (btnAnalitico) btnAnalitico.style.display = (cursoActualData && cursoActualData.analitico_bg_url) ? 'flex' : 'none';
+                // Modo normal: mostrar botón de diploma si existe diploma_bg_url
+                if (btnDescargarDiploma) {
+                    btnDescargarDiploma.style.display = (cursoActualData && cursoActualData.diploma_bg_url) ? 'flex' : 'none';
+                }
+                if (btnAnalitico) {
+                    btnAnalitico.style.display = (cursoActualData && cursoActualData.analitico_bg_url) ? 'flex' : 'none';
+                }
             } else {
-                // En modo diploma único, el botón de diploma ya está visible, el analítico se oculta
+                // Modo diploma único: ocultar analítico (ya tenemos el botón de diploma visible)
                 if (btnAnalitico) btnAnalitico.style.display = 'none';
             }
 
-            // Mostrar botón flotante de WhatsApp solo en wallet
+            // --- 10. MOSTRAR BOTÓN WHATSAPP FLOTANTE ---
             const whatsappBtn = document.getElementById('whatsapp-float-btn');
             if (whatsappBtn) whatsappBtn.style.display = 'flex';
 
+            // --- 11. AJUSTE RESPONSIVO ---
             setTimeout(ajustarCarnetResponsivo, 100);
         }
 
