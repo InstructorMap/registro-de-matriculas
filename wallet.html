@@ -105,6 +105,13 @@
         .btn-diploma-download { background: #6366f1; color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; transition: 0.2s; }
         .btn-diploma-download:hover { background: #4f46e5; transform: scale(1.02); }
 
+        /* DIPLOMA PREMIUM UI */
+        #diploma-preview-container { background: linear-gradient(145deg, #f5f3ff 0%, #ede9fe 100%); border-radius: 20px; padding: 20px; margin-bottom: 20px; border: 2px solid #c4b5fd; box-shadow: 0 12px 25px rgba(79, 70, 229, 0.15); text-align: center; }
+        .diploma-premium-icon { font-size: 48px; color: #7c3aed; margin-bottom: 12px; }
+        .diploma-premium-title { font-size: 20px; font-weight: 900; color: #1e1b4b; margin-bottom: 6px; }
+        .diploma-premium-sub { font-size: 13px; color: #4c1d95; font-weight: 600; letter-spacing: 1px; }
+        .diploma-premium-badge { display: inline-block; background: #7c3aed; color: white; padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; margin-top: 12px; }
+
         /* CARNET STYLES (ESTANDAR) */
         .card-base { width: 100%; height: 100%; display: flex; position: relative; border: 5px solid; border-radius: 40px; overflow: hidden; background: white; transition: border-color 0.3s; }
         .front-left { width: 380px; height: 100%; position: relative; background: #d4d4d4; z-index: 1; border-top-left-radius: 35px; border-bottom-left-radius: 35px; overflow: hidden; flex-shrink: 0; }
@@ -239,6 +246,12 @@
         /* GHOST CONTAINER */
         #ghost-container { position: absolute; top: 0; left: -9999px; z-index: -9999; pointer-events: none; }
         
+        /* BOTON WHATSAPP FLOTANTE */
+        .whatsapp-float { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background-color: #25D366; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(0,0,0,0.25); cursor: pointer; z-index: 9999; transition: transform 0.2s, box-shadow 0.2s; border: none; }
+        .whatsapp-float:active { transform: scale(0.92); }
+        .whatsapp-float i { font-size: 32px; color: white; }
+        .whatsapp-float:hover { box-shadow: 0 12px 28px rgba(0,0,0,0.3); }
+
         /* LOADING STATES */
         .btn-loading { position: relative; pointer-events: none; opacity: 0.7; }
         
@@ -314,6 +327,14 @@
             <div class="btn-toggle" id="btn-toggle-legal" onclick="cambiarVistaCarnet('legal')"><i class="fas fa-file-contract"></i> ALCANCE</div>
         </div>
 
+        <!-- CONTENEDOR DIPLOMA PREMIUM UNICO (Modo Diploma) -->
+        <div id="diploma-preview-container" style="display: none;">
+            <div class="diploma-premium-icon"><i class="fas fa-scroll"></i></div>
+            <div class="diploma-premium-title">Certificación Oficial Lista</div>
+            <div class="diploma-premium-sub">Diploma Digital Verificable</div>
+            <div class="diploma-premium-badge"><i class="fas fa-check-circle"></i> DOCUMENTO VÁLIDO</div>
+        </div>
+
         <div id="premium-section"></div>
 
         <!-- SECCIÓN DIPLOMAS DIRECTOS -->
@@ -340,7 +361,7 @@
             
             <div class="action-card" id="btn-descargar-analitico" style="display:none;" onclick="descargarAnalitico()"><span class="action-icon"><i class="fas fa-file-invoice"></i></span><span class="action-title">Descargar Analítico</span></div>
 
-            <div class="action-card" onclick="abrirSoporte()"><span class="action-icon"><i class="fab fa-whatsapp" style="color:#25D366;"></i></span><span class="action-title">Soporte Alumno</span></div>
+            <!-- Botón soporte eliminado de aquí, ahora es flotante -->
             <div id="btn-install-app" class="action-card" onclick="instalarApp()"><span class="action-icon"><i class="fas fa-mobile-alt" style="color:#333;"></i></span><span class="action-title">Instalar App</span></div>
 
             <div class="action-card" id="btn-cambiar-curso" style="display:none;" onclick="volverAlSelector()"><span class="action-icon" style="color:#666"><i class="fas fa-exchange-alt"></i></span><span class="action-title">Cambiar Curso</span></div>
@@ -377,6 +398,11 @@
             </div>
             <button onclick="cerrarNotificaciones()" class="btn-main" style="margin-top:15px; width:100%;">ENTENDIDO</button>
         </div>
+    </div>
+
+    <!-- Botón WhatsApp Flotante (siempre visible en wallet) -->
+    <div id="whatsapp-float-btn" class="whatsapp-float" onclick="abrirSoporte()" style="display: none;">
+        <i class="fab fa-whatsapp"></i>
     </div>
 
     <div id="ghost-container"></div>
@@ -427,108 +453,6 @@
         const CACHE_TTL = 60000;
 
         // ==========================================
-        // TEMPLATES DE CARNET
-        // ==========================================
-        const CARNET_HTML = `
-            <div class="card-base" id="card-base-el">
-                <div class="front-left" id="panel-izq-bg">
-                    <img id="img-foto" class="student-photo" src="">
-                    <div class="rect-banda" id="banda-color"></div>
-                    <div class="qr-container" id="qr-container"></div>
-                    <div class="reg-sigla" id="txt-sigla">REGISTRO</div>
-                </div>
-                <div class="front-right" id="bg-panel">
-                    <div class="holo-layer"></div>
-                    <div class="live-shimmer"></div>
-                    
-                    <div id="vencido-overlay" class="overlay-vencido" style="display:none;">
-                        <div class="texto-vencido">VENCIDO</div>
-                        <div style="font-size: 20px; font-weight: bold; margin-top: 10px;">EXPIRÓ SU VIGENCIA</div>
-                    </div>
-
-                    <div id="suspendido-overlay" class="overlay-vencido" style="display:none; background: rgba(50, 0, 0, 0.9);">
-                        <div class="texto-vencido" style="font-size: 55px; border-color: #ef4444; color: #ef4444;">SUSPENDIDO</div>
-                        <div style="font-size: 14px; font-weight: bold; margin-top: 10px; color: white;">MATRÍCULA INACTIVA</div>
-                    </div>
-
-                    <div class="front-content">
-                        <div class="header"><span class="header-text" id="txt-anio-header">CARNET</span></div>
-                        
-                        <div class="course-container">
-                            <div class="watermark-layer" id="watermark-container"></div>
-                            <div class="course-title-main" id="txt-titulo-main">CURSO</div>
-                            <div class="course-title-sub" id="txt-titulo-sub">PROFESIONAL</div>
-                        </div>
-
-                        <div class="student-name" id="txt-nombre" style="white-space: nowrap;">---</div>
-                        <div class="data-grid">
-                            <div class="icon-box">✱</div><div class="data-box"><span class="label-text">DNI:</span><span class="value-text" id="txt-dni">---</span></div>
-                            <div class="icon-box">#</div><div class="data-box"><span class="label-text">MATRÍCULA:</span><span class="value-text" id="txt-matricula">---</span></div>
-                            <div class="icon-box">🚨</div><div class="data-box"><span class="label-text">VENCE:</span><span class="value-text" id="txt-vence">---</span></div>
-                        </div>
-                    </div>
-                </div>
-            </div>`;
-
-        const CARNET_REUIM_HTML = `
-            <div class="card-reuim" id="card-base-el">
-                <div class="official-badge">
-                    <i class="fas fa-certificate" style="margin-right: 5px;"></i> DOCUMENTO OFICIAL
-                </div>
-                <div class="reuim-left">
-                    <div class="reuim-photo-container">
-                        <img id="img-foto" class="reuim-photo" src="" crossorigin="anonymous">
-                    </div>
-                    <div class="reuim-bottom-left">
-                        <div class="reuim-qr-box" id="qr-container"></div>
-                        <div class="reuim-brand-text">REUIM</div>
-                        <div style="color: #D4AF37; font-size: 10px; margin-top: 5px; letter-spacing: 2px;">REGISTRO ÚNICO</div>
-                    </div>
-                </div>
-                <div class="reuim-right" id="bg-panel">
-                    <div id="vencido-overlay" class="overlay-vencido" style="display:none; z-index:100;">
-                        <div class="texto-vencido">VENCIDO</div>
-                        <div style="font-size: 20px; font-weight: bold; margin-top: 10px;">EXPIRÓ SU VIGENCIA</div>
-                    </div>
-                    <div id="suspendido-overlay" class="overlay-vencido" style="display:none; background: rgba(50, 0, 0, 0.9); z-index:100;">
-                        <div class="texto-vencido" style="font-size: 55px; border-color: #ef4444; color: #ef4444;">SUSPENDIDO</div>
-                        <div style="font-size: 14px; font-weight: bold; margin-top: 10px; color: white;">MATRÍCULA INACTIVA</div>
-                    </div>
-
-                    <div class="reuim-header-box">
-                        <span class="underline">CARNET</span>
-                        <span class="year" id="txt-anio-header">2026</span>
-                    </div>
-                    
-                    <div class="reuim-title-box">
-                        <div class="reuim-title-main" id="txt-titulo-main"></div>
-                        <div class="reuim-title-sub" id="txt-titulo-sub"></div>
-                    </div>
-
-                    <div class="reuim-data-box">
-                        <div class="reuim-pill name-pill">
-                            <span id="txt-nombre">---</span>
-                        </div>
-                        <div class="reuim-pill">
-                            <div class="reuim-pill-label"><span style="font-size:35px; line-height:0;">✱</span> DNI:</div>
-                            <div class="reuim-pill-value" id="txt-dni">---</div>
-                        </div>
-                        <div class="reuim-pill">
-                            <div class="reuim-pill-label"><span style="font-size:30px; line-height:0;">#</span> MATRÍCULA:</div>
-                            <div class="reuim-pill-value" id="txt-matricula">---</div>
-                        </div>
-                        <div class="reuim-pill" style="position:relative;">
-                            <div class="reuim-pill-label"><span style="font-size:25px; line-height:0;">🚨</span> VENCE:</div>
-                            <div class="reuim-pill-value" id="txt-vence">---</div>
-                            <div id="watermark-container" class="reuim-watermark"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="laurel-bottom">⚜ ⚜ ⚜</div>
-                </div>
-            </div>`;
-
-        // ==========================================
         // VARIABLES GLOBALES
         // ==========================================
         let globalColorTema = COLOR_DEFAULT; 
@@ -540,6 +464,8 @@
         let notificacionesCache = []; 
         let cropper = null; 
         let currentView = 'front';
+        let modoDiplomaUnico = false;
+        let diplomaUnicoData = null;
 
         // ==========================================
         // FUNCIONES DE UTILIDAD
@@ -745,7 +671,6 @@
                 
                 if (error) throw error;
                 
-                // Buscar plantilla de diploma para este registro
                 const { data: plantillaCurso } = await db
                     .from('cursos_oficiales')
                     .select('diploma_bg_url')
@@ -1140,6 +1065,7 @@
         }
 
         function cambiarVistaCarnet(vista) {
+            if (modoDiplomaUnico) return; // No permitir cambiar vistas si estamos en modo diploma único
             currentView = vista;
             const container = document.getElementById('carnet-render');
             document.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
@@ -1166,9 +1092,56 @@
             }
         }
         
+        // ==========================================
+        // CARGA DE WALLET CON BIFURCACIÓN DE MODO DIPLOMA ÚNICO
+        // ==========================================
         async function cargarWallet(alumno) {
             alumnoActual = alumno; 
+            modoDiplomaUnico = false;
+            diplomaUnicoData = null;
 
+            // Verificar si el curso del alumno existe en diplomas_catalogo
+            try {
+                const { data: diplomaCatalogo, error: diplomaError } = await db
+                    .from('diplomas_catalogo')
+                    .select('id, nombre, plantilla_url, watermark_url, registro_id, costo, duracion, descripcion')
+                    .ilike('nombre', alumno.curso)
+                    .maybeSingle();
+
+                if (!diplomaError && diplomaCatalogo && diplomaCatalogo.plantilla_url) {
+                    modoDiplomaUnico = true;
+                    diplomaUnicoData = diplomaCatalogo;
+                    console.log("[MODO DIPLOMA] Curso encontrado en diplomas_catalogo:", diplomaCatalogo.nombre);
+                }
+            } catch (err) {
+                console.warn("Error consultando diplomas_catalogo:", err);
+            }
+
+            // Aplicar UI según modo
+            const cardViewport = document.getElementById('card-viewport');
+            const viewToggles = document.querySelector('.view-toggles');
+            const btnDownloadCarnet = document.getElementById('btn-download-carnet');
+            const btnDescargarDiploma = document.getElementById('btn-descargar-diploma');
+            const diplomaPreview = document.getElementById('diploma-preview-container');
+
+            if (modoDiplomaUnico) {
+                // Ocultar elementos del carnet plástico
+                if (cardViewport) cardViewport.style.display = 'none';
+                if (viewToggles) viewToggles.style.display = 'none';
+                if (btnDownloadCarnet) btnDownloadCarnet.style.display = 'none';
+                // Mostrar preview premium del diploma
+                if (diplomaPreview) diplomaPreview.style.display = 'block';
+                // Mostrar botón descargar diploma (usando la lógica modificada)
+                if (btnDescargarDiploma) btnDescargarDiploma.style.display = 'flex';
+            } else {
+                // Modo normal: mostrar carnet
+                if (cardViewport) cardViewport.style.display = 'block';
+                if (viewToggles) viewToggles.style.display = 'flex';
+                if (btnDownloadCarnet) btnDownloadCarnet.style.display = 'flex';
+                if (diplomaPreview) diplomaPreview.style.display = 'none';
+            }
+
+            // Resto de la carga normal (instituciones, cursos, etc)
             if(alumno.institution_id) {
                 try {
                     const { data: dataInst } = await db.from('instituciones')
@@ -1213,20 +1186,23 @@
                 cursoActualData = candidato;
             } 
 
-            const container = document.getElementById('carnet-render');
-            const regId = (alumno.registro_id || 'default').toLowerCase();
-            
-            if (regId === 'reuim' || regId === 'ruim') {
-                container.innerHTML = CARNET_REUIM_HTML;
-                llenarDatosCarnetReuim(container, alumno);
-            } else {
-                container.innerHTML = CARNET_HTML; 
-                llenarDatosCarnet(container, alumno, colorDinamico); 
-            }
+            // Solo renderizar carnet si NO estamos en modo diploma único
+            if (!modoDiplomaUnico) {
+                const container = document.getElementById('carnet-render');
+                const regId = (alumno.registro_id || 'default').toLowerCase();
+                
+                if (regId === 'reuim' || regId === 'ruim') {
+                    container.innerHTML = CARNET_REUIM_HTML;
+                    llenarDatosCarnetReuim(container, alumno);
+                } else {
+                    container.innerHTML = CARNET_HTML; 
+                    llenarDatosCarnet(container, alumno, colorDinamico); 
+                }
 
-            document.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
-            document.getElementById('btn-toggle-front').classList.add('active');
-            currentView = 'front';
+                document.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
+                document.getElementById('btn-toggle-front').classList.add('active');
+                currentView = 'front';
+            }
 
             registrarAcceso(alumno);
             renderPremiumSection(alumno);
@@ -1234,11 +1210,19 @@
             await cargarDiplomasUsuario(alumno.dni_alumno);
             cargarNotificacionesSistema(); 
 
-            const btnDiploma = document.getElementById('btn-descargar-diploma');
+            // Ajustar visibilidad de botones de diploma/analítico (solo si no estamos en modo diploma único, porque ya tenemos el botón dedicado)
             const btnAnalitico = document.getElementById('btn-descargar-analitico');
+            if (!modoDiplomaUnico) {
+                if (btnDescargarDiploma) btnDescargarDiploma.style.display = (cursoActualData && cursoActualData.diploma_bg_url) ? 'flex' : 'none';
+                if (btnAnalitico) btnAnalitico.style.display = (cursoActualData && cursoActualData.analitico_bg_url) ? 'flex' : 'none';
+            } else {
+                // En modo diploma único, el botón de diploma ya está visible, el analítico se oculta
+                if (btnAnalitico) btnAnalitico.style.display = 'none';
+            }
 
-            btnDiploma.style.display = (cursoActualData && cursoActualData.diploma_bg_url) ? 'flex' : 'none';
-            btnAnalitico.style.display = (cursoActualData && cursoActualData.analitico_bg_url) ? 'flex' : 'none';
+            // Mostrar botón flotante de WhatsApp solo en wallet
+            const whatsappBtn = document.getElementById('whatsapp-float-btn');
+            if (whatsappBtn) whatsappBtn.style.display = 'flex';
 
             setTimeout(ajustarCarnetResponsivo, 100);
         }
@@ -1365,7 +1349,7 @@
         }
 
         // ==========================================
-        // FUNCIONES DE DESCARGA
+        // FUNCIONES DE DESCARGA (MODIFICADA descargarDiploma)
         // ==========================================
         async function descargarCarnetCompleto() { 
             if(!alumnoActual) return; 
@@ -1441,7 +1425,68 @@
             } 
         }
         
+        // DESCARGA DE DIPLOMA MODIFICADA PARA MODO DIPLOMA ÚNICO
         async function descargarDiploma() { 
+            // Si estamos en modo diploma único, usar la plantilla de diplomas_catalogo
+            if (modoDiplomaUnico && diplomaUnicoData && diplomaUnicoData.plantilla_url) {
+                const btn = document.getElementById('btn-descargar-diploma'); 
+                const originalText = btn.innerHTML; 
+                btn.innerHTML = LOADING_TEXTS.generate;
+                btn.disabled = true;
+                
+                try {
+                    const ghost = document.getElementById('ghost-container'); 
+                    const fondoPlantilla = diplomaUnicoData.plantilla_url;
+                    const marcaAgua = diplomaUnicoData.watermark_url;
+                    
+                    ghost.innerHTML = `<div class="diploma-layout" id="diploma-unico" style="width: 2000px; height: 1414px; position: relative; background: white;">
+                        <img id="dip-bg-unico" src="${fondoPlantilla}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1;" crossorigin="anonymous">
+                        <div class="diploma-overlay" style="position: relative; z-index: 10; width: 100%; height: 100%;">
+                            <div class="dip-linea-unica-container" style="position: absolute; top: 595px; left: 50%; transform: translateX(-50%); width: 90%; text-align: center; white-space: nowrap; z-index: 10;">
+                                <span class="dip-texto-formal" id="dip-texto-unico" style="font-size: 80px; color: #1e1b4b;">${alumnoActual.nombre} ${alumnoActual.apellido}</span>
+                            </div>
+                            <div class="dip-qr" style="position: absolute; top: 284px; right: 176px; width: 233px; height: 233px; background: white; padding: 5px; z-index: 10;" id="qr-dip-unico"></div>
+                            <div class="dip-info-extra" style="position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); text-align: center; font-size: 18px; font-weight: 700; background: rgba(255,255,255,0.9); padding: 8px 20px; border-radius: 40px; z-index: 10;">
+                                CERTIFICACIÓN OFICIAL • ${diplomaUnicoData.nombre} • DNI ${alumnoActual.dni_alumno}
+                            </div>
+                            ${marcaAgua ? `<div style="position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); opacity: 0.3; z-index: 5;"><img src="${marcaAgua}" style="height: 80px; object-fit: contain;"></div>` : ''}
+                        </div>
+                    </div>`;
+                    
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                    
+                    new QRCode(document.getElementById('qr-dip-unico'), {
+                        text: `${URL_WEB}/validador.html?id=${alumnoActual.id}`,
+                        width: 223,
+                        height: 223
+                    });
+                    
+                    const txtElem = ghost.querySelector('#dip-texto-unico');
+                    await document.fonts.ready;
+                    txtElem.style.display = 'inline-block';
+                    txtElem.style.whiteSpace = 'nowrap';
+                    ajustarTextoInteligente(txtElem, txtElem.innerText, 1600, 40, 80, "'Roboto Slab', serif", '900');
+                    
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    const canvas = await html2canvas(ghost.querySelector('#diploma-unico'), { scale: 1.5, useCORS: true });
+                    const link = document.createElement('a');
+                    link.download = `Diploma_Oficial_${alumnoActual.dni_alumno}.png`;
+                    link.href = canvas.toDataURL("image/png");
+                    link.click();
+                    ghost.innerHTML = '';
+                    
+                } catch(e) {
+                    console.error("Error generando diploma único:", e);
+                    alert("Error al generar el diploma: " + e.message);
+                } finally {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+                return;
+            }
+            
+            // Modo normal (cursos_oficiales)
             if(!cursoActualData || !cursoActualData.diploma_bg_url) {
                 alert("Diploma no disponible.");
                 return;
@@ -1604,7 +1649,7 @@
         }
 
         // ==========================================
-        // FUNCIONES PREMIUM Y CONTENIDO EXTRA
+        // FUNCIONES PREMIUM Y CONTENIDO EXTRA (MODIFICADA checkPaymentReturn)
         // ==========================================
         function renderPremiumSection(alumno) {
             const container = document.getElementById('premium-section');
@@ -1805,17 +1850,33 @@
             window.location.href = LINK_MERCADO_PAGO; 
         }
         
+        // PERSISTENCIA DE PAGO PREMIUM: UPDATE A SUPABASE
         async function checkPaymentReturn(alumnoId) { 
             const params = new URLSearchParams(window.location.search); 
             if (params.get('status') === 'approved') { 
                 const alumnoEncontrado = globalMatriculas.find(a => a.id === alumnoId);
                 if (alumnoEncontrado) {
-                    alumnoEncontrado.premium = true;
-                    alumnoActual = alumnoEncontrado;
-                    renderPremiumSection(alumnoActual);
+                    // Persistir en Supabase
+                    try {
+                        const { error: updateError } = await db
+                            .from('matriculas')
+                            .update({ premium: true })
+                            .eq('id', alumnoId);
+                        if (updateError) {
+                            console.error("Error al persistir premium:", updateError);
+                            alert("Pago registrado pero hubo un error al guardar el estado. Contacta a soporte.");
+                        } else {
+                            console.log("✅ Premium actualizado permanentemente en BD");
+                            alumnoEncontrado.premium = true;
+                            alumnoActual = alumnoEncontrado;
+                            renderPremiumSection(alumnoActual);
+                        }
+                    } catch (err) {
+                        console.error("Error en update premium:", err);
+                    }
                 }
                 window.history.replaceState({}, document.title, window.location.pathname);
-                alert("¡Pago Registrado! Si en un rato no ves las herramientas activadas, escríbenos al WhatsApp."); 
+                alert("¡Pago Registrado! Tus herramientas premium ya están activadas."); 
             } 
         }
 
@@ -1836,11 +1897,14 @@
         function mostrarPantalla(id) { 
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); 
             document.getElementById(id).classList.add('active');
+            const whatsappBtn = document.getElementById('whatsapp-float-btn');
             if (id === 'screen-wallet') {
                 document.getElementById('wallet-header-actions').style.display = 'block';
                 actualizarCampana(notificacionesCache);
+                if (whatsappBtn) whatsappBtn.style.display = 'flex';
             } else {
                 document.getElementById('wallet-header-actions').style.display = 'none';
+                if (whatsappBtn) whatsappBtn.style.display = 'none';
             }
         }
         
@@ -1855,7 +1919,7 @@
         function ajustarCarnetResponsivo() { 
             const v = document.getElementById('card-viewport'); 
             const c = document.getElementById('carnet-render'); 
-            if(v && c) { 
+            if(v && c && v.style.display !== 'none') { 
                 const s = v.offsetWidth / 1011; 
                 c.style.transform = `scale(${s})`; 
                 v.style.height = `${638 * s}px`; 
