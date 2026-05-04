@@ -772,8 +772,15 @@
             }
         }
 
-        // Función para descargar diploma directo (CORREGIDA)
+       // Función para descargar diploma directo (ESTANDARIZADA)
         async function descargarDiplomaDirecto(diplomaId) {
+            const btn = document.querySelector('.btn-diploma-download');
+            const originalText = btn ? btn.innerHTML : 'DESCARGAR';
+            if (btn) {
+                btn.innerHTML = '⏳ GENERANDO...';
+                btn.disabled = true;
+            }
+
             try {
                 const { data: diploma, error } = await db
                     .from('diplomas_directos')
@@ -783,47 +790,80 @@
                 
                 if (error) throw error;
                 
-                const { data: plantillaCurso } = await db
-                    .from('cursos_oficiales')
-                    .select('diploma_bg_url')
-                    .eq('registro_id', diploma.registro_id)
-                    .maybeSingle(); // <-- S mayúscula correcta
+                // 1. BUSCAR LA PLANTILLA EN EL CATÁLOGO
+                const { data: catalogo } = await db
+                    .from('diplomas_catalogo')
+                    .select('plantilla_url')
+                    .eq('id', diploma.diploma_id)
+                    .maybeSingle();
                 
-                const fondoDiploma = plantillaCurso?.diploma_bg_url || 'https://via.placeholder.com/2000x1414?text=Diploma';
-                
+                let bgUrl = catalogo?.plantilla_url;
+                if (!bgUrl) throw new Error("Fondo no disponible en el catálogo.");
+
                 const ghost = document.getElementById('ghost-container');
+                const colorTextoInteligente = globalInstitucion?.color_texto_diploma || globalColorTema || '#1e1b4b'; 
+                
+                // 2. ARMAR EL HTML FANTASMA
                 ghost.innerHTML = `
                     <div class="diploma-layout" id="diploma-directo" style="width: 2000px; height: 1414px; position: relative; background: white;">
-                        <img src="${fondoDiploma}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1;" crossorigin="anonymous">
-                        <div style="position: absolute; top: 595px; left: 50%; transform: translateX(-50%); width: 90%; text-align: center; white-space: nowrap; z-index: 10;">
-                            <span class="dip-texto-formal" id="dip-texto" style="font-size: 80px;">${diploma.nombre} ${diploma.apellido}</span>
-                        </div>
-                        <div style="position: absolute; top: 284px; right: 176px; width: 233px; height: 233px; background: white; padding: 5px; z-index: 10;" id="qr-dip"></div>
-                        <div style="position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); text-align: center; font-size: 18px; font-weight: 700; z-index: 10; background: rgba(255,255,255,0.9); padding: 8px 20px; border-radius: 40px;">
-                            DIPLOMA DE ${diploma.diploma_nombre} • EMITIDO: ${new Date(diploma.emitido_en).toLocaleDateString()}
+                        <img id="fondo-img-directo" class="diploma-bg" src="" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1;">
+                        <div class="diploma-overlay" style="position: relative; z-index: 10; width: 100%; height: 100%;">
+                            <div style="position: absolute; top: 595px; left: 50%; transform: translateX(-50%); width: 90%; text-align: center; white-space: nowrap; z-index: 10;">
+                                <span class="dip-texto-formal" id="dip-texto" style="font-size: 80px; color: ${colorTextoInteligente};">${diploma.nombre} ${diploma.apellido} - DNI ${new Intl.NumberFormat('es-AR').format(diploma.dni_alumno)}</span>
+                            </div>
+                            <div id="qr-dip" style="position: absolute; top: 284px; right: 176px; width: 233px; height: 233px; background: white; padding: 5px; z-index: 10; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"></div>
+                            <div style="position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); text-align: center; font-family: 'Roboto', sans-serif; font-size: 18px; font-weight: 700; z-index: 10; background: rgba(255,255,255,0.9); padding: 8px 20px; border-radius: 40px; color: #222;">
+                                DIPLOMA DE ${diploma.diploma_nombre} • EMITIDO: ${new Date(diploma.emitido_en).toLocaleDateString()}
+                            </div>
                         </div>
                     </div>
                 `;
                 
-                await new Promise(r => setTimeout(r, 300));
-                
-                new QRCode(document.getElementById('qr-dip'), {
-                    text: `${URL_WEB}/validador.html?id=${diplomaId}`, // <-- URL de validación corregida
+                // 3. LA MISMA TÉCNICA DE CARGA QUE USÁS EN descargarDiploma()
+                const bgImg = ghost.querySelector('#fondo-img-directo');
+                const response = await fetch(bgUrl);
+                const blob = await response.blob();
+                const objectURL = URL.createObjectURL(blob);
+                bgImg.src = objectURL;
+
+                await new Promise((resolve, reject) => {
+                    bgImg.onload = resolve;
+                    bgImg.onerror = () => reject(new Error("Error carga diploma"));
+                    setTimeout(() => reject(new Error("Timeout")), 10000);
+                });
+
+                new QRCode(ghost.querySelector('#qr-dip'), {
+                    text: `${URL_WEB}/validador.html?id=${diplomaId}`,
                     width: 223,
                     height: 223
                 });
                 
+                // 4. ACOMODAR EL TEXTO Y DESCARGAR
+                const txtElem = ghost.querySelector('#dip-texto');
+                await document.fonts.ready;
+                txtElem.style.display = 'inline-block';
+                await new Promise(r => setTimeout(r, 100));
+                ajustarTextoInteligente(txtElem, txtElem.innerText, 1600, 40, 80, "'Roboto Slab', serif", '900');
+                
                 await new Promise(r => setTimeout(r, 500));
+                
                 const canvas = await html2canvas(ghost.querySelector('#diploma-directo'), { scale: 1.5, useCORS: true });
                 const link = document.createElement('a');
                 link.download = `Diploma_${diploma.dni_alumno}_${diploma.diploma_nombre.replace(/\s/g, '_')}.png`;
                 link.href = canvas.toDataURL("image/png");
                 link.click();
+                
+                URL.revokeObjectURL(objectURL);
                 ghost.innerHTML = '';
                 
             } catch (error) {
-                console.error("Error descargando diploma:", error);
+                console.error("Error descargando diploma directo:", error);
                 alert("Error al descargar el diploma: " + error.message);
+            } finally {
+                if (btn) {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
             }
         }
         // ==========================================
