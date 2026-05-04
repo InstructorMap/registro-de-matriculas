@@ -787,7 +787,7 @@
                     .from('cursos_oficiales')
                     .select('diploma_bg_url')
                     .eq('registro_id', diploma.registro_id)
-                    .maybeFirst();
+                    .maybesingle();
                 
                 const fondoDiploma = plantillaCurso?.diploma_bg_url || 'https://via.placeholder.com/2000x1414?text=Diploma';
                 
