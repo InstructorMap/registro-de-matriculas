@@ -772,7 +772,7 @@
             }
         }
 
-        // Función para descargar diploma directo
+        // Función para descargar diploma directo (CORREGIDA)
         async function descargarDiplomaDirecto(diplomaId) {
             try {
                 const { data: diploma, error } = await db
@@ -787,14 +787,14 @@
                     .from('cursos_oficiales')
                     .select('diploma_bg_url')
                     .eq('registro_id', diploma.registro_id)
-                    .maybesingle();
+                    .maybeSingle(); // <-- S mayúscula correcta
                 
                 const fondoDiploma = plantillaCurso?.diploma_bg_url || 'https://via.placeholder.com/2000x1414?text=Diploma';
                 
                 const ghost = document.getElementById('ghost-container');
                 ghost.innerHTML = `
                     <div class="diploma-layout" id="diploma-directo" style="width: 2000px; height: 1414px; position: relative; background: white;">
-                        <img src="${fondoDiploma}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1;">
+                        <img src="${fondoDiploma}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1;" crossorigin="anonymous">
                         <div style="position: absolute; top: 595px; left: 50%; transform: translateX(-50%); width: 90%; text-align: center; white-space: nowrap; z-index: 10;">
                             <span class="dip-texto-formal" id="dip-texto" style="font-size: 80px;">${diploma.nombre} ${diploma.apellido}</span>
                         </div>
@@ -805,8 +805,10 @@
                     </div>
                 `;
                 
+                await new Promise(r => setTimeout(r, 300));
+                
                 new QRCode(document.getElementById('qr-dip'), {
-                    text: `${URL_WEB}/validador.html?dni=${diploma.dni_alumno}`,
+                    text: `${URL_WEB}/validador.html?id=${diplomaId}`, // <-- URL de validación corregida
                     width: 223,
                     height: 223
                 });
@@ -824,7 +826,6 @@
                 alert("Error al descargar el diploma: " + error.message);
             }
         }
-
         // ==========================================
         // INICIALIZACIÓN Y SERVICE WORKER
         // ==========================================
